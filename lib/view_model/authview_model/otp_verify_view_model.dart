@@ -38,7 +38,7 @@ class OtpVerifyViewModel with ChangeNotifier {
         print(user);
         await Future.delayed(const Duration(seconds: 1));
 
-        Navigator.pushReplacementNamed(context, RoutesName.navigationBar);
+        Navigator.pushReplacementNamed(context, RoutesName.verificationSuccessScreen);
         String ? _accessToken = value['data']['accessToken'];
         if (_accessToken != null && _accessToken.isNotEmpty) {
           final prefs = await SharedPreferences.getInstance();

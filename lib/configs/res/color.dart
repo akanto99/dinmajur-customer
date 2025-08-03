@@ -91,6 +91,11 @@ class AppColors {
           ? Colors.black12
           :Colors.white12;
 
+  ///Cursor Color
+  static Color coursorColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : Colors.black;
 
 
 
