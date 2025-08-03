@@ -265,12 +265,10 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
         Utils.flushBarErrorMessage(error, context);
         return;
       }
-
-      // Prepare data for API call
       Map data = {
         'phone': _phoneController.text.trim(),
         'password': _passwordController.text.trim(),
-        'role': 'DINMAJUR'
+        'role': 'CUSTOMER'
       };
 
       print(data);
@@ -290,7 +288,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               arguments: {
                 'phone': _phoneController.text.trim(),
                 'password': _passwordController.text.trim(),
-                'role': 'DINMAJUR'
+                'role': 'CUSTOMER'
               },
             );
 

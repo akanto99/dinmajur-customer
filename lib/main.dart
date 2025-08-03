@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           theme: MyThemes.lightTheme,
           darkTheme: MyThemes.darkTheme,
-          initialRoute: RoutesName.navigationBar,
+          initialRoute: RoutesName.splash,
           // initialRoute: RoutesName.testScreen,
           onGenerateRoute: Routes.generateRoute,
         );

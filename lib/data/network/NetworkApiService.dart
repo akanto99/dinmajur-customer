@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/app_url.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as https;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../app_excaptions.dart';
 import 'BaseApiServices.dart';
@@ -35,8 +36,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -60,8 +59,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -83,8 +80,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -109,8 +104,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -142,8 +135,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -172,8 +163,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -216,8 +205,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -242,8 +229,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -268,8 +253,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -303,8 +286,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -329,8 +310,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -354,8 +333,6 @@ class NetworkApiService extends BaseApiServices {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      throw FetchDataException('Unexpected error: ${e.toString()}');
     }
   }
 
@@ -522,46 +499,36 @@ class NetworkApiService extends BaseApiServices {
   }
 
   /// Handle different HTTP response status codes
-  dynamic _returnResponse(http.Response response) {
+  dynamic _returnResponse(https.Response response) {
     switch (response.statusCode) {
       case 200:
       case 201:
-        try {
-          return jsonDecode(response.body);
-        } catch (e) {
-          throw FetchDataException('Invalid JSON response');
-        }
-
+        dynamic responseJson = jsonDecode(response.body);
+        print('✅ Parsed response JSON: $responseJson');
+        return responseJson;
       case 400:
-        throw BadRequestException(_parseErrorMessage(response.body));
-
+        throw BadRequestException(response.body.toString());
       case 401:
-        throw UnauthorisedExceptionLogin(_parseErrorMessage(response.body));
-
+        throw UnauthorisedExceptionLogin(response.body.toString());
       case 403:
-        throw UnauthorisedExceptionLogin('Access forbidden');
-
-      case 404:
-        try {
-          return jsonDecode(response.body);
-        } catch (e) {
-          throw FetchDataException('Resource not found');
-        }
-
-      case 409:
-        throw BadRequestException('Conflict: ${_parseErrorMessage(response.body)}');
-
+        throw UnauthorisedExceptionLogin(response.body.toString());
       case 422:
-        final errorMessage = _parseValidationErrors(response.body);
-        throw UnauthorisedExceptionLogin(errorMessage);
-
+        final dynamic responseBody = jsonDecode(response.body);
+        final dynamic data = responseBody['data'];
+        if (data != null && data is Map<String, dynamic>) {
+          final List<dynamic>? emailErrors = data['email'];
+        }
+        throw UnauthorisedExceptionLogin("Unknown validation error occurred");
       case 500:
-        throw FetchDataException('Internal server error');
-
+        throw FetchDataException("Server error");
+      case 404:
+        dynamic responseJson = jsonDecode(response.body);
+        return responseJson;
+      case 409:
+        throw BadRequestException(response.body.toString());
       default:
-        throw FetchDataException(
-            'Communication error with server (Status: ${response.statusCode})'
-        );
+        throw FetchDataException('Error occurred while communicating with server' +
+            ' with status code ' + response.statusCode.toString());
     }
   }
 
