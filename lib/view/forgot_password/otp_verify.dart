@@ -174,7 +174,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                            context,
                            onSuccess: () {
                              pinTEController.clear();
-                             Utils.flushBarSuccessMessage('নতুন OTP পাঠানো হয়েছে', context);
+                             Utils.flushBarSuccessMessage('New OTP has been sent"', context);
                            },
                          );
                        }
@@ -187,44 +187,43 @@ class _OtpVerifyState extends State<OtpVerify> {
                            timerProvider.formattedTime,
                            style: AppTextStyles.poppins18(context, weight: FontWeight.w500, color: AppColors.button(context)),
                          ),
+                         SizedboxSpaccing.height01(context),
+                         Builder(
+                           builder: (context) {
+                             final textStyle = GoogleFonts.poppins(fontSize: 18, color: timerProvider.canResend ? AppColors.button(context) : Colors.grey, fontWeight: FontWeight.w500);
+
+                             final textPainter = TextPainter(
+                               text: TextSpan(text: "Send Again", style: textStyle),
+                               textDirection: TextDirection.ltr,
+                             );
+                             textPainter.layout();
+
+                             return Column(
+                               mainAxisSize: MainAxisSize.min,
+                               children: [
+                                 Center(child: Text("Send Again", style: textStyle)),
+                                 // Center(
+                                 //   child: DottedLine(
+                                 //     direction: Axis.horizontal,
+                                 //     lineLength: textWidth,
+                                 //     lineThickness: 1.0,
+                                 //     dashLength: 1.0,
+                                 //     dashColor: timerProvider.canResend
+                                 //         ? AppColors.button(context)
+                                 //         : Colors.grey,
+                                 //     dashRadius: 1,
+                                 //     dashGapLength: 2.0,
+                                 //     dashGapColor: Colors.transparent,
+                                 //   ),
+                                 // ),
+                               ],
+                             );
+                           },
+                         ),
                        ],
                      ),
                    ),
-                   SizedboxSpaccing.height01(context),
-                   Builder(
-                     builder: (context) {
-                       final textStyle = GoogleFonts.poppins(fontSize: 18, color: timerProvider.canResend ? AppColors.button(context) : Colors.grey, fontWeight: FontWeight.w500);
 
-                       final textPainter = TextPainter(
-                         text: TextSpan(text: "Send Again", style: textStyle),
-                         textDirection: TextDirection.ltr,
-                       );
-                       textPainter.layout();
-
-                       final textWidth = textPainter.size.width;
-
-                       return Column(
-                         mainAxisSize: MainAxisSize.min,
-                         children: [
-                           Center(child: Text("Send Again", style: textStyle)),
-                           // Center(
-                           //   child: DottedLine(
-                           //     direction: Axis.horizontal,
-                           //     lineLength: textWidth,
-                           //     lineThickness: 1.0,
-                           //     dashLength: 1.0,
-                           //     dashColor: timerProvider.canResend
-                           //         ? AppColors.button(context)
-                           //         : Colors.grey,
-                           //     dashRadius: 1,
-                           //     dashGapLength: 2.0,
-                           //     dashGapColor: Colors.transparent,
-                           //   ),
-                           // ),
-                         ],
-                       );
-                     },
-                   ),
                  ],
                ),
              ),

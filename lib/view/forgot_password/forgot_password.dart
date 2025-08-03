@@ -6,7 +6,6 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
-import 'package:dinmajur_customer/provider/countdown/forgotpassword_countdown/forgotPassword_countdown.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgot_otpsend_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
