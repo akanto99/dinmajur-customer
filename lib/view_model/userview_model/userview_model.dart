@@ -70,11 +70,6 @@ class UserViewModel with ChangeNotifier {
 
     await sp.setString('profilePictureUrl', profilePictureUrl);
     await sp.setString('profilePictureAltText', profilePictureAltText);
-
-    await sp.setBool('isDeliveryPerson', userModel.data?.user?.isDeliveryPerson ?? false);
-    await sp.setBool('checkedJoinUs', userModel.data?.user?.checkedJoinUs ?? false);
-    await sp.setBool('checkedSelectServices', userModel.data?.user?.checkedSelectServices ?? false);
-    await sp.setBool('checkedSelectArea', userModel.data?.user?.checkedSelectArea ?? false);
     await sp.setString('message', userModel.message ?? '');
 
     // Update local state

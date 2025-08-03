@@ -38,24 +38,31 @@ class LoginLogoutViewModel with ChangeNotifier {
       await prefs.setBool('isRegistered', user.data?.user?.isRegistered ?? false);
 
       setLoading(false);
+
+      // Add delay before showing success message
+      await Future.delayed(Duration(milliseconds: 300));
       Utils.flushBarSuccessMessage('Login Successfully', context);
 
       final bool isPhoneVerified = user.data?.user?.isPhoneVerified ?? false;
       final bool isRegistered = user.data?.user?.isRegistered ?? false;
+      final String userRole = user.data?.user?.role ?? '';
 
       print("Login Navigation - accessToken: ${user.data?.accessToken}");
       print("Login Navigation - isPhoneVerified: $isPhoneVerified");
       print("Login Navigation - isRegistered: $isRegistered");
+      print("Login Navigation - userRole: $userRole");
 
-      // Navigation logic
-      if (isPhoneVerified && isRegistered) {
-        print("🔥 Navigation: Going to navigationBar (Verified & Registered)");
+      // Navigation logic - Check both phone verification and role
+      if (isPhoneVerified == true && userRole == "CUSTOMER") {
         Navigator.pushNamedAndRemoveUntil(
             context,
             RoutesName.navigationBar,
                 (route) => false
         );
-      }  else {
+      } else if (userRole != "CUSTOMER") {
+        print("🔥 Navigation: Error - User role is not CUSTOMER");
+        Utils.flushBarErrorMessage("আপনার অ্যাকাউন্ট কাস্টমার অ্যাকাউন্ট নয়", context);
+      } else {
         print("🔥 Navigation: Error - Phone not verified");
         Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
       }

@@ -13,13 +13,11 @@ class SplashService {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? accessToken = prefs.getString('accessToken');
       bool? isPhoneVerified = prefs.getBool('isPhoneVerified');
-      bool? isRegistered = prefs.getBool('isRegistered');
+      String? role = prefs.getString('role');
 
-
-      print("accessToken   :  $accessToken");
-      print("isPhoneVerified   :  $isPhoneVerified");
-      print("isRegistered   :  $isRegistered");
-
+      print("accessToken: $accessToken");
+      print("isPhoneVerified: $isPhoneVerified");
+      print("role: $role");
 
       await Future.delayed(Duration(milliseconds: 1500));
 
@@ -28,23 +26,15 @@ class SplashService {
         Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
       }
       // ✅ Most specific condition first (F)
-      else if (
-      accessToken.isNotEmpty &&
+      else if (accessToken.isNotEmpty &&
           isPhoneVerified == true &&
-          isRegistered == true) {
-        print("");
+          role == "CUSTOMER") {
+        print("✅ Navigation: Going to home - All conditions met");
         Navigator.pushNamed(context, RoutesName.navigationBar);
       }
-      else if (
-      accessToken.isNotEmpty &&
-          isPhoneVerified == true &&
-          isRegistered == false) {
-        print("B");
-        Navigator.pushNamed(context, RoutesName.register,);
-      }
-      // Fallback
       else {
-        print("❌");
+        print("   - role == CUSTOMER: ${role == "CUSTOMER"}");
+        print("   - Current role: $role");
         Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
       }
     } else {
@@ -53,7 +43,6 @@ class SplashService {
       Navigator.pushNamed(context, RoutesName.onBoardUpdated);
     }
   }
-
 }
 
 Future<void> setShowHome() async {

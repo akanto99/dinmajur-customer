@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: RoundButton(
               title: 'Sign In',
               iconData: Icons.arrow_forward_ios_rounded,
-              // loading: authViewMode.loading,
+              loading: loginMode.loading,
               onPress: () {
                 if (_phoneController.text.isEmpty) {
                   Utils.flushBarErrorMessage('Please enter phone number', context);
