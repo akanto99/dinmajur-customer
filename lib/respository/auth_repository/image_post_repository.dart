@@ -18,9 +18,9 @@ class ImagePostRepository {
     try {
       return await _apiServices.imageMultipartPostApiResponse(
         AppUrl.imageApi,
+        imageBytes,
         fileName,
         imageType,
-        imageBytes,
         headers: {
           'Authorization': '$accessToken',
         },

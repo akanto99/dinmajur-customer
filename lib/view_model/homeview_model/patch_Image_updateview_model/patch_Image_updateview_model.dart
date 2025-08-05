@@ -12,57 +12,73 @@ class ImageUpdateViewModel with ChangeNotifier {
   bool _imageUpdateLoading = false;
   bool get imageUpdateLoading => _imageUpdateLoading;
 
-  setimageUpdateLoading(bool value) {
+  void setImageUpdateLoading(bool value) {
     _imageUpdateLoading = value;
     notifyListeners();
   }
 
-  Future<void> imageUpdatePatchApi(Uint8List imageBytes, BuildContext context, {VoidCallback? onComplete}) async {
-    setimageUpdateLoading(true);
+  Future<void> imageUpdatePatchApi(
+      Uint8List imageBytes,
+      String fileName,
+      String imageTypes,
+      BuildContext context,
+      {VoidCallback? onComplete}
+      ) async {
+    setImageUpdateLoading(true);
+
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? AToken = prefs.getString('accessToken');
+      String? accessToken = prefs.getString('accessToken');
 
-      if (AToken == null || AToken.isEmpty) {
+      if (accessToken == null || accessToken.isEmpty) {
         Utils.flushBarErrorMessage('Invalid token', context);
-        setimageUpdateLoading(false);
-        if (onComplete != null) onComplete();
+        setImageUpdateLoading(false);
+        onComplete?.call();
         return;
       }
 
-      final value = await _myRepo.imageUpdatePatchApi(imageBytes, AToken);
-      setimageUpdateLoading(false);
+      // Fixed: Pass all required parameters
+      final value = await _myRepo.imageUpdatePatchApi(
+          imageBytes,
+          accessToken,
+          fileName
+      );
+
+      setImageUpdateLoading(false);
 
       if (kDebugMode) {
         print('Response from image upload: $value');
       }
 
       Utils.flushBarSuccessMessage('Image updated successfully', context);
-
-      // Just call the completion callback - let UI handle navigation
-      if (onComplete != null) onComplete();
+      onComplete?.call();
 
     } catch (error) {
-      setimageUpdateLoading(false);
+      setImageUpdateLoading(false);
       _handleError(error, context);
-      if (onComplete != null) onComplete();
+      onComplete?.call();
     }
   }
+
   void _handleError(dynamic error, BuildContext context) {
-    String errorMessage = '$error';
+    String errorMessage = error.toString();
+
     try {
       String errorBody = error.toString();
       int jsonStartIndex = errorBody.indexOf('{');
+
       if (jsonStartIndex != -1) {
         final decoded = jsonDecode(errorBody.substring(jsonStartIndex));
         errorMessage = decoded['message'] ??
-            (decoded['errorMessages'] is List && decoded['errorMessages'].isNotEmpty
+            (decoded['errorMessages'] is List &&
+                decoded['errorMessages'].isNotEmpty
                 ? decoded['errorMessages'][0]['message']
                 : errorMessage);
       }
     } catch (_) {
       errorMessage = 'Unexpected error occurred';
     }
+
     Utils.flushBarErrorMessage(errorMessage, context);
   }
 }
