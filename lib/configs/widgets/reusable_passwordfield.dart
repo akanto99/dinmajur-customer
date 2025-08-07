@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 
@@ -84,7 +85,7 @@ class _CustomPasswordFieldPoppinsState extends State<CustomPasswordFieldPoppins>
                     // hintText: 'Enter 8 characters or more',
                     // hintStyle:  AppTextStyles.siliguri12HintTextField(context, weight: FontWeight.w400),
                     contentPadding: EdgeInsets.symmetric( horizontal: 10.0),
-                    hintText:'Enter 8 characters or more',
+                    hintText: AppLocalizations.of(context)!.password_hint,
                     hintStyle:  AppTextStyles.textSize16(context,  color: AppColors.hintColor(context),weight: FontWeight.w400),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,

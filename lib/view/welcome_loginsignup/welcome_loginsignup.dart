@@ -4,8 +4,10 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
 
 class WelcomeLoginSignup extends StatefulWidget {
   const WelcomeLoginSignup({super.key});
@@ -59,9 +61,9 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
                     SizedBox(height: 55,),
                     // SizedboxSpaccing.height04(context),
                     // SizedboxSpaccing.height015(context),
-                    Text("Welcome to DinMajur", style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
+                    Text(AppLocalizations.of(context)!.welcome, style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
                     // SizedboxSpaccing.height005(context),
-                    Text("Busy life, simple solution", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                    Text(AppLocalizations.of(context)!.welcome_subtitle, style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                     SizedboxSpaccing.height02(context),
                     GestureDetector(
                       onTap: () {
@@ -80,7 +82,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             Icon(Icons.arrow_forward_ios_rounded, size:14 ,color: Colors.transparent),
-                            Text("Login",  style: AppTextStyles.textSize16(context, color: AppColors.textPrimary(context), weight: FontWeight.w700),),
+                            Text(AppLocalizations.of(context)!.login,  style: AppTextStyles.textSize16(context, color: AppColors.textPrimary(context), weight: FontWeight.w700),),
                               Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textPrimary(context), size: 14),
                           ],
                         ),
@@ -105,7 +107,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
                           children: [
                             Icon(Icons.arrow_forward_ios_rounded, size:14 ,color: Colors.transparent),
                             Text(
-                              "Register",
+                              AppLocalizations.of(context)!.register,
                               style: AppTextStyles.textSize16(context, color: AppColors.whiteColor, weight: FontWeight.w700),
                             ),
                             Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),

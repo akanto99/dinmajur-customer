@@ -1,6 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/drawer.dart';
-import 'package:dinmajur_customer/configs/res/components/language_changer/language_changer_widgets.dart';
 import 'package:dinmajur_customer/configs/res/components/notifications/resuable_notifications.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';

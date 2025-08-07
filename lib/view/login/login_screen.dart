@@ -8,6 +8,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
 import 'package:dinmajur_customer/configs/widgets/reusable_passwordfield.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -69,11 +70,11 @@ class _LoginScreenState extends State<LoginScreen> {
               },
               child: Container(
                   height: 60,
-                  child: AppBarHeader("Sign In"))),
+                  child: AppBarHeader(AppLocalizations.of(context)!.log_in))),
           Center(child: SizedboxSpaccing.height025(context)),
-          Text("Log In" ,style: AppTextStyles.textSize32(context,weight: FontWeight.w600),),
+          Text(AppLocalizations.of(context)!.log_in ,style: AppTextStyles.textSize32(context,weight: FontWeight.w600),),
           SizedboxSpaccing.height005(context),
-          Text("Please enter your login credentials", style: AppTextStyles.textSize18(context,weight: FontWeight.w500),),
+          Text(AppLocalizations.of(context)!.log_in_subtitle, style: AppTextStyles.textSize18(context,weight: FontWeight.w500),),
           // Text("ব্যস্ত জীবন, সহজ সমাধান",style:TextStyle(color: AppColors.blackColor.withOpacity(0.6),fontFamily: )),
           SizedboxSpaccing.height025(context),
           Container(
@@ -89,15 +90,15 @@ class _LoginScreenState extends State<LoginScreen> {
        child: Column(
          children: [
            CustomTextFieldWithFormFieldPoppins(
-             titleText: "Mobile Number",
-             placeholder: "01XXXXXXXXX",
+             titleText: AppLocalizations.of(context)!.phone,
+             placeholder:  AppLocalizations.of(context)!.phone_hint,
              controller: _phoneController,
              focusCurrent: _phoneFocus,
              keyboardType: TextInputType.number,
            ),
            SizedboxSpaccing.height015(context),
            CustomPasswordFieldPoppins(
-             titleText: "পাসওয়ার্ড লিখুন *",
+             titleText: AppLocalizations.of(context)!.password,
              controller: _passwordController,
              focusNode: _passwordFocus,
              obsecurePassword: _obsecurePassword,
@@ -112,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                child: Align(
                  alignment: Alignment.centerRight,
                  child: Text(
-                   "Forgot Password?",
+                   AppLocalizations.of(context)!.forgot_password,
                    style: GoogleFonts.poppins(
                      fontSize: 16,
                      color: AppColors.textPrimary(context),
@@ -134,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Container(
             width: screenWidth*0.9,
             child: RoundButton(
-              title: 'Sign In',
+              title: AppLocalizations.of(context)!.sign_in,
               iconData: Icons.arrow_forward_ios_rounded,
               loading: loginMode.loading,
               onPress: () {
@@ -167,8 +168,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("New user?",   style: AppTextStyles.textSize16(context,weight: FontWeight.w500)),    
-                Text(" Register",   style: AppTextStyles.textSize16(context,weight: FontWeight.w500,color: AppColors.button(context))),
+                Text(AppLocalizations.of(context)!.new_user,   style: AppTextStyles.textSize16(context,weight: FontWeight.w500)),
+                Text(" ${AppLocalizations.of(context)!.register}",   style: AppTextStyles.textSize16(context,weight: FontWeight.w500,color: AppColors.button(context))),
                 // Text("Register",    style: GoogleFonts.hindSiliguri(fontSize: 12,   color: AppColors.textPrimary(context), fontWeight: FontWeight.w400, decoration: TextDecoration
                 //     .underline, decorationColor:  AppColors.textPrimary(context),),),
               ],

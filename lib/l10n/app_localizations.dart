@@ -103,6 +103,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'First Name'**
   String get first_name;
+
+  /// No description provided for @welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to DinMajur'**
+  String get welcome;
+
+  /// No description provided for @welcome_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Busy life, simple solution'**
+  String get welcome_subtitle;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @log_in.
+  ///
+  /// In en, this message translates to:
+  /// **'Log In'**
+  String get log_in;
+
+  /// No description provided for @log_in_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your login credential'**
+  String get log_in_subtitle;
+
+  /// No description provided for @phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Number'**
+  String get phone;
+
+  /// No description provided for @phone_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'01XXXXXXXXX'**
+  String get phone_hint;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @password_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 8 characters or more'**
+  String get password_hint;
+
+  /// No description provided for @forgot_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password'**
+  String get forgot_password;
+
+  /// No description provided for @sign_in.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get sign_in;
+
+  /// No description provided for @new_user.
+  ///
+  /// In en, this message translates to:
+  /// **'New user?'**
+  String get new_user;
+
+  /// No description provided for @registartion_screen.
+  ///
+  /// In en, this message translates to:
+  /// **'--------------------------Registration Screen-------------------'**
+  String get registartion_screen;
+
+  /// No description provided for @registration_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration'**
+  String get registration_title;
+
+  /// No description provided for @create_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an Account'**
+  String get create_account;
+
+  /// No description provided for @slogan.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Work, Daily Earn!'**
+  String get slogan;
+
+  /// No description provided for @mobile_number_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Number*'**
+  String get mobile_number_required;
+
+  /// No description provided for @password_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Password*'**
+  String get password_required;
+
+  /// No description provided for @reenter_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter Password*'**
+  String get reenter_password;
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @already_have_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? '**
+  String get already_have_account;
+
+  /// No description provided for @login_now.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Now'**
+  String get login_now;
+
+  /// No description provided for @loading_validation.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading validation...'**
+  String get loading_validation;
+
+  /// No description provided for @loading_requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading requirements...'**
+  String get loading_requirements;
+
+  /// No description provided for @error_try_again.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred. Please try again.'**
+  String get error_try_again;
 }
 
 class _AppLocalizationsDelegate

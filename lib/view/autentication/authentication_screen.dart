@@ -10,6 +10,7 @@ import 'package:dinmajur_customer/configs/validations/authentication_validation/
 import 'package:dinmajur_customer/configs/validations/forgotpasword_validation/newpassword_validation.dart';
 import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
 import 'package:dinmajur_customer/configs/widgets/reusable_passwordfield.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/authview_model/authview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -97,16 +98,16 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             },
             child: Container(
                 height: 60,
-                child: AppBarHeader("Registration"))),
+                child: AppBarHeader(AppLocalizations.of(context)!.registration_title,))),
         Expanded(
           child: SingleChildScrollView(
            child: Column(
              children: [
 
                Center(child: SizedboxSpaccing.height025(context)),
-               Text("Create an Account" ,style: AppTextStyles.textSize32(context,weight: FontWeight.w600),),
+               Text(AppLocalizations.of(context)!.create_account ,style: AppTextStyles.textSize32(context,weight: FontWeight.w600),),
                SizedboxSpaccing.height005(context),
-               Text("Daily Work, Daily Earn!", style: AppTextStyles.textSize18(context,weight: FontWeight.w500),),
+               Text(AppLocalizations.of(context)!.slogan, style: AppTextStyles.textSize18(context,weight: FontWeight.w500),),
                // Text("ব্যস্ত জীবন, সহজ সমাধান",style:TextStyle(color: AppColors.blackColor.withOpacity(0.6),fontFamily: )),
                SizedboxSpaccing.height025(context),
 
@@ -124,15 +125,15 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                  child: Column(
                    children: [
                      CustomTextFieldWithFormFieldPoppins(
-                       titleText: "Mobile Number*",
-                       placeholder: "01XXXXXXXXX",
+                       titleText: "${AppLocalizations.of(context)!.phone}*",
+                       placeholder: AppLocalizations.of(context)!.phone_hint,
                        controller: _phoneController,
                        focusCurrent: _phoneFocus,
                        keyboardType: TextInputType.number,
                      ),
                      SizedboxSpaccing.height015(context),
                      CustomPasswordFieldPoppins(
-                       titleText: "Password*",
+                       titleText: "${AppLocalizations.of(context)!.password}*",
                        controller: _passwordController,
                        focusNode: _passwordFocus,
                        obsecurePassword: _obsecurePassword,
@@ -143,7 +144,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                      ],
                      SizedboxSpaccing.height015(context),
                      CustomPasswordFieldPoppins(
-                       titleText: "Re-enter password*",
+                       titleText: AppLocalizations.of(context)!.reenter_password,
                        controller: _reenterPasswordController,
                        focusNode: _rePasswordFocus,
                        obsecurePassword: _reObsecurePassword,
@@ -167,7 +168,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                      width: screenWidth*0.9,
                      // padding: EdgeInsets.all(screenHeight * 0.02),
                      child: RoundButton(
-                       title: 'Next',
+                       title:AppLocalizations.of(context)!.next,
                        iconData: Icons.arrow_forward_ios_rounded,
                        loading: authenticationViewMode.otpAPiloading,
                        onPress: () => _handleSubmit(authenticationViewMode),
@@ -186,8 +187,9 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                  child: Row(
                    mainAxisAlignment: MainAxisAlignment.center,
                    children: [
-                     Text("Already have an account? ",   style: AppTextStyles.textSize16(context,weight: FontWeight.w500)),
-                     Text("Login",    style: GoogleFonts.poppins(fontSize: 16,   color: AppColors.button(context), fontWeight: FontWeight.w500, decoration: TextDecoration.underline,
+                     Text(AppLocalizations.of(context)!.already_have_account,   style: AppTextStyles.textSize16(context,weight: FontWeight.w500)),
+                     Text(AppLocalizations.of(context)!.login,    style: GoogleFonts.poppins(fontSize: 16,   color: AppColors.button(context), fontWeight: FontWeight.w500, decoration: TextDecoration
+                         .underline,
                        decorationColor:  AppColors.button(context),),),
                    ],
                  ),
