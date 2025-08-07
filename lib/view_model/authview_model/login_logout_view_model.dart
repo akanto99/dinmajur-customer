@@ -53,16 +53,20 @@ class LoginLogoutViewModel with ChangeNotifier {
       print("Login Navigation - userRole: $userRole");
 
       // Navigation logic - Check both phone verification and role
-      if (isPhoneVerified == true && userRole == "CUSTOMER") {
+      if (isPhoneVerified == true
+          // && userRole == "CUSTOMER"
+      ) {
         Navigator.pushNamedAndRemoveUntil(
             context,
             RoutesName.navigationBar,
                 (route) => false
         );
-      } else if (userRole != "CUSTOMER") {
-        print("🔥 Navigation: Error - User role is not CUSTOMER");
-        Utils.flushBarErrorMessage("আপনার অ্যাকাউন্ট কাস্টমার অ্যাকাউন্ট নয়", context);
-      } else {
+      }
+      // else if (userRole != "CUSTOMER") {
+      //   print("🔥 Navigation: Error - User role is not CUSTOMER");
+      //   Utils.flushBarErrorMessage("আপনার অ্যাকাউন্ট কাস্টমার অ্যাকাউন্ট নয়", context);
+      // }
+      else {
         print("🔥 Navigation: Error - Phone not verified");
         Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
       }

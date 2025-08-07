@@ -27,8 +27,10 @@ class SplashService {
       }
       // ✅ Most specific condition first (F)
       else if (accessToken.isNotEmpty &&
-          isPhoneVerified == true &&
-          role == "CUSTOMER") {
+          isPhoneVerified == true
+          // &&
+          // role == "CUSTOMER"
+      ) {
         print("✅ Navigation: Going to home - All conditions met");
         Navigator.pushNamed(context, RoutesName.navigationBar);
       }

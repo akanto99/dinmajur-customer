@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -44,6 +45,39 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       children: [
 
+        ///Siliguri
+        Text(
+          'রাজার ডেলিনারি',
+          style: TextStyle(
+            fontFamily: 'hindSiliguri',
+            fontSize: 30,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          'রাজার ডেলিনারি',
+          style: GoogleFonts.hindSiliguri(
+            fontSize: 30,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+
+        ///Poppins
+        Text(
+          'Hello World in Poppins',
+          style: TextStyle(
+            fontFamily: 'poppins',
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          'Hello World in Poppins',
+          style: GoogleFonts.poppins(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }

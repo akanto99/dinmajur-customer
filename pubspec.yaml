@@ -97,8 +97,8 @@ flutter:
     - assets/images/
     - assets/images/splash/
     - assets/images/onboard/
+    - assets/images/onboard/icons/
     - assets/images/login/
-    #    - assets/images/onboard/icons/
     #    - assets/images/navBar/
     - assets/images/navBar/navbar_new/
 #    - assets/images/home/
@@ -110,10 +110,28 @@ flutter:
     - assets/map_theme/nighttheme.json
     - assets/map_theme/standaredtheme.json
 
-#  fonts:
-#    - family: LiAdorNoirrit
-#      fonts:
-#        - asset: assets/fonts/li_ador_noirrit/LiAdor_Bold.ttf
+  fonts:
+    - family: hindSiliguri
+      fonts:
+        - asset: assets/fonts/hind-siliguri/HindSiliguri-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/hind-siliguri/HindSiliguri-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/hind-siliguri/HindSiliguri-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/hind-siliguri/HindSiliguri-Bold.ttf
+          weight: 700
+
+    - family: poppins
+      fonts:
+        - asset: assets/fonts/poppins/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/poppins/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/poppins/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/poppins/Poppins-Bold.ttf
+          weight: 700
 
 
 

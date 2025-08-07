@@ -178,7 +178,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
                 width: screenWidth * 0.9,
                 child: Text(
                   _getTitle(currentIndex),
-                  style:AppTextStyles.poppins20(context, weight: FontWeight.w600),
+                  style:AppTextStyles.poppinsH2(context, weight: FontWeight.w600),
                   textAlign: TextAlign.center,
                 ),
               ),
