@@ -56,7 +56,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
       children: [
         Container(
           width: screenWidth * 0.9,
-          child:  Text('${widget.title}', style: AppTextStyles.poppins12(context,color: Color(0xff333333), weight: FontWeight.w500)),
+          child:  Text('${widget.title}', style: AppTextStyles.textSize12(context,color: Color(0xff333333), weight: FontWeight.w500)),
         ),
         SizedBox(height: screenHeight * 0.01,),
         Container(

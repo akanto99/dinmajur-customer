@@ -212,7 +212,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 SizedboxSpaccing.width03(context),
                 Text(
                   'Sign Out',
-                  style: AppTextStyles.poppins16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
                 ),
               ],
             ),
@@ -247,7 +247,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 // color: Colors.yellow,
                 color: Colors.transparent,
                 alignment: Alignment.centerLeft,
-                child: Text(title, style: AppTextStyles.poppins16(context, weight: FontWeight.w500)),
+                child: Text(title, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
               ),
             ],
           ),
@@ -296,7 +296,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                   SizedboxSpaccing.width03(context),
                   Expanded(
-                    child: Text('Are you sure you\'d like to Log Out?', style: AppTextStyles.poppins16(context, weight: FontWeight.w500)),
+                    child: Text('Are you sure you\'d like to Log Out?', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
                   ),
                 ],
               ),
@@ -315,7 +315,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         border: Border.all(width: 1, color: AppColors.border(context)),
                       ),
                       child: Center(
-                        child: Text('Cancel', style: AppTextStyles.poppins12(context, weight: FontWeight.w500)),
+                        child: Text('Cancel', style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
                       ),
                     ),
                   ),
@@ -334,7 +334,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       child: Center(
                         child: Text(
                           'Log out',
-                          style: AppTextStyles.poppins12(context, weight: FontWeight.w500, color: AppColors.whiteColor),
+                          style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.whiteColor),
                         ),
                       ),
                     ),

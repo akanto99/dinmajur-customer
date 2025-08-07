@@ -29,7 +29,7 @@ class Utils {
       padding: EdgeInsets.all(15),
       messageText: Text(
         message,
-        style: AppTextStyles.poppins14(context,weight: FontWeight.w400),
+        style: AppTextStyles.textSize14(context,weight: FontWeight.w400),
       ),
       duration: Duration(seconds: 3),
       borderRadius: BorderRadius.circular(8),
@@ -56,7 +56,7 @@ class Utils {
       padding: EdgeInsets.all(15),
       messageText: Text(
         message,
-        style: AppTextStyles.poppins14(context,weight: FontWeight.w400),
+        style: AppTextStyles.textSize14(context,weight: FontWeight.w400),
       ),
       duration: Duration(seconds: 3),
       borderRadius: BorderRadius.circular(8),
@@ -83,7 +83,7 @@ class Utils {
         scrollDirection: Axis.horizontal,
         child: Text(
           message,
-          style: AppTextStyles.poppins14(context,weight: FontWeight.w400),
+          style: AppTextStyles.textSize14(context,weight: FontWeight.w400),
         ),
       ),
     ));

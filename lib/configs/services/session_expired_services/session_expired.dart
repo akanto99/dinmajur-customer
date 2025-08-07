@@ -89,9 +89,9 @@ class SessionExpiredService {
                     children: [
                       Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Session Expired',style: AppTextStyles.poppins20(context,weight: FontWeight.w500,color: AppColors.darkRedColor),)),
+                          child: Text('Session Expired',style: AppTextStyles.textSize20(context,weight: FontWeight.w500,color: AppColors.darkRedColor),)),
                       SizedboxSpaccing.height02(context),
-                      Text("Your session has expired.Don't worry, we kept all of your filters and breakdowns in place.\nPlease login again to continue.",style: AppTextStyles.poppins14(context,weight:
+                      Text("Your session has expired.Don't worry, we kept all of your filters and breakdowns in place.\nPlease login again to continue.",style: AppTextStyles.textSize14(context,weight:
                       FontWeight.w400),textAlign: TextAlign.center,),
                       SizedboxSpaccing.height02(context),
 
@@ -113,7 +113,7 @@ class SessionExpiredService {
                           child: Center(
                             child: Text(
                                 'Login Again',
-                                style: AppTextStyles.poppins14(context, weight: FontWeight.w500,color: AppColors.whiteColor)
+                                style: AppTextStyles.textSize14(context, weight: FontWeight.w500,color: AppColors.whiteColor)
                             ),
                           ),
                         ),

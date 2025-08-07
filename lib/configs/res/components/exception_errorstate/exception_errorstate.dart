@@ -137,7 +137,7 @@ class ErrorStateWidget extends StatelessWidget {
               height: screenHeight*0.03,
               child: Text(
                 config['title'],
-                style: AppTextStyles.poppins16(
+                style: AppTextStyles.textSize16(
                     context,
                     weight: FontWeight.w500
                 ),
@@ -149,7 +149,7 @@ class ErrorStateWidget extends StatelessWidget {
             // Error Description
             Text(
               config['description'],
-              style: AppTextStyles.poppins12(
+              style: AppTextStyles.textSize12(
                   context,
                   weight: FontWeight.w400,
                 color: AppColors.subtitle(context)

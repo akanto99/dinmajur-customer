@@ -60,7 +60,7 @@ class NotificationDialog {
                 // Message
                 Text(
                   message ?? 'No Notification Yet',
-                  style: AppTextStyles.poppins16(context,weight: FontWeight.w600),
+                  style: AppTextStyles.textSize16(context,weight: FontWeight.w600),
                   textAlign: TextAlign.center,
                 ),
 

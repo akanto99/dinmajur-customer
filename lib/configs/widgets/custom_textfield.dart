@@ -47,7 +47,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       children: [
         Container(
           width: screenWidth * 0.9,
-          child:  Text('${widget.titleText}', style: AppTextStyles.poppins18(context, weight: FontWeight.w500)),
+          child:  Text('${widget.titleText}', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         ),
         SizedBox(height: screenHeight * 0.012,),
         Container(
@@ -67,10 +67,10 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
             focusNode: widget.focusCurrent,
             keyboardType: widget.keyboardType,
             maxLines: widget.keyboardType == TextInputType.multiline ? 2 : 1,
-            style:  AppTextStyles.poppins16(context, weight: FontWeight.w500),
+            style:  AppTextStyles.textSize16(context, weight: FontWeight.w500),
             decoration: InputDecoration(
               hintText: widget.placeholder,
-              hintStyle:  AppTextStyles.poppins16(context,      color: AppColors.hintColor(context), weight: FontWeight.w400),
+              hintStyle:  AppTextStyles.textSize16(context,      color: AppColors.hintColor(context), weight: FontWeight.w400),
               border: OutlineInputBorder(
                 borderSide: BorderSide.none,
               ),

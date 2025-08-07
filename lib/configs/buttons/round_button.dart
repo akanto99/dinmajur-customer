@@ -32,13 +32,13 @@ class RoundButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(8)
         ),
         child: Center(
-            child:loading ?Text('Waiting...',style: AppTextStyles.poppins16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),)
+            child:loading ?Text('Waiting...',style: AppTextStyles.textSize16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),)
                 :
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Icon(Icons.arrow_forward_ios_rounded,size:16,color:Colors.transparent,),
-                Text(title,style: AppTextStyles.poppins16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),
+                Text(title,style: AppTextStyles.textSize16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),
                 if (iconData != null) ...[
                   Icon(iconData, color: Colors.white, size: 16,),
                 ],

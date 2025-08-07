@@ -74,7 +74,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [ Text(
                     'Mobile Banking',
-                    style: AppTextStyles.poppins18(context,weight: FontWeight.w500,color:AppColors.form_hover(context)),
+                    style: AppTextStyles.textSize18(context,weight: FontWeight.w500,color:AppColors.form_hover(context)),
                   ),
 
                     SizedBox(height: screenHeight * 0.015),
@@ -166,7 +166,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
                   children: [
                     Text(
                       title,
-                      style: AppTextStyles.poppins14(
+                      style: AppTextStyles.textSize14(
                         context,
                         weight: FontWeight.w500,
                       ),
@@ -174,7 +174,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
                     SizedboxSpaccing.height01(context),
                     Text(
                       description,
-                      style: AppTextStyles.poppins12(
+                      style: AppTextStyles.textSize12(
                         context,
                         weight: FontWeight.w400,
                       ),
@@ -182,7 +182,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
                     SizedboxSpaccing.height01(context),
                     Container(
                       width: screenWidth * 0.75,
-                      child:  Text(inputLabel, style: AppTextStyles.poppins14(context, weight: FontWeight.w600)),
+                      child:  Text(inputLabel, style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                     ),
                     SizedboxSpaccing.height012(context),
                     Container(
@@ -199,10 +199,10 @@ class _PaymentMethodState extends State<PaymentMethod> {
                       child: TextFormField(
                         controller: controller,
                         keyboardType: TextInputType.number,
-                        style:  AppTextStyles.poppins14(context, weight: FontWeight.w500),
+                        style:  AppTextStyles.textSize14(context, weight: FontWeight.w500),
                         decoration: InputDecoration(
                           hintText: "01XXXXXXXXX",
-                          hintStyle:  AppTextStyles.poppins12(context,color: AppColors.form_hover(context), weight: FontWeight.w400),
+                          hintStyle:  AppTextStyles.textSize12(context,color: AppColors.form_hover(context), weight: FontWeight.w400),
                           border: OutlineInputBorder(
                             borderSide: BorderSide.none,
                           ),
@@ -221,7 +221,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
                       child: Center(
                         child: Text(
                             buttonText,
-                            style:AppTextStyles.poppins16(context,weight: FontWeight.w600, color: AppColors.whiteColor)
+                            style:AppTextStyles.textSize16(context,weight: FontWeight.w600, color: AppColors.whiteColor)
                         ),
                       ),
                     ),

@@ -58,7 +58,7 @@ class _CustomPasswordFieldPoppinsState extends State<CustomPasswordFieldPoppins>
             children: [
               Container(
                 width: screenWidth * 0.85,
-                child:  Text('${widget.titleText}', style: AppTextStyles.poppins18(context, weight: FontWeight.w500)),
+                child:  Text('${widget.titleText}', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
               ),
               SizedBox(height: screenHeight * 0.01,),
               Container(
@@ -78,14 +78,14 @@ class _CustomPasswordFieldPoppinsState extends State<CustomPasswordFieldPoppins>
                   obscureText: value,
                   focusNode: widget.focusNode,
                   obscuringCharacter: "*",
-                  style:  AppTextStyles.poppins16(context, weight: FontWeight.w500),
+                  style:  AppTextStyles.textSize16(context, weight: FontWeight.w500),
                   decoration: InputDecoration(
                     // border: InputBorder.none,
                     // hintText: 'Enter 8 characters or more',
                     // hintStyle:  AppTextStyles.siliguri12HintTextField(context, weight: FontWeight.w400),
                     contentPadding: EdgeInsets.symmetric( horizontal: 10.0),
                     hintText:'Enter 8 characters or more',
-                    hintStyle:  AppTextStyles.poppins16(context,  color: AppColors.hintColor(context),weight: FontWeight.w400),
+                    hintStyle:  AppTextStyles.textSize16(context,  color: AppColors.hintColor(context),weight: FontWeight.w400),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                     ),

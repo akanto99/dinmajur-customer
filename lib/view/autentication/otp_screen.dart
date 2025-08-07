@@ -67,11 +67,11 @@ class _OtpScreenState extends State<OtpScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Verify your number", style: AppTextStyles.poppins18(context, weight: FontWeight.w600)),
-                  Text("Sent a code to your number", style: AppTextStyles.poppins12(context, weight: FontWeight.w500)),
+                  Text("Verify your number", style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+                  Text("Sent a code to your number", style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
                   SizedboxSpaccing.height01(context),
                   Container(
-                    child: Text("+88$phone", style: AppTextStyles.poppins14(context, weight: FontWeight.w500)),
+                    child: Text("+88$phone", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                   ),
                   SizedboxSpaccing.height025(context),
                   Container(
@@ -90,7 +90,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       animationCurve: Curves.linear,
                       animationDuration: Duration(milliseconds: 0),
 
-                      textStyle: AppTextStyles.poppins16(context, weight: FontWeight.w600),
+                      textStyle: AppTextStyles.textSize16(context, weight: FontWeight.w600),
                       enablePinAutofill: false,
                       pinTheme: PinTheme(
                         fieldWidth: 70,
@@ -168,10 +168,10 @@ class _OtpScreenState extends State<OtpScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Haven't received any code? ", style: AppTextStyles.poppins16(context, weight: FontWeight.w500)),
+                        Text("Haven't received any code? ", style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
                         Text(
                          "${timerProvider.formattedTime}",
-                          style: AppTextStyles.poppins16(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                          style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.button(context)),
                         ),
                       ],
                     ),

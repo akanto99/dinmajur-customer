@@ -90,7 +90,7 @@ class _ViewProfileState extends State<ViewProfile> {
                           const SizedBox(height: 6),
                           Text(
                             labels[index],
-                            style: AppTextStyles.poppins12(
+                            style: AppTextStyles.textSize12(
                               context,
                               weight: isSelected ? FontWeight.w500 : FontWeight.w400,
                               color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),

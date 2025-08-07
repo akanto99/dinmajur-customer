@@ -64,7 +64,7 @@ class _SupportState extends State<Support> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Please leave us a message and we will get back to you shortly', style: AppTextStyles.poppins18(context,weight: FontWeight.w500)),
+              Text('Please leave us a message and we will get back to you shortly', style: AppTextStyles.textSize18(context,weight: FontWeight.w500)),
               SizedboxSpaccing.height02(context),
               Container(
                 decoration: BoxDecoration(
@@ -79,10 +79,10 @@ class _SupportState extends State<Support> {
                   controller: supportTextController,
                   keyboardType: TextInputType.multiline,
                   maxLines: 3,
-                  style:  AppTextStyles.poppins16(context, weight: FontWeight.w400),
+                  style:  AppTextStyles.textSize16(context, weight: FontWeight.w400),
                   decoration: InputDecoration(
                     hintText:"Input Text Here",
-                    hintStyle:  AppTextStyles.poppins16(context,color: AppColors.form_hover(context), weight: FontWeight.w400),
+                    hintStyle:  AppTextStyles.textSize16(context,color: AppColors.form_hover(context), weight: FontWeight.w400),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                     ),
@@ -109,7 +109,7 @@ class _SupportState extends State<Support> {
                       // borderRadius: BorderRadius.circular(16)
                       borderRadius: BorderRadius.circular(8)
                   ),
-                  child: Center(child:  Text("Send",style: AppTextStyles.poppins16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),)
+                  child: Center(child:  Text("Send",style: AppTextStyles.textSize16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),)
                 ),
               ),
             ],

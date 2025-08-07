@@ -30,7 +30,7 @@ class AppBarHeader extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: SvgPicture.asset("assets/images/header_arrow.svg")),
 
-              Text(appTitle, style: AppTextStyles.poppinsH3(context, weight: FontWeight.w600)),
+              Text(appTitle, style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
 
               Container(width: 20, height: 24),
             ],

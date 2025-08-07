@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
+import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
 import 'package:dinmajur_customer/view_model/authview_model/authview_model.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/authview_model/otp_verify_view_model.dart';
@@ -11,21 +12,30 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
+import 'l10n/app_localizations.dart';
 import 'provider/countdown/forgotpassword_countdown/forgotPassword_countdown.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final themeProvider = ThemeProvider();
   await themeProvider.initializeTheme();
+
+  // Initialize language provider
+  final languageProvider = LanguageChangeProvider();
+  // THIS IS CRUCIAL - Make sure to await the language loading
+  await languageProvider.getLanguage();
+
   await Upgrader.clearSavedSettings();
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider<LanguageChangeProvider>.value(value: languageProvider),
         ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => CountdownTimerProvider()),
         ChangeNotifierProvider(create: (_) => ForgotPasswordCountdown()),
@@ -39,23 +49,10 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PostForgotOtpVerifyViewModel()),
         ChangeNotifierProvider(create: (_) => PostNewForgotPasswordViewModel()),
 
-
         ///Home=====>
         ChangeNotifierProvider(create: (_) => ProfileViewViewModel()),
-
-
-
-        // ChangeNotifierProvider(create: (_) => ImageUpdateViewModel()),
-        // ChangeNotifierProvider(create: (_) => PostPortfolioUploadThumnailviewModel()),
-        // ChangeNotifierProvider(create: (_) => ProfileViewViewModel()),
-        // ChangeNotifierProvider(create: (_) => PostForgotOtpSendViewModel()),
-        // ChangeNotifierProvider(create: (_) => PostForgotOtpVerifyViewModel()),
-        // ChangeNotifierProvider(create: (_) => PostNewForgotPasswordViewModel()),
-        // ChangeNotifierProvider(create: (_) => PostChangePasswordViewModel()),
-
       ],
       child: MyApp(),
-      // child: MyApp(),
     ),
   );
 }
@@ -65,9 +62,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, LanguageChangeProvider>(
+      builder: (context, themeProvider, languageProvider, child) {
         bool isDarkMode = themeProvider.isDarkMode;
+
+        // Debug print to check language in MaterialApp
+        print('MaterialApp locale: ${languageProvider.appLocale?.languageCode}');
 
         SystemChrome.setSystemUIOverlayStyle(
           SystemUiOverlayStyle(
@@ -75,11 +75,11 @@ class MyApp extends StatelessWidget {
             statusBarColor: isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
             statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
             statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
-            // Add these for better control
             systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
             systemNavigationBarDividerColor: isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
           ),
         );
+
         SystemChrome.setPreferredOrientations([
           DeviceOrientation.portraitUp,
           DeviceOrientation.portraitDown,
@@ -92,8 +92,21 @@ class MyApp extends StatelessWidget {
           theme: MyThemes.lightTheme,
           darkTheme: MyThemes.darkTheme,
           initialRoute: RoutesName.splash,
-          // initialRoute: RoutesName.testScreen,
           onGenerateRoute: Routes.generateRoute,
+
+          // Use dynamic locale from LanguageChangeProvider
+          locale: languageProvider.appLocale ?? Locale('en'), // Default to English if null
+
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [
+            Locale('en'), // English
+            Locale('bn'), // Bengali
+          ],
         );
       },
     );

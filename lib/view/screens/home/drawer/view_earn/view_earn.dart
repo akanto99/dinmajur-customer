@@ -63,7 +63,7 @@ class _ViewEarnState extends State<ViewEarn> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Title
-              Text('No Earnings Yet', style: AppTextStyles.poppinsH3(context, weight: FontWeight.w600, color: AppColors.button(context)), textAlign: TextAlign.center),
+              Text('No Earnings Yet', style: AppTextStyles.textSize24(context, weight: FontWeight.w600, color: AppColors.button(context)), textAlign: TextAlign.center),
 
               SizedboxSpaccing.height01(context),
 
@@ -72,7 +72,7 @@ class _ViewEarnState extends State<ViewEarn> {
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                 child: Text(
                   "Complete tasks and jobs to start earning money on our platform",
-                  style: AppTextStyles.poppins16(context, weight: FontWeight.w400),
+                  style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -102,7 +102,7 @@ class _ViewEarnState extends State<ViewEarn> {
             children: [
               Text(
                 'How to earn money?',
-                style: AppTextStyles.poppins18(
+                style: AppTextStyles.textSize18(
                   context,
                   weight: FontWeight.w500,),
               ),
@@ -145,7 +145,7 @@ class _ViewEarnState extends State<ViewEarn> {
                 Icon(FontAwesomeIcons.search, color: Colors.white, size: 16,),
                 SizedboxSpaccing.width03(context),
 
-                Text("Explore available tasks",style: AppTextStyles.poppins16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),
+                Text("Explore available tasks",style: AppTextStyles.textSize16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),
 
 
               ],
@@ -185,7 +185,7 @@ class _ViewEarnState extends State<ViewEarn> {
             // Title
             Text(
               'No earnings yet',
-              style: AppTextStyles.poppins24(context,),
+              style: AppTextStyles.textSize24(context,),
               textAlign: TextAlign.center,
             ),
 
@@ -196,7 +196,7 @@ class _ViewEarnState extends State<ViewEarn> {
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
               child: Text(
                 'Complete tasks and jobs to start earning money on our platform',
-                style: AppTextStyles.poppins14(
+                style: AppTextStyles.textSize14(
                   context,
                   weight: FontWeight.w400,
                 ),
@@ -226,7 +226,7 @@ class _ViewEarnState extends State<ViewEarn> {
                 children: [
                   Text(
                     'How to earn money?',
-                    style: AppTextStyles.poppins14(
+                    style: AppTextStyles.textSize14(
                       context,
                       weight: FontWeight.w600,),
                   ),
@@ -272,7 +272,7 @@ class _ViewEarnState extends State<ViewEarn> {
                 Icon(Icons.search, color: Colors.white, size: 15,),
                 SizedboxSpaccing.width02(context),
 
-                Text("Explore available tasks",style: AppTextStyles.poppins12(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),
+                Text("Explore available tasks",style: AppTextStyles.textSize12(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),
 
 
               ],
@@ -318,14 +318,14 @@ class _ViewEarnState extends State<ViewEarn> {
           children: [
             Text(
               title,
-              style: AppTextStyles.poppins16(
+              style: AppTextStyles.textSize16(
                 context,
                 weight: FontWeight.w500,),
             ),
             // SizedboxSpaccing.height005(context),
             Text(
               subtitle,
-              style: AppTextStyles.poppins14(
+              style: AppTextStyles.textSize14(
                 context,
                 weight: FontWeight.w400,
               ),

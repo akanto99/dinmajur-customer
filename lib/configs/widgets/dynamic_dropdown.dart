@@ -32,7 +32,7 @@ class CustomDropdown extends StatelessWidget {
       children: [
         Container(
             width: screenWidth * 0.9,
-            child: Text(titleText,  style: AppTextStyles.poppins18(context, weight: FontWeight.w500))),
+            child: Text(titleText,  style: AppTextStyles.textSize18(context, weight: FontWeight.w500))),
         SizedBox(height: screenHeight * 0.012,),
         Container(
           height: 42,
@@ -41,8 +41,8 @@ class CustomDropdown extends StatelessWidget {
             child: DropdownButton2<String>(
               isExpanded: true,
               value: selectedItem,
-              style:  AppTextStyles.poppins16(context, weight: FontWeight.w500),
-              hint: Text(hintText ,style:  AppTextStyles.poppins16(context,color: AppColors.hintColor(context), weight: FontWeight.w400),),
+              style:  AppTextStyles.textSize16(context, weight: FontWeight.w500),
+              hint: Text(hintText ,style:  AppTextStyles.textSize16(context,color: AppColors.hintColor(context), weight: FontWeight.w400),),
               buttonStyleData: ButtonStyleData(
                 width: screenWidth * 0.9,
                 height: 42,
@@ -68,7 +68,7 @@ class CustomDropdown extends StatelessWidget {
               items: items.map((item) {
                 return DropdownMenuItem<String>(
                   value: item,
-                  child: Text(valueToBengaliMap?[item] ?? item, style:  AppTextStyles.poppins16(context, weight: FontWeight.w500),
+                  child: Text(valueToBengaliMap?[item] ?? item, style:  AppTextStyles.textSize16(context, weight: FontWeight.w500),
                   ),
                 );
               }).toList(),

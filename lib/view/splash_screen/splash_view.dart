@@ -106,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> {
                             ),
                           ),
                         ),
-                        Text("Loading",style: AppTextStyles.poppins14(context),),
+                        Text("Loading",style: AppTextStyles.textSize14(context),),
                       ],
                     ),
                   ),)

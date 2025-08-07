@@ -140,7 +140,7 @@ class _VerificationSuccessScreenState extends State<VerificationSuccessScreen>
         ),
         child: Center(
           child:
-          Text("Verification", style: AppTextStyles.poppinsH3(context, weight: FontWeight.w600)),
+          Text("Verification", style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
 
         ),
       ),
@@ -208,13 +208,13 @@ class _VerificationSuccessScreenState extends State<VerificationSuccessScreen>
                       children: [
                         Text(
                           "Verification Successful!",
-                          style: AppTextStyles.poppinsH3(context,weight: FontWeight.w600,color: AppColors.button(context))),
+                          style: AppTextStyles.textSize24(context,weight: FontWeight.w600,color: AppColors.button(context))),
 
                         SizedboxSpaccing.height01(context),
 
                         Text(
                           "Your phone number has been\nsuccessfully verified.",
-                          style: AppTextStyles.poppins14(context,
+                          style: AppTextStyles.textSize14(context,
                             weight: FontWeight.w400,
                           ),
                           textAlign: TextAlign.center,
@@ -268,7 +268,7 @@ class _VerificationSuccessScreenState extends State<VerificationSuccessScreen>
                           child: Container(
                             child: Text(
                               "I'll set up my profile later",
-                              style: AppTextStyles.poppins16(context,
+                              style: AppTextStyles.textSize16(context,
                                 weight: FontWeight.w500,
                               )
                             ),

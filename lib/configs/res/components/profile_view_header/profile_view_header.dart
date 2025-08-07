@@ -104,10 +104,10 @@ class DynamicProfileHeader extends StatelessWidget {
                 children: [
                   Text(''),
                   Text(title,
-                    style: AppTextStyles.poppins18(context, weight: FontWeight.w600,)
+                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600,)
                   ),
 
-                  Text(subtitle, style:AppTextStyles.poppins14(context,weight: FontWeight.w400)),
+                  Text(subtitle, style:AppTextStyles.textSize14(context,weight: FontWeight.w400)),
                 ],
               ),
             ],

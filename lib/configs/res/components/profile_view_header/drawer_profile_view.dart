@@ -61,7 +61,7 @@ class DrawerProfileHeader extends StatelessWidget {
         SizedboxSpaccing.width02(context),
         Text(
           rating.toStringAsFixed(1),
-          style: AppTextStyles.poppins14(context, weight: FontWeight.w400),
+          style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
         ),
       ],
     );
@@ -136,12 +136,12 @@ class DrawerProfileHeader extends StatelessWidget {
         SizedboxSpaccing.height015(context),
         Text(
           title,
-          style: AppTextStyles.poppins18(context, weight: FontWeight.w600),
+          style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
         ),
         SizedboxSpaccing.height005(context),
         Text(
             phone,
-            style: AppTextStyles.poppins14(context, weight: FontWeight.w400)
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w400)
         ),
         SizedboxSpaccing.height005(context),
         // Dynamic star rating
@@ -153,7 +153,7 @@ class DrawerProfileHeader extends StatelessWidget {
             Flexible(
               child: Text(
                 " $skills ",
-                style: AppTextStyles.poppins14(context,
+                style: AppTextStyles.textSize14(context,
                     weight: FontWeight.w400,),
                 textAlign: TextAlign.center,
                 softWrap: true,

@@ -44,7 +44,7 @@ class DownloadOptionButton extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                style:AppTextStyles.poppins16(context,weight: FontWeight.w600,color: textColor),
+                style:AppTextStyles.textSize16(context,weight: FontWeight.w600,color: textColor),
               ),
             ),
           ],

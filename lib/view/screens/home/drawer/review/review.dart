@@ -42,7 +42,7 @@ class _ReviewState extends State<Review> {
           child: Column(
             children: [
               // Title
-              Text('No Reviews Yet', style: AppTextStyles.poppinsH3(context, weight: FontWeight.w600, color: AppColors.button(context)), textAlign: TextAlign.center),
+              Text('No Reviews Yet', style: AppTextStyles.textSize24(context, weight: FontWeight.w600, color: AppColors.button(context)), textAlign: TextAlign.center),
 
               SizedboxSpaccing.height01(context),
 
@@ -51,7 +51,7 @@ class _ReviewState extends State<Review> {
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                 child: Text(
                   "You don't have any customer reviews yet. Reviews will appear here once customers start rating your services.",
-                  style: AppTextStyles.poppins16(context, weight: FontWeight.w400),
+                  style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -80,7 +80,7 @@ class _ReviewState extends State<Review> {
         SizedboxSpaccing.height015(context),
 
         // Title
-        Text('No Reviews Yet', style: AppTextStyles.poppins24(context), textAlign: TextAlign.center),
+        Text('No Reviews Yet', style: AppTextStyles.textSize24(context), textAlign: TextAlign.center),
 
         SizedboxSpaccing.height015(context),
 
@@ -89,7 +89,7 @@ class _ReviewState extends State<Review> {
           padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
           child: Text(
             "You don't have any customer reviews yet. Reviews will appear here once customers start rating your services.",
-            style: AppTextStyles.poppins24(context, weight: FontWeight.w400),
+            style: AppTextStyles.textSize24(context, weight: FontWeight.w400),
             textAlign: TextAlign.center,
           ),
         ),
@@ -115,7 +115,7 @@ class _ReviewState extends State<Review> {
         SizedboxSpaccing.height015(context),
 
         // Title
-        Text('No Reviews Yet', style: AppTextStyles.poppins24(context), textAlign: TextAlign.center),
+        Text('No Reviews Yet', style: AppTextStyles.textSize24(context), textAlign: TextAlign.center),
 
         SizedboxSpaccing.height015(context),
 
@@ -124,7 +124,7 @@ class _ReviewState extends State<Review> {
           padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
           child: Text(
             "You don't have any customer reviews yet. Reviews will appear here once customers start rating your services.",
-            style: AppTextStyles.poppins14(context, weight: FontWeight.w400),
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
             textAlign: TextAlign.center,
           ),
         ),

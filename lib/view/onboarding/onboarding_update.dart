@@ -131,7 +131,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
                     onTap: _skipOnboarding,
                     child: Text(
                       "স্কিপ",
-                      style: AppTextStyles.poppins24(context,
+                      style: AppTextStyles.textSize24(context,
                         weight: FontWeight.w600,
                       ),
                     ),
@@ -178,7 +178,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
                 width: screenWidth * 0.9,
                 child: Text(
                   _getTitle(currentIndex),
-                  style:AppTextStyles.poppinsH2(context, weight: FontWeight.w600),
+                  style:AppTextStyles.textSize28(context, weight: FontWeight.w600),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -193,7 +193,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
                 width: screenWidth * 0.9,
                 child: Text(
                   _getSubtitle(currentIndex),
-                  style: AppTextStyles.poppins18(context, weight: FontWeight.w500),
+                  style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
                   textAlign: TextAlign.center,
                 ),
               ),

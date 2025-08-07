@@ -104,9 +104,9 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
              children: [
 
                Center(child: SizedboxSpaccing.height025(context)),
-               Text("Create an Account" ,style: AppTextStyles.poppinsH1(context,weight: FontWeight.w600),),
+               Text("Create an Account" ,style: AppTextStyles.textSize32(context,weight: FontWeight.w600),),
                SizedboxSpaccing.height005(context),
-               Text("Daily Work, Daily Earn!", style: AppTextStyles.poppins18(context,weight: FontWeight.w500),),
+               Text("Daily Work, Daily Earn!", style: AppTextStyles.textSize18(context,weight: FontWeight.w500),),
                // Text("ব্যস্ত জীবন, সহজ সমাধান",style:TextStyle(color: AppColors.blackColor.withOpacity(0.6),fontFamily: )),
                SizedboxSpaccing.height025(context),
 
@@ -186,7 +186,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                  child: Row(
                    mainAxisAlignment: MainAxisAlignment.center,
                    children: [
-                     Text("Already have an account? ",   style: AppTextStyles.poppins16(context,weight: FontWeight.w500)),
+                     Text("Already have an account? ",   style: AppTextStyles.textSize16(context,weight: FontWeight.w500)),
                      Text("Login",    style: GoogleFonts.poppins(fontSize: 16,   color: AppColors.button(context), fontWeight: FontWeight.w500, decoration: TextDecoration.underline,
                        decorationColor:  AppColors.button(context),),),
                    ],

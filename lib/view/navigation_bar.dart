@@ -132,7 +132,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                     content: Text(
                       "Are you sure you want to exit?",
-                      style: AppTextStyles.poppins16(context, weight: FontWeight.w600),
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
                     ),
                     actions: [
                       Row(
@@ -148,7 +148,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                                 borderRadius: BorderRadius.circular(5),
                               ),
                               child: Center(
-                                child: Text('No', style: AppTextStyles.poppins12(context, weight: FontWeight.w600)),
+                                child: Text('No', style: AppTextStyles.textSize12(context, weight: FontWeight.w600)),
                               ),
                             ),
                           ),
@@ -230,7 +230,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                                 const SizedBox(height: 6),
                                 Text(
                                   labels[index],
-                                  style: AppTextStyles.poppins12(
+                                  style: AppTextStyles.textSize12(
                                     context,
                                     weight: isSelected ? FontWeight.w500 : FontWeight.w400,
                                     color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),

@@ -150,7 +150,7 @@ class ScreenshotHandler {
               Expanded(
                 child: Text(
                   loadingMessage,
-                  style: AppTextStyles.poppins12(
+                  style: AppTextStyles.textSize12(
                     color: AppColors.subtitle(context),
                     context,
                     weight: FontWeight.w600,
@@ -244,7 +244,7 @@ class ScreenshotHandler {
                 SizedBox(width: 8),
                 Text(
                   "সফল!",
-                  style: AppTextStyles.poppins14(
+                  style: AppTextStyles.textSize14(
                     context,
                     weight: FontWeight.w600,
                   ),
@@ -257,7 +257,7 @@ class ScreenshotHandler {
               children: [
                 Text(
                   successMessage,
-                  style: AppTextStyles.poppins12(
+                  style: AppTextStyles.textSize12(
                     color: AppColors.subtitle(context),
                     context,
                     weight: FontWeight.w500,
@@ -267,7 +267,7 @@ class ScreenshotHandler {
                   SizedBox(height: 8),
                   Text(
                     "File location: ${savedFile?.path}",
-                    style: AppTextStyles.poppins12(
+                    style: AppTextStyles.textSize12(
                       color: AppColors.subtitle(context),
                       context,
                       weight: FontWeight.w400,
@@ -281,7 +281,7 @@ class ScreenshotHandler {
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(
                   "ঠিক আছে",
-                  style: AppTextStyles.poppins12(
+                  style: AppTextStyles.textSize12(
                     color: AppColors.subtitle(context),
                     context,
                     weight: FontWeight.w600,
@@ -297,7 +297,7 @@ class ScreenshotHandler {
         SnackBar(
           content: Text(
             errorMsg ?? "অজানা ত্রুটি ঘটেছে",
-            style: AppTextStyles.poppins12(
+            style: AppTextStyles.textSize12(
               color: AppColors.subtitle(context),
               context,
               weight: FontWeight.w500,

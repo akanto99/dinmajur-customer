@@ -73,11 +73,11 @@ class _OtpVerifyState extends State<OtpVerify> {
                child: Column(
                  mainAxisSize: MainAxisSize.min,
                  children: [
-                   Text("Verify your number", style: AppTextStyles.poppins18(context, weight: FontWeight.w600)),
-                   Text("Sent a code to your number", style: AppTextStyles.poppins14(context, weight: FontWeight.w500)),
+                   Text("Verify your number", style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+                   Text("Sent a code to your number", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                    SizedboxSpaccing.height01(context),
                    Container(
-                     child: Text("+88$phone", style: AppTextStyles.poppins18(context, weight: FontWeight.w500)),
+                     child: Text("+88$phone", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                    ),
                    SizedboxSpaccing.height025(context),
                    Container(
@@ -93,7 +93,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                        animationCurve: Curves.linear,
                        animationDuration: Duration(milliseconds: 0),
-                       textStyle: AppTextStyles.poppins16(context, weight: FontWeight.w500),
+                       textStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                        enablePinAutofill: false,
                        pinTheme: PinTheme(
                          fieldWidth: 70,
@@ -182,10 +182,10 @@ class _OtpVerifyState extends State<OtpVerify> {
                      child: Column(
                        mainAxisAlignment: MainAxisAlignment.center,
                        children: [
-                         Text("Haven't received any code? ", style: AppTextStyles.poppins18(context, weight: FontWeight.w500)),
+                         Text("Haven't received any code? ", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                          Text(
                            timerProvider.formattedTime,
-                           style: AppTextStyles.poppins18(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                           style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.button(context)),
                          ),
                          SizedboxSpaccing.height01(context),
                          Builder(

@@ -1,14 +1,16 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/drawer.dart';
+import 'package:dinmajur_customer/configs/res/components/language_changer/language_changer_widgets.dart';
 import 'package:dinmajur_customer/configs/res/components/notifications/resuable_notifications.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
+import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -29,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    print('Current locale: ${Localizations.localeOf(context)}');
     return Scaffold(
       key: widget.scaffoldKey,
       backgroundColor: AppColors.containerBackground(context),
@@ -44,12 +47,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Column(
       children: [
+        // Language Slide Switcher
+        SizedboxSpaccing.height02(context),
+
+
 
         ///Siliguri
+        // Text(
+        //   'রাজার ডেলিনারি',
+        //   style: AppTextStyles.textSize30(context,weight: FontWeight.w500),
+        // ),
         Text(
           'রাজার ডেলিনারি',
           style: TextStyle(
-            fontFamily: 'hindSiliguri',
             fontSize: 30,
             fontWeight: FontWeight.w500,
           ),
@@ -60,6 +70,9 @@ class _HomeScreenState extends State<HomeScreen> {
             fontSize: 30,
             fontWeight: FontWeight.w500,
           ),
+        ),
+        Text(AppLocalizations.of(context)!.first_name,
+          style: AppTextStyles.textSize20(context),
         ),
 
         ///Poppins
@@ -150,5 +163,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }

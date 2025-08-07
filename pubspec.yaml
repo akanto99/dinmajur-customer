@@ -77,9 +77,12 @@ dependencies:
 
   #  dotted_line: ^3.2.3
   font_awesome_flutter: ^10.8.0
+  slide_switcher: ^1.1.2
 #  flutter_pdfview: ^1.4.1+1
 #  dio: ^5.8.0+1
 #  crypto: ^3.0.6
+  flutter_localizations:
+    sdk: flutter
 
 
 
@@ -90,6 +93,7 @@ dev_dependencies:
 
 
 flutter:
+  generate: true
   uses-material-design: true
 
   assets:

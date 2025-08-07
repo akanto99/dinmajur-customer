@@ -29,7 +29,7 @@ class CustomDatePickerFormField extends StatelessWidget {
           width: screenWidth * 0.9,
           child: Text(
             title,
-              style: AppTextStyles.poppins18(context, weight: FontWeight.w500)
+              style: AppTextStyles.textSize18(context, weight: FontWeight.w500)
           ),
         ),
         SizedBox(height: screenHeight * 0.01,),
@@ -56,10 +56,10 @@ class CustomDatePickerFormField extends StatelessWidget {
                     controller: controller,
                     keyboardType: TextInputType.datetime,
                     readOnly: true,
-                      style:  AppTextStyles.poppins16(context, weight: FontWeight.w500),
+                      style:  AppTextStyles.textSize16(context, weight: FontWeight.w500),
                       decoration: InputDecoration(
                         hintText: "dd/mm/yy",
-                        hintStyle: AppTextStyles.poppins16(context,color: AppColors.hintColor(context), weight: FontWeight.w400),
+                        hintStyle: AppTextStyles.textSize16(context,color: AppColors.hintColor(context), weight: FontWeight.w400),
                         border: OutlineInputBorder(
                           borderSide: BorderSide.none,
                         ),

@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/language_changer/language_changer_widgets.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
@@ -58,9 +59,9 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
                     SizedBox(height: 55,),
                     // SizedboxSpaccing.height04(context),
                     // SizedboxSpaccing.height015(context),
-                    Text("Welcome to DinMajur", style: AppTextStyles.poppins24(context, weight: FontWeight.w600)),
+                    Text("Welcome to DinMajur", style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
                     // SizedboxSpaccing.height005(context),
-                    Text("Busy life, simple solution", style: AppTextStyles.poppins18(context, weight: FontWeight.w500)),
+                    Text("Busy life, simple solution", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                     SizedboxSpaccing.height02(context),
                     GestureDetector(
                       onTap: () {
@@ -79,7 +80,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             Icon(Icons.arrow_forward_ios_rounded, size:14 ,color: Colors.transparent),
-                            Text("Login",  style: AppTextStyles.poppins16(context, color: AppColors.textPrimary(context), weight: FontWeight.w700),),
+                            Text("Login",  style: AppTextStyles.textSize16(context, color: AppColors.textPrimary(context), weight: FontWeight.w700),),
                               Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textPrimary(context), size: 14),
                           ],
                         ),
@@ -105,7 +106,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
                             Icon(Icons.arrow_forward_ios_rounded, size:14 ,color: Colors.transparent),
                             Text(
                               "Register",
-                              style: AppTextStyles.poppins16(context, color: AppColors.whiteColor, weight: FontWeight.w700),
+                              style: AppTextStyles.textSize16(context, color: AppColors.whiteColor, weight: FontWeight.w700),
                             ),
                             Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
                           ],
@@ -118,6 +119,18 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
             ),
           ),
         ),
+        Positioned(
+          top: 5,
+          right: 5,
+          child:   Container(
+          child: LanguageSlideSwitcher(
+            backgroundColor: AppColors.textPrimary(context),
+            activeColor: Colors.white,
+            inactiveColor: AppColors.textPrimary(context),
+            borderRadius: BorderRadius.circular(25),
+            animationDuration: Duration(milliseconds: 250),
+          ),
+        ),)
       ],
     );
   }

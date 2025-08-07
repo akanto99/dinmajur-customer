@@ -71,9 +71,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 60,
                   child: AppBarHeader("Sign In"))),
           Center(child: SizedboxSpaccing.height025(context)),
-          Text("Log In" ,style: AppTextStyles.poppinsH1(context,weight: FontWeight.w600),),
+          Text("Log In" ,style: AppTextStyles.textSize32(context,weight: FontWeight.w600),),
           SizedboxSpaccing.height005(context),
-          Text("Please enter your login credentials", style: AppTextStyles.poppins18(context,weight: FontWeight.w500),),
+          Text("Please enter your login credentials", style: AppTextStyles.textSize18(context,weight: FontWeight.w500),),
           // Text("ব্যস্ত জীবন, সহজ সমাধান",style:TextStyle(color: AppColors.blackColor.withOpacity(0.6),fontFamily: )),
           SizedboxSpaccing.height025(context),
           Container(
@@ -167,8 +167,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("New user?",   style: AppTextStyles.poppins16(context,weight: FontWeight.w500)),    
-                Text(" Register",   style: AppTextStyles.poppins16(context,weight: FontWeight.w500,color: AppColors.button(context))),
+                Text("New user?",   style: AppTextStyles.textSize16(context,weight: FontWeight.w500)),    
+                Text(" Register",   style: AppTextStyles.textSize16(context,weight: FontWeight.w500,color: AppColors.button(context))),
                 // Text("Register",    style: GoogleFonts.hindSiliguri(fontSize: 12,   color: AppColors.textPrimary(context), fontWeight: FontWeight.w400, decoration: TextDecoration
                 //     .underline, decorationColor:  AppColors.textPrimary(context),),),
               ],
