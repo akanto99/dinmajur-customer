@@ -64,16 +64,19 @@ class AppLocalizationsBn extends AppLocalizations {
   String get slogan => 'দৈনিক কাজ, দৈনিক আয়!';
 
   @override
-  String get mobile_number_required => 'মোবাইল নম্বর*';
+  String get mobile_number_required => 'মোবাইল নম্বর *';
 
   @override
-  String get password_required => 'পাসওয়ার্ড*';
+  String get password_required => 'পাসওয়ার্ড প্রয়োজন';
 
   @override
   String get reenter_password => 'পুনরায় পাসওয়ার্ড লিখুন*';
 
   @override
   String get next => 'পরবর্তী';
+
+  @override
+  String get wait => 'অপেক্ষা করুন...';
 
   @override
   String get already_have_account => 'ইতিমধ্যে একটি একাউন্ট আছে? ';
@@ -90,4 +93,137 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get error_try_again =>
       'একটি ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
+
+  @override
+  String get otp_screen =>
+      '----------------------------------------------OTP Screen-------------------------';
+
+  @override
+  String get otp_verification_title => 'OTP ভেরিফিকেশন';
+
+  @override
+  String get verify_your_number => 'আপনার নম্বর যাচাই করুন';
+
+  @override
+  String get sent_code_to_number => 'আপনার নম্বরে একটি কোড পাঠানো হয়েছে';
+
+  @override
+  String get please_enter_valid_otp => 'একটি সঠিক ৪-সংখ্যার OTP লিখুন';
+
+  @override
+  String get havent_received_code => 'কোড পাননি?';
+
+  @override
+  String get send_again => 'আবার পাঠান';
+
+  @override
+  String get otp_sent_success => 'নতুন OTP পাঠানো হয়েছে';
+
+  @override
+  String get verification_success =>
+      '---------------------Verification Screen-------------------------';
+
+  @override
+  String get verification_title => 'ভেরিফিকেশন';
+
+  @override
+  String get verification_success_title => 'ভেরিফিকেশন সফল!';
+
+  @override
+  String get verification_success_message =>
+      'আপনার মোবাইল নম্বর সফলভাবে\nভেরিফাই করা হয়েছে।';
+
+  @override
+  String get continue_to_app => 'অ্যাপে প্রবেশ করুন';
+
+  @override
+  String get setup_profile_later => 'আমি পরে প্রোফাইল সেটআপ করব';
+
+  @override
+  String get forgot_screen =>
+      '----------------------------------Forgot Screen-------------------------';
+
+  @override
+  String get forgot_password_title => 'পাসওয়ার্ড ভুলে গেছেন?';
+
+  @override
+  String get mobile_number_placeholder => '০১xxxxxxxxx';
+
+  @override
+  String get error_enter_phone => 'অনুগ্রহ করে মোবাইল নম্বর লিখুন';
+
+  @override
+  String get error_valid_phone => 'অনুগ্রহ করে সঠিক মোবাইল নম্বর লিখুন';
+
+  @override
+  String get new_password_screen =>
+      '--------------------New Password Screen-------------------------';
+
+  @override
+  String get new_password_title => 'নতুন পাসওয়ার্ড';
+
+  @override
+  String get reenter_password_required => 'পুনরায় পাসওয়ার্ড লিখুন *';
+
+  @override
+  String get confirm => 'নিশ্চিত করুন';
+
+  @override
+  String get invalid_token => 'অবৈধ টোকেন';
+
+  @override
+  String get password_changed_success => 'পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে';
+
+  @override
+  String get unexpected_error => 'অপ্রত্যাশিত ত্রুটি ঘটেছে';
+
+  @override
+  String get password_validation =>
+      '--------------------Password Validation------------------------';
+
+  @override
+  String get password_too_weak => 'খুব দুর্বল';
+
+  @override
+  String get password_weak => 'দুর্বল';
+
+  @override
+  String get password_good => 'ভালো';
+
+  @override
+  String get password_strong => 'মজবুত';
+
+  @override
+  String get enter_phone_number => 'অনুগ্রহ করে ফোন নম্বর দিন';
+
+  @override
+  String get phone_number_must_be_11 => 'ফোন নম্বর অবশ্যই ১১ সংখ্যার হতে হবে';
+
+  @override
+  String get invalid_phone_number => 'সঠিক বাংলাদেশী ফোন নম্বর দিন';
+
+  @override
+  String get password_min_characters =>
+      'অনুগ্রহ করে আপনার পাসওয়ার্ড দিন এবং কমপক্ষে ৮ অক্ষর';
+
+  @override
+  String get reenter_password_min_characters =>
+      'অনুগ্রহ করে পুনরায় পাসওয়ার্ড দিন এবং কমপক্ষে ৮ অক্ষর';
+
+  @override
+  String get passwords_do_not_match => 'পাসওয়ার্ড মিলছে না';
+
+  @override
+  String get password_too_weak_requirements =>
+      'পাসওয়ার্ড খুব দুর্বল। কমপক্ষে ৩টি শর্ত পূরণ করুন।';
+
+  @override
+  String get password_must_be_8 => 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে';
+
+  @override
+  String get please_confirm_password => 'অনুগ্রহ করে পাসওয়ার্ড নিশ্চিত করুন';
+
+  @override
+  String get passwords_reenter_do_not_match =>
+      'পাসওয়ার্ড এবং পুনরায় পাসওয়ার্ড মিলছে না';
 }

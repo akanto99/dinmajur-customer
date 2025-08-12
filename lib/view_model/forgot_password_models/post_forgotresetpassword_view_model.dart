@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/respository/forgot_password_repositories/post_forgot_resetpassword_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -25,7 +26,7 @@ class PostNewForgotPasswordViewModel with ChangeNotifier {
       String? token = await ForgotPasswordHelper.getNewPasswordToken();
 
       if (token == null || token.isEmpty) {
-        Utils.flushBarErrorMessage('Invalid token', context);
+        Utils.flushBarErrorMessage(AppLocalizations.of(context)!.invalid_token, context);
         setNewPasswordLoading(false);
         return;
       }
@@ -33,7 +34,7 @@ class PostNewForgotPasswordViewModel with ChangeNotifier {
       final value = await _myRepo.newPasswordPostAPI(data, token);
       setNewPasswordLoading(false);
 
-      Utils.flushBarSuccessMessage('Password Changed Successfully', context); // Fixed message
+      Utils.flushBarSuccessMessage(AppLocalizations.of(context)!.password_changed_success, context); // Fixed message
       await Future.delayed(Duration(milliseconds: 1000));
       Navigator.pushNamed(context, RoutesName.login);
       await _clearOldForgotPasswordData();

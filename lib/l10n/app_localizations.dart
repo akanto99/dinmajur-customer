@@ -209,13 +209,13 @@ abstract class AppLocalizations {
   /// No description provided for @mobile_number_required.
   ///
   /// In en, this message translates to:
-  /// **'Mobile Number*'**
+  /// **'Mobile Number *'**
   String get mobile_number_required;
 
   /// No description provided for @password_required.
   ///
   /// In en, this message translates to:
-  /// **'Password*'**
+  /// **'Password is required'**
   String get password_required;
 
   /// No description provided for @reenter_password.
@@ -229,6 +229,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next'**
   String get next;
+
+  /// No description provided for @wait.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting...'**
+  String get wait;
 
   /// No description provided for @already_have_account.
   ///
@@ -259,6 +265,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An error occurred. Please try again.'**
   String get error_try_again;
+
+  /// No description provided for @otp_screen.
+  ///
+  /// In en, this message translates to:
+  /// **'----------------------------------------------OTP Screen-------------------------'**
+  String get otp_screen;
+
+  /// No description provided for @otp_verification_title.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP Verification'**
+  String get otp_verification_title;
+
+  /// No description provided for @verify_your_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Your Number'**
+  String get verify_your_number;
+
+  /// No description provided for @sent_code_to_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent a code to your number'**
+  String get sent_code_to_number;
+
+  /// No description provided for @please_enter_valid_otp.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid 4-digit OTP'**
+  String get please_enter_valid_otp;
+
+  /// No description provided for @havent_received_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Haven’t received the code?'**
+  String get havent_received_code;
+
+  /// No description provided for @send_again.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Again'**
+  String get send_again;
+
+  /// No description provided for @otp_sent_success.
+  ///
+  /// In en, this message translates to:
+  /// **'A new OTP has been sent'**
+  String get otp_sent_success;
+
+  /// No description provided for @verification_success.
+  ///
+  /// In en, this message translates to:
+  /// **'---------------------Verification Screen-------------------------'**
+  String get verification_success;
+
+  /// No description provided for @verification_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification'**
+  String get verification_title;
+
+  /// No description provided for @verification_success_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Successful!'**
+  String get verification_success_title;
+
+  /// No description provided for @verification_success_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone number has been\nsuccessfully verified.'**
+  String get verification_success_message;
+
+  /// No description provided for @continue_to_app.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to App'**
+  String get continue_to_app;
+
+  /// No description provided for @setup_profile_later.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll set up my profile later'**
+  String get setup_profile_later;
+
+  /// No description provided for @forgot_screen.
+  ///
+  /// In en, this message translates to:
+  /// **'----------------------------------Forgot Screen-------------------------'**
+  String get forgot_screen;
+
+  /// No description provided for @forgot_password_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgot_password_title;
+
+  /// No description provided for @mobile_number_placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'01XXXXXXXXX'**
+  String get mobile_number_placeholder;
+
+  /// No description provided for @error_enter_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter phone number'**
+  String get error_enter_phone;
+
+  /// No description provided for @error_valid_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid phone number'**
+  String get error_valid_phone;
+
+  /// No description provided for @new_password_screen.
+  ///
+  /// In en, this message translates to:
+  /// **'--------------------New Password Screen-------------------------'**
+  String get new_password_screen;
+
+  /// No description provided for @new_password_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get new_password_title;
+
+  /// No description provided for @reenter_password_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter password *'**
+  String get reenter_password_required;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @invalid_token.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid token'**
+  String get invalid_token;
+
+  /// No description provided for @password_changed_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Changed Successfully'**
+  String get password_changed_success;
+
+  /// No description provided for @unexpected_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected error occurred'**
+  String get unexpected_error;
+
+  /// No description provided for @password_validation.
+  ///
+  /// In en, this message translates to:
+  /// **'--------------------Password Validation------------------------'**
+  String get password_validation;
+
+  /// No description provided for @password_too_weak.
+  ///
+  /// In en, this message translates to:
+  /// **'Too weak'**
+  String get password_too_weak;
+
+  /// No description provided for @password_weak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak'**
+  String get password_weak;
+
+  /// No description provided for @password_good.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get password_good;
+
+  /// No description provided for @password_strong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get password_strong;
+
+  /// No description provided for @enter_phone_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter phone number'**
+  String get enter_phone_number;
+
+  /// No description provided for @phone_number_must_be_11.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number must be 11 digits'**
+  String get phone_number_must_be_11;
+
+  /// No description provided for @invalid_phone_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid Bangladeshi phone number'**
+  String get invalid_phone_number;
+
+  /// No description provided for @password_min_characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password & at least 8 characters'**
+  String get password_min_characters;
+
+  /// No description provided for @reenter_password_min_characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Please re-enter your password & at least 8 characters'**
+  String get reenter_password_min_characters;
+
+  /// No description provided for @passwords_do_not_match.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwords_do_not_match;
+
+  /// No description provided for @password_too_weak_requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is too weak. Please meet at least 3 requirements.'**
+  String get password_too_weak_requirements;
+
+  /// No description provided for @password_must_be_8.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get password_must_be_8;
+
+  /// No description provided for @please_confirm_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your password'**
+  String get please_confirm_password;
+
+  /// No description provided for @passwords_reenter_do_not_match.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords & Re-enter Passwords do not match'**
+  String get passwords_reenter_do_not_match;
 }
 
 class _AppLocalizationsDelegate

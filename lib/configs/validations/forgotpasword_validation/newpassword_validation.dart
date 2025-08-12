@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -14,10 +15,8 @@ class NewPasswordValidation {
   String strengthText = 'Too weak';
   Color strengthColor = Colors.red;
 
-  // Constructor
   NewPasswordValidation();
 
-  // Method to check password strength
   void checkPasswordStrength(String password) {
     hasMinLength = password.length >= 8;
     hasUpperCase = password.contains(RegExp(r'[A-Z]'));
@@ -25,7 +24,6 @@ class NewPasswordValidation {
     hasNumber = password.contains(RegExp(r'[0-9]'));
     hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
 
-    // Calculate strength
     int metRequirements = 0;
     if (hasMinLength) metRequirements++;
     if (hasUpperCase) metRequirements++;
@@ -35,7 +33,6 @@ class NewPasswordValidation {
 
     passwordStrength = metRequirements / 5.0;
 
-    // Update strength text and color
     if (metRequirements <= 2) {
       strengthText = 'Too weak';
       strengthColor = AppColors.darkRedColor;
@@ -51,7 +48,6 @@ class NewPasswordValidation {
     }
   }
 
-  // Method to get password requirements list
   List<PasswordRequirement> getRequirements() {
     return [
       PasswordRequirement('At least 8 characters', hasMinLength),
@@ -62,111 +58,99 @@ class NewPasswordValidation {
     ];
   }
 
-  // Method to validate password for form submission
   bool isPasswordValid() {
-    return passwordStrength >= 0.6; // At least 60% strength (3 out of 5 requirements)
+    return passwordStrength >= 0.6;
   }
 
-  // Static method to validate Bangladeshi phone number
-  static String? validateBangladeshiPhone(String? phone) {
+  static String? validateBangladeshiPhone(String? phone, BuildContext context) {
     if (phone == null || phone.isEmpty) {
-      return 'Please enter phone number';
+      return AppLocalizations.of(context)!.enter_phone_number;
     }
 
-    // Remove any spaces or special characters
     String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Check if it's a valid Bangladeshi mobile number
-    // Bangladeshi mobile numbers: 11 digits starting with 01
     if (cleanPhone.length != 11) {
-      return 'Phone number must be 11 digits';
+      return AppLocalizations.of(context)!.phone_number_must_be_11;
     }
 
     if (!cleanPhone.startsWith('01')) {
-      return 'Please enter a valid Bangladeshi phone number';
+      return AppLocalizations.of(context)!.invalid_phone_number;
     }
 
-    // Check for valid operator prefixes
     List<String> validPrefixes = [
       '013', '014', '015', '016', '017', '018', '019'
     ];
 
     String prefix = cleanPhone.substring(0, 3);
     if (!validPrefixes.contains(prefix)) {
-      return 'Please enter a valid Bangladeshi phone number';
+      return AppLocalizations.of(context)!.invalid_phone_number;
     }
 
-    return null; // Valid
+    return null;
   }
 
-  // Overloaded method for validation with phone (Registration scenario)
-  String? getValidationMessage(String phone, String password, String confirmPassword) {
-    // Validate phone first
-    String? phoneError = validateBangladeshiPhone(phone);
+  // Updated method signatures to accept context for localization
+  String? getValidationMessage(String phone, String password, String confirmPassword, BuildContext context) {
+    String? phoneError = validateBangladeshiPhone(phone, context);
     if (phoneError != null) {
       return phoneError;
     }
-
-    // Then validate passwords
-    return _validatePasswords(password, confirmPassword);
+    return _validatePasswords(password, confirmPassword, context);
   }
 
-  // Overloaded method for validation without phone (Forgot Password scenario)
-  String? getValidationMessageWithoutPhone(String password, String confirmPassword) {
-    return _validatePasswords(password, confirmPassword);
+  String? getValidationMessageWithoutPhone(String password, String confirmPassword, BuildContext context) {
+    return _validatePasswords(password, confirmPassword, context);
   }
 
-  // Private method to validate passwords (common logic)
-  String? _validatePasswords(String password, String confirmPassword) {
+  String? _validatePasswords(String password, String confirmPassword, BuildContext context) {
     if (password.isEmpty || password.length < 8) {
-      return 'Please enter your password & at least 8 characters';
+      return AppLocalizations.of(context)!.password_min_characters;
     }
 
     if (confirmPassword.isEmpty || confirmPassword.length < 8) {
-      return 'Please re-enter your password & at least 8 characters';
+      return AppLocalizations.of(context)!.reenter_password_min_characters;
     }
 
     if (password != confirmPassword) {
-      return 'Passwords do not match';
+      return AppLocalizations.of(context)!.passwords_do_not_match;
     }
 
     if (!isPasswordValid()) {
-      return 'Password is too weak. Please meet at least 3 requirements.';
+      return AppLocalizations.of(context)!.password_too_weak_requirements;
     }
 
-    return null; // No error
+    return null;
   }
 
-  // Method to validate only password strength (for real-time feedback)
-  String? validatePasswordStrength(String password) {
+  String? validatePasswordStrength(String password, BuildContext context) {
     if (password.isEmpty) {
-      return 'Password is required';
+      return AppLocalizations.of(context)!.password_required;
     }
 
     if (password.length < 8) {
-      return 'Password must be at least 8 characters';
+      return AppLocalizations.of(context)!.password_must_be_8;
     }
 
     if (!isPasswordValid()) {
-      return 'Password is too weak. Please meet at least 3 requirements.';
+      return AppLocalizations.of(context)!.password_too_weak_requirements;
     }
 
-    return null; // No error
+    return null;
   }
 
-  // Method to validate password match
-  String? validatePasswordMatch(String password, String confirmPassword) {
+  String? validatePasswordMatch(String password, String confirmPassword, BuildContext context) {
     if (confirmPassword.isEmpty) {
-      return 'Please confirm your password';
+      return AppLocalizations.of(context)!.please_confirm_password;
     }
 
     if (password != confirmPassword) {
-      return 'Passwords & Re-enter Passwords do not match';
+      return AppLocalizations.of(context)!.passwords_reenter_do_not_match;
     }
 
-    return null; // No error
+    return null;
   }
 
+  // UI builder methods unchanged...
   Widget buildRequirement(BuildContext context, String text, bool isMet) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
@@ -196,9 +180,9 @@ class NewPasswordValidation {
             child: Text(
               text,
               style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: isMet ? Colors.green : AppColors.textPrimary(context),
-                  fontWeight: FontWeight.w400
+                fontSize: 14,
+                color: isMet ? Colors.green : AppColors.textPrimary(context),
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),
@@ -207,7 +191,6 @@ class NewPasswordValidation {
     );
   }
 
-  // Method to build progress bar widget
   Widget buildProgressBar() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,6 +225,7 @@ class NewPasswordValidation {
   }
 }
 
+
 // Helper class for password requirements
 class PasswordRequirement {
   final String text;
@@ -258,15 +242,16 @@ extension NewPasswordValidationExtension on NewPasswordValidation {
     required String phone,
     required String password,
     required String confirmPassword,
+    required BuildContext context,
   }) {
-    // Check phone
-    String? phoneError = NewPasswordValidation.validateBangladeshiPhone(phone);
+    // Check phone with context
+    String? phoneError = NewPasswordValidation.validateBangladeshiPhone(phone, context);
     if (phoneError != null) {
       return ValidationResult(isValid: false, errorMessage: phoneError);
     }
 
-    // Check passwords
-    String? passwordError = _validatePasswords(password, confirmPassword);
+    // Check passwords with context
+    String? passwordError = _validatePasswords(password, confirmPassword, context);
     if (passwordError != null) {
       return ValidationResult(isValid: false, errorMessage: passwordError);
     }
@@ -278,8 +263,9 @@ extension NewPasswordValidationExtension on NewPasswordValidation {
   ValidationResult validateForgotPasswordForm({
     required String password,
     required String confirmPassword,
+    required BuildContext context,
   }) {
-    String? passwordError = _validatePasswords(password, confirmPassword);
+    String? passwordError = _validatePasswords(password, confirmPassword, context);
     if (passwordError != null) {
       return ValidationResult(isValid: false, errorMessage: passwordError);
     }

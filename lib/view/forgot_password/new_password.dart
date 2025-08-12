@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/validations/forgotpasword_validation/newpassword_validation.dart';
 import 'package:dinmajur_customer/configs/widgets/reusable_passwordfield.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/helper_forgotpassword/helper_forpassword.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotresetpassword_view_model.dart';
 import 'package:flutter/foundation.dart';
@@ -85,7 +86,7 @@ class _NewPasswordState extends State<NewPassword> {
             height: 60,
             width: double.infinity,
             color: AppColors.containerBackground(context),
-            child: AppBarHeader("New password"),
+            child: AppBarHeader(AppLocalizations.of(context)!.new_password_title),
           ),
         ),
         // Scrollable content
@@ -105,7 +106,7 @@ class _NewPasswordState extends State<NewPassword> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomPasswordFieldPoppins(
-                        titleText: "Password *",
+                        titleText: AppLocalizations.of(context)!.password_required,
                         controller: _passwordController,
                         focusNode: _passwordFocus,
                         obsecurePassword: _obsecurePassword,
@@ -117,7 +118,7 @@ class _NewPasswordState extends State<NewPassword> {
                       ],
                       SizedboxSpaccing.height025(context),
                       CustomPasswordFieldPoppins(
-                        titleText: "Re-enter password *",
+                        titleText:AppLocalizations.of(context)!.reenter_password,
                         controller: _reenterPasswordController,
                         focusNode: _rePasswordFocus,
                         obsecurePassword: _reObsecurePassword,
@@ -137,7 +138,7 @@ class _NewPasswordState extends State<NewPassword> {
                     return Container(
                       width: screenWidth * 0.8,
                       child: RoundButton(
-                        title: 'Confirm',
+                        title: AppLocalizations.of(context)!.confirm,
                         iconData: Icons.arrow_forward_ios_rounded,
                         loading: forgotNewPasswordMode.newPasswordLoading,
                         onPress: () async {
@@ -145,6 +146,7 @@ class _NewPasswordState extends State<NewPassword> {
                               .getValidationMessageWithoutPhone(
                             _passwordController.text,
                             _reenterPasswordController.text,
+                            context
                           );
 
                           if (validationMessage != null) {

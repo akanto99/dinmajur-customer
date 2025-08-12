@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/countdown/forgotpassword_countdown/forgotPassword_countdown.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgot_otpsend_view_model.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotverifyotp_view_model.dart';
@@ -59,7 +60,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                onTap: () {
                  Navigator.pop(context);
                },
-               child: Container(height: 60, child: AppBarHeader("OTP Verification")),
+               child: Container(height: 60, child: AppBarHeader(AppLocalizations.of(context)!.otp_verification_title)),
              ),
              SizedboxSpaccing.height025(context),
 
@@ -73,8 +74,8 @@ class _OtpVerifyState extends State<OtpVerify> {
                child: Column(
                  mainAxisSize: MainAxisSize.min,
                  children: [
-                   Text("Verify your number", style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-                   Text("Sent a code to your number", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                   Text(AppLocalizations.of(context)!.verify_your_number, style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+                   Text(AppLocalizations.of(context)!.sent_code_to_number, style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                    SizedboxSpaccing.height01(context),
                    Container(
                      child: Text("+88$phone", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
@@ -124,20 +125,14 @@ class _OtpVerifyState extends State<OtpVerify> {
                  return Container(
                    width: screenWidth * 0.8,
                    child: RoundButton(
-                     title: 'verify',
+                     title: AppLocalizations.of(context)!.next,
                      iconData: Icons.arrow_forward_ios_rounded,
                      loading: verifyViewModel.verifyOTPLoading,
                      onPress: () async {
                        String otpValue = pinTEController.text.trim();
 
-                       if (otpValue.isEmpty) {
-                         Utils.flushBarErrorMessage('Enter the OTP', context);
-                         return;
-                       }
-
-                       if (otpValue.length != 4) {
-                         Utils.flushBarErrorMessage('Enter a 4-digit OTP', context);
-                         return;
+                       if (pinTEController.text.isEmpty || pinTEController.text.length < 4) {
+                         Utils.flushBarErrorMessage(AppLocalizations.of(context)!.please_enter_valid_otp, context);
                        }
 
                        Map<String, dynamic> fields = {
@@ -174,7 +169,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                            context,
                            onSuccess: () {
                              pinTEController.clear();
-                             Utils.flushBarSuccessMessage('New OTP has been sent"', context);
+                             Utils.flushBarSuccessMessage(AppLocalizations.of(context)!.otp_sent_success, context);
                            },
                          );
                        }
@@ -182,7 +177,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                      child: Column(
                        mainAxisAlignment: MainAxisAlignment.center,
                        children: [
-                         Text("Haven't received any code? ", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                         Text(AppLocalizations.of(context)!.havent_received_code,  style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                          Text(
                            timerProvider.formattedTime,
                            style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.button(context)),
@@ -201,7 +196,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                              return Column(
                                mainAxisSize: MainAxisSize.min,
                                children: [
-                                 Center(child: Text("Send Again", style: textStyle)),
+                                 Center(child: Text(AppLocalizations.of(context)!.send_again, style: textStyle)),
                                  // Center(
                                  //   child: DottedLine(
                                  //     direction: Axis.horizontal,

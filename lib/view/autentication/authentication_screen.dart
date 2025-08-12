@@ -249,6 +249,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
         _phoneController.text,
         _passwordController.text,
         _reenterPasswordController.text,
+        context
       );
 
       if (validationMessage != null) {

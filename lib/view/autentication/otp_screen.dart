@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/view_model/authview_model/authview_model.dart';
 import 'package:dinmajur_customer/view_model/authview_model/otp_verify_view_model.dart';
@@ -53,7 +54,7 @@ class _OtpScreenState extends State<OtpScreen> {
               onTap: () {
                 Navigator.pop(context);
               },
-              child: Container(height: 60, child: AppBarHeader("OTP Verification")),
+              child: Container(height: 60, child: AppBarHeader(AppLocalizations.of(context)!.otp_verification_title)),
             ),
             SizedboxSpaccing.height025(context),
 
@@ -67,8 +68,8 @@ class _OtpScreenState extends State<OtpScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Verify your number", style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-                  Text("Sent a code to your number", style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
+                  Text(AppLocalizations.of(context)!.verify_your_number, style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+                  Text(AppLocalizations.of(context)!.sent_code_to_number, style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
                   SizedboxSpaccing.height01(context),
                   Container(
                     child: Text("+88$phone", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
@@ -133,12 +134,12 @@ class _OtpScreenState extends State<OtpScreen> {
                 return Container(
                   width: screenWidth * 0.79,
                   child: RoundButton(
-                    title: 'Next',
+                    title: AppLocalizations.of(context)!.next,
                     iconData: Icons.arrow_forward_ios_rounded,
                     loading: verify.otpVerifyloading,
                     onPress: () async {
                       if (pinTEController.text.isEmpty || pinTEController.text.length < 4) {
-                        Utils.flushBarErrorMessage("Please enter a valid 4-digit OTP", context);
+                        Utils.flushBarErrorMessage(AppLocalizations.of(context)!.please_enter_valid_otp, context);
                       } else {
                         Map data = {'otp': pinTEController.text.toString()};
                         verify.otpVerify(data, context);
@@ -168,7 +169,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Haven't received any code? ", style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                        Text(AppLocalizations.of(context)!.havent_received_code, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
                         Text(
                          "${timerProvider.formattedTime}",
                           style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.button(context)),
@@ -190,7 +191,7 @@ class _OtpScreenState extends State<OtpScreen> {
                           context,
                           onSuccess: () async {
                             pinTEController.clear();
-                            Utils.flushBarSuccessMessage('A new OTP has been sent', context);
+                            Utils.flushBarSuccessMessage(AppLocalizations.of(context)!.otp_sent_success, context);
                           },
                         );
                       }
@@ -210,7 +211,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         return Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Center(child: Text("Send Again", style: textStyle)),
+                            Center(child: Text(AppLocalizations.of(context)!.send_again, style: textStyle)),
                             // Center(
                             //   child: DottedLine(
                             //     direction: Axis.horizontal,

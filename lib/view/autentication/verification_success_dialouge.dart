@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class VerificationSuccessScreen extends StatefulWidget {
@@ -140,7 +141,7 @@ class _VerificationSuccessScreenState extends State<VerificationSuccessScreen>
         ),
         child: Center(
           child:
-          Text("Verification", style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
+          Text( AppLocalizations.of(context)!.verification_title, style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
 
         ),
       ),
@@ -207,13 +208,13 @@ class _VerificationSuccessScreenState extends State<VerificationSuccessScreen>
                     child: Column(
                       children: [
                         Text(
-                          "Verification Successful!",
+                            AppLocalizations.of(context)!.verification_success_title,
                           style: AppTextStyles.textSize24(context,weight: FontWeight.w600,color: AppColors.button(context))),
 
                         SizedboxSpaccing.height01(context),
 
                         Text(
-                          "Your phone number has been\nsuccessfully verified.",
+                          AppLocalizations.of(context)!.verification_success_message,
                           style: AppTextStyles.textSize14(context,
                             weight: FontWeight.w400,
                           ),
@@ -246,7 +247,7 @@ class _VerificationSuccessScreenState extends State<VerificationSuccessScreen>
                                 onTapUp: (_) => _buttonAnimationController.reverse(),
                                 onTapCancel: () => _buttonAnimationController.reverse(),
                                 child: RoundButton(
-                                  title: "Continue to App",
+                                  title:  AppLocalizations.of(context)!.continue_to_app,
                                   onPress: (){
                                     Navigator.pushNamed(context, RoutesName.navigationBar);
                                   },
@@ -267,7 +268,7 @@ class _VerificationSuccessScreenState extends State<VerificationSuccessScreen>
                           },
                           child: Container(
                             child: Text(
-                              "I'll set up my profile later",
+                                AppLocalizations.of(context)!.setup_profile_later,
                               style: AppTextStyles.textSize16(context,
                                 weight: FontWeight.w500,
                               )

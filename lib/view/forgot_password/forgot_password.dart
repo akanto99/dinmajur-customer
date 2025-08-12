@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgot_otpsend_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -61,7 +62,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           child: Container(
             height: 60,
             color: AppColors.containerBackground(context),
-            child: Center(child: AppBarHeader("Forgot password?")),
+            child: Center(child: AppBarHeader( AppLocalizations.of(context)!.forgot_password_title)),
           ),
         ),
         SizedboxSpaccing.height025(context),
@@ -76,8 +77,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
               )
           ),
           child: CustomTextFieldWithFormFieldPoppins(
-            titleText: "Mobile Number *",
-            placeholder: "01XXXXXXXXX",
+            titleText:AppLocalizations.of(context)!.mobile_number_required,
+            placeholder:AppLocalizations.of(context)!.mobile_number_placeholder,
             controller: _phoneController,
             focusCurrent: _phoneFocus,
             keyboardType: TextInputType.number,
@@ -89,18 +90,18 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             return Container(
               width: screenWidth * 0.8,
               child: RoundButton(
-                title: 'Next',
+                title: AppLocalizations.of(context)!.next,
                 iconData: Icons.arrow_forward_ios_rounded,
                 loading: forgotOtpSendMode.otpAPiloading,
                 onPress: () async {
                   // Validation checks
                   if (_phoneController.text.isEmpty) {
-                    Utils.flushBarErrorMessage('Please enter phone number', context);
+                    Utils.flushBarErrorMessage(AppLocalizations.of(context)!.error_enter_phone, context);
                     return;
                   }
 
                   if (_phoneController.text.trim().length < 11) {
-                    Utils.flushBarErrorMessage('Please enter a valid phone number', context);
+                    Utils.flushBarErrorMessage(AppLocalizations.of(context)!.error_valid_phone, context);
                     return;
                   }
 

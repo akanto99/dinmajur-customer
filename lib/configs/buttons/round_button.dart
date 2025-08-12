@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class RoundButton extends StatelessWidget {
@@ -32,7 +33,7 @@ class RoundButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(8)
         ),
         child: Center(
-            child:loading ?Text('Waiting...',style: AppTextStyles.textSize16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),)
+            child:loading ?Text( AppLocalizations.of(context)!.wait,style: AppTextStyles.textSize16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),)
                 :
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
