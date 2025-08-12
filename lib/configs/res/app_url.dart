@@ -28,6 +28,7 @@ class AppUrl {
   static var patchImageUpdateApi= baseUrl + '/users/update-profile-picture';
   static var uploadThumnailPostApi= baseUrl + '/users/upload-profile-picture';
   static var changePasswordPostAPI = baseUrl + "/auth/change-password";
+  static var nearbyRetailersPostAPI = baseUrl + "/retailers/nearby-retailers";
 
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';

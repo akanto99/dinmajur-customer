@@ -20,6 +20,7 @@ import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
 import 'l10n/app_localizations.dart';
 import 'provider/countdown/forgotpassword_countdown/forgotPassword_countdown.dart';
+import 'view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +52,7 @@ void main() async {
 
         ///Home=====>
         ChangeNotifierProvider(create: (_) => ProfileViewViewModel()),
+        ChangeNotifierProvider(create: (_) => PostNearbyRetailersViewModel()),
       ],
       child: MyApp(),
     ),
