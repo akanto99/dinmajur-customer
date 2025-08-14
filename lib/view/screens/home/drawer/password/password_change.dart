@@ -149,7 +149,7 @@ class _PasswordChangeState extends State<PasswordChange> {
                 SizedboxSpaccing.height025(context),
                 Consumer<PostChangePasswordViewModel>(
                   builder: (context, changepassMode, child) {
-                    return       Container(
+                    return  Container(
                       width: screenWidth * 0.8,
                       child: RoundButton(
                         title: 'Confirm',

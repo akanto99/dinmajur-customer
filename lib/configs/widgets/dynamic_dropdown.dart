@@ -43,13 +43,20 @@ class CustomDropdown extends StatelessWidget {
               value: selectedItem,
               style:  AppTextStyles.textSize16(context, weight: FontWeight.w500),
               hint: Text(hintText ,style:  AppTextStyles.textSize16(context,color: AppColors.hintColor(context), weight: FontWeight.w400),),
+              iconStyleData: IconStyleData(
+                icon: Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 25,
+                  color: AppColors.form_hover(context),
+                ),
+              ),
               buttonStyleData: ButtonStyleData(
                 width: screenWidth * 0.9,
                 height: 42,
                 // height: screenHeight * 0.06,
                 decoration: BoxDecoration(
                     color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(5),
                     border: Border.all(
                         width: 1,
                         color: AppColors.border(context)

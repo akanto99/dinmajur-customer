@@ -4,12 +4,12 @@ import 'package:dinmajur_customer/configs/res/components/notifications/resuable_
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -121,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
               titleText: "কি লাগবে?",
               items: storeTypes.keys.toList(),
               selectedItem: selectedStoreType,
-              hintText: "নির্ধারণ করুন",
+              hintText: "নির্বাচন করুন",
               onChanged: (String? newValue) {
                 setState(() {
                   selectedStoreType = newValue;
@@ -251,22 +251,41 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         SizedboxSpaccing.height02(context),
-        Container(
-          height: 50,
-          padding: EdgeInsets.only(left: 20),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: AppColors.button(context),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.shopping_cart,size: 16,color: AppColors.whiteColor,),
-              SizedboxSpaccing.width01(context),
-              Text(
-                "Order Now",
-                style: AppTextStyles.textSize14(context,color: AppColors.whiteColor, weight: FontWeight.w500),
-              ),
-            ],
+        GestureDetector(
+          onTap: () {
+
+            Navigator.pushNamed(
+                context,
+                RoutesName.orderNow,
+                arguments: {
+                  'storeData': store,
+                  'retailer': retailer,
+                  'distance': distance,
+                  'address': address,
+                  'businessName': businessName,
+                  'businessType': businessType,
+                  'selectedStoreType': selectedStoreType,
+                }
+            );
+          },
+          child: Container(
+            height: 50,
+            padding: EdgeInsets.only(left: 20),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: AppColors.button(context),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.shopping_cart,size: 16,color: AppColors.whiteColor,),
+                SizedboxSpaccing.width01(context),
+                Text(
+                  "Order Now",
+                  style: AppTextStyles.textSize14(context,color: AppColors.whiteColor, weight: FontWeight.w500),
+                ),
+              ],
+            ),
           ),
         )
       ],

@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:dinmajur_customer/configs/res/color.dart';
-import 'package:dinmajur_customer/configs/res/components/full_image_viewer.dart';
+import 'package:dinmajur_customer/configs/res/components/full_screen_image/full_image_viewer.dart';
 import 'package:dinmajur_customer/configs/res/components/profile_view_header/drawer_profile_view.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';

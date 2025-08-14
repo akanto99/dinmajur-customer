@@ -14,7 +14,9 @@ class RoutesName {
   static const String newPassword = 'newPassword_view';
 
 
-  ///home
 
+  ///home
+  static const String home = 'home_view';
+  static const String orderNow = 'orderNow_view';
 
 }
