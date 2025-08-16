@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/drawer.dart';
 import 'package:dinmajur_customer/configs/res/components/notifications/resuable_notifications.dart';
@@ -88,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       key: widget.scaffoldKey,
-      backgroundColor: AppColors.appBackground(context),
+      backgroundColor: AppColors.containerBackground(context),
       drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(80),
@@ -116,7 +117,11 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             width: screenWidth * 0.9,
             padding: EdgeInsets.all(screenHeight * 0.02),
-            decoration: BoxDecoration(color: AppColors.containerBackground(context)),
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(width: 1, color: AppColors.border(context)),
+            ),
             child: CustomDropdown(
               titleText: "কি লাগবে?",
               items: storeTypes.keys.toList(),
@@ -138,14 +143,28 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           SizedboxSpaccing.height02(context),
-          // Text(
-          //   'নিকটবর্তী দোকান (${nearbyStores.length}টি)',
-          //   style: AppTextStyles.textSize16(context,
-          //       weight: FontWeight.w600
-          //   ),
-          // ),
+
           if (nearbyStores.isNotEmpty)
-            _buildStoresList(),
+            Container(
+              width: screenWidth * 0.9,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('নিকটবর্তী দোকান (${nearbyStores.length}টি)', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                      GestureDetector(
+                        onTap: () {},
+                        child: Text('See All', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                      ),
+                    ],
+                  ),
+                  Divider(height: 1, color: AppColors.border(context)),
+                ],
+              ),
+            ),
+          SizedboxSpaccing.height02(context),
+          _buildStoresList(),
         ],
       ),
     );
@@ -157,8 +176,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Container(
       width: screenWidth * 0.9,
-      padding: EdgeInsets.all(screenHeight * 0.02),
-      decoration: BoxDecoration(color: AppColors.containerBackground(context)),
       child: ListView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
@@ -183,79 +200,113 @@ class _HomeScreenState extends State<HomeScreen> {
 
     debugPrint('Store details - Name: $businessName, Distance: $distance, Address: $address');
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Nearest Store", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-        SizedboxSpaccing.height01(context),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                businessName,
-                style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Row(
-              children: [
-                Icon(Icons.check_circle, size: 16, color: Colors.green),
-                SizedboxSpaccing.width01(context),
-                Text(
-                  "Available",
-                  style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ],
-        ),
-        Text(
-          storeTypes[address] ?? address,
-          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        SizedboxSpaccing.height005(context),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.location_on, size: 16, color: AppColors.textPrimary(context)),
-            SizedboxSpaccing.width01(context),
-            Text(
-              '${distance.toStringAsFixed(0)}m away',
-              style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-            ),
-          ],
-        ),
-        SizedboxSpaccing.height01(context),
-        Container(
-          height: 42,
-          padding: EdgeInsets.only(left: 20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: Color(0xffF0FDF4),
-            border: Border.all(
-              width: 1,
-              color: Color(0xffBBF7D0),
-            )
-          ),
-          child: Row(
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(width: 1, color: AppColors.border(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.access_time_filled,size: 16,color: Color(0xff15803D),),
-              SizedboxSpaccing.width01(context),
-              Text(
-                "Delivery within 30-60 minutes",
-                style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w500),
+              Expanded(
+                child: Text(
+                  businessName,
+                  style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Row(
+                children: [
+                  Icon(Icons.check_circle, size: 16, color: Colors.green),
+                  SizedboxSpaccing.width01(context),
+                  Text(
+                    "Available",
+                    style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w400),
+                  ),
+                ],
               ),
             ],
           ),
-        ),
-        SizedboxSpaccing.height02(context),
-        GestureDetector(
-          onTap: () {
-
-            Navigator.pushNamed(
+          Text(
+            storeTypes[address] ?? address,
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedboxSpaccing.height005(context),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 20,
+                width: 12,
+                // color: Colors.red,
+                alignment: Alignment.centerLeft,
+                child: Icon(Icons.location_on, size: 12, color: AppColors.textPrimary(context)),
+              ),
+              SizedboxSpaccing.width01(context),
+              Text(
+                '${distance.toStringAsFixed(0)}m away',
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+              ),
+            ],
+          ),
+          SizedboxSpaccing.height01(context),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 20,
+                width: 12,
+                // color: Colors.red,
+                alignment: Alignment.centerLeft,
+                child: Icon(Icons.access_time_filled, size: 12, color: AppColors.textPrimary(context)),
+              ),
+              SizedboxSpaccing.width01(context),
+              Container(
+                // height: 20,
+                // color: Colors.red,
+                child: Text(
+                  'Delivery within 30-60 minutes',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                ),
+              ),
+            ],
+          ),
+          // SizedboxSpaccing.height01(context),
+          // Container(
+          //   height: 42,
+          //   padding: EdgeInsets.only(left: 20),
+          //   decoration: BoxDecoration(
+          //     borderRadius: BorderRadius.circular(8),
+          //     color: Color(0xffF0FDF4),
+          //     border: Border.all(
+          //       width: 1,
+          //       color: Color(0xffBBF7D0),
+          //     )
+          //   ),
+          //   child: Row(
+          //     children: [
+          //       Icon(Icons.access_time_filled,size: 16,color: Color(0xff15803D),),
+          //       SizedboxSpaccing.width01(context),
+          //       Text(
+          //         "Delivery within 30-60 minutes",
+          //         style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w500),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          SizedboxSpaccing.height02(context),
+          RoundButton(
+            title: "Order Now",
+            onPress: () {
+              Navigator.pushNamed(
                 context,
                 RoutesName.orderNow,
                 arguments: {
@@ -267,30 +318,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   'businessType': businessType,
                   'selectedStoreType': selectedStoreType,
                   'userID': userID,
-                }
-            );
-          },
-          child: Container(
-            height: 50,
-            padding: EdgeInsets.only(left: 20),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: AppColors.button(context),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.shopping_cart,size: 16,color: AppColors.whiteColor,),
-                SizedboxSpaccing.width01(context),
-                Text(
-                  "Order Now",
-                  style: AppTextStyles.textSize14(context,color: AppColors.whiteColor, weight: FontWeight.w500),
-                ),
-              ],
-            ),
+                },
+              );
+            },
+            iconData: Icons.arrow_forward_ios_rounded,
           ),
-        )
-      ],
+        ],
+      ),
     );
   }
 

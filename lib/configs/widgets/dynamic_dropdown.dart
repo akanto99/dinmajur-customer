@@ -56,7 +56,7 @@ class CustomDropdown extends StatelessWidget {
                 // height: screenHeight * 0.06,
                 decoration: BoxDecoration(
                     color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                         width: 1,
                         color: AppColors.border(context)
