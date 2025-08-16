@@ -9,6 +9,7 @@ import 'package:dinmajur_customer/view/login/login_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
 import 'package:dinmajur_customer/view/welcome_loginsignup/welcome_loginsignup.dart';
@@ -49,10 +50,11 @@ class Routes {
       case RoutesName.home:
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
       case RoutesName.orderNow:
-        return MaterialPageRoute(
-          builder: (BuildContext context) => const OrderNow(),
-          settings: settings,
-        );
+        return MaterialPageRoute(builder: (BuildContext context) => const OrderNow(), settings: settings);
+      case RoutesName.checkoutScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
+
+
 
       default:
         return _errorRoute();

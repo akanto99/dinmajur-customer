@@ -353,7 +353,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
     try {
       await Provider.of<UserViewModel>(context, listen: false).remove();
       if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, RoutesName.login, (route) => false);
+        Navigator.pushNamedAndRemoveUntil(context, RoutesName.welcomeLoginSignup, (route) => false);
       }
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.remove("isDeliveryPerson");

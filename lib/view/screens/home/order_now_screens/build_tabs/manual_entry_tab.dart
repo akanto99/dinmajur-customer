@@ -28,12 +28,22 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
   final TextEditingController quantityController = TextEditingController(text: '1');
   String quantityType = 'Quantity'; // 'Quantity' or 'Weight'
 
+// Update the _addItem method in your ManualEntryTab class
+
   void _addItem() {
     if (itemNameController.text.trim().isNotEmpty && quantityController.text.trim().isNotEmpty) {
+      // Generate estimated price based on quantity and type
+      double estimatedPrice = _calculateEstimatedPrice(
+        itemNameController.text.trim(),
+        quantityController.text.trim(),
+        quantityType,
+      );
+
       final newItem = {
         'name': itemNameController.text.trim(),
         'quantity': quantityController.text.trim(),
         'quantityType': quantityType,
+        'estimatedPrice': estimatedPrice.toString(),
       };
 
       widget.onAddItem(newItem);
@@ -41,6 +51,44 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
       // Clear the form
       itemNameController.clear();
       quantityController.text = '1';
+    }
+  }
+
+// Add this method to calculate estimated price
+  double _calculateEstimatedPrice(String itemName, String quantity, String quantityType) {
+    // Base prices for common items (you can expand this)
+    Map<String, double> basePrices = {
+      'tomato': 2.50,
+      'tomatoes': 2.50,
+      'rice': 3.00,
+      'basmati rice': 4.50,
+      'chicken': 6.00,
+      'beef': 8.00,
+      'milk': 3.50,
+      'bread': 2.00,
+      'onion': 1.50,
+      'onions': 1.50,
+      'potato': 1.80,
+      'potatoes': 1.80,
+      'apple': 3.20,
+      'apples': 3.20,
+      'banana': 2.10,
+      'bananas': 2.10,
+    };
+
+    // Get base price
+    String itemKey = itemName.toLowerCase();
+    double basePrice = basePrices[itemKey] ?? 4.50; // Default price if item not found
+
+    // Calculate total based on quantity and type
+    int qty = int.tryParse(quantity) ?? 1;
+
+    if (quantityType == 'Weight') {
+      // For weight-based items, multiply base price per kg
+      return basePrice * qty;
+    } else {
+      // For quantity-based items, price per piece
+      return basePrice * qty;
     }
   }
 
@@ -108,8 +156,12 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.orderItems.length,
             separatorBuilder: (context, index) => SizedBox(height: screenHeight * 0.01),
+// Replace the item display part in your _buildOrderItemsList method
+
             itemBuilder: (context, index) {
               final item = widget.orderItems[index];
+              // double price = double.tryParse(item['estimatedPrice']?.toString() ?? '0') ?? 4.50;
+
               return Container(
                 decoration: BoxDecoration(
                   color: AppColors.textFieldFill(context),
@@ -127,9 +179,22 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
                             item['name'],
                             style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
                           ),
-                          Text(
-                            "${item['quantity']} ${item['quantityType'] == 'Weight' ? 'kg' : 'pcs'}",
-                            style: AppTextStyles.textSize12(context, color: Colors.grey),
+                          Row(
+                            children: [
+                              Text(
+                                "${item['quantity']} ${item['quantityType'] == 'Weight' ? 'kg' : 'pcs'}",
+                                style: AppTextStyles.textSize12(context, color: Colors.grey),
+                              ),
+                              const SizedBox(width: 8),
+                              // Text(
+                              //   "• \$${price.toStringAsFixed(2)}",
+                              //   style: AppTextStyles.textSize12(
+                              //     context,
+                              //     color: AppColors.textPrimary(context),
+                              //     weight: FontWeight.w500,
+                              //   ),
+                              // ),
+                            ],
                           ),
                         ],
                       ),

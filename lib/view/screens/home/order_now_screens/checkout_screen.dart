@@ -1,0 +1,661 @@
+import 'package:flutter/material.dart';
+import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/custom_appbar.dart';
+import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
+import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+
+class CheckoutScreen extends StatefulWidget {
+  const CheckoutScreen({super.key});
+
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  // Order data properties
+  Map<String, dynamic>? storeData;
+  String? businessName;
+  List<Map<String, dynamic>> orderItems = [];
+  List<Map<String, dynamic>> uploadedPhotos = [];
+  String? voiceRecordingPath;
+  String? notes;
+  String orderType = '';
+
+  // Pricing
+  double subtotal = 0.0;
+  double deliveryFee = 3.99;
+  double tax = 0.0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadArguments();
+    _calculatePricing();
+  }
+
+  void _loadArguments() {
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (arguments != null) {
+      storeData = arguments['storeData'];
+      businessName = arguments['businessName'];
+      orderItems = List<Map<String, dynamic>>.from(arguments['orderItems'] ?? []);
+      uploadedPhotos = List<Map<String, dynamic>>.from(arguments['uploadedPhotos'] ?? []);
+      voiceRecordingPath = arguments['voiceRecordingPath'];
+      notes = arguments['notes'];
+      orderType = arguments['orderType'] ?? 'manual';
+    }
+  }
+
+  void _calculatePricing() {
+    subtotal = 0.0;
+
+    // Calculate from manual entry items
+    subtotal += orderItems.fold(0.0, (sum, item) {
+      double price = double.tryParse(item['estimatedPrice']?.toString() ?? '0') ?? 4.50;
+      return sum + price;
+    });
+
+    // Calculate from uploaded photos
+    subtotal += uploadedPhotos.length * 8.00; // $8 per photo processing
+
+    // Calculate from voice recording
+    if (voiceRecordingPath != null && voiceRecordingPath!.isNotEmpty) {
+      subtotal += 5.00; // $5 for voice processing
+    }
+
+    tax = subtotal * 0.10; // 10% tax
+    setState(() {});
+  }
+
+  // ADD THIS METHOD - Format file size
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return "${bytes}B";
+    if (bytes < 1024 * 1024) return "${(bytes / 1024).toStringAsFixed(1)}KB";
+    return "${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB";
+  }
+
+  void _saveDraft() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Draft saved successfully",
+          style: AppTextStyles.textSize14(context),
+        ),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _placeOrder() {
+    debugPrint("🛒 --- Order Placed ---");
+
+    // Manual entry items
+    if (orderItems.isNotEmpty) {
+      debugPrint("📦 Manual Items:");
+      for (var item in orderItems) {
+        final name = item['name'] ?? 'Unknown Item';
+        final quantity = item['quantity'] ?? 1;
+        final unit = item['quantityType'] == 'Weight' ? 'kg' : 'pcs';
+        final price = double.tryParse(item['estimatedPrice']?.toString() ?? '0') ?? 4.50;
+
+        debugPrint("➡️ $name | $quantity $unit | \$${price.toStringAsFixed(2)}");
+      }
+    }
+
+    // Uploaded photos
+    if (uploadedPhotos.isNotEmpty) {
+      debugPrint("🖼️ Photo Orders:");
+      for (var i = 0; i < uploadedPhotos.length; i++) {
+        final photo = uploadedPhotos[i];
+        final name = photo['name'] ?? "Grocery List ${i + 1}";
+        const price = 8.00;
+
+        debugPrint("➡️ $name | 1 photo | \$${price.toStringAsFixed(2)}");
+      }
+    }
+
+    // Voice recording
+    if (voiceRecordingPath != null && voiceRecordingPath!.isNotEmpty) {
+      debugPrint("🎤 Voice Order:");
+      debugPrint("➡️ Voice Shopping List | 1 recording | \$5.00");
+    }
+
+    // Final totals
+    final total = subtotal + deliveryFee + tax;
+    debugPrint("💰 Subtotal: \$${subtotal.toStringAsFixed(2)}");
+    debugPrint("🚚 Delivery Fee: \$${deliveryFee.toStringAsFixed(2)}");
+    debugPrint("💵 Tax: \$${tax.toStringAsFixed(2)}");
+    debugPrint("✅ Total: \$${total.toStringAsFixed(2)}");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Order placed successfully!",
+          style: AppTextStyles.textSize14(context),
+        ),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.appBackground(context),
+      body: SafeArea(
+        child: ResPonsiveUi(
+          mobile: _buildBody(),
+          desktop: _buildBody(),
+          tablet: _buildBody(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    return Column(
+      children: [
+        _buildAppBar(),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedboxSpaccing.height02(context),
+                _buildStoreSection(),
+                SizedboxSpaccing.height02(context),
+                _buildDeliveryAddress(),
+                SizedboxSpaccing.height02(context),
+                _buildPaymentMethod(),
+                SizedboxSpaccing.height02(context),
+                _buildOrderSummary(),
+                SizedboxSpaccing.height02(context),
+                _buildPricingSection(),
+                SizedboxSpaccing.height04(context),
+              ],
+            ),
+          ),
+        ),
+        _buildActionButtons(),
+      ],
+    );
+  }
+
+  Widget _buildAppBar() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: const CustomAppBar(appBarTitle: "Checkout"),
+    );
+  }
+
+  Widget _buildStoreSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.shopping_cart,
+            color: AppColors.textPrimary(context),
+            size: 20,
+          ),
+          SizedboxSpaccing.width02(context),
+          Text(
+            businessName ?? 'Fresh Bazaar',
+            style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+          ),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xffDCFCE7),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check, size: 12, color: Color(0xff166534)),
+                SizedboxSpaccing.width01(context),
+                Text(
+                  "Available",
+                  style: AppTextStyles.textSize12(
+                    context,
+                    color: const Color(0xff166534),
+                    weight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryAddress() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Delivery Address",
+            style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+          ),
+          SizedboxSpaccing.height01(context),
+          Container(
+            padding: EdgeInsets.all(screenHeight * 0.015),
+            decoration: BoxDecoration(
+              color: AppColors.textFieldFill(context),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.border(context)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Home",
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                      ),
+                      SizedboxSpaccing.height005(context),
+                      Text(
+                        "123 Main Street, Apt 4B",
+                        style: AppTextStyles.textSize12(context, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.edit_outlined,
+                  size: 20,
+                  color: AppColors.textPrimary(context),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethod() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Payment Method",
+            style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+          ),
+          SizedboxSpaccing.height01(context),
+          Container(
+            padding: EdgeInsets.all(screenHeight * 0.015),
+            decoration: BoxDecoration(
+              color: AppColors.textFieldFill(context),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.border(context)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'VISA',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedboxSpaccing.width02(context),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Visa ending in 4242",
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                      ),
+                      Text(
+                        "Expires 12/25",
+                        style: AppTextStyles.textSize12(context, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.grey,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderSummary() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Order Summary",
+            style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+          ),
+          SizedboxSpaccing.height01(context),
+
+          // Manual Entry Items
+          if (orderItems.isNotEmpty)
+            ...orderItems.map((item) => _buildOrderItem(
+              title: item['name'] ?? 'Unknown Item',
+              subtitle: "${item['quantity'] ?? '1'} ${item['quantityType'] == 'Weight' ? 'kg' : 'pcs'}",
+              price: double.tryParse(item['estimatedPrice']?.toString() ?? '0') ?? 4.50,
+              showDelete: true,
+            )),
+
+          // Photo Items
+          if (uploadedPhotos.isNotEmpty)
+            ...uploadedPhotos.asMap().entries.map((entry) => _buildOrderItem(
+              title: entry.value['name'] ?? "Grocery List ${entry.key + 1}",
+              subtitle: "${_formatFileSize(entry.value['size'] ?? 0)} • Photo List",
+              price: 8.00,
+              showDelete: true,
+              isPhoto: true,
+            )),
+
+          // Voice Recording Item
+          if (voiceRecordingPath != null && voiceRecordingPath!.isNotEmpty)
+            _buildOrderItem(
+              title: "Voice Shopping List",
+              subtitle: "Audio recording • Voice List",
+              price: 5.00,
+              showDelete: true,
+              isVoice: true,
+            ),
+
+          // Show message if no items
+          if (orderItems.isEmpty && uploadedPhotos.isEmpty && (voiceRecordingPath == null || voiceRecordingPath!.isEmpty))
+            Container(
+              padding: EdgeInsets.all(screenHeight * 0.02),
+              child: Center(
+                child: Text(
+                  "No items in your order",
+                  style: AppTextStyles.textSize14(context, color: Colors.grey),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderItem({
+    required String title,
+    required String subtitle,
+    required double price,
+    bool showDelete = false,
+    bool isPhoto = false,
+    bool isVoice = false,
+  }) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: screenHeight * 0.01),
+      padding: EdgeInsets.all(screenHeight * 0.015),
+      decoration: BoxDecoration(
+        color: AppColors.textFieldFill(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border(context)),
+      ),
+      child: Row(
+        children: [
+          if (isPhoto)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Icon(Icons.image, size: 20, color: Colors.grey),
+            )
+          else if (isVoice)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.red.shade100,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Icon(Icons.mic, size: 20, color: Colors.red),
+            )
+          else
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Icon(Icons.shopping_bag, size: 20, color: Colors.blue),
+            ),
+
+          SizedboxSpaccing.width02(context),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                ),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.textSize12(context, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+
+          Text(
+            "\$${price.toStringAsFixed(2)}",
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+          ),
+
+          if (showDelete) ...[
+            SizedboxSpaccing.width01(context),
+            GestureDetector(
+              onTap: () {
+                // Handle delete
+              },
+              child: const Icon(
+                Icons.delete_outline,
+                size: 20,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPricingSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final total = subtotal + deliveryFee + tax;
+
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+      ),
+      child: Column(
+        children: [
+          _buildPriceRow("Subtotal", subtotal),
+          _buildPriceRow("Delivery Fee", deliveryFee),
+          _buildPriceRow("Tax", tax),
+          Divider(color: AppColors.border(context)),
+          _buildPriceRow("Total", total, isTotal: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(String label, double amount, {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.textSize14(
+              context,
+              weight: isTotal ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+          Text(
+            "\$${amount.toStringAsFixed(2)}",
+            style: AppTextStyles.textSize14(
+              context,
+              weight: isTotal ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      width: screenWidth,
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _buildSaveDraftButton()),
+          SizedboxSpaccing.width02(context),
+          Expanded(child: _buildPlaceOrderButton()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSaveDraftButton() {
+    return GestureDetector(
+      onTap: _saveDraft,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.save, size: 18, color: Colors.grey.shade700),
+            SizedboxSpaccing.width01(context),
+            Text(
+              "Save Draft",
+              style: AppTextStyles.textSize14(
+                context,
+                color: Colors.grey.shade700,
+                weight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceOrderButton() {
+    return GestureDetector(
+      onTap: _placeOrder,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.button(context),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.check_circle, size: 18, color: Colors.white),
+            SizedboxSpaccing.width01(context),
+            Text(
+              "Place Order",
+              style: AppTextStyles.textSize14(
+                context,
+                color: Colors.white,
+                weight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
@@ -15,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
+
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
@@ -22,8 +24,10 @@ import 'l10n/app_localizations.dart';
 import 'provider/countdown/forgotpassword_countdown/forgotPassword_countdown.dart';
 import 'view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   final themeProvider = ThemeProvider();
   await themeProvider.initializeTheme();
 
@@ -33,6 +37,7 @@ void main() async {
   await languageProvider.getLanguage();
 
   await Upgrader.clearSavedSettings();
+
   runApp(
     MultiProvider(
       providers: [
@@ -50,9 +55,12 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PostForgotOtpVerifyViewModel()),
         ChangeNotifierProvider(create: (_) => PostNewForgotPasswordViewModel()),
 
-        ///Home=====>
+        ///Home=====>"
         ChangeNotifierProvider(create: (_) => ProfileViewViewModel()),
         ChangeNotifierProvider(create: (_) => PostNearbyRetailersViewModel()),
+
+        // Add Socket Provider here
+        ChangeNotifierProvider(create: (_) => SocketProvider()),
       ],
       child: MyApp(),
     ),
@@ -64,12 +72,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ThemeProvider, LanguageChangeProvider>(
-      builder: (context, themeProvider, languageProvider, child) {
+    return Consumer3<ThemeProvider, LanguageChangeProvider, SocketProvider>(
+      builder: (context, themeProvider, languageProvider, socketProvider, child) {
         bool isDarkMode = themeProvider.isDarkMode;
 
         // Debug print to check language in MaterialApp
         print('MaterialApp locale: ${languageProvider.appLocale?.languageCode}');
+
+        // Auto-connect socket when app starts
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!socketProvider.isConnected) {
+            socketProvider.connect();
+          }
+        });
 
         SystemChrome.setSystemUIOverlayStyle(
           SystemUiOverlayStyle(
@@ -95,10 +110,8 @@ class MyApp extends StatelessWidget {
           darkTheme: MyThemes.darkTheme,
           initialRoute: RoutesName.splash,
           onGenerateRoute: Routes.generateRoute,
-
           // Use dynamic locale from LanguageChangeProvider
           locale: languageProvider.appLocale ?? Locale('en'), // Default to English if null
-
           localizationsDelegates: [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

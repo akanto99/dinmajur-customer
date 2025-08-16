@@ -3,6 +3,7 @@ import 'package:dinmajur_customer/configs/res/components/custom_appbar.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs/manual_entry_tab.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs/photo_upload_tab.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs/voice_list_tab.dart';
@@ -19,7 +20,7 @@ class OrderNow extends StatefulWidget {
 }
 
 class _OrderNowState extends State<OrderNow> {
-  // Store data properties
+  // Store data properties (existing)
   Map<String, dynamic>? storeData;
   Map<String, dynamic>? retailer;
   double? distance;
@@ -28,10 +29,14 @@ class _OrderNowState extends State<OrderNow> {
   String? businessType;
   String? selectedStoreType;
 
-  // Controllers and state
+  // Controllers and state (existing)
   final TextEditingController notesController = TextEditingController();
   List<Map<String, dynamic>> orderItems = [];
   int _selectedTabIndex = 0;
+
+  // ADD THESE NEW PROPERTIES:
+  List<Map<String, dynamic>> uploadedPhotos = [];
+  String? voiceRecordingPath;
 
   @override
   void didChangeDependencies() {
@@ -76,26 +81,57 @@ class _OrderNowState extends State<OrderNow> {
       ),
     );
   }
-
   void _proceedToCheckout() {
-    if (orderItems.isEmpty) {
+    // Check if user has added any content from any tab
+    bool hasManualItems = orderItems.isNotEmpty;
+    bool hasPhotos = uploadedPhotos.isNotEmpty;
+    bool hasVoiceRecording = voiceRecordingPath != null && voiceRecordingPath!.isNotEmpty;
+
+    // Require at least one type of content
+    if (!hasManualItems && !hasPhotos && !hasVoiceRecording) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please add at least one item to proceed"),
+          content: Text("Please add at least one item, photo, or voice recording to proceed"),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Proceeding to checkout with ${orderItems.length} items"),
-        backgroundColor: Colors.green,
-      ),
+    // Determine primary order type based on what user has added most
+    String orderType = 'mixed';
+    if (hasManualItems && !hasPhotos && !hasVoiceRecording) {
+      orderType = 'manual';
+    } else if (!hasManualItems && hasPhotos && !hasVoiceRecording) {
+      orderType = 'photo';
+    } else if (!hasManualItems && !hasPhotos && hasVoiceRecording) {
+      orderType = 'voice';
+    }
+
+    // Navigate to checkout screen with all data
+    Navigator.pushNamed(
+      context,
+      RoutesName.checkoutScreen,
+      arguments: {
+        'storeData': storeData,
+        'businessName': businessName,
+        'businessType': businessType,
+        'retailer': retailer,
+        'distance': distance,
+        'address': address,
+        'selectedStoreType': selectedStoreType,
+        'orderType': orderType,
+        'orderItems': orderItems, // Manual entry items
+        'uploadedPhotos': uploadedPhotos, // Photo items
+        'voiceRecordingPath': voiceRecordingPath, // Voice recording
+        'notes': notesController.text.trim(),
+        // Summary counts
+        'manualItemCount': orderItems.length,
+        'photoCount': uploadedPhotos.length,
+        'hasVoiceRecording': hasVoiceRecording,
+      },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -288,6 +324,23 @@ class _OrderNowState extends State<OrderNow> {
     );
   }
 
+  // Widget _buildTabContent() {
+  //   switch (_selectedTabIndex) {
+  //     case 0:
+  //       return ManualEntryTab(
+  //         orderItems: orderItems,
+  //         onAddItem: _addOrderItem,
+  //         onRemoveItem: _removeOrderItem,
+  //         notesController: notesController,
+  //       );
+  //     case 1:
+  //       return const PhotoUploadTab();
+  //     case 2:
+  //       return const VoiceListTab();
+  //     default:
+  //       return Container();
+  //   }
+  // }
   Widget _buildTabContent() {
     switch (_selectedTabIndex) {
       case 0:
@@ -298,14 +351,26 @@ class _OrderNowState extends State<OrderNow> {
           notesController: notesController,
         );
       case 1:
-        return const PhotoUploadTab();
+        return PhotoUploadTab(
+          initialPhotos: uploadedPhotos, // PASS EXISTING PHOTOS
+          onPhotosChanged: (photos) {
+            setState(() {
+              uploadedPhotos = photos;
+            });
+          },
+        );
       case 2:
-        return const VoiceListTab();
+        return VoiceListTab(
+          onRecordingChanged: (recordingPath) {
+            setState(() {
+              voiceRecordingPath = recordingPath;
+            });
+          },
+        );
       default:
         return Container();
     }
   }
-
   Widget _buildActionButtons() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;

@@ -4,7 +4,12 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 
 class VoiceListTab extends StatefulWidget {
-  const VoiceListTab({Key? key}) : super(key: key);
+  final Function(String?)? onRecordingChanged;
+
+  const VoiceListTab({
+    Key? key,
+    this.onRecordingChanged,
+  }) : super(key: key);
 
   @override
   State<VoiceListTab> createState() => _VoiceListTabState();
@@ -14,23 +19,24 @@ class _VoiceListTabState extends State<VoiceListTab> {
   bool _isRecording = false;
   bool _hasRecording = false;
   String _recordingDuration = "00:00";
+  String? _recordingPath;
 
   void _toggleRecording() {
     setState(() {
       _isRecording = !_isRecording;
       if (!_isRecording && !_hasRecording) {
         _hasRecording = true;
+        _recordingPath = "voice_recording_${DateTime.now().millisecondsSinceEpoch}.wav";
       }
     });
-
-    // Here you would implement actual voice recording logic
-    // For now, this is just UI state management
 
     if (_isRecording) {
       _startRecording();
     } else {
       _stopRecording();
     }
+
+    _updateParent();
   }
 
   void _startRecording() {
@@ -48,13 +54,22 @@ class _VoiceListTabState extends State<VoiceListTab> {
       _hasRecording = false;
       _isRecording = false;
       _recordingDuration = "00:00";
+      _recordingPath = null;
     });
+    _updateParent();
+  }
+
+  void _updateParent() {
+    if (widget.onRecordingChanged != null) {
+      widget.onRecordingChanged!(_recordingPath);
+    }
   }
 
   void _playRecording() {
     // TODO: Implement audio playback
     print("Playing recording...");
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -20,7 +20,14 @@ class SelectedImage {
 }
 
 class PhotoUploadTab extends StatefulWidget {
-  const PhotoUploadTab({Key? key}) : super(key: key);
+  final Function(List<Map<String, dynamic>>)? onPhotosChanged;
+  final List<Map<String, dynamic>>? initialPhotos; // ADD THIS LINE
+
+  const PhotoUploadTab({
+    Key? key,
+    this.onPhotosChanged,
+    this.initialPhotos, // ADD THIS LINE
+  }) : super(key: key);
 
   @override
   State<PhotoUploadTab> createState() => _PhotoUploadTabState();
@@ -28,6 +35,25 @@ class PhotoUploadTab extends StatefulWidget {
 
 class _PhotoUploadTabState extends State<PhotoUploadTab> {
   List<SelectedImage> _selectedImages = [];
+
+  // ADD THIS METHOD - Initialize with existing photos
+  @override
+  void initState() {
+    super.initState();
+    _initializeWithExistingPhotos();
+  }
+
+  void _initializeWithExistingPhotos() {
+    if (widget.initialPhotos != null && widget.initialPhotos!.isNotEmpty) {
+      _selectedImages = widget.initialPhotos!.map((photoData) {
+        return SelectedImage(
+          imageData: photoData['imageData'] as Uint8List,
+          name: photoData['name'] as String,
+          timestamp: photoData['timestamp'] as DateTime,
+        );
+      }).toList();
+    }
+  }
 
   void _addImage(Uint8List imageData) {
     setState(() {
@@ -37,12 +63,27 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
         timestamp: DateTime.now(),
       ));
     });
+    _updateParent();
   }
 
   void _removeImage(int index) {
     setState(() {
       _selectedImages.removeAt(index);
     });
+    _updateParent();
+  }
+
+  void _updateParent() {
+    if (widget.onPhotosChanged != null) {
+      List<Map<String, dynamic>> photoData = _selectedImages.map((image) => {
+        'name': image.name,
+        'imageData': image.imageData,
+        'timestamp': image.timestamp,
+        'size': image.imageData.length,
+      }).toList();
+
+      widget.onPhotosChanged!(photoData);
+    }
   }
 
   void _openImagePicker() {

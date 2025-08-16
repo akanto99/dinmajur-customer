@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/services/socket/test_pages/socket_example_testpages.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -42,7 +42,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     super.initState();
     _pages = [
       HomeScreen(scaffoldKey: _key),
-      Text("1"),
+      Test(),
       Text("2"),
       Text("3"),
       Text("4"),

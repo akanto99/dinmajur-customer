@@ -18,5 +18,6 @@ class RoutesName {
   ///home
   static const String home = 'home_view';
   static const String orderNow = 'orderNow_view';
+  static const String checkoutScreen = 'checkout_view';
 
 }
