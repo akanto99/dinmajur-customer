@@ -179,6 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final address = store['fullAddress'] ?? 'ঠিকানা উপলব্ধ নেই';
     final businessName = retailer['businessName'] ?? 'দোকানের নাম উপলব্ধ নেই';
     final businessType = retailer['businessType'] ?? 'অজানা';
+    final userID = store['userId'] ?? '';
 
     debugPrint('Store details - Name: $businessName, Distance: $distance, Address: $address');
 
@@ -265,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'businessName': businessName,
                   'businessType': businessType,
                   'selectedStoreType': selectedStoreType,
+                  'userID': userID,
                 }
             );
           },

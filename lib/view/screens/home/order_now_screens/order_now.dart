@@ -28,6 +28,7 @@ class _OrderNowState extends State<OrderNow> {
   String? businessName;
   String? businessType;
   String? selectedStoreType;
+  String? userID;
 
   // Controllers and state (existing)
   final TextEditingController notesController = TextEditingController();
@@ -55,6 +56,7 @@ class _OrderNowState extends State<OrderNow> {
       businessName = arguments['businessName'];
       businessType = arguments['businessType'];
       selectedStoreType = arguments['selectedStoreType'];
+      userID = arguments['userID'];
     }
   }
 
@@ -129,6 +131,7 @@ class _OrderNowState extends State<OrderNow> {
         'manualItemCount': orderItems.length,
         'photoCount': uploadedPhotos.length,
         'hasVoiceRecording': hasVoiceRecording,
+        'userID': userID,
       },
     );
   }

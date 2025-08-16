@@ -15,7 +15,7 @@ class SocketProvider extends ChangeNotifier {
 
     // আপনার API URL এবং পোর্ট সঠিকভাবে দিন
     _socket = IO.io(
-      'http://10.0.2.2:4000',
+      'https://api-staging.dinmajur.com',
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
