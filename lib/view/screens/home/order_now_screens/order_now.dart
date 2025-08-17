@@ -1,16 +1,17 @@
+import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/custom_appbar.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs/manual_entry_tab.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs/photo_upload_tab.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs/voice_list_tab.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 
 class OrderNow extends StatefulWidget {
   const OrderNow({super.key});
@@ -38,7 +39,7 @@ class _OrderNowState extends State<OrderNow> {
   // ADD THESE NEW PROPERTIES:
   List<Map<String, dynamic>> uploadedPhotos = [];
   String? voiceRecordingPath;
-
+  String? voiceRecordingDuration;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -72,17 +73,6 @@ class _OrderNowState extends State<OrderNow> {
     });
   }
 
-  void _saveDraft() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          "Draft saved successfully",
-          style: AppTextStyles.textSize14(context),
-        ),
-        backgroundColor: AppColors.whiteColor,
-      ),
-    );
-  }
   void _proceedToCheckout() {
     // Check if user has added any content from any tab
     bool hasManualItems = orderItems.isNotEmpty;
@@ -91,12 +81,7 @@ class _OrderNowState extends State<OrderNow> {
 
     // Require at least one type of content
     if (!hasManualItems && !hasPhotos && !hasVoiceRecording) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please add at least one item, photo, or voice recording to proceed"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      Utils.flushBarErrorMessage("Please add at least one item, photo, or voice recording to proceed", context);
       return;
     }
 
@@ -135,21 +120,20 @@ class _OrderNowState extends State<OrderNow> {
       },
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackground(context),
+      backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: _buildBody(),
-          desktop: _buildBody(),
-          tablet: _buildBody(),
-        ),
+        child: ResPonsiveUi(mobile: _buildBody(), desktop: _buildBody(), tablet: _buildBody()),
       ),
     );
   }
 
   Widget _buildBody() {
+    final screenWidth = MediaQuery.of(context).size.width * 1;
+    final screenHeight = MediaQuery.of(context).size.height * 1;
     return Column(
       children: [
         _buildAppBar(),
@@ -185,28 +169,20 @@ class _OrderNowState extends State<OrderNow> {
 
     return Container(
       width: screenWidth * 0.9,
-      padding: EdgeInsets.all(screenHeight * 0.02),
+      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.015),
       decoration: BoxDecoration(
         color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(width: 1, color: AppColors.border(context)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildStoreInfo(),
-          _buildAvailabilityBadge(screenHeight),
-        ],
-      ),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_buildStoreInfo(), _buildAvailabilityBadge(screenHeight)]),
     );
   }
 
   Widget _buildStoreInfo() {
     return Row(
       children: [
-        Icon(
-          Icons.shopping_cart,
-          color: AppColors.textPrimary(context),
-          size: 20,
-        ),
+        Icon(Icons.shopping_cart, color: AppColors.textPrimary(context), size: 20),
         SizedboxSpaccing.width02(context),
         Text(
           businessName ?? 'Store Name',
@@ -219,24 +195,13 @@ class _OrderNowState extends State<OrderNow> {
 
   Widget _buildAvailabilityBadge(double screenHeight) {
     return Container(
-      height: 25,
-      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.01),
-      decoration: BoxDecoration(
-        color: const Color(0xffDCFCE7),
-        borderRadius: BorderRadius.circular(50),
-      ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check, size: 14, color: Color(0xff166534)),
-          SizedboxSpaccing.width01(context),
+          Icon(Icons.check_circle, size: 16, color: Colors.green),
+          SizedboxSpaccing.width02(context),
           Text(
             "Available",
-            style: AppTextStyles.textSize12(
-              context,
-              color: const Color(0xff166534),
-              weight: FontWeight.w400,
-            ),
+            style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w400),
           ),
         ],
       ),
@@ -245,33 +210,17 @@ class _OrderNowState extends State<OrderNow> {
 
   Widget _buildTabSection() {
     final screenWidth = MediaQuery.of(context).size.width;
-
-    return Container(
-      width: screenWidth * 0.9,
-      child: Column(
-        children: [
-          _buildTabHeaders(screenWidth),
-          _buildTabContent(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabHeaders(double screenWidth) {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
       width: screenWidth * 0.9,
-      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
-      color: AppColors.containerBackground(context),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildTab("Manual Entry", 0, FontAwesomeIcons.edit),
-          _buildTab("Photo Upload", 1, FontAwesomeIcons.camera),
-          _buildTab("Voice List", 2, Icons.mic),
-        ],
+      // padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        // borderRadius: BorderRadius.circular(24),
+        // border: Border.all(width: 1, color: AppColors.border(context)),
       ),
+      child: Column(children: [_buildTabHeaders(screenWidth), _buildTabContent()]),
     );
   }
 
@@ -279,80 +228,82 @@ class _OrderNowState extends State<OrderNow> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final isSelected = _selectedTabIndex == index;
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTabIndex = index),
-      child: Container(
-        height: 30,
-        width: screenWidth * 0.3,
-        decoration: const BoxDecoration(color: Colors.transparent),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildTabHeader(title, icon, isSelected),
-            _buildTabIndicator(screenHeight, isSelected),
-          ],
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedTabIndex = index),
+        child: Container(
+          // margin: EdgeInsets.all(screenWidth * 0.005),
+          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.012),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.containerBackground(context) : Colors.transparent,
+            border: isSelected ? Border.all(color: AppColors.border(context), width: 1) : Border.all(color: Colors.transparent, width: 1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: screenWidth * 0.035, // Responsive icon size
+                color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
+              ),
+              SizedBox(width: screenWidth * 0.01), // Responsive spacing
+              Expanded(
+                // Changed from Flexible to Expanded
+                child: Text(
+                  title,
+                  style: AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  softWrap: false, // Prevents text wrapping
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTabHeader(String title, IconData icon, bool isSelected) {
-    final color = isSelected
-        ? AppColors.blackColor
-        : AppColors.form_hover(context);
+  // Also update the _buildTabHeaders method for better responsiveness
+  Widget _buildTabHeaders(double screenWidth) {
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 12, color: color),
-        SizedboxSpaccing.width01(context),
-        Text(
-          title,
-          style: AppTextStyles.textSize12(
-            context,
-            weight: FontWeight.w500,
-            color: color,
+    return Container(
+      padding: EdgeInsets.only(left: screenHeight * 0.02, right: screenHeight * 0.02, top: screenHeight * 0.02),
+      width: screenWidth * 0.9,
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        border: Border(
+          left: BorderSide(width: 1, color: AppColors.border(context)),
+          right: BorderSide(width: 1, color: AppColors.border(context)),
+          top: BorderSide(width: 1, color: AppColors.border(context)),
+          bottom: BorderSide.none,
+        ),
+        borderRadius: BorderRadius.only(topRight: Radius.circular(24), topLeft: Radius.circular(24)),
+      ),
+      child: Center(
+        child: Container(
+          width: screenWidth * 0.9,
+          decoration: BoxDecoration(
+            color: AppColors.textFieldFill(context),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [_buildTab("Manual Entry", 0, FontAwesomeIcons.edit), _buildTab("Photo Upload", 1, FontAwesomeIcons.camera), _buildTab("Voice List", 2, Icons.mic)],
           ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildTabIndicator(double screenHeight, bool isSelected) {
-    return Container(
-      width: 100,
-      height: screenHeight * 0.005,
-      color: isSelected ? AppColors.button(context) : Colors.transparent,
-    );
-  }
-
-  // Widget _buildTabContent() {
-  //   switch (_selectedTabIndex) {
-  //     case 0:
-  //       return ManualEntryTab(
-  //         orderItems: orderItems,
-  //         onAddItem: _addOrderItem,
-  //         onRemoveItem: _removeOrderItem,
-  //         notesController: notesController,
-  //       );
-  //     case 1:
-  //       return const PhotoUploadTab();
-  //     case 2:
-  //       return const VoiceListTab();
-  //     default:
-  //       return Container();
-  //   }
-  // }
   Widget _buildTabContent() {
     switch (_selectedTabIndex) {
       case 0:
-        return ManualEntryTab(
-          orderItems: orderItems,
-          onAddItem: _addOrderItem,
-          onRemoveItem: _removeOrderItem,
-          notesController: notesController,
-        );
+        return ManualEntryTab(orderItems: orderItems, onAddItem: _addOrderItem, onRemoveItem: _removeOrderItem, notesController: notesController);
       case 1:
         return PhotoUploadTab(
           initialPhotos: uploadedPhotos, // PASS EXISTING PHOTOS
@@ -364,9 +315,17 @@ class _OrderNowState extends State<OrderNow> {
         );
       case 2:
         return VoiceListTab(
+          initialRecordingPath: voiceRecordingPath, // PASS CURRENT RECORDING
+          initialDuration: voiceRecordingDuration, // PASS CURRENT DURATION
           onRecordingChanged: (recordingPath) {
             setState(() {
               voiceRecordingPath = recordingPath;
+              // You might also want to update duration here when you implement actual recording
+              if (recordingPath != null) {
+                voiceRecordingDuration = "01:23"; // Replace with actual duration
+              } else {
+                voiceRecordingDuration = null;
+              }
             });
           },
         );
@@ -374,50 +333,14 @@ class _OrderNowState extends State<OrderNow> {
         return Container();
     }
   }
+
   Widget _buildActionButtons() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
       width: screenWidth * 0.9,
-      padding: EdgeInsets.all(screenHeight * 0.02),
-      decoration: BoxDecoration(color: AppColors.whiteColor),
-      child: Row(
-        children: [
-          Expanded(child: _buildSaveDraftButton()),
-          SizedboxSpaccing.width02(context),
-          Expanded(child: _buildProceedButton()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSaveDraftButton() {
-    return GestureDetector(
-      onTap: _saveDraft,
-      child: Container(
-        height: 42,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.save, size: 18, color: Colors.grey.shade700),
-            SizedboxSpaccing.width01(context),
-            Text(
-              "Save Draft",
-              style: AppTextStyles.textSize12(
-                context,
-                color: Colors.grey.shade700,
-                weight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: RoundButton(title: "Place Order", onPress: _proceedToCheckout, iconData: Icons.arrow_forward_ios_rounded),
     );
   }
 
@@ -426,10 +349,7 @@ class _OrderNowState extends State<OrderNow> {
       onTap: _proceedToCheckout,
       child: Container(
         height: 42,
-        decoration: BoxDecoration(
-          color: AppColors.button(context),
-          borderRadius: BorderRadius.circular(4),
-        ),
+        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -437,11 +357,7 @@ class _OrderNowState extends State<OrderNow> {
             SizedboxSpaccing.width01(context),
             Text(
               "Proceed",
-              style: AppTextStyles.textSize12(
-                context,
-                color: Colors.white,
-                weight: FontWeight.w400,
-              ),
+              style: AppTextStyles.textSize12(context, color: Colors.white, weight: FontWeight.w400),
             ),
           ],
         ),

@@ -5,10 +5,14 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 
 class VoiceListTab extends StatefulWidget {
   final Function(String?)? onRecordingChanged;
+  final String? initialRecordingPath; // ADD THIS PARAMETER
+  final String? initialDuration; // ADD THIS PARAMETER (optional)
 
   const VoiceListTab({
     Key? key,
     this.onRecordingChanged,
+    this.initialRecordingPath, // ADD THIS
+    this.initialDuration, // ADD THIS
   }) : super(key: key);
 
   @override
@@ -21,12 +25,36 @@ class _VoiceListTabState extends State<VoiceListTab> {
   String _recordingDuration = "00:00";
   String? _recordingPath;
 
+  @override
+  void initState() {
+    super.initState();
+    // Initialize state from parent data
+    _recordingPath = widget.initialRecordingPath;
+    _hasRecording = widget.initialRecordingPath != null && widget.initialRecordingPath!.isNotEmpty;
+    _recordingDuration = widget.initialDuration ?? "00:00";
+  }
+
+  // ADD THIS METHOD TO HANDLE UPDATES FROM PARENT
+  @override
+  void didUpdateWidget(VoiceListTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update state if parent data changed
+    if (widget.initialRecordingPath != oldWidget.initialRecordingPath) {
+      setState(() {
+        _recordingPath = widget.initialRecordingPath;
+        _hasRecording = widget.initialRecordingPath != null && widget.initialRecordingPath!.isNotEmpty;
+        _recordingDuration = widget.initialDuration ?? "00:00";
+      });
+    }
+  }
+
   void _toggleRecording() {
     setState(() {
       _isRecording = !_isRecording;
       if (!_isRecording && !_hasRecording) {
         _hasRecording = true;
         _recordingPath = "voice_recording_${DateTime.now().millisecondsSinceEpoch}.wav";
+        _recordingDuration = "01:23"; // Mock duration - replace with actual
       }
     });
 
@@ -70,41 +98,53 @@ class _VoiceListTabState extends State<VoiceListTab> {
     print("Playing recording...");
   }
 
-
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Container(
-      width: screenWidth * 0.9,
-      color: AppColors.containerBackground(context),
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: screenHeight * 0.02,
-          right: screenHeight * 0.02,
-          bottom: screenHeight * 0.02,
-        ),
-        child: Column(
-          children: [
-            _buildRecordingArea(screenHeight),
-            if (_hasRecording) ...[
+    return Column(
+      children: [
+        Container(
+          width: screenWidth * 0.9,
+          decoration: BoxDecoration(
+            color: AppColors.containerBackground(context),
+            border: Border(
+              top: BorderSide.none,
+              right: BorderSide(width: 1, color: AppColors.border(context)),
+              left: BorderSide(width: 1, color: AppColors.border(context)),
+              bottom: BorderSide(width: 1, color: AppColors.border(context)),
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
+          child: Column(
+            children: [
               SizedboxSpaccing.height02(context),
-              _buildRecordingControls(),
+              _buildRecordingArea(screenHeight,screenWidth),
+              SizedboxSpaccing.height02(context),
             ],
-          ],
+          ),
         ),
-      ),
+        if (_hasRecording) ...[
+          SizedboxSpaccing.height02(context),
+          _buildRecordingControls(),
+        ],
+      ],
     );
   }
 
-  Widget _buildRecordingArea(double screenHeight) {
+  Widget _buildRecordingArea(double screenHeight,double screenWidth,) {
     return Container(
-      height: 195,
-      padding: EdgeInsets.all(screenHeight * 0.02),
+      height: 200,
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.symmetric(horizontal: screenHeight*0.02),
       decoration: BoxDecoration(
         color: AppColors.textFieldFill(context),
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(width: 1, color: AppColors.border(context)),
       ),
       child: Column(
@@ -212,7 +252,7 @@ class _VoiceListTabState extends State<VoiceListTab> {
           Row(
             children: [
               const Icon(Icons.audiotrack, color: Colors.green, size: 20),
-              const SizedBox(width: 8),
+              SizedboxSpaccing.width02(context),
               Text(
                 "Voice Recording",
                 style: AppTextStyles.textSize14(context, weight: FontWeight.w500),

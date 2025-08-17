@@ -47,7 +47,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       children: [
         Container(
           width: screenWidth * 0.9,
-          child:  Text('${widget.titleText}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+          child:  Text('${widget.titleText}', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         ),
         SizedBox(height: screenHeight * 0.012,),
         Container(
@@ -56,7 +56,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           // height: screenHeight*0.05,
           decoration: BoxDecoration(
               color: AppColors.textFieldFill(context),
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                   width: 1,
                   color: AppColors.border(context)
@@ -67,10 +67,10 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
             focusNode: widget.focusCurrent,
             keyboardType: widget.keyboardType,
             maxLines: widget.keyboardType == TextInputType.multiline ? 2 : 1,
-            style:  AppTextStyles.textSize14(context, weight: FontWeight.w400),
+            style:  AppTextStyles.textSize16(context, weight: FontWeight.w400),
             decoration: InputDecoration(
               hintText: widget.placeholder,
-              hintStyle:  AppTextStyles.textSize12(context,      color: AppColors.hintColor(context), weight: FontWeight.w400),
+              hintStyle:  AppTextStyles.textSize16(context,      color: AppColors.hintColor(context), weight: FontWeight.w400),
               border: OutlineInputBorder(
                 borderSide: BorderSide.none,
               ),

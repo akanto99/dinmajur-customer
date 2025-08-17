@@ -21,12 +21,12 @@ class SelectedImage {
 
 class PhotoUploadTab extends StatefulWidget {
   final Function(List<Map<String, dynamic>>)? onPhotosChanged;
-  final List<Map<String, dynamic>>? initialPhotos; // ADD THIS LINE
+  final List<Map<String, dynamic>>? initialPhotos;
 
   const PhotoUploadTab({
     Key? key,
     this.onPhotosChanged,
-    this.initialPhotos, // ADD THIS LINE
+    this.initialPhotos,
   }) : super(key: key);
 
   @override
@@ -36,7 +36,6 @@ class PhotoUploadTab extends StatefulWidget {
 class _PhotoUploadTabState extends State<PhotoUploadTab> {
   List<SelectedImage> _selectedImages = [];
 
-  // ADD THIS METHOD - Initialize with existing photos
   @override
   void initState() {
     super.initState();
@@ -101,8 +100,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
     return Column(
       children: [
         _buildUploadSection(screenWidth, screenHeight),
-        SizedboxSpaccing.height02(context),
-        _buildPhotoListSection(screenWidth, screenHeight),
+        if (_selectedImages.isNotEmpty) _buildPhotoListSection(screenWidth, screenHeight),
       ],
     );
   }
@@ -110,36 +108,48 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
   Widget _buildUploadSection(double screenWidth, double screenHeight) {
     return Container(
       width: screenWidth * 0.9,
-      color: AppColors.containerBackground(context),
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: screenHeight * 0.02,
-          right: screenHeight * 0.02,
-          bottom: screenHeight * 0.02,
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        border: Border(
+          top: BorderSide.none,
+          right: BorderSide(width: 1, color: AppColors.border(context)),
+          left: BorderSide(width: 1, color: AppColors.border(context)),
+          bottom: BorderSide(width: 1, color: AppColors.border(context)),
         ),
-        child: Container(
-          height: 195,
-          padding: EdgeInsets.all(screenHeight * 0.02),
-          decoration: BoxDecoration(
-            color: AppColors.textFieldFill(context),
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(width: 1, color: AppColors.border(context)),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.photo_camera, size: 35, color: Colors.grey),
-              SizedboxSpaccing.height01(context),
-              Text(
-                "Take a photo of your bazaar list or\nupload from gallery",
-                style: AppTextStyles.textSize14(context, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-              SizedboxSpaccing.height02(context),
-              _buildUploadButton(screenHeight),
-            ],
-          ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
         ),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
+      child: Column(
+        children: [
+          SizedboxSpaccing.height02(context),
+          Container(
+            height: 200,
+            width: screenWidth * 0.9,
+            decoration: BoxDecoration(
+              color: AppColors.textFieldFill(context),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(width: 1, color: AppColors.border(context)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.photo_camera, size: 35, color: Colors.grey),
+                SizedboxSpaccing.height01(context),
+                Text(
+                  "Take a photo of your bazaar list or\nupload from gallery",
+                  style: AppTextStyles.textSize14(context, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                SizedboxSpaccing.height02(context),
+                _buildUploadButton(screenHeight),
+              ],
+            ),
+          ),
+          SizedboxSpaccing.height02(context),
+        ],
       ),
     );
   }
@@ -152,7 +162,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
         height: 48,
         decoration: BoxDecoration(
           color: AppColors.button(context),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -174,41 +184,32 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
   }
 
   Widget _buildPhotoListSection(double screenWidth, double screenHeight) {
-    return Container(
-      width: screenWidth * 0.9,
-      color: AppColors.containerBackground(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_selectedImages.isNotEmpty) ...[
-            _buildPhotoListHeader(screenHeight),
-            _buildPhotoList(screenHeight),
-            SizedboxSpaccing.height02(context),
-          ] else
-            _buildEmptyState(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhotoListHeader(double screenHeight) {
-    return Padding(
-      padding: EdgeInsets.all(screenHeight * 0.02),
-      child: Text(
-        "Uploaded Photos (${_selectedImages.length})",
-        style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-      ),
-    );
-  }
-
-  Widget _buildPhotoList(double screenHeight) {
-    return Container(
-      height: 200,
-      child: ListView.builder(
-        padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
-        itemCount: _selectedImages.length,
-        itemBuilder: (context, index) => _buildPhotoListItem(index, screenHeight),
-      ),
+    return Column(
+      children: [
+        SizedboxSpaccing.height02(context),
+        Container(
+          width: screenWidth * 0.9,
+          color: AppColors.containerBackground(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Uploaded Photos (${_selectedImages.length})",
+                style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
+              ),
+              SizedboxSpaccing.height012(context),
+              // Use ListView.separated with shrinkWrap instead of fixed height container
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _selectedImages.length,
+                separatorBuilder: (context, index) => SizedBox(height: screenHeight * 0.01),
+                itemBuilder: (context, index) => _buildPhotoListItem(index, screenHeight),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -216,8 +217,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
     final image = _selectedImages[index];
 
     return Container(
-      margin: EdgeInsets.only(bottom: screenHeight * 0.01),
-      padding: EdgeInsets.all(screenHeight * 0.015),
+      padding: EdgeInsets.all(screenHeight * 0.01),
       decoration: BoxDecoration(
         color: AppColors.textFieldFill(context),
         borderRadius: BorderRadius.circular(8),
@@ -285,25 +285,6 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
           icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
         ),
       ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Container(
-      height: 100,
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.photo_library_outlined, size: 40, color: Colors.grey),
-            SizedBox(height: 8),
-            Text(
-              "No photos uploaded yet",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

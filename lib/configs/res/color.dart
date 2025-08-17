@@ -30,7 +30,7 @@ class AppColors {
   static Color textFieldFill(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
           ? Colors.grey[900]!
-          : const Color(0xffF9F9F9);
+          : const Color(0xffF9F7F6);
 ///textFiled hint
   static Color hintColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
@@ -40,8 +40,8 @@ class AppColors {
   static Color border(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
           ? Colors.grey[600]!
-          // : const Color(0xffE7E9E9);
-          : const Color(0xffE0E0E0);
+          : const Color(0xffE7E9E9);
+          // : const Color(0xffE0E0E0);
 
 
 ///Container fill

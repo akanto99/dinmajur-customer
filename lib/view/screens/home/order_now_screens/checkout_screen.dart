@@ -30,6 +30,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double deliveryFee = 3.99;
   double tax = 0.0;
 
+  // Weight type display mapping
+  final Map<String, String> weightTypeDisplay = {
+    'gm': 'grams',
+    'kg': 'kg',
+    'lr': 'liters',
+    'pics': 'pieces',
+  };
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -80,6 +88,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return "${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB";
   }
 
+  // Get proper unit display for manual items
+  String _getUnitDisplay(String quantityType) {
+    return weightTypeDisplay[quantityType] ?? quantityType;
+  }
+
   void _saveDraft() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -109,13 +122,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     // Add manual entry items
     for (var item in orderItems) {
+      // Parse quantity properly
+      double quantity = double.tryParse(item['quantity']?.toString() ?? '1') ?? 1.0;
+      double unitPrice = double.tryParse(item['estimatedPrice']?.toString() ?? '0') ?? 4.50;
+      String quantityType = item['quantityType'] ?? 'gm';
+
       items.add({
         "name": item['name'] ?? 'Unknown Item',
-        "quantity": item['quantity'] ?? 1,
-        "unit": item['quantityType'] == 'Weight' ? 'kg' : 'pcs',
-        "unitPrice": double.tryParse(item['estimatedPrice']?.toString() ?? '0') ?? 4.50,
-        "totalPrice": 100,
-        // "notes": item['notes'] ?? "",
+        "quantity": quantity,
+        "unit": _getApiUnit(quantityType),
+        "unitPrice": unitPrice,
+        "totalPrice": unitPrice, // Since unitPrice already calculated for total quantity
       });
     }
 
@@ -126,10 +143,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         "itemName": photo['name'] ?? "Grocery List ${i + 1}",
         "quantity": 1,
         "unit": "photo",
-        "price": 8.00,
-        "type": "photo",
-        "photoPath": photo['path'] ?? "",
-        "fileSize": photo['size'] ?? 0,
+        "unitPrice": 8.00,
+        "totalPrice": 100,
+        // "type": "photo",
+        // "photoPath": photo['path'] ?? "",
+        // "fileSize": photo['size'] ?? 0,
       });
     }
 
@@ -146,6 +164,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     return items;
+  }
+
+  // Helper to get API unit format
+  String _getApiUnit(String quantityType) {
+    switch (quantityType) {
+      case 'kg':
+        return 'kg';
+      case 'gm':
+        return 'gm';
+      case 'lr':
+        return 'ltr';
+      case 'pics':
+        return 'pcs';
+      default:
+        return quantityType;
+    }
   }
 
   @override
@@ -339,7 +373,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ...orderItems.asMap().entries.map(
                   (entry) => _buildOrderItem(
                 title: entry.value['name'] ?? 'Unknown Item',
-                subtitle: "${entry.value['quantity'] ?? '1'} ${entry.value['quantityType'] == 'Weight' ? 'kg' : 'pcs'}",
+                subtitle: "${entry.value['quantity'] ?? '1'} ${_getUnitDisplay(entry.value['quantityType'] ?? 'gm')}",
                 price: double.tryParse(entry.value['estimatedPrice']?.toString() ?? '0') ?? 4.50,
                 showDelete: true,
                 onDelete: () => _removeItem(entry.key, 'manual'),
@@ -368,6 +402,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               showDelete: true,
               isVoice: true,
               onDelete: () => _removeItem(0, 'voice'),
+            ),
+
+          // Notes section
+          if (notes != null && notes!.isNotEmpty)
+            Container(
+              margin: EdgeInsets.only(top: screenHeight * 0.015),
+              padding: EdgeInsets.all(screenHeight * 0.015),
+              decoration: BoxDecoration(
+                color: AppColors.textFieldFill(context),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border(context)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.note, size: 16, color: AppColors.textPrimary(context)),
+                      SizedboxSpaccing.width01(context),
+                      Text(
+                        "Order Notes:",
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                  SizedboxSpaccing.height005(context),
+                  Text(
+                    notes!,
+                    style: AppTextStyles.textSize12(context, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
 
           // Show message if no items
@@ -438,7 +504,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
 
-          Text("\$${price.toStringAsFixed(2)}", style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+          Text("৳${price.toStringAsFixed(2)}", style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
 
           if (showDelete && onDelete != null) ...[
             SizedboxSpaccing.width01(context),
@@ -480,7 +546,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTextStyles.textSize14(context, weight: isTotal ? FontWeight.w600 : FontWeight.w400)),
-          Text("\$${amount.toStringAsFixed(2)}", style: AppTextStyles.textSize14(context, weight: isTotal ? FontWeight.w600 : FontWeight.w400)),
+          Text("৳${amount.toStringAsFixed(2)}", style: AppTextStyles.textSize14(context, weight: isTotal ? FontWeight.w600 : FontWeight.w400)),
         ],
       ),
     );
@@ -572,6 +638,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 "deliveryFee": deliveryFee,
                 "subTotalAmount": subtotal,
                 "totalAmount": total,
+                // "orderType": orderType,
+                // "notes": notes?.trim(),
               };
 
               debugPrint("🛒 Placing order with data: $orderData");
