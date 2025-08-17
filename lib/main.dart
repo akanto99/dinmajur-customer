@@ -81,13 +81,6 @@ class MyApp extends StatelessWidget {
         // Debug print to check language in MaterialApp
         print('MaterialApp locale: ${languageProvider.appLocale?.languageCode}');
 
-        // Auto-connect socket when app starts
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!socketProvider.isConnected) {
-            socketProvider.connect();
-          }
-        });
-
         SystemChrome.setSystemUIOverlayStyle(
           SystemUiOverlayStyle(
             systemNavigationBarColor: isDarkMode ? AppColors.blackColor : AppColors.whiteColor,

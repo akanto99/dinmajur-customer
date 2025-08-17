@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:dinmajur_customer/respository/auth_repository/login_logout_repository.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
+import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
@@ -15,8 +16,16 @@ class LoginLogoutViewModel with ChangeNotifier {
   bool _loading = false;
   bool get loading => _loading;
 
+  bool _loggingOut = false;
+  bool get loggingOut => _loggingOut;
+
   setLoading(bool value) {
     _loading = value;
+    notifyListeners();
+  }
+
+  setLoggingOut(bool value) {
+    _loggingOut = value;
     notifyListeners();
   }
 
@@ -29,6 +38,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       // Parse the response
       final user = UserModel.fromJson(response);
       final userPreference = Provider.of<UserViewModel>(context, listen: false);
+
       await userPreference.saveUser(user);
 
       // Save tokens and user status
@@ -46,36 +56,75 @@ class LoginLogoutViewModel with ChangeNotifier {
       final bool isPhoneVerified = user.data?.user?.isPhoneVerified ?? false;
       final bool isRegistered = user.data?.user?.isRegistered ?? false;
       final String userRole = user.data?.user?.role ?? '';
+      final String userId = user.data?.user?.userId ?? '';
 
       print("Login Navigation - accessToken: ${user.data?.accessToken}");
       print("Login Navigation - isPhoneVerified: $isPhoneVerified");
       print("Login Navigation - isRegistered: $isRegistered");
       print("Login Navigation - userRole: $userRole");
+      print("Login Navigation - userId: $userId");
+
+      // ✅ REMOVED SOCKET CONNECTION FROM LOGIN
+      // Socket will be handled by NavigationScreen
+      print("🔌 Login: Socket connection will be handled by NavigationScreen");
 
       // Navigation logic - Check both phone verification and role
-      if (isPhoneVerified == true
-          // && userRole == "CUSTOMER"
-      ) {
-        Navigator.pushNamedAndRemoveUntil(
-            context,
-            RoutesName.navigationBar,
-                (route) => false
-        );
-      }
-      // else if (userRole != "CUSTOMER") {
-      //   print("🔥 Navigation: Error - User role is not CUSTOMER");
-      //   Utils.flushBarErrorMessage("আপনার অ্যাকাউন্ট কাস্টমার অ্যাকাউন্ট নয়", context);
-      // }
-      else {
+      if (isPhoneVerified == true) {
+        Navigator.pushNamedAndRemoveUntil(context, RoutesName.navigationBar, (route) => false);
+      } else {
         print("🔥 Navigation: Error - Phone not verified");
         Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
       }
 
       if (kDebugMode) print("Login Response: ${response.toString()}");
-
     } catch (error) {
       print("🔥 Login Error: $error");
       setLoading(false);
+      _handleError(error, context);
+    }
+  }
+
+  // Logout function with socket disconnection
+  Future<void> logoutUser(BuildContext context) async {
+    setLoggingOut(true);
+
+    try {
+      final userPreference = Provider.of<UserViewModel>(context, listen: false);
+      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+
+      // Get user data before clearing
+      final currentUser = userPreference.currentUser;
+      final userId = currentUser?.data?.user?.userId ?? '';
+      final userRole = currentUser?.data?.user?.role ?? '';
+
+      print("🔓 Logout: Starting logout process for user: $userId");
+
+      // Disconnect socket with unregister-user event
+      if (userId.isNotEmpty && userRole.isNotEmpty) {
+        try {
+          await socketProvider.unregisterAndDisconnect(userId: userId, role: userRole);
+          print("🔌 Socket disconnected and user unregistered successfully");
+        } catch (e) {
+          print("🔌 Socket disconnect error: $e");
+          // Continue with logout even if socket disconnect fails
+        }
+      }
+
+      // Clear user data from preferences and view model
+      await userPreference.remove();
+
+      setLoggingOut(false);
+
+      // Show success message
+      Utils.flushBarSuccessMessage('Logged out successfully', context);
+
+      // Navigate to login screen
+      Navigator.pushNamedAndRemoveUntil(context, RoutesName.login, (route) => false);
+
+      print("🔓 Logout: Process completed successfully");
+    } catch (error) {
+      print("🔥 Logout Error: $error");
+      setLoggingOut(false);
       _handleError(error, context);
     }
   }
@@ -96,9 +145,7 @@ class LoginLogoutViewModel with ChangeNotifier {
         // Extract error message from different possible structures
         if (decoded['message'] != null) {
           errorMessage = decoded['message'];
-        } else if (decoded['errorMessages'] is List &&
-            decoded['errorMessages'].isNotEmpty &&
-            decoded['errorMessages'][0]['message'] != null) {
+        } else if (decoded['errorMessages'] is List && decoded['errorMessages'].isNotEmpty && decoded['errorMessages'][0]['message'] != null) {
           errorMessage = decoded['errorMessages'][0]['message'];
         }
       } else {

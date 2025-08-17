@@ -4,9 +4,11 @@ import 'package:dinmajur_customer/configs/res/components/full_screen_image/full_
 import 'package:dinmajur_customer/configs/res/components/profile_view_header/drawer_profile_view.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
+import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
@@ -351,18 +353,60 @@ class _CustomDrawerState extends State<CustomDrawer> {
   // Perform the actual logout
   Future<void> _performLogout() async {
     try {
-      await Provider.of<UserViewModel>(context, listen: false).remove();
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, RoutesName.welcomeLoginSignup, (route) => false);
-      }
+      print("🔓 CustomDrawer: Starting logout process...");
+
+      // Close the dialog first
+      Navigator.of(context).pop();
+
+      // Use the LoginLogoutViewModel's logout method which handles socket disconnection
+      final loginLogoutViewModel = Provider.of<LoginLogoutViewModel>(context, listen: false);
+      await loginLogoutViewModel.logoutUser(context);
+
+      // Additional cleanup if needed
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.remove("isDeliveryPerson");
+      await prefs.remove("isDeliveryPerson");
+
+      print("🔓 CustomDrawer: Logout completed successfully");
+
     } catch (e) {
-      print("Logout error: $e");
+      print("🔥 CustomDrawer: Logout error - $e");
+
       // Show error message if needed
       if (mounted) {
         Utils.flushBarErrorMessage("Logout failed. Please try again.", context);
       }
+
+      // Fallback: manual cleanup if socket logout fails
+      try {
+        final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+        final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+
+        // Get user data before clearing
+        final currentUser = userViewModel.currentUser;
+        final userId = currentUser?.data?.user?.userId ?? '';
+        final userRole = currentUser?.data?.user?.role ?? '';
+
+        // Disconnect socket manually
+        if (userId.isNotEmpty && userRole.isNotEmpty) {
+          await socketProvider.unregisterAndDisconnect(
+            userId: userId,
+            role: userRole,
+          );
+        }
+
+        // Clear user data
+        await userViewModel.remove();
+
+        // Navigate to login
+        if (mounted) {
+          Navigator.pushNamedAndRemoveUntil(context, RoutesName.welcomeLoginSignup, (route) => false);
+        }
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.remove("isDeliveryPerson");
+
+      } catch (fallbackError) {
+        print("🔥 CustomDrawer: Fallback logout also failed - $fallbackError");
+      }
     }
-  }
-}
+}}

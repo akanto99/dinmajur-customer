@@ -2,9 +2,11 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:dinmajur_customer/configs/services/socket/test_pages/socket_example_testpages.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
+import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,25 +36,78 @@ class _NavigationScreenState extends State<NavigationScreen> {
     "assets/images/navBar/navbar_new/income.svg",
   ];
 
-  // final List<String> labels = ["Home", "Task", "Scan", "Shop", "Job"];
   final List<String> labels = ["Home", "Scan", "Task", "Stores", "Income"];
-    late final List<Widget> _pages;
+  late final List<Widget> _pages;
+
+  // ✅ Add flag to prevent multiple connections
+  bool _socketInitialized = false;
+
   @override
   void initState() {
     super.initState();
     _pages = [
       HomeScreen(scaffoldKey: _key),
-      Test(),
+      SocketStatusWidget(),
       Text("2"),
       Text("3"),
       Text("4"),
     ];
     getConnectivity();
     _currentIndex = widget.initialIndex;
+
+    /// Initialize socket connection after widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeSocketConnection();
+    });
   }
-  late StreamSubscription subscription;
-  bool isDeviceConnected = false;
-  bool isAlertSet = false;
+
+  // ✅ IMPROVED: Initialize socket connection with proper checks
+  Future<void> _initializeSocketConnection() async {
+
+    if (_socketInitialized) {
+      print("🔌 NavigationScreen: Socket already initialized, skipping");
+      return;
+    }
+
+    try {
+      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+
+      // Load user data from preferences first
+      await userViewModel.loadUserFromPrefs();
+
+      // Check if user is authenticated and get user data
+      if (userViewModel.isAuthenticated && userViewModel.currentUser != null) {
+        final userId = userViewModel.currentUser?.data?.user?.userId ?? '';
+        final userRole = userViewModel.currentUser?.data?.user?.role ?? '';
+
+        print("🔌 NavigationScreen: Initializing socket for user: $userId, role: $userRole");
+
+        if (userId.isNotEmpty && userRole.isNotEmpty) {
+          // ✅ Check if socket is not already connected AND not connecting
+          if (!socketProvider.isConnected) {
+            print("🔌 NavigationScreen: Socket not connected, connecting now...");
+            await socketProvider.connectWithUser(
+              userId: userId,
+              role: userRole,
+            );
+            print("🔌 NavigationScreen: Socket connected successfully");
+            _socketInitialized = true; // ✅ Mark as initialized
+          } else {
+            print("🔌 NavigationScreen: Socket already connected");
+            _socketInitialized = true; // ✅ Mark as initialized
+          }
+        } else {
+          print("🔌 NavigationScreen: Missing user credentials for socket connection");
+        }
+      } else {
+        print("🔌 NavigationScreen: User not authenticated, skipping socket connection");
+      }
+    } catch (e) {
+      print("🔌 NavigationScreen: Socket initialization failed - $e");
+      _socketInitialized = false; // ✅ Reset flag on failure
+    }
+  }
 
   getConnectivity() =>
       subscription = Connectivity().onConnectivityChanged.listen(
@@ -65,10 +120,49 @@ class _NavigationScreenState extends State<NavigationScreen> {
             Navigator.of(context, rootNavigator: true)
                 .pop(); // Close the dialog
             setState(() => isAlertSet = false);
+
+            // ✅ IMPROVED: Only reconnect if socket was initialized before
+            if (_socketInitialized) {
+              await _reconnectSocketAfterConnectivity();
+            }
+
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
           }
         },
       );
+
+  // ✅ IMPROVED: Reconnect socket when internet connectivity is restored
+  Future<void> _reconnectSocketAfterConnectivity() async {
+    try {
+      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+
+      if (userViewModel.isAuthenticated && userViewModel.currentUser != null) {
+        final userId = userViewModel.currentUser?.data?.user?.userId ?? '';
+        final userRole = userViewModel.currentUser?.data?.user?.role ?? '';
+
+        if (userId.isNotEmpty && userRole.isNotEmpty) {
+          // ✅ Only reconnect if not already connected
+          if (!socketProvider.isConnected) {
+            print("🔌 NavigationScreen: Reconnecting socket after connectivity restored...");
+            await socketProvider.connectWithUser(
+              userId: userId,
+              role: userRole,
+            );
+            print("🔌 NavigationScreen: Socket reconnected successfully");
+          } else {
+            print("🔌 NavigationScreen: Socket already connected, no need to reconnect");
+          }
+        }
+      }
+    } catch (e) {
+      print("🔌 NavigationScreen: Socket reconnection failed - $e");
+    }
+  }
+
+  late StreamSubscription subscription;
+  bool isDeviceConnected = false;
+  bool isAlertSet = false;
 
   @override
   void didChangeDependencies() {
@@ -90,6 +184,13 @@ class _NavigationScreenState extends State<NavigationScreen> {
         systemNavigationBarDividerColor: isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
       ),
     );
+  }
+
+  // ✅ Clean up subscription
+  @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -154,7 +255,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                           ),
                           SizedBox(width: screenWidth * 0.02),
                           GestureDetector(
-                            onTap: () => SystemNavigator.pop(), // Use SystemNavigator.pop() instead of exit(0)
+                            onTap: () => SystemNavigator.pop(),
                             child: Container(
                               width: screenWidth * 0.2,
                               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
@@ -225,7 +326,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                                   width: 20,
                                   height: 20,
                                   color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                                  semanticsLabel: labels[index], // Accessibility
+                                  semanticsLabel: labels[index],
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
@@ -253,29 +354,24 @@ class _NavigationScreenState extends State<NavigationScreen> {
     );
   }
 
-
-
-
   showDialogBox() => showCupertinoDialog<String>(
     context: context,
     builder: (BuildContext context) => CupertinoAlertDialog(
       title: Column(
         children: [
           Icon(
-            CupertinoIcons
-                .wifi_exclamationmark,
+            CupertinoIcons.wifi_exclamationmark,
             size: 40,
-            color: CupertinoColors
-                .systemRed,
+            color: CupertinoColors.systemRed,
           ),
           SizedBox(height: 10),
           Text(
-            'Connection Lost',
-            style:GoogleFonts.hindSiliguri(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(context),
-            )
+              'Connection Lost',
+              style:GoogleFonts.hindSiliguri(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary(context),
+              )
           ),
         ],
       ),
@@ -296,8 +392,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
           onPressed: () async {
             Navigator.pop(context, 'Cancel');
             setState(() => isAlertSet = false);
-            isDeviceConnected =
-            await InternetConnectionChecker().hasConnection;
+            isDeviceConnected = await InternetConnectionChecker().hasConnection;
             if (isDeviceConnected) {
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
             } else if (!isDeviceConnected && !isAlertSet) {
@@ -308,7 +403,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
           child: Text(
             'Retry',
             style: TextStyle(
-              color: CupertinoColors.activeBlue, // A familiar blue color
+              color: CupertinoColors.activeBlue,
               fontWeight: FontWeight.bold,
             ),
           ),
