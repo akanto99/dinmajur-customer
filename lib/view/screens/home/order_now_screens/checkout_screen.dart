@@ -34,8 +34,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final Map<String, String> weightTypeDisplay = {
     'gm': 'grams',
     'kg': 'kg',
-    'lr': 'liters',
-    'pics': 'pieces',
+    'L': 'liters',
+    'pcs': 'pieces',
   };
 
   @override
