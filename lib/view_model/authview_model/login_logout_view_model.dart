@@ -119,7 +119,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       Utils.flushBarSuccessMessage('Logged out successfully', context);
 
       // Navigate to login screen
-      Navigator.pushNamedAndRemoveUntil(context, RoutesName.login, (route) => false);
+      Navigator.pushNamedAndRemoveUntil(context, RoutesName.welcomeLoginSignup, (route) => false);
 
       print("🔓 Logout: Process completed successfully");
     } catch (error) {

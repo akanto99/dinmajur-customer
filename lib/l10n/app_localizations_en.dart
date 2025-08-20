@@ -226,4 +226,119 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get passwords_reenter_do_not_match =>
       'Passwords & Re-enter Passwords do not match';
+
+  @override
+  String get navigation_bar =>
+      '--------------------navigation_bar------------------------';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get scan => 'Scan';
+
+  @override
+  String get task => 'Task';
+
+  @override
+  String get stores => 'Stores';
+
+  @override
+  String get income => 'Income';
+
+  @override
+  String get home_screen =>
+      '--------------------Home Screen ------------------------';
+
+  @override
+  String get storeType_retail => 'Retail';
+
+  @override
+  String get storeType_grocery => 'Grocery';
+
+  @override
+  String get storeType_restaurant => 'Restaurant';
+
+  @override
+  String get storeType_pharmacy => 'Pharmacy';
+
+  @override
+  String get storeType_electronics => 'Electronics';
+
+  @override
+  String get storeType_clothing => 'Clothing';
+
+  @override
+  String get select_store_type => 'What do you need?';
+
+  @override
+  String get select_store_type_hint => 'Select';
+
+  @override
+  String nearby_stores(Object count) {
+    return 'Nearby Stores ($count)';
+  }
+
+  @override
+  String get see_all => 'See All';
+
+  @override
+  String get available => 'Available';
+
+  @override
+  String distance_away(Object distance) {
+    return '${distance}m away';
+  }
+
+  @override
+  String get delivery_time => 'Delivery within 30-60 minutes';
+
+  @override
+  String get order_now => 'Order Now';
+
+  @override
+  String get empty_inbox => 'Empty Inbox';
+
+  @override
+  String get no_notification => 'No Notification Yet';
+
+  @override
+  String get drawer_screen =>
+      '--------------------Drawer Screen ------------------------';
+
+  @override
+  String get profile_menu => 'Profile Menu';
+
+  @override
+  String get view_profile => 'View Profile';
+
+  @override
+  String get change_password => 'Change Password';
+
+  @override
+  String get payment_method => 'Payment Method';
+
+  @override
+  String get view_earn => 'View Earn';
+
+  @override
+  String get reviews => 'Reviews';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get sign_out => 'Sign Out';
+
+  @override
+  String get logout_confirm => 'Are you sure you\'d like to Log Out?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get log_out => 'Log out';
+
+  @override
+  String get no_data_found => 'No data found';
 }

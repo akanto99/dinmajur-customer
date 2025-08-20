@@ -12,7 +12,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get first_name => 'প্রথম নাম';
 
   @override
-  String get welcome => 'দিনমজুরে আপনাকে স্বাগতম।';
+  String get welcome => 'দিনমজুরে আপনাকে স্বাগতম';
 
   @override
   String get welcome_subtitle => 'ব্যস্ত জীবন, সহজ সমাধান';
@@ -226,4 +226,119 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get passwords_reenter_do_not_match =>
       'পাসওয়ার্ড এবং পুনরায় পাসওয়ার্ড মিলছে না';
+
+  @override
+  String get navigation_bar =>
+      '--------------------Navigation Bar------------------------';
+
+  @override
+  String get home => 'হোম';
+
+  @override
+  String get scan => 'স্ক্যান';
+
+  @override
+  String get task => 'টাস্ক';
+
+  @override
+  String get stores => 'স্টোরস';
+
+  @override
+  String get income => 'ইনকাম';
+
+  @override
+  String get home_screen =>
+      '--------------------Home Screen ------------------------';
+
+  @override
+  String get storeType_retail => 'রিটেল';
+
+  @override
+  String get storeType_grocery => 'কিরানা দোকান';
+
+  @override
+  String get storeType_restaurant => 'রেস্তোরাঁ';
+
+  @override
+  String get storeType_pharmacy => 'ফার্মেসি';
+
+  @override
+  String get storeType_electronics => 'ইলেকট্রনিক্স';
+
+  @override
+  String get storeType_clothing => 'পোশাক';
+
+  @override
+  String get select_store_type => 'কি লাগবে?';
+
+  @override
+  String get select_store_type_hint => 'নির্বাচন করুন';
+
+  @override
+  String nearby_stores(Object count) {
+    return 'নিকটবর্তী দোকান ($countটি)';
+  }
+
+  @override
+  String get see_all => 'সব দেখুন';
+
+  @override
+  String get available => 'উপলব্ধ';
+
+  @override
+  String distance_away(Object distance) {
+    return '${distance}m দূরে';
+  }
+
+  @override
+  String get delivery_time => '30-60 মিনিটের মধ্যে ডেলিভারি';
+
+  @override
+  String get order_now => 'এখন অর্ডার করুন';
+
+  @override
+  String get empty_inbox => 'ইনবক্স খালি';
+
+  @override
+  String get no_notification => 'এখনও কোনো নোটিফিকেশন নেই';
+
+  @override
+  String get drawer_screen =>
+      '--------------------Drawer Screen ------------------------';
+
+  @override
+  String get profile_menu => 'প্রোফাইল মেনু';
+
+  @override
+  String get view_profile => 'প্রোফাইল দেখুন';
+
+  @override
+  String get change_password => 'পাসওয়ার্ড পরিবর্তন করুন';
+
+  @override
+  String get payment_method => 'পেমেন্ট পদ্ধতি';
+
+  @override
+  String get view_earn => 'উপার্জন দেখুন';
+
+  @override
+  String get reviews => 'রিভিউসমূহ';
+
+  @override
+  String get support => 'সাপোর্ট';
+
+  @override
+  String get sign_out => 'সাইন আউট';
+
+  @override
+  String get logout_confirm => 'আপনি কি নিশ্চিত যে লগ আউট করতে চান?';
+
+  @override
+  String get cancel => 'বাতিল';
+
+  @override
+  String get log_out => 'লগ আউট';
+
+  @override
+  String get no_data_found => 'কোনো তথ্য পাওয়া যায়নি';
 }

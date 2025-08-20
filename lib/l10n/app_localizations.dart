@@ -511,6 +511,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passwords & Re-enter Passwords do not match'**
   String get passwords_reenter_do_not_match;
+
+  /// No description provided for @navigation_bar.
+  ///
+  /// In en, this message translates to:
+  /// **'--------------------navigation_bar------------------------'**
+  String get navigation_bar;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// No description provided for @scan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get scan;
+
+  /// No description provided for @task.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get task;
+
+  /// No description provided for @stores.
+  ///
+  /// In en, this message translates to:
+  /// **'Stores'**
+  String get stores;
+
+  /// No description provided for @income.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get income;
+
+  /// No description provided for @home_screen.
+  ///
+  /// In en, this message translates to:
+  /// **'--------------------Home Screen ------------------------'**
+  String get home_screen;
+
+  /// No description provided for @storeType_retail.
+  ///
+  /// In en, this message translates to:
+  /// **'Retail'**
+  String get storeType_retail;
+
+  /// No description provided for @storeType_grocery.
+  ///
+  /// In en, this message translates to:
+  /// **'Grocery'**
+  String get storeType_grocery;
+
+  /// No description provided for @storeType_restaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant'**
+  String get storeType_restaurant;
+
+  /// No description provided for @storeType_pharmacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pharmacy'**
+  String get storeType_pharmacy;
+
+  /// No description provided for @storeType_electronics.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronics'**
+  String get storeType_electronics;
+
+  /// No description provided for @storeType_clothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Clothing'**
+  String get storeType_clothing;
+
+  /// No description provided for @select_store_type.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you need?'**
+  String get select_store_type;
+
+  /// No description provided for @select_store_type_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get select_store_type_hint;
+
+  /// No description provided for @nearby_stores.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby Stores ({count})'**
+  String nearby_stores(Object count);
+
+  /// No description provided for @see_all.
+  ///
+  /// In en, this message translates to:
+  /// **'See All'**
+  String get see_all;
+
+  /// No description provided for @available.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get available;
+
+  /// No description provided for @distance_away.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance}m away'**
+  String distance_away(Object distance);
+
+  /// No description provided for @delivery_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery within 30-60 minutes'**
+  String get delivery_time;
+
+  /// No description provided for @order_now.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Now'**
+  String get order_now;
+
+  /// No description provided for @empty_inbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty Inbox'**
+  String get empty_inbox;
+
+  /// No description provided for @no_notification.
+  ///
+  /// In en, this message translates to:
+  /// **'No Notification Yet'**
+  String get no_notification;
+
+  /// No description provided for @drawer_screen.
+  ///
+  /// In en, this message translates to:
+  /// **'--------------------Drawer Screen ------------------------'**
+  String get drawer_screen;
+
+  /// No description provided for @profile_menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Menu'**
+  String get profile_menu;
+
+  /// No description provided for @view_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'View Profile'**
+  String get view_profile;
+
+  /// No description provided for @change_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get change_password;
+
+  /// No description provided for @payment_method.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get payment_method;
+
+  /// No description provided for @view_earn.
+  ///
+  /// In en, this message translates to:
+  /// **'View Earn'**
+  String get view_earn;
+
+  /// No description provided for @reviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get reviews;
+
+  /// No description provided for @support.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get support;
+
+  /// No description provided for @sign_out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get sign_out;
+
+  /// No description provided for @logout_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you\'d like to Log Out?'**
+  String get logout_confirm;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @log_out.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get log_out;
+
+  /// No description provided for @no_data_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No data found'**
+  String get no_data_found;
 }
 
 class _AppLocalizationsDelegate

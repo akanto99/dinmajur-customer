@@ -7,6 +7,7 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +27,20 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> nearbyStores = [];
   bool isLoadingStores = false;
 
-  // Define store types - matching your API expectations
-  final Map<String, String> storeTypes = {'Retail': 'রিটেল', 'grocery': 'কিরানা দোকান', 'restaurant': 'রেস্তোরাঁ', 'pharmacy': 'ফার্মেসি', 'electronics': 'ইলেকট্রনিক্স', 'clothing': 'পোশাক'};
+  late Map<String, String> storeTypes;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    storeTypes = {
+      'Retail': AppLocalizations.of(context)!.storeType_retail,
+      'grocery': AppLocalizations.of(context)!.storeType_grocery,
+      'restaurant': AppLocalizations.of(context)!.storeType_restaurant,
+      'pharmacy': AppLocalizations.of(context)!.storeType_pharmacy,
+      'electronics': AppLocalizations.of(context)!.storeType_electronics,
+      'clothing': AppLocalizations.of(context)!.storeType_clothing,
+    };
+  }
 
   @override
   void initState() {
@@ -123,10 +136,10 @@ class _HomeScreenState extends State<HomeScreen> {
               border: Border.all(width: 1, color: AppColors.border(context)),
             ),
             child: CustomDropdown(
-              titleText: "কি লাগবে?",
+              titleText: AppLocalizations.of(context)!.select_store_type,
               items: storeTypes.keys.toList(),
               selectedItem: selectedStoreType,
-              hintText: "নির্বাচন করুন",
+              hintText: AppLocalizations.of(context)!.select_store_type_hint,
               onChanged: (String? newValue) {
                 setState(() {
                   selectedStoreType = newValue;
@@ -152,13 +165,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('নিকটবর্তী দোকান (${nearbyStores.length}টি)', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                      Text(AppLocalizations.of(context)!.nearby_stores(nearbyStores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                       GestureDetector(
                         onTap: () {},
-                        child: Text('See All', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                        child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                       ),
                     ],
                   ),
+
                   Divider(height: 1, color: AppColors.border(context)),
                 ],
               ),
@@ -226,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icon(Icons.check_circle, size: 16, color: Colors.green),
                   SizedboxSpaccing.width01(context),
                   Text(
-                    "Available",
+                    AppLocalizations.of(context)!.available,
                     style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w400),
                   ),
                 ],
@@ -252,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedboxSpaccing.width01(context),
               Text(
-                '${distance.toStringAsFixed(0)}m away',
+                AppLocalizations.of(context)!.distance_away(distance.toStringAsFixed(0)),
                 style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
               ),
             ],
@@ -273,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // height: 20,
                 // color: Colors.red,
                 child: Text(
-                  'Delivery within 30-60 minutes',
+                  AppLocalizations.of(context)!.delivery_time,
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                 ),
               ),
@@ -304,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // ),
           SizedboxSpaccing.height02(context),
           RoundButton(
-            title: "Order Now",
+            title: AppLocalizations.of(context)!.order_now,
             onPress: () {
               Navigator.pushNamed(
                 context,
@@ -405,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       NotificationDialog.show(
                         context,
-                        message: 'Empty Inbox',
+                        message:   AppLocalizations.of(context)!.empty_inbox,
                         icon: CupertinoIcons.text_bubble,
                         iconColor: AppColors.textPrimary(context),
                         iconBackgroundColor: AppColors.appBackground(context),
@@ -421,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       NotificationDialog.show(
                         context,
-                        message: 'No Notification Yet',
+                        message: AppLocalizations.of(context)!.no_notification,
                         icon: Icons.notifications_outlined,
                         iconColor: AppColors.textPrimary(context),
                         iconBackgroundColor: AppColors.appBackground(context),
@@ -443,8 +457,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 24,
-        width: 24,
+        height: 30,
+        width: 30,
         padding: const EdgeInsets.all(2),
         child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
       ),

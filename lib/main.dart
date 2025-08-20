@@ -106,7 +106,9 @@ class MyApp extends StatelessWidget {
           initialRoute: RoutesName.splash,
           onGenerateRoute: Routes.generateRoute,
           // Use dynamic locale from LanguageChangeProvider
-          locale: languageProvider.appLocale ?? Locale('en'), // Default to English if null
+          // locale: languageProvider.appLocale ?? Locale('en'),
+          // locale: Locale('en'),
+          locale: Locale('bn'),
           localizationsDelegates: [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

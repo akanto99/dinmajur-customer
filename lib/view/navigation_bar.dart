@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:dinmajur_customer/configs/services/socket/test_pages/socket_example_testpages.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
@@ -36,11 +37,11 @@ class _NavigationScreenState extends State<NavigationScreen> {
     "assets/images/navBar/navbar_new/income.svg",
   ];
 
-  final List<String> labels = ["Home", "Scan", "Task", "Stores", "Income"];
+  late List<String> labels;
   late final List<Widget> _pages;
-
-  // ✅ Add flag to prevent multiple connections
   bool _socketInitialized = false;
+
+
 
   @override
   void initState() {
@@ -168,6 +169,13 @@ class _NavigationScreenState extends State<NavigationScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _setSystemUIColors();
+    labels = [
+      AppLocalizations.of(context)!.home,
+      AppLocalizations.of(context)!.scan,
+      AppLocalizations.of(context)!.task,
+      AppLocalizations.of(context)!.stores,
+      AppLocalizations.of(context)!.income,
+    ];
   }
 
   void _setSystemUIColors() {

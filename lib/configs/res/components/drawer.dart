@@ -8,6 +8,7 @@ import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
@@ -59,10 +60,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Container(height: 60, child: AppBarHeader("Profile Menu")),
+                child: Container(height: 60, child: AppBarHeader(AppLocalizations.of(context)!.profile_menu)),
               ),
-              _buildHeader(),
-              _buildMenu(context),
+         Expanded(child: SingleChildScrollView(
+           child: Column(
+             children: [
+               _buildHeader(),
+               _buildMenu(context),
+             ],
+           ),
+         ))
             ],
           ),
         ),
@@ -99,7 +106,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
             // Check if data is null
             if (profileViewModel.profileviewUserData.data?.data?.user == null) {
-              return SizedBox(height: widget.screenHeight * 0.29, child: const Center(child: Text('No data found')));
+              return SizedBox(height: widget.screenHeight * 0.29, child:  Center(child: Text(AppLocalizations.of(context)!.no_data_found,)));
             }
 
             final userData = profileViewModel.profileviewUserData.data!.data!.user!;
@@ -154,42 +161,42 @@ class _CustomDrawerState extends State<CustomDrawer> {
           onTap: () {
             // Navigator.pushNamed(context, RoutesName.viewProfile);
           },
-          child: _buildDrawerItem(CupertinoIcons.person, "View Profile"),
+          child: _buildDrawerItem(CupertinoIcons.person, AppLocalizations.of(context)!.view_profile),
         ),
 
         GestureDetector(
           onTap: () {
             // Navigator.pushNamed(context, RoutesName.passwordChange);
           },
-          child: _buildDrawerItem(Icons.lock_outline, "Change Password"),
+          child: _buildDrawerItem(Icons.lock_outline, AppLocalizations.of(context)!.change_password),
         ),
 
         GestureDetector(
           onTap: () {
             // Navigator.pushNamed(context, RoutesName.paymentMethod);
           },
-          child: _buildDrawerItem(Icons.payment, "Payment Method"),
+          child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
         ),
 
         GestureDetector(
           onTap: () {
             // Navigator.pushNamed(context, RoutesName.viewEarn);
           },
-          child: _buildDrawerItem(Icons.history, "View Earn"),
+          child: _buildDrawerItem(Icons.history, AppLocalizations.of(context)!.view_earn),
         ),
 
         GestureDetector(
           onTap: () {
             // Navigator.pushNamed(context, RoutesName.review);
           },
-          child: _buildDrawerItem(Icons.star_border, "Reviews"),
+          child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
         ),
 
         GestureDetector(
           onTap: () {
             // Navigator.pushNamed(context, RoutesName.support);
           },
-          child: _buildDrawerItem(CupertinoIcons.question_circle, "Support"),
+          child: _buildDrawerItem(CupertinoIcons.question_circle, AppLocalizations.of(context)!.support),
         ),
 
         SizedboxSpaccing.height025(context),
@@ -213,13 +220,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 SizedboxSpaccing.width03(context),
                 SizedboxSpaccing.width03(context),
                 Text(
-                  'Sign Out',
+    AppLocalizations.of(context)!.sign_out,
                   style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
                 ),
               ],
             ),
           ),
         ),
+        SizedboxSpaccing.height025(context),
       ],
     );
   }
@@ -298,7 +306,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                   SizedboxSpaccing.width03(context),
                   Expanded(
-                    child: Text('Are you sure you\'d like to Log Out?', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                    child: Text(AppLocalizations.of(context)!.logout_confirm, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
                   ),
                 ],
               ),
@@ -317,7 +325,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         border: Border.all(width: 1, color: AppColors.border(context)),
                       ),
                       child: Center(
-                        child: Text('Cancel', style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
+                        child: Text(AppLocalizations.of(context)!.cancel, style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
                       ),
                     ),
                   ),
@@ -335,7 +343,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
                       child: Center(
                         child: Text(
-                          'Log out',
+                          AppLocalizations.of(context)!.log_out,
                           style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.whiteColor),
                         ),
                       ),
