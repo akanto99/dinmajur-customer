@@ -7,6 +7,10 @@ import 'package:dinmajur_customer/configs/services/socket/test_pages/socket_exam
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
+import 'package:dinmajur_customer/view/screens/testscreen1.dart';
+import 'package:dinmajur_customer/view/screens/testscreen2.dart';
+import 'package:dinmajur_customer/view/screens/testscreen3.dart';
+import 'package:dinmajur_customer/view/screens/testscreen4.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -48,10 +52,11 @@ class _NavigationScreenState extends State<NavigationScreen> {
     super.initState();
     _pages = [
       HomeScreen(scaffoldKey: _key),
-      SocketStatusWidget(),
-      Text("2"),
-      Text("3"),
-      Text("4"),
+      // SocketStatusWidget(),
+      TestScreen1(),
+      TestScreen2(),
+      TestScreen3(),
+      TestScreen4(),
     ];
     getConnectivity();
     _currentIndex = widget.initialIndex;
