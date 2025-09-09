@@ -94,7 +94,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       textStyle: AppTextStyles.textSize16(context, weight: FontWeight.w600),
                       enablePinAutofill: false,
                       pinTheme: PinTheme(
-                        fieldWidth: 70,
+                        fieldWidth: 60,
                         fieldHeight: 55,
                         // activeFillColor: AppColors.textFieldColor,
                         // activeFillColor: AppColors.textFieldColor,
@@ -141,7 +141,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       if (pinTEController.text.isEmpty || pinTEController.text.length < 4) {
                         Utils.flushBarErrorMessage(AppLocalizations.of(context)!.please_enter_valid_otp, context);
                       } else {
-                        Map data = {'otp': pinTEController.text.toString()};
+                        Map data = {'otpCode': pinTEController.text.toString()};
                         verify.otpVerify(data, context);
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool("isPhoneVerified", true);

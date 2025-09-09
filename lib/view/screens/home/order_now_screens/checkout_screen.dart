@@ -639,7 +639,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 "subTotalAmount": subtotal,
                 "totalAmount": total,
                 // "orderType": orderType,
-                // "notes": notes?.trim(),
+                "customerNote": notes?.trim(),
               };
 
               debugPrint("🛒 Placing order with data: $orderData");

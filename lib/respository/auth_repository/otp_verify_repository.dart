@@ -14,6 +14,7 @@ class OtpVerifyRepository {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': '$token',
+          'x-token-type':'registration-otp',
         },
       );
     } catch (e) {

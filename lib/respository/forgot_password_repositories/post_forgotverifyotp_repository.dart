@@ -11,7 +11,8 @@ class PostForgotOtpVerifyRepository {
         data,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // Fixed: Added 'Bearer ' prefix
+          'Authorization': 'Bearer $token',
+          'x-token-type':'forgot-password-otp',
         },
       );
 

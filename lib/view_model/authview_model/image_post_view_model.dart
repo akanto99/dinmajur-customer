@@ -13,11 +13,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ImagePostViewModel with ChangeNotifier {
   final _myRepo = ImagePostRepository();
 
-  bool _shopLogoLoading = false;
-  bool get shopLogoLoading => _shopLogoLoading;
+  bool _profileImageLoading = false;
+  bool get profileImageLoading => _profileImageLoading;
 
-  setshopLogoLoading(bool value) {
-    _shopLogoLoading = value;
+  setprofileImageLoading(bool value) {
+    _profileImageLoading = value;
     notifyListeners();
   }
 
@@ -28,20 +28,20 @@ class ImagePostViewModel with ChangeNotifier {
       String fileName,      // ✅ Added fileName parameter
       String imageType,      // ✅ Added fileName parameter
       ) async {
-    setshopLogoLoading(true);
+    setprofileImageLoading(true);
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? accessToken = prefs.getString('accessToken');
 
       if (accessToken == null || accessToken.isEmpty) {
         Utils.flushBarErrorMessage('Invalid token', context);
-        setshopLogoLoading(false);
+        setprofileImageLoading(false);
         return;
       }
 
       // ✅ FIXED: Now passing all required parameters including fileName
       final value = await _myRepo.imagePostApi(imageBytes, accessToken, fileName, imageType);
-      setshopLogoLoading(false);
+      setprofileImageLoading(false);
 
       if (kDebugMode) {
         print('Business Logo Upload Response: $value');
@@ -66,7 +66,7 @@ class ImagePostViewModel with ChangeNotifier {
         Utils.flushBarErrorMessage('Failed to upload Shop Logo', context);
       }
     } catch (error) {
-      setshopLogoLoading(false);
+      setprofileImageLoading(false);
       _handleError(error, context);
     }
   }

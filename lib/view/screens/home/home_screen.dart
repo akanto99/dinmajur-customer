@@ -7,8 +7,10 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
+import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -45,7 +47,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+      profileViewModel.fetchProfileViewUserDataApi();
+    });
   }
+
 
   // Method to fetch nearby retailers
   Future<void> _fetchNearbyRetailers(String businessType) async {
@@ -61,8 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final viewModel = Provider.of<PostNearbyRetailersViewModel>(context, listen: false);
 
-      final requestData = {"customer_lng": 90.3722, "customer_lat": 23.7018, "businessType": businessType};
-
+      final requestData = {"customer_lng": 90.2484202, "customer_lat": 24.0089881, "businessType": businessType};
       debugPrint('Request data: $requestData');
 
       // Call the API and get the response
@@ -346,110 +352,266 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
-      ),
-      child: Center(
-        child: Container(
-          width: screenWidth * 0.9,
-          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Left Side - User Profile
-              Flexible(
-                flex: 3,
-                child: Row(
-                  children: [
-                    Builder(
-                      builder: (context) => GestureDetector(
-                        onTap: () {
-                          Scaffold.of(context).openDrawer();
-                        },
-                        child: Container(
-                          height: 48,
-                          width: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.appBackground(context),
-                            border: Border.all(width: 1, color: AppColors.textPrimary(context)),
-                          ),
-                          child: Icon(Icons.person, color: AppColors.textPrimary(context), size: 20),
-                        ),
-                      ),
-                    ),
-
-                    SizedboxSpaccing.width02(context),
-
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Md Nahid Hassan Akanto",
-                            style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Row(
-                            children: [
-                              Icon(Icons.location_on, size: 16, color: AppColors.textPrimary(context)),
-                              Expanded(
-                                child: Text(
-                                  "1234 Elm Street, Downtown",
-                                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                                  overflow: TextOverflow.ellipsis,
+    return Consumer<ProfileViewViewModel>(
+      builder: (context, profileViewModel, _) {
+        switch (profileViewModel.profileviewUserData.status) {
+          case Status.LOADING:
+            return Container(
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
+              ),
+              child: Center(
+                child: Container(
+                  width: screenWidth * 0.9,
+                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Left Side - User Profile (Loading State)
+                      Flexible(
+                        flex: 3,
+                        child: Row(
+                          children: [
+                            Builder(
+                              builder: (context) => GestureDetector(
+                                onTap: () {
+                                  Scaffold.of(context).openDrawer();
+                                },
+                                child: Container(
+                                  height: 48,
+                                  width: 48,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.appBackground(context),
+                                    border: Border.all(width: 1, color: AppColors.textPrimary(context)),
+                                  ),
+                                  child: Icon(Icons.person, color: AppColors.textPrimary(context), size: 20),
                                 ),
                               ),
-                            ],
+                            ),
+
+                            SizedboxSpaccing.width02(context),
+
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Unknown User",
+                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.location_on, size: 16, color: AppColors.textPrimary(context)),
+                                      Expanded(
+                                        child: Text(
+                                          "Location not available",
+                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Right Side Icons
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildIconButton(
+                            onTap: () {
+                              NotificationDialog.show(
+                                context,
+                                message: AppLocalizations.of(context)!.empty_inbox,
+                                icon: CupertinoIcons.text_bubble,
+                                iconColor: AppColors.textPrimary(context),
+                                iconBackgroundColor: AppColors.appBackground(context),
+                              );
+                            },
+                            svgAsset: 'assets/images/home/email.svg',
+                            context: context,
+                          ),
+
+                          SizedboxSpaccing.width02(context),
+
+                          _buildIconButton(
+                            onTap: () {
+                              NotificationDialog.show(
+                                context,
+                                message: AppLocalizations.of(context)!.no_notification,
+                                icon: Icons.notifications_outlined,
+                                iconColor: AppColors.textPrimary(context),
+                                iconBackgroundColor: AppColors.appBackground(context),
+                              );
+                            },
+                            svgAsset: 'assets/images/home/notification.svg',
+                            context: context,
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
+            );
 
-              // Right Side Icons
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildIconButton(
-                    onTap: () {
-                      NotificationDialog.show(
-                        context,
-                        message:   AppLocalizations.of(context)!.empty_inbox,
-                        icon: CupertinoIcons.text_bubble,
-                        iconColor: AppColors.textPrimary(context),
-                        iconBackgroundColor: AppColors.appBackground(context),
-                      );
-                    },
-                    svgAsset: 'assets/images/home/email.svg',
-                    context: context,
-                  ),
+          case Status.ERROR:
+            return Container(
 
-                  SizedboxSpaccing.width02(context),
+            );
 
-                  _buildIconButton(
-                    onTap: () {
-                      NotificationDialog.show(
-                        context,
-                        message: AppLocalizations.of(context)!.no_notification,
-                        icon: Icons.notifications_outlined,
-                        iconColor: AppColors.textPrimary(context),
-                        iconBackgroundColor: AppColors.appBackground(context),
-                      );
-                    },
-                    svgAsset: 'assets/images/home/notification.svg',
-                    context: context,
-                  ),
-                ],
+          case Status.COMPLETED:
+            final userData = profileViewModel.profileviewUserData.data!.data!.user!;
+            final profileData = profileViewModel.profileviewUserData.data!.data!;
+
+            String? profileImageUrl = userData.profilePicture?.url;
+            String userName = '';
+
+            // Handle user name properly
+            if (userData.firstName != null && userData.lastName != null) {
+              userName = '${userData.firstName!} ${userData.lastName!}'.trim();
+            } else if (userData.firstName != null) {
+              userName = userData.firstName!;
+            } else if (userData.lastName != null) {
+              userName = userData.lastName!;
+            } else {
+              userName = 'Unknown User';
+            }
+
+            // Get user address - you might need to adjust this based on your data structure
+            String userAddress = 'Location not available';
+            // If you have address data in profileData or userData, use it like:
+            // userAddress = profileData.address ?? userData.address ?? 'Location not available';
+
+            return Container(
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
               ),
-            ],
-          ),
-        ),
-      ),
+              child: Center(
+                child: Container(
+                  width: screenWidth * 0.9,
+                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Left Side - User Profile
+                      Flexible(
+                        flex: 3,
+                        child: Row(
+                          children: [
+                            Builder(
+                              builder: (context) => GestureDetector(
+                                onTap: () {
+                                  Scaffold.of(context).openDrawer();
+                                },
+                                child: Container(
+                                  height: 48,
+                                  width: 48,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.appBackground(context),
+                                    border: Border.all(width: 1, color: AppColors.textPrimary(context)),
+                                    image: profileImageUrl != null
+                                        ? DecorationImage(
+                                      image: NetworkImage(profileImageUrl),
+                                      fit: BoxFit.cover,
+                                    )
+                                        : null,
+                                  ),
+                                  child: profileImageUrl == null
+                                      ? Icon(Icons.person, color: AppColors.textPrimary(context), size: 20)
+                                      : null,
+                                ),
+                              ),
+                            ),
+
+                            SizedboxSpaccing.width02(context),
+
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userName,
+                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.location_on, size: 16, color: AppColors.textPrimary(context)),
+                                      Expanded(
+                                        child: Text(
+                                          userAddress,
+                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Right Side Icons
+                      Row(
+                        children: [
+                          _buildIconButton(
+                            onTap: () {
+                              NotificationDialog.show(
+                                context,
+                                message: AppLocalizations.of(context)!.empty_inbox,
+                                icon: CupertinoIcons.text_bubble,
+                                iconColor: AppColors.textPrimary(context),
+                                iconBackgroundColor: AppColors.appBackground(context),
+                              );
+                            },
+                            svgAsset: 'assets/images/home/email.svg',
+                            context: context,
+                          ),
+
+                          SizedboxSpaccing.width02(context),
+
+                          _buildIconButton(
+                            onTap: () {
+                              NotificationDialog.show(
+                                context,
+                                message: AppLocalizations.of(context)!.no_notification,
+                                icon: Icons.notifications_outlined,
+                                iconColor: AppColors.textPrimary(context),
+                                iconBackgroundColor: AppColors.appBackground(context),
+                              );
+                            },
+                            svgAsset: 'assets/images/home/notification.svg',
+                            context: context,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+          default:
+            return Container(
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
+              ),
+              height: 80,
+            );
+        }
+      },
     );
   }
 

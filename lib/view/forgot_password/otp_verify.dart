@@ -97,7 +97,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                        textStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                        enablePinAutofill: false,
                        pinTheme: PinTheme(
-                         fieldWidth: 70,
+                         fieldWidth: 60,
                          fieldHeight: 55,
                          activeFillColor: AppColors.textFieldFill(context),
                          selectedFillColor: AppColors.textFieldFill(context),

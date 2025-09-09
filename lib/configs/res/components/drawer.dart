@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/dynamic_image_picker/dynamic_image_picker.dart';
 import 'package:dinmajur_customer/configs/res/components/full_screen_image/full_image_viewer.dart';
 import 'package:dinmajur_customer/configs/res/components/profile_view_header/drawer_profile_view.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -10,6 +12,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +81,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
   }
 
   Widget _buildHeader() {
+    final patchprofileImageUpdateViewMode = Provider.of<PatchprofileImageUpdateViewModel>(context);
     return Consumer<ProfileViewViewModel>(
       builder: (context, profileViewModel, _) {
         // Debug print to check the status
@@ -141,7 +145,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => FullScreenImage(imageUrl: "$profileImageUrl")));
                   // }
                 },
-                onCameraTap: (){},
+                onCameraTap: patchprofileImageUpdateViewMode.profileImageUpdateLoading ? () {} : _handleImagePick,
                 profileImage: "$profileImageUrl",
               ),
             );
@@ -356,6 +360,44 @@ class _CustomDrawerState extends State<CustomDrawer> {
         );
       },
     );
+  }
+
+
+
+  Uint8List? _selectedProfileImageData;
+  String? _selectedProfileImageName;
+  String? _selectedProfileDisplayName;
+
+  void _handleImagePick() {
+    DynamicImagePicker.pickImage(
+      context: context,
+      imageType: ImageType.profilePicture,
+      onImageSelected: (imageData, actualName, displayName) {
+        if (mounted) {
+          setState(() {
+            _selectedProfileImageData = imageData;
+            _selectedProfileImageName = actualName;
+            _selectedProfileDisplayName = displayName;
+          });
+        }
+      },
+      onApiCall: () {
+        _callprofileImageAPI();
+      },
+    );
+  }
+
+  void _callprofileImageAPI() {
+    if (_selectedProfileImageData != null && _selectedProfileImageName != null) {
+      final patchImagePostViewModel = Provider.of<PatchprofileImageUpdateViewModel>(context, listen: false);
+      patchImagePostViewModel.profileImageUpdatePatchApi(
+          _selectedProfileImageData!,
+          _selectedProfileImageName!,
+          "profilePicture",
+          1,
+          context
+      );
+    }
   }
 
   // Perform the actual logout

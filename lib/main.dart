@@ -22,6 +22,7 @@ import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
 import 'l10n/app_localizations.dart';
 import 'provider/countdown/forgotpassword_countdown/forgotPassword_countdown.dart';
+import 'view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_view_models/order_now_view_models/checkout_order_view_model.dart';
 
@@ -60,6 +61,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProfileViewViewModel()),
         ChangeNotifierProvider(create: (_) => PostNearbyRetailersViewModel()),
         ChangeNotifierProvider(create: (_) => PostCheckOutOrderViewModel()),
+        //====drawer
+        ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),//profile image update
 
         // Add Socket Provider here
         ChangeNotifierProvider(create: (_) => SocketProvider()),

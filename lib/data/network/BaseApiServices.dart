@@ -46,7 +46,8 @@ abstract class BaseApiServices {
       String fileName,
       Uint8List imageBytes,
       String imageType,
-      {Map<String, String>? headers});
+      {Map<String, String>? headers}
+      );
   Future getPatchApiDocumentPDFImageResponse(String url, Uint8List pdfImageBytes, String documentType, String fileName, {Map<String, String>? headers});
 
   ///Same url, data, header ------>   {Create Area Address}
