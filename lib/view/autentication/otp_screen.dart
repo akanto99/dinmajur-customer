@@ -69,10 +69,10 @@ class _OtpScreenState extends State<OtpScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(AppLocalizations.of(context)!.verify_your_number, style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-                  Text(AppLocalizations.of(context)!.sent_code_to_number, style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
+                  Text(AppLocalizations.of(context)!.sent_code_to_number, style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                   SizedboxSpaccing.height01(context),
                   Container(
-                    child: Text("+88$phone", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                    child: Text("+88$phone", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                   ),
                   SizedboxSpaccing.height025(context),
                   Container(
@@ -85,7 +85,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       appContext: (context),
                       length: 4,
                       obscureText: false,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       // obscuringCharacter: 'X',
                       // animationCurve:Curves.bounceOut,
                       animationCurve: Curves.linear,

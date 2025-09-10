@@ -154,8 +154,8 @@ class _NewPasswordState extends State<NewPassword> {
                           } else {
                             String? phone = await ForgotPasswordHelper.getForgotPhone();
                             Map<String, dynamic> fields = {
-                              "phone": "88$phone",
-                              "password": _passwordController.text,
+                              // "phone": "88$phone",
+                              "newPassword": _passwordController.text,
                             };
                             forgotNewPasswordMode.newPasswordPostApi(context, fields);
                             print("88$phone");

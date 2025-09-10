@@ -12,6 +12,7 @@ class PostNewForgotPasswordRepository {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': '$token',
+          'x-token-type':'reset-password',
         },
       );
 

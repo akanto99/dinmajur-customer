@@ -91,7 +91,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                        appContext: context,
                        length: 4,
                        obscureText: false,
-                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                        animationCurve: Curves.linear,
                        animationDuration: Duration(milliseconds: 0),
                        textStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
@@ -136,9 +136,9 @@ class _OtpVerifyState extends State<OtpVerify> {
                        }
 
                        Map<String, dynamic> fields = {
-                         "otp": otpValue,
-                         "phone": phone,
-                         "userId": userID,
+                         "otpCode": otpValue,
+                         // "phone": phone,
+                         // "userId": userID,
                        };
 
                        verifyViewModel.verifyOtpPostApi(context, fields,onSuccess: (){
