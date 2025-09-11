@@ -310,6 +310,18 @@ class AppLocalizationsBn extends AppLocalizations {
   String get profile_menu => 'প্রোফাইল মেনু';
 
   @override
+  String get order => 'অর্ডার';
+
+  @override
+  String get wishlist => 'পছন্দের তালিকা';
+
+  @override
+  String get review => 'রিভিউ';
+
+  @override
+  String get account_settings => 'অ্যাকাউন্ট সেটিংস';
+
+  @override
   String get view_profile => 'প্রোফাইল দেখুন';
 
   @override

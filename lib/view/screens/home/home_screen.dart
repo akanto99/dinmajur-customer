@@ -463,13 +463,122 @@ class _HomeScreenState extends State<HomeScreen> {
             );
 
           case Status.ERROR:
-            return Container(
-
-            );
+            return Container();
 
           case Status.COMPLETED:
-            final userData = profileViewModel.profileviewUserData.data!.data!.user!;
-            final profileData = profileViewModel.profileviewUserData.data!.data!;
+          // Add proper null checks to prevent the error
+            final responseData = profileViewModel.profileviewUserData.data;
+            if (responseData?.data?.user == null) {
+              // If data is null even though status is completed, show error state
+              return Container(
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
+                ),
+                child: Center(
+                  child: Container(
+                    width: screenWidth * 0.9,
+                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Left Side - User Profile (Loading State)
+                        Flexible(
+                          flex: 3,
+                          child: Row(
+                            children: [
+                              Builder(
+                                builder: (context) => GestureDetector(
+                                  onTap: () {
+                                    Scaffold.of(context).openDrawer();
+                                  },
+                                  child: Container(
+                                    height: 48,
+                                    width: 48,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.appBackground(context),
+                                      border: Border.all(width: 1, color: AppColors.textPrimary(context)),
+                                    ),
+                                    child: Icon(Icons.person, color: AppColors.textPrimary(context), size: 20),
+                                  ),
+                                ),
+                              ),
+
+                              SizedboxSpaccing.width02(context),
+
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Unknown User",
+                                      style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.location_on, size: 16, color: AppColors.textPrimary(context)),
+                                        Expanded(
+                                          child: Text(
+                                            "Location not available",
+                                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Right Side Icons
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildIconButton(
+                              onTap: () {
+                                NotificationDialog.show(
+                                  context,
+                                  message: AppLocalizations.of(context)!.empty_inbox,
+                                  icon: CupertinoIcons.text_bubble,
+                                  iconColor: AppColors.textPrimary(context),
+                                  iconBackgroundColor: AppColors.appBackground(context),
+                                );
+                              },
+                              svgAsset: 'assets/images/home/email.svg',
+                              context: context,
+                            ),
+
+                            SizedboxSpaccing.width02(context),
+
+                            _buildIconButton(
+                              onTap: () {
+                                NotificationDialog.show(
+                                  context,
+                                  message: AppLocalizations.of(context)!.no_notification,
+                                  icon: Icons.notifications_outlined,
+                                  iconColor: AppColors.textPrimary(context),
+                                  iconBackgroundColor: AppColors.appBackground(context),
+                                );
+                              },
+                              svgAsset: 'assets/images/home/notification.svg',
+                              context: context,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            final userData = responseData!.data!.user!;
+            final profileData = responseData.data!;
 
             String? profileImageUrl = userData.profilePicture?.url;
             String userName = '';

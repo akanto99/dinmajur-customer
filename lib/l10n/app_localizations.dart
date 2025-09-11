@@ -662,6 +662,30 @@ abstract class AppLocalizations {
   /// **'Profile Menu'**
   String get profile_menu;
 
+  /// No description provided for @order.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get order;
+
+  /// No description provided for @wishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Wishlist'**
+  String get wishlist;
+
+  /// No description provided for @review.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get review;
+
+  /// No description provided for @account_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Settings'**
+  String get account_settings;
+
   /// No description provided for @view_profile.
   ///
   /// In en, this message translates to:

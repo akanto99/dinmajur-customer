@@ -310,6 +310,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_menu => 'Profile Menu';
 
   @override
+  String get order => 'Order';
+
+  @override
+  String get wishlist => 'Wishlist';
+
+  @override
+  String get review => 'Reviews';
+
+  @override
+  String get account_settings => 'Account Settings';
+
+  @override
   String get view_profile => 'View Profile';
 
   @override

@@ -47,13 +47,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width * 1;
-    final screenHeight = MediaQuery.of(context).size.height * 1;
     return Container(
       width: widget.screenWidth,
       color: AppColors.appBackground(context),
       child: Drawer(
-        backgroundColor: AppColors.containerBackground(context),
+        backgroundColor: AppColors.appBackground(context),
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         child: SafeArea(
           child: Column(
@@ -63,7 +61,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Container(height: 60, child: AppBarHeader(AppLocalizations.of(context)!.profile_menu)),
+                child: Container(height: 60, 
+                    color: AppColors.containerBackground(context),
+                    child: AppBarHeader(AppLocalizations.of(context)!.profile_menu)),
               ),
          Expanded(child: SingleChildScrollView(
            child: Column(
@@ -72,7 +72,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                _buildMenu(context),
              ],
            ),
-         ))
+         )),
+              SizedboxSpaccing.height025(context)
+              
             ],
           ),
         ),
@@ -123,31 +125,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
             String userPhone = userData.phone ?? '0';
             String allSkillsCategory = profileData.skills?.where((skill) => skill.category != null).map((skill) => skill.category!).join(' ও ') ?? 'No skills';
 
-            return Container(
-              height: 245,
-              // padding: EdgeInsets.all(widget.screenHeight * 0.02),
-              decoration: BoxDecoration(
-                color: AppColors.containerBackground(context),
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppColors.border(context),
-                    width: 1.0, // or your desired width
-                  ),
-                ),
-              ),
-              child: DrawerProfileHeader(
-                title: "$userName",
-                rating: 0.0,
-                phone: "$userPhone",
-                skills: "$allSkillsCategory",
-                onImageTap: () {
-                  // if (imageUrl != null && imageUrl!.isNotEmpty) {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => FullScreenImage(imageUrl: "$profileImageUrl")));
-                  // }
-                },
-                onCameraTap: patchprofileImageUpdateViewMode.profileImageUpdateLoading ? () {} : _handleImagePick,
-                profileImage: "$profileImageUrl",
-              ),
+            return DrawerProfileHeader(
+              title: "$userName",
+              isActive: true,
+              phone: "$userPhone",
+              order: "0",
+              Wishlist: "0",
+              reviews: "0",
+              onImageTap: () {
+                // if (imageUrl != null && imageUrl!.isNotEmpty) {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => FullScreenImage(imageUrl: "$profileImageUrl")));
+                // }
+              },
+              onCameraTap: patchprofileImageUpdateViewMode.profileImageUpdateLoading ? () {} : _handleImagePick,
+              profileImage: "$profileImageUrl",
             );
           default:
             return Container();
@@ -158,81 +149,100 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
 
   Widget _buildMenu(BuildContext context) {
-    return Column(
-      children: [
-        SizedboxSpaccing.height025(context),
-        GestureDetector(
-          onTap: () {
-            // Navigator.pushNamed(context, RoutesName.viewProfile);
-          },
-          child: _buildDrawerItem(CupertinoIcons.person, AppLocalizations.of(context)!.view_profile),
-        ),
+    final screenWidth = MediaQuery.of(context).size.width * 1;
+    final screenHeight = MediaQuery.of(context).size.height * 1;
+    return  Container(
+      width: screenWidth* 0.9,
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.whiteColor,
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 30,
+            // color: Colors.yellow,
+            color: Colors.transparent,
+            alignment: Alignment.topLeft,
+            child: Text(AppLocalizations.of(context)!.account_settings, style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+          ),
+          GestureDetector(
+            onTap: () {
+              // Navigator.pushNamed(context, RoutesName.viewProfile);
+            },
+            child: _buildDrawerItem(CupertinoIcons.person, AppLocalizations.of(context)!.view_profile),
+          ),
 
-        GestureDetector(
-          onTap: () {
-            // Navigator.pushNamed(context, RoutesName.passwordChange);
-          },
-          child: _buildDrawerItem(Icons.lock_outline, AppLocalizations.of(context)!.change_password),
-        ),
+          GestureDetector(
+            onTap: () {
+              // Navigator.pushNamed(context, RoutesName.passwordChange);
+            },
+            child: _buildDrawerItem(Icons.lock_outline, AppLocalizations.of(context)!.change_password),
+          ),
 
-        GestureDetector(
-          onTap: () {
-            // Navigator.pushNamed(context, RoutesName.paymentMethod);
-          },
-          child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
-        ),
+          GestureDetector(
+            onTap: () {
+              // Navigator.pushNamed(context, RoutesName.paymentMethod);
+            },
+            child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
+          ),
 
-        GestureDetector(
-          onTap: () {
-            // Navigator.pushNamed(context, RoutesName.viewEarn);
-          },
-          child: _buildDrawerItem(Icons.history, AppLocalizations.of(context)!.view_earn),
-        ),
+          GestureDetector(
+            onTap: () {
+              // Navigator.pushNamed(context, RoutesName.review);
+            },
+            child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
+          ),
 
-        GestureDetector(
-          onTap: () {
-            // Navigator.pushNamed(context, RoutesName.review);
-          },
-          child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
-        ),
+          GestureDetector(
+            onTap: () {
+              // Navigator.pushNamed(context, RoutesName.support);
+            },
+            child: _buildDrawerItem(CupertinoIcons.question_circle, AppLocalizations.of(context)!.support),
+          ),
 
-        GestureDetector(
-          onTap: () {
-            // Navigator.pushNamed(context, RoutesName.support);
-          },
-          child: _buildDrawerItem(CupertinoIcons.question_circle, AppLocalizations.of(context)!.support),
-        ),
+          SizedboxSpaccing.height025(context),
+          GestureDetector(
+            onTap: () {
+              _showLogoutDialog();
+            },
+            child: Container(
+              height: 48,
+              width: widget.screenWidth * 0.85,
+              decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.rotationY(3.1416),
+                    child: Icon(Icons.logout, size: 18, color: AppColors.whiteColor),
+                  ),
 
-        SizedboxSpaccing.height025(context),
-        GestureDetector(
-          onTap: () {
-            _showLogoutDialog();
-          },
-          child: Container(
-            height: 48,
-            width: widget.screenWidth * 0.85,
-            decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.rotationY(3.1416),
-                  child: Icon(Icons.logout, size: 18, color: AppColors.whiteColor),
-                ),
-
-                SizedboxSpaccing.width03(context),
-                SizedboxSpaccing.width03(context),
-                Text(
-    AppLocalizations.of(context)!.sign_out,
-                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
-                ),
-              ],
+                  SizedboxSpaccing.width03(context),
+                  SizedboxSpaccing.width03(context),
+                  Text(
+                    AppLocalizations.of(context)!.sign_out,
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        SizedboxSpaccing.height025(context),
-      ],
+          SizedboxSpaccing.height025(context),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+            Text("Terms & Conditions",style: AppTextStyles.textSize14(context,weight: FontWeight.w400,color: AppColors.button(context)),),
+          SizedboxSpaccing.width03(context),
+            Text("Privacy Policy",style: AppTextStyles.textSize14(context,weight: FontWeight.w400,color: AppColors.button(context)),),
+
+            ],
+          ),
+          SizedboxSpaccing.height025(context),
+
+        ],
+      ),
     );
   }
 
@@ -240,8 +250,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
   Widget _buildDrawerItem(IconData icon, String title) {
     return Container(
       height: 50,
-      width: widget.screenWidth * 0.7,
-      // color: Colors.green,
+      // width: widget.screenWidth * 0.7,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            width: 1.0,
+            color: AppColors.border(context),
+          ),
+        ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
