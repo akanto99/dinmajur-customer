@@ -63,7 +63,7 @@ class _TestScreen3State extends State<TestScreen3> {
                     Text('$title $count', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                     // GestureDetector(
                     //   onTap: () {},
-                    //   child: Text('See All', style: AppTextStyles.poppins12(context, weight: FontWeight.w500)),
+                    //   child: Text('See All', style: AppTextStyles.textSize1(context, weight: FontWeight.w500)),
                     // ),
                   ],
                 ),

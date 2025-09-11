@@ -19,5 +19,10 @@ class RoutesName {
   static const String home = 'home_view';
   static const String orderNow = 'orderNow_view';
   static const String checkoutScreen = 'checkout_view';
+  //===========>
+  static const String passwordChange = 'passwordChange_view';
+  static const String paymentMethod = 'paymentMethod_view';
+  static const String review = 'review_view';
+  static const String support = 'support_view';
 
 }

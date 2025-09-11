@@ -21,6 +21,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'header_appbar.dart';
 
@@ -91,11 +92,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
-            return Container(height: 245, child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
+            return Container(height: 280, child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
 
           case Status.ERROR:
             return Container(
-              height: 245,
+              height: 280,
               color: AppColors.appBackground(context),
               child: Center(
                 child: GestureDetector(
@@ -175,28 +176,28 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
           GestureDetector(
             onTap: () {
-              // Navigator.pushNamed(context, RoutesName.passwordChange);
+              Navigator.pushNamed(context, RoutesName.passwordChange);
             },
             child: _buildDrawerItem(Icons.lock_outline, AppLocalizations.of(context)!.change_password),
           ),
 
           GestureDetector(
             onTap: () {
-              // Navigator.pushNamed(context, RoutesName.paymentMethod);
+              Navigator.pushNamed(context, RoutesName.paymentMethod);
             },
             child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
           ),
 
           GestureDetector(
             onTap: () {
-              // Navigator.pushNamed(context, RoutesName.review);
+              Navigator.pushNamed(context, RoutesName.review);
             },
             child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
           ),
 
           GestureDetector(
             onTap: () {
-              // Navigator.pushNamed(context, RoutesName.support);
+              Navigator.pushNamed(context, RoutesName.support);
             },
             child: _buildDrawerItem(CupertinoIcons.question_circle, AppLocalizations.of(context)!.support),
           ),
@@ -233,10 +234,24 @@ class _CustomDrawerState extends State<CustomDrawer> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-            Text("Terms & Conditions",style: AppTextStyles.textSize14(context,weight: FontWeight.w400,color: AppColors.button(context)),),
-          SizedboxSpaccing.width03(context),
-            Text("Privacy Policy",style: AppTextStyles.textSize14(context,weight: FontWeight.w400,color: AppColors.button(context)),),
-
+              GestureDetector(
+                onTap: () => _launchURL('https://docs.google.com/document/d/157rhznRzYesD7MfCrKj_RGfTm77DxfciFKlEvr8p5Ro/edit?usp=sharing'),
+                child: Text(
+                  "Terms & Conditions",
+                  style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                ),
+              ),
+              Text(
+                " | ",
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
+              ),
+              GestureDetector(
+                onTap: () => _launchURL('https://docs.google.com/document/d/1wrU4DFajwzoO3kE5BERxNSnotvuqMbVP_JLn7iNxgqc/edit?usp=sharing'),
+                child: Text(
+                  "Privacy Policy",
+                  style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                ),
+              ),
             ],
           ),
           SizedboxSpaccing.height025(context),
@@ -246,7 +261,26 @@ class _CustomDrawerState extends State<CustomDrawer> {
     );
   }
 
-
+  Future<void> _launchURL(String urlString) async {
+    try {
+      final Uri url = Uri.parse(urlString);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication, // Opens in browser
+        );
+      } else {
+        if (mounted) {
+          Utils.flushBarErrorMessage("Could not open the link", context);
+        }
+      }
+    } catch (e) {
+      print("Error launching URL: $e");
+      if (mounted) {
+        Utils.flushBarErrorMessage("Could not open the link", context);
+      }
+    }
+  }
   Widget _buildDrawerItem(IconData icon, String title) {
     return Container(
       height: 50,

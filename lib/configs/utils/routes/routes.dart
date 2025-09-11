@@ -8,6 +8,10 @@ import 'package:dinmajur_customer/view/forgot_password/otp_verify.dart';
 import 'package:dinmajur_customer/view/login/login_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/password/password_change.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/review/review.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now.dart';
@@ -53,6 +57,15 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const OrderNow(), settings: settings);
       case RoutesName.checkoutScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
+     //===========>
+      case RoutesName.passwordChange:
+        return MaterialPageRoute(builder: (BuildContext context) => const PasswordChange());
+     case RoutesName.paymentMethod:
+        return MaterialPageRoute(builder: (BuildContext context) => const PaymentMethod());
+        case RoutesName.review:
+        return MaterialPageRoute(builder: (BuildContext context) => const Review());
+        case RoutesName.support:
+        return MaterialPageRoute(builder: (BuildContext context) => const Support());
 
 
 

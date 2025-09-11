@@ -4,8 +4,10 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/support_view_model/support_view_model.dart';
+import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 
 class Support extends StatefulWidget {
   const Support({super.key});
@@ -22,7 +24,6 @@ class _SupportState extends State<Support> {
     supportTextController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +52,6 @@ class _SupportState extends State<Support> {
         Container(
           width: screenWidth*0.9,
           padding: EdgeInsets.all( screenHeight * 0.02,),
-
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
@@ -59,7 +59,6 @@ class _SupportState extends State<Support> {
               color: AppColors.border(context),
             ),
           ),
-
           child:  Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -68,7 +67,6 @@ class _SupportState extends State<Support> {
               SizedboxSpaccing.height02(context),
               Container(
                 decoration: BoxDecoration(
-                  // color: AppColors.textFieldFill(context),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                         width: 1,
@@ -82,7 +80,7 @@ class _SupportState extends State<Support> {
                   style:  AppTextStyles.textSize16(context, weight: FontWeight.w400),
                   decoration: InputDecoration(
                     hintText:"Input Text Here",
-                    hintStyle:  AppTextStyles.textSize16(context,color: AppColors.form_hover(context), weight: FontWeight.w400),
+                    hintStyle:  AppTextStyles.textSize16(context,color: AppColors.subtitle(context), weight: FontWeight.w400),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                     ),
@@ -91,26 +89,70 @@ class _SupportState extends State<Support> {
                 ),
               ),
               SizedboxSpaccing.height02(context),
-              GestureDetector(
-                onTap: (){
-                  if(supportTextController.text.isEmpty && supportTextController.text==null){
-                    Utils.flushBarErrorMessage(
-                        "Please drop your message", context);
-                  }else{
+              Consumer<PostSupportViewModel>(
+                builder: (context, supportModel, child) {
+                  return GestureDetector(
+                    onTap: () async {
+                      // Check if message is empty
+                      if(supportTextController.text.isEmpty) {
+                        Utils.flushBarErrorMessage("Please drop your message", context);
+                        return;
+                      }
 
-                  }
+                      // Get user data
+                      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
+                      final userId = userViewModel.userId;
+
+                      if(userId == null || userId.isEmpty) {
+                        Utils.flushBarErrorMessage("User not found. Please login again.", context);
+                        return;
+                      }
+
+                      // Prepare data for API call
+                      final supportData = {
+                        'userId': userId,
+                        'message': supportTextController.text,
+                        // Add other required fields based on your API requirements
+                      };
+
+                      print("userId : $userId");
+                      print(supportTextController);
+
+                      // Call the API
+                      await supportModel.supportPostAPI(context, supportData);
+
+                      // Clear the text field after successful submission
+                      supportTextController.clear();
+                    },
+                    child: Container(
+                      width: screenWidth*0.425,
+                      height: 50,
+                      decoration: BoxDecoration(
+                          color: Color(0xff00424D),
+                          borderRadius: BorderRadius.circular(8)
+                      ),
+                      child: Center(
+                          child: supportModel.createSupportLoading
+                              ? Text(
+                            'Waiting...',
+                            style: AppTextStyles.textSize16(
+                              context,
+                              color: AppColors.whiteColor,
+                              weight: FontWeight.w700,
+                            ),
+                          )
+                              : Text(
+                            "Send",
+                            style: AppTextStyles.textSize16(
+                              context,
+                              color: AppColors.whiteColor,
+                              weight: FontWeight.w600,
+                            ),
+                          )
+                      ),
+                    ),
+                  );
                 },
-                child: Container(
-                  width: screenWidth*0.425,
-                  height: 50,
-                  // width: screenWidth*0.65,
-                  decoration: BoxDecoration(
-                      color:Color(0xff00424D),
-                      // borderRadius: BorderRadius.circular(16)
-                      borderRadius: BorderRadius.circular(8)
-                  ),
-                  child: Center(child:  Text("Send",style: AppTextStyles.textSize16(context,color: AppColors.whiteColor,weight: FontWeight.w600,),),)
-                ),
               ),
             ],
           ),

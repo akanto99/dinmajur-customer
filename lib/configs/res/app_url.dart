@@ -31,8 +31,15 @@ class AppUrl {
   static var patchImageUpdateApi= baseUrl + '/files/images/update-image';
   // static var uploadThumnailPostApi= baseUrl + '/users/upload-profile-picture';
   static var uploadThumnailPostApi= baseUrl + '/files/images/upload-image';
-  static var changePasswordPostAPI = baseUrl + "/auth/change-password";
- //order Now
+  static var changePasswordPostAPI = baseUrl + "/auth/change-password";//Change Password
+  //=====>----------------------------Payment method
+  static var paymentMethodBkashNagadGetAPI = baseUrl + '/payment-methods?provider=';
+  static var bkashNagadGetAPI = baseUrl + '/payment-methods';
+  static var accountUpdatePatchAPI = baseUrl + '/payment-methods';
+  static var paymentMethodPostAPI = baseUrl + '/payment-methods';
+
+
+  //order Now
   static var nearbyRetailersPostAPI = baseUrl + "/retailers/nearby-retailers";
   static var CheckoutOrderPostAPI = baseUrl + "/orders/create";
 
