@@ -1,10 +1,12 @@
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/drawer.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/notifications/resuable_notifications.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
@@ -14,6 +16,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -28,6 +31,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String? selectedStoreType;
   List<dynamic> nearbyStores = [];
   bool isLoadingStores = false;
+
+  // Location related variables
+  // Location related variables
+  final LocationService _locationService = LocationService();
+  Position? _currentPosition;
+  String? _currentAddress;
+  String? _shortAddress;
+  bool _isLoadingLocation = false;
+
 
   late Map<String, String> storeTypes;
   @override
@@ -51,8 +63,68 @@ class _HomeScreenState extends State<HomeScreen> {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       profileViewModel.fetchProfileViewUserDataApi();
     });
-  }
 
+    _getLocationWithAddress();
+  }
+  String _locationMessage = "Location not fetched yet.";
+
+  Future<void> _getLocationWithAddress() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    try {
+
+      // Get location and address
+      Map<String, dynamic> locationData = await _locationService.getCurrentLocationWithAddress();
+
+      Position position = locationData['position'];
+      String fullAddress = locationData['address'];
+
+      // Get short address for app bar
+      String shortAddr = await _locationService.getShortAddress(position.latitude, position.longitude);
+
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+          _currentAddress = fullAddress;
+          _shortAddress = shortAddr;
+          _locationMessage = "Latitude: ${position.latitude}, Longitude: ${position.longitude}";
+          _isLoadingLocation = false;
+        });
+
+        // Print detailed location info in terminal
+        debugPrint('========== CURRENT LOCATION WITH ADDRESS ==========');
+        debugPrint('Latitude: ${position.latitude}');
+        debugPrint('Longitude: ${position.longitude}');
+        debugPrint('Full Address: $fullAddress');
+        debugPrint('Short Address: $shortAddr');
+        debugPrint('Accuracy: ${position.accuracy} meters');
+        debugPrint('Altitude: ${position.altitude} meters');
+        debugPrint('Timestamp: ${position.timestamp}');
+        debugPrint('==================================================');
+      }
+    } catch (e) {
+      debugPrint('Error getting location with address: $e');
+      if (mounted) {
+        setState(() {
+          _locationMessage = "Please enable location to use this app.";
+          _isLoadingLocation = false;
+        });
+
+        // Show error message to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Location error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
 
   // Method to fetch nearby retailers
   Future<void> _fetchNearbyRetailers(String businessType) async {
@@ -95,6 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -130,6 +203,60 @@ class _HomeScreenState extends State<HomeScreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
+          // if (_isLoadingLocation)
+          //   Text(
+          //     'Getting your location and address...',
+          //     style: AppTextStyles.textSize14(context, color: Colors.blue.shade700),
+          //   ),
+          //
+          // // Show current location and address if available
+          // if (_currentPosition != null && _currentAddress != null && !_isLoadingLocation)
+          //   Container(
+          //     width: screenWidth * 0.9,
+          //     padding: EdgeInsets.all(screenHeight * 0.015),
+          //     margin: EdgeInsets.only(bottom: screenHeight * 0.02),
+          //     decoration: BoxDecoration(
+          //       color: Colors.green.shade50,
+          //       borderRadius: BorderRadius.circular(12),
+          //       border: Border.all(color: Colors.green.shade200),
+          //     ),
+          //     child: Column(
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //         Row(
+          //           children: [
+          //             Icon(Icons.location_on, color: Colors.green.shade700, size: 16),
+          //             SizedboxSpaccing.width01(context),
+          //             Expanded(
+          //               child: Text(
+          //                 'Current Location',
+          //                 style: AppTextStyles.textSize14(context,
+          //                     color: Colors.green.shade700,
+          //                     weight: FontWeight.w600),
+          //               ),
+          //             ),
+          //             GestureDetector(
+          //               onTap: () => _getLocationWithAddress(),
+          //               child: Icon(Icons.refresh, color: Colors.green.shade700, size: 16),
+          //             ),
+          //           ],
+          //         ),
+          //         SizedboxSpaccing.height005(context),
+          //         Text(
+          //           _currentAddress!,
+          //           style: AppTextStyles.textSize12(context, color: Colors.green.shade600),
+          //           maxLines: 2,
+          //           overflow: TextOverflow.ellipsis,
+          //         ),
+          //         SizedboxSpaccing.height005(context),
+          //         Text(
+          //           'Coordinates: ${_currentPosition!.latitude.toStringAsFixed(6)}, ${_currentPosition!.longitude.toStringAsFixed(6)}',
+          //           style: AppTextStyles.textSize16(context, color: Colors.green.shade500),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+
           // Language Slide Switcher
           Center(child: SizedboxSpaccing.height02(context)),
 
@@ -299,29 +426,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          // SizedboxSpaccing.height01(context),
-          // Container(
-          //   height: 42,
-          //   padding: EdgeInsets.only(left: 20),
-          //   decoration: BoxDecoration(
-          //     borderRadius: BorderRadius.circular(8),
-          //     color: Color(0xffF0FDF4),
-          //     border: Border.all(
-          //       width: 1,
-          //       color: Color(0xffBBF7D0),
-          //     )
-          //   ),
-          //   child: Row(
-          //     children: [
-          //       Icon(Icons.access_time_filled,size: 16,color: Color(0xff15803D),),
-          //       SizedboxSpaccing.width01(context),
-          //       Text(
-          //         "Delivery within 30-60 minutes",
-          //         style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w500),
-          //       ),
-          //     ],
-          //   ),
-          // ),
           SizedboxSpaccing.height02(context),
           RoundButton(
             title: AppLocalizations.of(context)!.order_now,
@@ -351,6 +455,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _customAppBar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    // Determine display address ONCE at the top
+    String displayAddress;
+    if (_isLoadingLocation) {
+      displayAddress = "Getting location...";
+    } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
+      displayAddress = _currentAddress!;
+    } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
+      displayAddress = _currentAddress!;
+    } else {
+      displayAddress = "Tap to get location";
+    }
 
     return Consumer<ProfileViewViewModel>(
       builder: (context, profileViewModel, _) {
@@ -389,9 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
-
                             SizedboxSpaccing.width02(context),
-
                             Expanded(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -404,12 +518,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   Row(
                                     children: [
-                                      Icon(Icons.location_on, size: 16, color: AppColors.textPrimary(context)),
+                                      Icon(
+                                          Icons.location_on,
+                                          size: 16,
+                                          color: _isLoadingLocation
+                                              ? AppColors.subtitle(context)
+                                              : AppColors.textPrimary(context)
+                                      ),
                                       Expanded(
-                                        child: Text(
-                                          "Location not available",
-                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                                          overflow: TextOverflow.ellipsis,
+                                        child: GestureDetector(
+                                          onTap: _isLoadingLocation ? null : () {
+                                            _getLocationWithAddress();
+                                          },
+                                          child: Text(
+                                            displayAddress,
+                                            style: AppTextStyles.textSize14(
+                                                context,
+                                                weight: FontWeight.w400,
+                                                color: _isLoadingLocation
+                                                    ? AppColors.subtitle(context)
+                                                    : AppColors.textPrimary(context)
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -420,7 +551,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
-
                       // Right Side Icons
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -438,9 +568,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             svgAsset: 'assets/images/home/email.svg',
                             context: context,
                           ),
-
                           SizedboxSpaccing.width02(context),
-
                           _buildIconButton(
                             onTap: () {
                               NotificationDialog.show(
@@ -463,13 +591,17 @@ class _HomeScreenState extends State<HomeScreen> {
             );
 
           case Status.ERROR:
-            return Container();
+            return ErrorStateEmptyHeaderWidget(
+              errorMessage: profileViewModel.profileviewUserData.message.toString(),
+              onRetry: () {
+                final profileCompletionModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+                profileCompletionModel.fetchProfileViewUserDataApi();
+              },
+            );
 
           case Status.COMPLETED:
-          // Add proper null checks to prevent the error
             final responseData = profileViewModel.profileviewUserData.data;
             if (responseData?.data?.user == null) {
-              // If data is null even though status is completed, show error state
               return Container(
                 decoration: BoxDecoration(
                   border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
@@ -481,7 +613,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Left Side - User Profile (Loading State)
                         Flexible(
                           flex: 3,
                           child: Row(
@@ -503,9 +634,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
-
                               SizedboxSpaccing.width02(context),
-
                               Expanded(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -518,14 +647,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     Row(
                                       children: [
-                                        Icon(Icons.location_on, size: 16, color: AppColors.textPrimary(context)),
+                                        Icon(
+                                            Icons.location_on,
+                                            size: 16,
+                                            color: _isLoadingLocation
+                                                ? AppColors.subtitle(context)
+                                                : AppColors.textPrimary(context)
+                                        ),
                                         Expanded(
-                                          child: Text(
-                                            "Location not available",
-                                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                                            overflow: TextOverflow.ellipsis,
+                                          child: GestureDetector(
+                                            // onTap: _isLoadingLocation ? null : () {
+                                            //   _getLocationWithAddress();
+                                            // },
+                                            child: Text(
+                                              displayAddress,
+                                              style: AppTextStyles.textSize14(
+                                                  context,
+                                                  weight: FontWeight.w400,
+                                                  color: _isLoadingLocation
+                                                      ? AppColors.subtitle(context)
+                                                      : AppColors.textPrimary(context)
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ),
                                         ),
+
                                       ],
                                     ),
                                   ],
@@ -534,8 +681,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-
-                        // Right Side Icons
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -552,9 +697,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               svgAsset: 'assets/images/home/email.svg',
                               context: context,
                             ),
-
                             SizedboxSpaccing.width02(context),
-
                             _buildIconButton(
                               onTap: () {
                                 NotificationDialog.show(
@@ -578,8 +721,6 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             final userData = responseData!.data!.user!;
-            final profileData = responseData.data!;
-
             String? profileImageUrl = userData.profilePicture?.url;
             String userName = '';
 
@@ -593,11 +734,6 @@ class _HomeScreenState extends State<HomeScreen> {
             } else {
               userName = 'Unknown User';
             }
-
-            // Get user address - you might need to adjust this based on your data structure
-            String userAddress = 'Location not available';
-            // If you have address data in profileData or userData, use it like:
-            // userAddress = profileData.address ?? userData.address ?? 'Location not available';
 
             return Container(
               decoration: BoxDecoration(
@@ -640,9 +776,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
-
                             SizedboxSpaccing.width02(context),
-
                             Expanded(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -655,12 +789,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   Row(
                                     children: [
-                                      Icon(Icons.location_on, size: 16, color: AppColors.textPrimary(context)),
+                                      Icon(
+                                          Icons.location_on,
+                                          size: 16,
+                                          color: _isLoadingLocation
+                                              ? AppColors.subtitle(context)
+                                              : AppColors.textPrimary(context)
+                                      ),
                                       Expanded(
-                                        child: Text(
-                                          userAddress,
-                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                                          overflow: TextOverflow.ellipsis,
+                                        child: GestureDetector(
+                                          // onTap: _isLoadingLocation ? null : () {
+                                          //   _getLocationWithAddress();
+                                          // },
+                                          child: Text(
+                                            displayAddress,
+                                            style: AppTextStyles.textSize14(
+                                                context,
+                                                weight: FontWeight.w400,
+                                                color: _isLoadingLocation
+                                                    ? AppColors.subtitle(context)
+                                                    : AppColors.textPrimary(context)
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -671,7 +822,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
-
                       // Right Side Icons
                       Row(
                         children: [
@@ -688,9 +838,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             svgAsset: 'assets/images/home/email.svg',
                             context: context,
                           ),
-
                           SizedboxSpaccing.width02(context),
-
                           _buildIconButton(
                             onTap: () {
                               NotificationDialog.show(
@@ -723,6 +871,8 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+
+
 
   Widget _buildIconButton({required VoidCallback onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(
