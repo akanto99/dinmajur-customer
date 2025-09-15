@@ -71,10 +71,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
              children: [
                _buildHeader(),
                _buildMenu(context),
+               SizedboxSpaccing.height025(context)
              ],
            ),
          )),
-              SizedboxSpaccing.height025(context)
+
               
             ],
           ),
@@ -254,7 +255,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
             ],
           ),
-          SizedboxSpaccing.height025(context),
+          // SizedboxSpaccing.height025(context),
 
         ],
       ),

@@ -7,11 +7,6 @@ class AppUrl {
   static var emailCheckEndPoint = baseUrl + '/auth/check-email';
 
   ///Multisteps
-  static var multiSignUpEndPint = baseUrl + '/users/update-profile-and-create-skills';
-  static var createServicesEndPoint = baseUrl + '/user-services';
-  static var updateMe = baseUrl + '/users/update-me';
-  static var createaddress = baseUrl + '/user-address';
-
   static var otpApi = baseUrl + '/users/create';
   static var otpVerify = baseUrl + '/auth/verify-otp';
   // static var imageApi= baseUrl + '/users/upload-profile-picture';
@@ -27,9 +22,7 @@ class AppUrl {
   static var viewProfile = baseUrl + '/users/get-user-data';
   ///=========>
   static var profileHeaderUpdatePatchAPI = baseUrl + '/users/update-me';
-  // static var patchImageUpdateApi= baseUrl + '/users/update-profile-picture';
   static var patchImageUpdateApi= baseUrl + '/files/images/update-image';
-  // static var uploadThumnailPostApi= baseUrl + '/users/upload-profile-picture';
   static var uploadThumnailPostApi= baseUrl + '/files/images/upload-image';
   static var changePasswordPostAPI = baseUrl + "/auth/change-password";//Change Password
   //=====>----------------------------Payment method
@@ -40,8 +33,8 @@ class AppUrl {
 
 
   //order Now
-  static var nearbyRetailersPostAPI = baseUrl + "/retailers/nearby-retailers";
-  static var CheckoutOrderPostAPI = baseUrl + "/orders/create";
+  static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
+  static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";
 
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';
