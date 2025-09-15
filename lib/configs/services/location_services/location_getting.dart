@@ -1,44 +1,9 @@
-// import 'package:geolocator/geolocator.dart';
-// import 'package:permission_handler/permission_handler.dart';
-//
-// class LocationService {
-//   Future<Position> checkPermissionAndGetLocation() async {
-//     // Check if location services are enabled
-//     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-//     if (!serviceEnabled) {
-//       await Geolocator.openLocationSettings();
-//       throw Exception("Location services are disabled.");
-//     }
-//
-//     // Check permission
-//     LocationPermission permission = await Geolocator.checkPermission();
-//
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//     }
-//
-//     if (permission == LocationPermission.denied) {
-//       // User denied again — open settings
-//       await openAppSettings();
-//       throw Exception("Location permission denied.");
-//     }
-//
-//     if (permission == LocationPermission.deniedForever) {
-//       // Denied permanently — open settings
-//       await openAppSettings();
-//       throw Exception("Location permission permanently denied.");
-//     }
-//
-//     // Permission granted
-//     return await Geolocator.getCurrentPosition(
-//       desiredAccuracy: LocationAccuracy.high,
-//     );
-//   }
-// }
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class LocationService {
   static Position? _cachedPosition;
+  static String? _cachedAddress;
 
   Future<Position> getCurrentLocation({bool forceRefresh = false}) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -68,5 +33,111 @@ class LocationService {
 
     return _cachedPosition!;
   }
-}
 
+  // New method to get address from coordinates
+  Future<String> getAddressFromCoordinates(double latitude, double longitude) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+
+        // Build address string from available components
+        String address = '';
+
+        // Add street number and name
+        if (place.street != null && place.street!.isNotEmpty) {
+          address += place.street!;
+        }
+
+        // Add subLocality (area/neighborhood)
+        if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+          if (address.isNotEmpty) address += ', ';
+          address += place.subLocality!;
+        }
+
+        // Add locality (city/town)
+        if (place.locality != null && place.locality!.isNotEmpty) {
+          if (address.isNotEmpty) address += ', ';
+          address += place.locality!;
+        }
+
+        // Add administrative area (state/province)
+        if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
+          if (address.isNotEmpty) address += ', ';
+          address += place.administrativeArea!;
+        }
+
+        // Add country
+        if (place.country != null && place.country!.isNotEmpty) {
+          if (address.isNotEmpty) address += ', ';
+          address += place.country!;
+        }
+
+        // If no components found, create a basic address
+        if (address.isEmpty) {
+          address = '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
+        }
+
+        return address;
+      } else {
+        return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
+      }
+    } catch (e) {
+      print('Error getting address: $e');
+      return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
+    }
+  }
+
+  // Method to get current location with address
+  Future<Map<String, dynamic>> getCurrentLocationWithAddress({bool forceRefresh = false}) async {
+    try {
+      Position position = await getCurrentLocation(forceRefresh: forceRefresh);
+      String address = await getAddressFromCoordinates(position.latitude, position.longitude);
+
+      // Cache the address
+      _cachedAddress = address;
+
+      return {
+        'position': position,
+        'address': address,
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+      };
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Get cached address if available
+  String? getCachedAddress() {
+    return _cachedAddress;
+  }
+
+  // Method to get a short address (for display in app bar)
+  Future<String> getShortAddress(double latitude, double longitude) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+
+        String shortAddress = '';
+
+        // Priority: subLocality -> locality -> administrativeArea
+        if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+          shortAddress = place.subLocality!;
+        } else if (place.locality != null && place.locality!.isNotEmpty) {
+          shortAddress = place.locality!;
+        } else if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
+          shortAddress = place.administrativeArea!;
+        }
+
+        return shortAddress.isNotEmpty ? shortAddress : 'Current Location';
+      }
+      return 'Current Location';
+    } catch (e) {
+      return 'Current Location';
+    }
+  }
+}
