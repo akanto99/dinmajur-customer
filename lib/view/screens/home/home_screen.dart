@@ -11,6 +11,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/post_newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -70,19 +71,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _getLocationWithAddress() async {
     if (!mounted) return;
-
     setState(() {
       _isLoadingLocation = true;
     });
 
     try {
-
       // Get location and address
       Map<String, dynamic> locationData = await _locationService.getCurrentLocationWithAddress();
-
       Position position = locationData['position'];
       String fullAddress = locationData['address'];
-
       // Get short address for app bar
       String shortAddr = await _locationService.getShortAddress(position.latitude, position.longitude);
 
@@ -105,6 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
         debugPrint('Altitude: ${position.altitude} meters');
         debugPrint('Timestamp: ${position.timestamp}');
         debugPrint('==================================================');
+
+        // *** AUTOMATICALLY POST LOCATION TO API ***
+        await _postLocationToApi(position.longitude, position.latitude, fullAddress);
       }
     } catch (e) {
       debugPrint('Error getting location with address: $e');
@@ -119,6 +119,35 @@ class _HomeScreenState extends State<HomeScreen> {
           SnackBar(
             content: Text('Location error: ${e.toString()}'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // New method to post location data to API
+  Future<void> _postLocationToApi(double longitude, double latitude, String fullAddress) async {
+    try {
+      final locationData = {
+        "geoLocation": {
+          "type": "Point",
+          "coordinates": [longitude, latitude]
+        },
+        "fullAddress": fullAddress
+      };
+      final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
+      await addLocationViewModel.addLocationPostApi(context, locationData);
+      debugPrint('Location data to post: $locationData');
+      // debugPrint('Location posted successfully to API');
+    } catch (e) {
+      debugPrint('Error posting location to API: $e');
+      // Optional: Show error message to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save location: ${e.toString()}'),
+            backgroundColor: Colors.orange,
             duration: Duration(seconds: 3),
           ),
         );
@@ -822,6 +851,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
+
                       // Right Side Icons
                       Row(
                         children: [
