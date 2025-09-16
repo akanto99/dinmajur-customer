@@ -6,12 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AddLocationRepository {
   BaseApiServices _apiServices = NetworkApiService();
 
-  Future<dynamic> addLocationPostApi(dynamic data) async {
+  Future<dynamic> addLocationPatchApi(dynamic data) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? accessToken = prefs.getString('accessToken');
-      dynamic response = await _apiServices.gePostApiWithHeaderesponse(
-        AppUrl.addlocationPostAPI,
+      dynamic response = await _apiServices.getPatchApiResponse(
+        AppUrl.addlocationPatchAPI,
         data,
         headers: {
           'Content-Type': 'application/json',

@@ -20,9 +20,9 @@ class AppUrl {
 
   ///Home
   static var viewProfile = baseUrl + '/users/get-user-data';
-  ///=========>
-  static var addlocationPostAPI = baseUrl + '/users/update-me';
+  static var addlocationPatchAPI = baseUrl + '/customers/update-address';
 
+  ///=========>
   static var profileHeaderUpdatePatchAPI = baseUrl + '/users/update-me';
   static var patchImageUpdateApi= baseUrl + '/files/images/update-image';
   static var uploadThumnailPostApi= baseUrl + '/files/images/upload-image';

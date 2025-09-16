@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
-import 'package:dinmajur_customer/respository/home_repositories/location_repository/post_newlocation_repository.dart';
+import 'package:dinmajur_customer/respository/home_repositories/location_repository/newlocation_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +16,7 @@ class AddLocationViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addLocationPostApi(BuildContext context, dynamic fields) async {
+  Future<void> addLocationPatchApi(BuildContext context, dynamic fields) async {
     setCreateAddLocationLoading(true);
 
     try {
@@ -35,7 +35,7 @@ class AddLocationViewModel with ChangeNotifier {
         print('Access token: ${accessToken.substring(0, 20)}...');
       }
 
-      dynamic response = await _myRepo.addLocationPostApi(fields);
+      dynamic response = await _myRepo.addLocationPatchApi(fields);
 
       setCreateAddLocationLoading(false);
 
@@ -127,7 +127,7 @@ class AddLocationViewModel with ChangeNotifier {
 
       if (shouldPost) {
         if (kDebugMode) print('Auto-posting location data...');
-        await addLocationPostApi(context, locationData);
+        await addLocationPatchApi(context, locationData);
         await updateLastLocationPostTime();
       } else {
         if (kDebugMode) print('Skipping auto-post - location posted recently');
