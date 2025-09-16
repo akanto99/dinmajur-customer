@@ -1,4 +1,3 @@
-import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -7,8 +6,7 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/post_newlocation_view_model.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/post_change_passwordview_model/post_change_passwordview_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -104,11 +102,12 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
           "type": "Point",
           "coordinates": [longitude, latitude]
         },
-        "fullAddress": fullAddress
+        "fullAddress": fullAddress,
+        "type": "DELIVERY_ADDRESS",
       };
 
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-      await addLocationViewModel.addLocationPostApi(context, locationData);
+      await addLocationViewModel.addLocationPatchApi(context, locationData);
 
       debugPrint('Location data to post: $locationData');
 
@@ -188,7 +187,8 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                       color: AppColors.button(context).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: AppColors.button(context),
+                        color:Theme.of(context).brightness == Brightness.dark
+                            ?AppColors.whiteColor: AppColors.button(context),
                         width: 1,
                       ),
                     ),
@@ -198,7 +198,8 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                         children: [
                           Icon(
                               FontAwesomeIcons.mapLocation,
-                              color: AppColors.button(context),
+                              color:Theme.of(context).brightness == Brightness.dark
+                                  ?AppColors.whiteColor: AppColors.button(context),
                               size: 20
                           ),
                           SizedboxSpaccing.width03(context),
@@ -207,7 +208,8 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                               style: AppTextStyles.textSize16(
                                   context,
                                   weight: FontWeight.w600,
-                                  color: AppColors.button(context)
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ?AppColors.whiteColor: AppColors.button(context)
                               )
                           ),
                         ],

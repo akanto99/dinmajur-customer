@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
-import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/post_newlocation_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -217,11 +215,12 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
             "type": "Point",
             "coordinates": [_selectedLocation!.longitude, _selectedLocation!.latitude]
           },
-          "fullAddress": _selectedAddress
+          "fullAddress": _selectedAddress,
+          "type": "DELIVERY_ADDRESS",
         };
 
         final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-        await addLocationViewModel.addLocationPostApi(context, locationData);
+        await addLocationViewModel.addLocationPatchApi(context, locationData);
 
         if (mounted) {
           Utils.flushBarSuccessMessage('Location saved successfully', context);
@@ -288,7 +287,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                     disabledBorder: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                     isDense: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.globalBlackWhite(context),
                     filled: true,
                   ),
                   boxDecoration: BoxDecoration(
@@ -296,7 +295,8 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                       color: AppColors.border(context),
                       width: 1,
                     ),
-                    borderRadius: BorderRadius.circular(12)
+                    borderRadius: BorderRadius.circular(12),
+
                   ),
                   debounceTime: 400,
                   countries: ["bd"], // Restrict to Bangladesh
@@ -376,7 +376,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                 },
                 child: Container(height: 20, width: 24,
                     alignment: Alignment.centerLeft,
-                    child: Icon(FontAwesomeIcons.x, size: 18)), // Using xmark for better cancel icon
+                    child: Icon(FontAwesomeIcons.x, size: 18)),
               ),
             ],
           ),

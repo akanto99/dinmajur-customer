@@ -11,13 +11,12 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/post_newlocation_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
@@ -135,10 +134,11 @@ class _HomeScreenState extends State<HomeScreen> {
           "type": "Point",
           "coordinates": [longitude, latitude]
         },
-        "fullAddress": fullAddress
+        "fullAddress": fullAddress,
+        "type": "DELIVERY_ADDRESS",
       };
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-      await addLocationViewModel.addLocationPostApi(context, locationData);
+      await addLocationViewModel.addLocationPatchApi(context, locationData);
       debugPrint('Location data to post: $locationData');
       // debugPrint('Location posted successfully to API');
     } catch (e) {
