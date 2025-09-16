@@ -17,6 +17,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
@@ -34,15 +35,14 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoadingStores = false;
 
   // Location related variables
-  // Location related variables
   final LocationService _locationService = LocationService();
   Position? _currentPosition;
   String? _currentAddress;
   String? _shortAddress;
   bool _isLoadingLocation = false;
 
-
   late Map<String, String> storeTypes;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -67,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _getLocationWithAddress();
   }
+
   String _locationMessage = "Location not fetched yet.";
 
   Future<void> _getLocationWithAddress() async {
@@ -196,7 +197,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -220,12 +220,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: SafeArea(
-        child: ResPonsiveUi(mobile: _buildBody(context), desktop: _buildBody(context), tablet: _buildBody(context)),
+        child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget body(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -436,8 +436,6 @@ class _HomeScreenState extends State<HomeScreen> {
       displayAddress = "Getting location...";
     } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
       displayAddress = _currentAddress!;
-    } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
-      displayAddress = _currentAddress!;
     } else {
       displayAddress = "Tap to get location";
     }
@@ -446,122 +444,12 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, profileViewModel, _) {
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
-            return Container(
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
-              ),
-              child: Center(
-                child: Container(
-                  width: screenWidth * 0.9,
-                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Left Side - User Profile (Loading State)
-                      Flexible(
-                        flex: 3,
-                        child: Row(
-                          children: [
-                            Builder(
-                              builder: (context) => GestureDetector(
-                                onTap: () {
-                                  Scaffold.of(context).openDrawer();
-                                },
-                                child: Container(
-                                  height: 48,
-                                  width: 48,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.appBackground(context),
-                                    border: Border.all(width: 1, color: AppColors.textPrimary(context)),
-                                  ),
-                                  child: Icon(Icons.person, color: AppColors.textPrimary(context), size: 20),
-                                ),
-                              ),
-                            ),
-                            SizedboxSpaccing.width02(context),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Unknown User",
-                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                          Icons.location_on,
-                                          size: 16,
-                                          color: _isLoadingLocation
-                                              ? AppColors.subtitle(context)
-                                              : AppColors.textPrimary(context)
-                                      ),
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: _isLoadingLocation ? null : () {
-                                            _getLocationWithAddress();
-                                          },
-                                          child: Text(
-                                            displayAddress,
-                                            style: AppTextStyles.textSize14(
-                                                context,
-                                                weight: FontWeight.w400,
-                                                color: _isLoadingLocation
-                                                    ? AppColors.subtitle(context)
-                                                    : AppColors.textPrimary(context)
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Right Side Icons
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildIconButton(
-                            onTap: () {
-                              NotificationDialog.show(
-                                context,
-                                message: AppLocalizations.of(context)!.empty_inbox,
-                                icon: CupertinoIcons.text_bubble,
-                                iconColor: AppColors.textPrimary(context),
-                                iconBackgroundColor: AppColors.appBackground(context),
-                              );
-                            },
-                            svgAsset: 'assets/images/home/email.svg',
-                            context: context,
-                          ),
-                          SizedboxSpaccing.width02(context),
-                          _buildIconButton(
-                            onTap: () {
-                              NotificationDialog.show(
-                                context,
-                                message: AppLocalizations.of(context)!.no_notification,
-                                icon: Icons.notifications_outlined,
-                                iconColor: AppColors.textPrimary(context),
-                                iconBackgroundColor: AppColors.appBackground(context),
-                              );
-                            },
-                            svgAsset: 'assets/images/home/notification.svg',
-                            context: context,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            return _buildAppBarContent(
+              screenWidth: screenWidth,
+              screenHeight: screenHeight,
+              userName: "Unknown User",
+              displayAddress: displayAddress,
+              profileImageUrl: null,
             );
 
           case Status.ERROR:
@@ -575,264 +463,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
           case Status.COMPLETED:
             final responseData = profileViewModel.profileviewUserData.data;
-            if (responseData?.data?.user == null) {
-              return Container(
-                decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
-                ),
-                child: Center(
-                  child: Container(
-                    width: screenWidth * 0.9,
-                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          flex: 3,
-                          child: Row(
-                            children: [
-                              Builder(
-                                builder: (context) => GestureDetector(
-                                  onTap: () {
-                                    Scaffold.of(context).openDrawer();
-                                  },
-                                  child: Container(
-                                    height: 48,
-                                    width: 48,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.appBackground(context),
-                                      border: Border.all(width: 1, color: AppColors.textPrimary(context)),
-                                    ),
-                                    child: Icon(Icons.person, color: AppColors.textPrimary(context), size: 20),
-                                  ),
-                                ),
-                              ),
-                              SizedboxSpaccing.width02(context),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Unknown User",
-                                      style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                            Icons.location_on,
-                                            size: 16,
-                                            color: _isLoadingLocation
-                                                ? AppColors.subtitle(context)
-                                                : AppColors.textPrimary(context)
-                                        ),
-                                        Expanded(
-                                          child: GestureDetector(
-                                            // onTap: _isLoadingLocation ? null : () {
-                                            //   _getLocationWithAddress();
-                                            // },
-                                            child: Text(
-                                              displayAddress,
-                                              style: AppTextStyles.textSize14(
-                                                  context,
-                                                  weight: FontWeight.w400,
-                                                  color: _isLoadingLocation
-                                                      ? AppColors.subtitle(context)
-                                                      : AppColors.textPrimary(context)
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ),
+            String userName = 'Unknown User';
+            String? profileImageUrl;
 
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildIconButton(
-                              onTap: () {
-                                NotificationDialog.show(
-                                  context,
-                                  message: AppLocalizations.of(context)!.empty_inbox,
-                                  icon: CupertinoIcons.text_bubble,
-                                  iconColor: AppColors.textPrimary(context),
-                                  iconBackgroundColor: AppColors.appBackground(context),
-                                );
-                              },
-                              svgAsset: 'assets/images/home/email.svg',
-                              context: context,
-                            ),
-                            SizedboxSpaccing.width02(context),
-                            _buildIconButton(
-                              onTap: () {
-                                NotificationDialog.show(
-                                  context,
-                                  message: AppLocalizations.of(context)!.no_notification,
-                                  icon: Icons.notifications_outlined,
-                                  iconColor: AppColors.textPrimary(context),
-                                  iconBackgroundColor: AppColors.appBackground(context),
-                                );
-                              },
-                              svgAsset: 'assets/images/home/notification.svg',
-                              context: context,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
+            if (responseData?.data?.user != null) {
+              final userData = responseData!.data!.user!;
+              profileImageUrl = userData.profilePicture?.url;
+
+              // Handle user name properly
+              if (userData.firstName != null && userData.lastName != null) {
+                userName = '${userData.firstName!} ${userData.lastName!}'.trim();
+              } else if (userData.firstName != null) {
+                userName = userData.firstName!;
+              } else if (userData.lastName != null) {
+                userName = userData.lastName!;
+              }
             }
 
-            final userData = responseData!.data!.user!;
-            String? profileImageUrl = userData.profilePicture?.url;
-            String userName = '';
-
-            // Handle user name properly
-            if (userData.firstName != null && userData.lastName != null) {
-              userName = '${userData.firstName!} ${userData.lastName!}'.trim();
-            } else if (userData.firstName != null) {
-              userName = userData.firstName!;
-            } else if (userData.lastName != null) {
-              userName = userData.lastName!;
-            } else {
-              userName = 'Unknown User';
-            }
-
-            return Container(
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
-              ),
-              child: Center(
-                child: Container(
-                  width: screenWidth * 0.9,
-                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Left Side - User Profile
-                      Flexible(
-                        flex: 3,
-                        child: Row(
-                          children: [
-                            Builder(
-                              builder: (context) => GestureDetector(
-                                onTap: () {
-                                  Scaffold.of(context).openDrawer();
-                                },
-                                child: Container(
-                                  height: 48,
-                                  width: 48,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.appBackground(context),
-                                    border: Border.all(width: 1, color: AppColors.textPrimary(context)),
-                                    image: profileImageUrl != null
-                                        ? DecorationImage(
-                                      image: NetworkImage(profileImageUrl),
-                                      fit: BoxFit.cover,
-                                    )
-                                        : null,
-                                  ),
-                                  child: profileImageUrl == null
-                                      ? Icon(Icons.person, color: AppColors.textPrimary(context), size: 20)
-                                      : null,
-                                ),
-                              ),
-                            ),
-                            SizedboxSpaccing.width02(context),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    userName,
-                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                          Icons.location_on,
-                                          size: 16,
-                                          color: _isLoadingLocation
-                                              ? AppColors.subtitle(context)
-                                              : AppColors.textPrimary(context)
-                                      ),
-                                      Expanded(
-                                        child: GestureDetector(
-                                          // onTap: _isLoadingLocation ? null : () {
-                                          //   _getLocationWithAddress();
-                                          // },
-                                          child: Text(
-                                            displayAddress,
-                                            style: AppTextStyles.textSize14(
-                                                context,
-                                                weight: FontWeight.w400,
-                                                color: _isLoadingLocation
-                                                    ? AppColors.subtitle(context)
-                                                    : AppColors.textPrimary(context)
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Right Side Icons
-                      Row(
-                        children: [
-                          _buildIconButton(
-                            onTap: () {
-                              NotificationDialog.show(
-                                context,
-                                message: AppLocalizations.of(context)!.empty_inbox,
-                                icon: CupertinoIcons.text_bubble,
-                                iconColor: AppColors.textPrimary(context),
-                                iconBackgroundColor: AppColors.appBackground(context),
-                              );
-                            },
-                            svgAsset: 'assets/images/home/email.svg',
-                            context: context,
-                          ),
-                          SizedboxSpaccing.width02(context),
-                          _buildIconButton(
-                            onTap: () {
-                              NotificationDialog.show(
-                                context,
-                                message: AppLocalizations.of(context)!.no_notification,
-                                icon: Icons.notifications_outlined,
-                                iconColor: AppColors.textPrimary(context),
-                                iconBackgroundColor: AppColors.appBackground(context),
-                              );
-                            },
-                            svgAsset: 'assets/images/home/notification.svg',
-                            context: context,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            return _buildAppBarContent(
+              screenWidth: screenWidth,
+              screenHeight: screenHeight,
+              userName: userName,
+              displayAddress: displayAddress,
+              profileImageUrl: profileImageUrl,
             );
 
           default:
@@ -847,7 +500,153 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildAppBarContent({
+    required double screenWidth,
+    required double screenHeight,
+    required String userName,
+    required String displayAddress,
+    String? profileImageUrl,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
+      ),
+      child: Center(
+        child: Container(
+          width: screenWidth * 0.9,
+          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Left Side - User Profile
+              Expanded(
+                flex: 3,
+                child: Row(
+                  children: [
+                    Builder(
+                      builder: (context) => GestureDetector(
+                        onTap: () {
+                          Scaffold.of(context).openDrawer();
+                        },
+                        child: Container(
+                          height: 48,
+                          width: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.appBackground(context),
+                            border: Border.all(width: 1, color: AppColors.textPrimary(context)),
+                            image: profileImageUrl != null
+                                ? DecorationImage(
+                              image: NetworkImage(profileImageUrl),
+                              fit: BoxFit.cover,
+                            )
+                                : null,
+                          ),
+                          child: profileImageUrl == null
+                              ? Icon(Icons.person, color: AppColors.textPrimary(context), size: 20)
+                              : null,
+                        ),
+                      ),
+                    ),
+                    SizedboxSpaccing.width02(context),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+Navigator.pushNamed(context, RoutesName.addlocation);
+                        },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userName,
+                              style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                    Icons.location_on,
+                                    size: 16,
+                                    color: _isLoadingLocation
+                                        ? AppColors.subtitle(context)
+                                        : AppColors.textPrimary(context)
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    displayAddress,
+                                    style: AppTextStyles.textSize14(
+                                        context,
+                                        weight: FontWeight.w400,
+                                        color: _isLoadingLocation
+                                            ? AppColors.subtitle(context)
+                                            : AppColors.textPrimary(context)
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
 
+
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                   Container(
+                        height: 45,
+                        // color: Colors.green,
+                     alignment: Alignment.bottomCenter,
+                        child: Icon(
+                          Icons.arrow_drop_down_sharp,
+                          size: 25,
+                        ),
+                      ),
+
+                  ],
+                ),
+              ),
+
+              // Right Side Icons
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedboxSpaccing.width03(context),
+                  _buildIconButton(
+                    onTap: () {
+                      NotificationDialog.show(
+                        context,
+                        message: AppLocalizations.of(context)!.empty_inbox,
+                        icon: CupertinoIcons.text_bubble,
+                        iconColor: AppColors.textPrimary(context),
+                        iconBackgroundColor: AppColors.appBackground(context),
+                      );
+                    },
+                    svgAsset: 'assets/images/home/email.svg',
+                    context: context,
+                  ),
+                  SizedboxSpaccing.width02(context),
+                  _buildIconButton(
+                    onTap: () {
+                      NotificationDialog.show(
+                        context,
+                        message: AppLocalizations.of(context)!.no_notification,
+                        icon: Icons.notifications_outlined,
+                        iconColor: AppColors.textPrimary(context),
+                        iconBackgroundColor: AppColors.appBackground(context),
+                      );
+                    },
+                    svgAsset: 'assets/images/home/notification.svg',
+                    context: context,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildIconButton({required VoidCallback onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(
@@ -860,4 +659,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }

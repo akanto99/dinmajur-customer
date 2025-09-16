@@ -12,6 +12,8 @@ import 'package:dinmajur_customer/view/screens/home/drawer/password/password_cha
 import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/review/review.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/add_newlocation_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/map_location_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now.dart';
@@ -50,9 +52,13 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const NewPassword(), settings: settings);
 
       ///Home
-
       case RoutesName.home:
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
+        //-----------location
+        case RoutesName.addlocation:
+        return MaterialPageRoute(builder: (BuildContext context) => const AddNewlocationScreen());
+      case RoutesName.mapLocationScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const MapLocationScreen());
       case RoutesName.orderNow:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderNow(), settings: settings);
       case RoutesName.checkoutScreen:
