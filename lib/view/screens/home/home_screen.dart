@@ -232,61 +232,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // if (_isLoadingLocation)
-          //   Text(
-          //     'Getting your location and address...',
-          //     style: AppTextStyles.textSize14(context, color: Colors.blue.shade700),
-          //   ),
-          //
-          // // Show current location and address if available
-          // if (_currentPosition != null && _currentAddress != null && !_isLoadingLocation)
-          //   Container(
-          //     width: screenWidth * 0.9,
-          //     padding: EdgeInsets.all(screenHeight * 0.015),
-          //     margin: EdgeInsets.only(bottom: screenHeight * 0.02),
-          //     decoration: BoxDecoration(
-          //       color: Colors.green.shade50,
-          //       borderRadius: BorderRadius.circular(12),
-          //       border: Border.all(color: Colors.green.shade200),
-          //     ),
-          //     child: Column(
-          //       crossAxisAlignment: CrossAxisAlignment.start,
-          //       children: [
-          //         Row(
-          //           children: [
-          //             Icon(Icons.location_on, color: Colors.green.shade700, size: 16),
-          //             SizedboxSpaccing.width01(context),
-          //             Expanded(
-          //               child: Text(
-          //                 'Current Location',
-          //                 style: AppTextStyles.textSize14(context,
-          //                     color: Colors.green.shade700,
-          //                     weight: FontWeight.w600),
-          //               ),
-          //             ),
-          //             GestureDetector(
-          //               onTap: () => _getLocationWithAddress(),
-          //               child: Icon(Icons.refresh, color: Colors.green.shade700, size: 16),
-          //             ),
-          //           ],
-          //         ),
-          //         SizedboxSpaccing.height005(context),
-          //         Text(
-          //           _currentAddress!,
-          //           style: AppTextStyles.textSize12(context, color: Colors.green.shade600),
-          //           maxLines: 2,
-          //           overflow: TextOverflow.ellipsis,
-          //         ),
-          //         SizedboxSpaccing.height005(context),
-          //         Text(
-          //           'Coordinates: ${_currentPosition!.latitude.toStringAsFixed(6)}, ${_currentPosition!.longitude.toStringAsFixed(6)}',
-          //           style: AppTextStyles.textSize16(context, color: Colors.green.shade500),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-
-          // Language Slide Switcher
           Center(child: SizedboxSpaccing.height02(context)),
 
           Container(
