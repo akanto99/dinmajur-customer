@@ -17,6 +17,10 @@ class RoutesName {
 
   ///home
   static const String home = 'home_view';
+  //-----------location
+  static const String addlocation = 'addLocation_view';
+  static const String mapLocationScreen = 'mapLocationScreen_view';
+
   static const String orderNow = 'orderNow_view';
   static const String checkoutScreen = 'checkout_view';
   //===========>
