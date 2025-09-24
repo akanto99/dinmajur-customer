@@ -63,7 +63,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   Navigator.pop(context);
                 },
                 child: Container(height: 60, 
-                    color: AppColors.containerBackground(context),
+                    // color: AppColors.containerBackground(context),
                     child: AppBarHeader(AppLocalizations.of(context)!.profile_menu)),
               ),
          Expanded(child: SingleChildScrollView(
@@ -157,7 +157,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       width: screenWidth* 0.9,
       padding: EdgeInsets.all(screenHeight * 0.02),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: AppColors.containerBackground(context),
       ),
       child: Column(
         children: [

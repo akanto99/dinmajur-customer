@@ -74,7 +74,7 @@ class _TestScreen4State extends State<TestScreen4> {
           SizedboxSpaccing.height02(context),
           Container(
             width: double.infinity,
-            height: 100,
+            height: 120,
             decoration: BoxDecoration(color: AppColors.appBackground(context), borderRadius: BorderRadius.circular(12),border: Border.all(width: 1,
                 color: AppColors.border(context))),
             child: Center(
