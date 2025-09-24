@@ -38,7 +38,7 @@ class _ReviewState extends State<Review> {
           width: screenWidth * 0.9,
           padding: EdgeInsets.all(screenHeight * 0.02),
           decoration: BoxDecoration(
-              color: AppColors.containerBackground(context),borderRadius: BorderRadius.circular(24), border: Border.all(color: AppColors.textFieldFill(context), width: 1)),
+              color: AppColors.containerBackground(context),borderRadius: BorderRadius.circular(24), border: Border.all(color: AppColors.border(context), width: 1)),
           child: Column(
             children: [
               // Title

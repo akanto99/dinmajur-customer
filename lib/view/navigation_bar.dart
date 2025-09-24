@@ -336,8 +336,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
                               children: [
                                 SvgPicture.asset(
                                   icons[index],
-                                  width: 20,
-                                  height: 20,
+                                  width: 18,
+                                  height: 18,
                                   color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
                                   semanticsLabel: labels[index],
                                 ),
