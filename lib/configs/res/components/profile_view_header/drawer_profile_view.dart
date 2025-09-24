@@ -44,7 +44,7 @@ class DrawerProfileHeader extends StatelessWidget {
           width: screenWidth * 0.9,
           padding: EdgeInsets.all(screenHeight * 0.02),
           decoration: BoxDecoration(
-            color: AppColors.whiteColor,
+            color: AppColors.containerBackground(context),
             border: Border.all(width: 1, color: AppColors.border(context)),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -109,7 +109,7 @@ class DrawerProfileHeader extends StatelessWidget {
                           children: [
                             Icon(Icons.circle, size: 10, color: Colors.green),
                             SizedboxSpaccing.width02(context),
-                            Text(_getStatus(), style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
+                            Text(_getStatus(), style: AppTextStyles.textSize12(context, weight: FontWeight.w400,color: AppColors.blackColor)),
                           ],
                         ),
                       ),
@@ -133,7 +133,7 @@ class DrawerProfileHeader extends StatelessWidget {
       width: screenWidth* 0.9,
       padding: EdgeInsets.all(screenHeight * 0.02),
       decoration: BoxDecoration(
-        color: AppColors.whiteColor,
+        color: AppColors.containerBackground(context),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
