@@ -18,6 +18,11 @@ class AppBarHeader extends StatelessWidget {
       // padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
       height: 60,
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+        color: AppColors.containerBackground(context),
         border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
       ),
       child: Center(
@@ -30,7 +35,7 @@ class AppBarHeader extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: SvgPicture.asset("assets/images/header_arrow.svg")),
 
-              Text(appTitle, style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
+              Text(appTitle, style: AppTextStyles.textSize24(context, weight: FontWeight.w600,color: AppColors.textPrimary(context))),
 
               Container(width: 20, height: 24),
             ],
