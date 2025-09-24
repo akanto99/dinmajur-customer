@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -46,9 +47,14 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
   // Google Places API Key - Replace with your actual API key
   static const String _googlePlacesApiKey = 'AIzaSyDoSFqU_lN8AWEowJ_FUVshpVa8InQBliI';
 
+  // Map theme variables
+  String? _darkMapTheme;
+  String? _lightMapTheme;
+
   @override
   void initState() {
     super.initState();
+    _loadMapThemes();
     _getCurrentLocation();
   }
 
@@ -57,6 +63,56 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
     _addressController.dispose();
     _addressFocusNode.dispose();
     super.dispose();
+  }
+
+  // Load map themes from assets
+  Future<void> _loadMapThemes() async {
+    try {
+      _darkMapTheme = await rootBundle.loadString('assets/map_theme/nighttheme.json');
+      _lightMapTheme = await rootBundle.loadString('assets/map_theme/standaredtheme.json');
+    } catch (e) {
+      debugPrint('Error loading map themes: $e');
+    }
+  }
+
+  // Method to check if current theme is dark
+  bool get _isDarkMode {
+    return Theme.of(context).brightness == Brightness.dark;
+  }
+
+  // Method to get current map theme
+  String? get _currentMapTheme {
+    if (_isDarkMode) {
+      return _darkMapTheme;
+    } else {
+      return _lightMapTheme;
+    }
+  }
+
+  // Method to apply map style based on theme
+  Future<void> _setMapStyle() async {
+    if (_controller.isCompleted) {
+      final GoogleMapController controller = await _controller.future;
+      final String? theme = _currentMapTheme;
+      if (theme != null) {
+        await controller.setMapStyle(theme);
+      }
+    }
+  }
+
+  // Update your onMapCreated method
+  void _onMapCreated(GoogleMapController controller) {
+    _controller.complete(controller);
+    // Apply theme immediately when map is created
+    _setMapStyle();
+  }
+
+  // Update your didChangeDependencies method
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reapply style when theme changes
+    _setMapStyle();
   }
 
   // Get current location
@@ -257,9 +313,9 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
 
     return Column(
       children: [
- SizedboxSpaccing.height005(context),
+        SizedboxSpaccing.height005(context),
         Container(
-          width: screenWidth*0.9,
+          width: screenWidth * 0.9,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -267,7 +323,9 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Container(height: 20, width: 24,
+                child: Container(
+                    height: 20,
+                    width: 24,
                     alignment: Alignment.centerLeft,
                     child: SvgPicture.asset("assets/images/header_arrow.svg")),
               ),
@@ -296,7 +354,6 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(12),
-
                   ),
                   debounceTime: 400,
                   countries: ["bd"], // Restrict to Bangladesh
@@ -359,7 +416,6 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                   },
                 ),
               ),
-
               GestureDetector(
                 onTap: () {
                   // Clear the text field and reset related states
@@ -374,7 +430,9 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                   //   controller.animateCamera(CameraUpdate.newCameraPosition(_kGooglePlex));
                   // });
                 },
-                child: Container(height: 20, width: 24,
+                child: Container(
+                    height: 20,
+                    width: 24,
                     alignment: Alignment.centerLeft,
                     child: Icon(FontAwesomeIcons.x, size: 18)),
               ),
@@ -383,7 +441,6 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
         ),
         SizedboxSpaccing.height005(context),
 
-
         // Google Map
         Expanded(
           child: Stack(
@@ -391,15 +448,14 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
               GoogleMap(
                 mapType: MapType.normal,
                 initialCameraPosition: _kGooglePlex,
-                onMapCreated: (GoogleMapController controller) {
-                  _controller.complete(controller);
-                },
+                onMapCreated: _onMapCreated, // Use the updated method
                 onTap: _onMapTap,
                 markers: _markers,
                 myLocationEnabled: true,
                 myLocationButtonEnabled: false,
                 compassEnabled: true,
                 mapToolbarEnabled: false,
+                // Note: We're not setting style here since we handle it programmatically
               ),
 
               // Current Location Button
