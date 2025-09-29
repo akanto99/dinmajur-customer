@@ -58,6 +58,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
       TestScreen3(),
       TestScreen4(),
     ];
+    ///Network Connectivity initialize
+    initConnectivity();
     getConnectivity();
     _currentIndex = widget.initialIndex;
 
@@ -115,28 +117,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
     }
   }
 
-  getConnectivity() =>
-      subscription = Connectivity().onConnectivityChanged.listen(
-            (ConnectivityResult result) async {
-          isDeviceConnected = await InternetConnectionChecker().hasConnection;
-          if (!isDeviceConnected && !isAlertSet) {
-            showDialogBox();
-            setState(() => isAlertSet = true);
-          } else if (isDeviceConnected && isAlertSet) {
-            Navigator.of(context, rootNavigator: true)
-                .pop(); // Close the dialog
-            setState(() => isAlertSet = false);
-
-            // ✅ IMPROVED: Only reconnect if socket was initialized before
-            if (_socketInitialized) {
-              await _reconnectSocketAfterConnectivity();
-            }
-
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
-          }
-        },
-      );
-
   // ✅ IMPROVED: Reconnect socket when internet connectivity is restored
   Future<void> _reconnectSocketAfterConnectivity() async {
     try {
@@ -166,9 +146,72 @@ class _NavigationScreenState extends State<NavigationScreen> {
     }
   }
 
-  late StreamSubscription subscription;
   bool isDeviceConnected = false;
   bool isAlertSet = false;
+
+
+  late StreamSubscription<List<ConnectivityResult>> subscription;
+  List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
+  final Connectivity _connectivity = Connectivity();
+  /// Initialize connectivity status
+  Future<void> initConnectivity() async {
+    late List<ConnectivityResult> result;
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print('Couldn\'t check connectivity status: $e');
+      return;
+    }
+
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  ///Update connection status
+  Future<void> _updateConnectionStatus(List<ConnectivityResult> result) async {
+    setState(() {
+      _connectionStatus = result;
+    });
+
+    // Check if device has internet connection
+    isDeviceConnected = await InternetConnectionChecker().hasConnection;
+
+    // Check if we have any active connection (not just 'none')
+    bool hasConnection = !result.contains(ConnectivityResult.none) &&
+        result.isNotEmpty &&
+        isDeviceConnected;
+
+    print('Connectivity changed: $_connectionStatus, Internet: $isDeviceConnected');
+
+    if (!hasConnection && !isAlertSet) {
+      showDialogBox();
+      setState(() => isAlertSet = true);
+    } else if (hasConnection && isAlertSet) {
+      Navigator.of(context, rootNavigator: true).pop(); // Close the dialog
+      setState(() => isAlertSet = false);
+
+      // ✅ IMPROVED: Only reconnect if socket was initialized before
+      if (_socketInitialized) {
+        await _reconnectSocketAfterConnectivity();
+      }
+
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0))
+      );
+    }
+  }
+
+  // ✅ Updated connectivity listener for v7.0.0
+  getConnectivity() => subscription = _connectivity.onConnectivityChanged.listen(
+        (List<ConnectivityResult> result) async {
+      await _updateConnectionStatus(result);
+    },
+  );
+
 
   @override
   void didChangeDependencies() {
