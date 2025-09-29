@@ -10,8 +10,8 @@ class AddLocationRepository {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? accessToken = prefs.getString('accessToken');
-      dynamic response = await _apiServices.getPatchApiResponse(
-        AppUrl.addlocationPatchAPI,
+      dynamic response = await _apiServices.getsamePostApiResponse(
+        AppUrl.addlocationPostAPI,
         data,
         headers: {
           'Content-Type': 'application/json',

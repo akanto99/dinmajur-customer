@@ -20,7 +20,7 @@ class AppUrl {
 
   ///Home
   static var viewProfile = baseUrl + '/users/get-user-data';
-  static var addlocationPatchAPI = baseUrl + '/customers/update-address';
+  static var addlocationPostAPI = baseUrl + '/customers/create-address';
 
   ///=========>
   static var profileHeaderUpdatePatchAPI = baseUrl + '/users/update-me';

@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -42,6 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Map<String, String> storeTypes;
 
+  // Key for SharedPreferences to track if location has been posted
+  static const String _locationPostedKey = 'location_posted_once';
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -64,10 +68,24 @@ class _HomeScreenState extends State<HomeScreen> {
       profileViewModel.fetchProfileViewUserDataApi();
     });
 
-    _getLocationWithAddress();
+    _checkAndGetLocation();
   }
 
   String _locationMessage = "Location not fetched yet.";
+
+  // Check if location has already been posted, if not, get and post it
+  Future<void> _checkAndGetLocation() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool locationAlreadyPosted = prefs.getBool(_locationPostedKey) ?? false;
+
+    if (!locationAlreadyPosted) {
+      // Location has not been posted yet, proceed to get location
+      await _getLocationWithAddress();
+    } else {
+      // Location already posted, skip location fetch
+      debugPrint('Location already posted. Skipping location fetch.');
+    }
+  }
 
   Future<void> _getLocationWithAddress() async {
     if (!mounted) return;
@@ -103,8 +121,15 @@ class _HomeScreenState extends State<HomeScreen> {
         debugPrint('Timestamp: ${position.timestamp}');
         debugPrint('==================================================');
 
-        // *** AUTOMATICALLY POST LOCATION TO API ***
+        // Post location to API (only once)
         await _postLocationToApi(position.longitude, position.latitude, fullAddress);
+
+        // Mark location as posted
+        await _markLocationAsPosted();
+
+        // Refresh profile to get updated address from API
+        final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+        await profileViewModel.fetchProfileViewUserDataApi();
       }
     } catch (e) {
       debugPrint('Error getting location with address: $e');
@@ -115,24 +140,29 @@ class _HomeScreenState extends State<HomeScreen> {
         });
 
         // Show error message to user
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Location error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Location error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ));
       }
     }
   }
 
-  // New method to post location data to API
+  // Mark that location has been posted successfully
+  Future<void> _markLocationAsPosted() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_locationPostedKey, true);
+    debugPrint('Location marked as posted. Will not fetch again on next app open.');
+  }
+
+  // Method to post location data to API
   Future<void> _postLocationToApi(double longitude, double latitude, String fullAddress) async {
     try {
       final locationData = {
         "geoLocation": {
           "type": "Point",
-          "coordinates": [longitude, latitude]
+          "coordinates": [longitude, latitude],
         },
         "fullAddress": fullAddress,
         "type": "DELIVERY_ADDRESS",
@@ -140,18 +170,16 @@ class _HomeScreenState extends State<HomeScreen> {
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
       await addLocationViewModel.addLocationPatchApi(context, locationData);
       debugPrint('Location data to post: $locationData');
-      // debugPrint('Location posted successfully to API');
+      debugPrint('Location posted successfully to API');
     } catch (e) {
       debugPrint('Error posting location to API: $e');
       // Optional: Show error message to user
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save location: ${e.toString()}'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to save location: ${e.toString()}'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ));
       }
     }
   }
@@ -170,7 +198,11 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final viewModel = Provider.of<PostNearbyRetailersViewModel>(context, listen: false);
 
-      final requestData = {"customer_lng": 90.2484202, "customer_lat": 24.0089881, "businessType": businessType};
+      final requestData = {
+        "customer_lng": 90.2484202,
+        "customer_lat": 24.0089881,
+        "businessType": businessType
+      };
       debugPrint('Request data: $requestData');
 
       // Call the API and get the response
@@ -220,7 +252,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: SafeArea(
-        child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
+        child: ResPonsiveUi(
+          mobile: body(context),
+          desktop: body(context),
+          tablet: body(context),
+        ),
       ),
     );
   }
@@ -233,7 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           Center(child: SizedboxSpaccing.height02(context)),
-
           Container(
             width: screenWidth * 0.9,
             padding: EdgeInsets.all(screenHeight * 0.02),
@@ -261,9 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
               valueToBengaliMap: storeTypes,
             ),
           ),
-
           SizedboxSpaccing.height02(context),
-
           if (nearbyStores.isNotEmpty)
             Container(
               width: screenWidth * 0.9,
@@ -272,14 +305,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(AppLocalizations.of(context)!.nearby_stores(nearbyStores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                      Text(
+                        AppLocalizations.of(context)!.nearby_stores(nearbyStores.length),
+                        style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
+                      ),
                       GestureDetector(
                         onTap: () {},
-                        child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                        child: Text(
+                          AppLocalizations.of(context)!.see_all,
+                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                        ),
                       ),
                     ],
                   ),
-
                   Divider(height: 1, color: AppColors.border(context)),
                 ],
               ),
@@ -367,7 +405,6 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 height: 20,
                 width: 12,
-                // color: Colors.red,
                 alignment: Alignment.centerLeft,
                 child: Icon(Icons.location_on, size: 12, color: AppColors.textPrimary(context)),
               ),
@@ -385,14 +422,11 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 height: 20,
                 width: 12,
-                // color: Colors.red,
                 alignment: Alignment.centerLeft,
                 child: Icon(Icons.access_time_filled, size: 12, color: AppColors.textPrimary(context)),
               ),
               SizedboxSpaccing.width01(context),
               Container(
-                // height: 20,
-                // color: Colors.red,
                 child: Text(
                   AppLocalizations.of(context)!.delivery_time,
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
@@ -430,18 +464,37 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Determine display address ONCE at the top
-    String displayAddress;
-    if (_isLoadingLocation) {
-      displayAddress = "Getting location...";
-    } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
-      displayAddress = _currentAddress!;
-    } else {
-      displayAddress = "Tap to get location";
-    }
-
     return Consumer<ProfileViewViewModel>(
       builder: (context, profileViewModel, _) {
+        // Determine display address with priority logic
+        String displayAddress;
+
+        if (_isLoadingLocation) {
+          // While fetching location, show loading message
+          displayAddress = "Getting location...";
+        } else if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+          // API completed - check if address exists in API
+          final responseData = profileViewModel.profileviewUserData.data;
+          if (responseData?.data?.addresses != null && responseData!.data!.addresses!.isNotEmpty) {
+            // Find DELIVERY_ADDRESS type or use the first address
+            final deliveryAddress = responseData.data!.addresses!.firstWhere(
+                  (addr) => addr.type == 'DELIVERY_ADDRESS',
+              orElse: () => responseData.data!.addresses!.first,
+            );
+            displayAddress = deliveryAddress.fullAddress ?? (_currentAddress ?? "Tap to get location");
+          } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
+            // API has no address yet, but we have fetched location - show it
+            displayAddress = _currentAddress!;
+          } else {
+            displayAddress = "Tap to get location";
+          }
+        } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
+          // API not completed yet but we have fetched location - show it immediately
+          displayAddress = _currentAddress!;
+        } else {
+          displayAddress = "Tap to get location";
+        }
+
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
             return _buildAppBarContent(
@@ -536,10 +589,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: AppColors.appBackground(context),
                             border: Border.all(width: 1, color: AppColors.textPrimary(context)),
                             image: profileImageUrl != null
-                                ? DecorationImage(
-                              image: NetworkImage(profileImageUrl),
-                              fit: BoxFit.cover,
-                            )
+                                ? DecorationImage(image: NetworkImage(profileImageUrl), fit: BoxFit.cover)
                                 : null,
                           ),
                           child: profileImageUrl == null
@@ -552,7 +602,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-Navigator.pushNamed(context, RoutesName.addlocation);
+                          Navigator.pushNamed(context, RoutesName.addlocation);
                         },
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -566,43 +616,36 @@ Navigator.pushNamed(context, RoutesName.addlocation);
                             Row(
                               children: [
                                 Icon(
-                                    Icons.location_on,
-                                    size: 16,
-                                    color: _isLoadingLocation
-                                        ? AppColors.subtitle(context)
-                                        : AppColors.textPrimary(context)
+                                  Icons.location_on,
+                                  size: 16,
+                                  color: _isLoadingLocation
+                                      ? AppColors.subtitle(context)
+                                      : AppColors.textPrimary(context),
                                 ),
                                 Expanded(
                                   child: Text(
                                     displayAddress,
                                     style: AppTextStyles.textSize14(
-                                        context,
-                                        weight: FontWeight.w400,
-                                        color: _isLoadingLocation
-                                            ? AppColors.subtitle(context)
-                                            : AppColors.textPrimary(context)
+                                      context,
+                                      weight: FontWeight.w400,
+                                      color: _isLoadingLocation
+                                          ? AppColors.subtitle(context)
+                                          : AppColors.textPrimary(context),
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-
-
                               ],
                             ),
                           ],
                         ),
                       ),
                     ),
-                   Container(
-                        height: 45,
-                        // color: Colors.green,
-                     alignment: Alignment.bottomCenter,
-                        child: Icon(
-                          Icons.arrow_drop_down_sharp,
-                          size: 25,
-                        ),
-                      ),
-
+                    Container(
+                      height: 45,
+                      alignment: Alignment.bottomCenter,
+                      child: Icon(Icons.arrow_drop_down_sharp, size: 25),
+                    ),
                   ],
                 ),
               ),
@@ -648,16 +691,23 @@ Navigator.pushNamed(context, RoutesName.addlocation);
     );
   }
 
-  Widget _buildIconButton({required VoidCallback onTap, required String svgAsset, required BuildContext context}) {
+  Widget _buildIconButton({
+    required VoidCallback onTap,
+    required String svgAsset,
+    required BuildContext context,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 30,
         width: 30,
         padding: const EdgeInsets.all(2),
-        child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
+        child: SvgPicture.asset(
+          svgAsset,
+          color: AppColors.textPrimary(context),
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }
-
 }
