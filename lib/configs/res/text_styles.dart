@@ -47,6 +47,18 @@ final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: fa
       color: color ?? AppColors.textPrimary(context),
     );
   }
+  ///10-------------------
+  static TextStyle textSize10(BuildContext context, {FontWeight? weight, Color? color}) {
+    final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: false);    final isBengali = languageProvider.appLocale?.languageCode == 'bn';
+    return TextStyle(
+      fontFamily: isBengali ? "hindSiliguri" : "poppins",
+      fontSize: 10,
+      fontWeight: weight ?? FontWeight.w400,
+      color: color ?? AppColors.textPrimary(context),
+    );
+  }
+
+
   ///12-------------------
   static TextStyle textSize12(BuildContext context, {FontWeight? weight, Color? color}) {
 final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: false);    final isBengali = languageProvider.appLocale?.languageCode == 'bn';
