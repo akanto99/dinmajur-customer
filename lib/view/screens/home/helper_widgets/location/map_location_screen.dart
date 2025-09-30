@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -280,7 +281,14 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
 
         if (mounted) {
           Utils.flushBarSuccessMessage('Location saved successfully', context);
-          // Navigator.pop(context);
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NavigationScreen(),
+              ),
+            );
+          });
         }
       } catch (e) {
         debugPrint('Error saving location: $e');
