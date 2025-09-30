@@ -3,11 +3,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
-import 'package:dinmajur_customer/configs/services/socket/test_pages/socket_example_testpages.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
-import 'package:dinmajur_customer/view/screens/testscreen1.dart';
+import 'package:dinmajur_customer/view/screens/task_screen.dart';
 import 'package:dinmajur_customer/view/screens/testscreen2.dart';
 import 'package:dinmajur_customer/view/screens/testscreen3.dart';
 import 'package:dinmajur_customer/view/screens/testscreen4.dart';
@@ -35,8 +34,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
   final List<String> icons = [
     "assets/images/navBar/navbar_new/home.svg",
-    "assets/images/navBar/navbar_new/scan.svg",
     "assets/images/navBar/navbar_new/task.svg",
+    "assets/images/navBar/navbar_new/scan.svg",
     "assets/images/navBar/navbar_new/stores.svg",
     "assets/images/navBar/navbar_new/income.svg",
   ];
@@ -53,7 +52,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     _pages = [
       HomeScreen(scaffoldKey: _key),
       // SocketStatusWidget(),
-      TestScreen1(),
+      TaskScreen(),
       TestScreen2(),
       TestScreen3(),
       TestScreen4(),
@@ -219,8 +218,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
     _setSystemUIColors();
     labels = [
       AppLocalizations.of(context)!.home,
-      AppLocalizations.of(context)!.scan,
       AppLocalizations.of(context)!.task,
+      AppLocalizations.of(context)!.scan,
       AppLocalizations.of(context)!.stores,
       AppLocalizations.of(context)!.income,
     ];
@@ -242,7 +241,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
     );
   }
 
-  // ✅ Clean up subscription
   @override
   void dispose() {
     subscription.cancel();
