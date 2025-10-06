@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_confirmed_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -371,7 +372,11 @@ class _TaskScreenState extends State<TaskScreen> {
                         ],
                       ),
                     ),
-                    Icon(FontAwesomeIcons.solidEye, color: Colors.grey[600], size: 16),
+
+                    GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderConfirmedScreen()));
+                        },child: Icon(FontAwesomeIcons.solidEye, color: Colors.grey[600], size: 16)),
                   ],
                 ),
               ],

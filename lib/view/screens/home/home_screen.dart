@@ -475,24 +475,37 @@ class _HomeScreenState extends State<HomeScreen> {
         } else if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
           // API completed - check if address exists in API
           final responseData = profileViewModel.profileviewUserData.data;
-          if (responseData?.data?.addresses != null && responseData!.data!.addresses!.isNotEmpty) {
-            // Find DELIVERY_ADDRESS type or use the first address
-            final deliveryAddress = responseData.data!.addresses!.firstWhere(
-                  (addr) => addr.type == 'DELIVERY_ADDRESS',
-              orElse: () => responseData.data!.addresses!.first,
-            );
-            displayAddress = deliveryAddress.fullAddress ?? (_currentAddress ?? "Tap to get location");
+
+          // FIXED: Check if addresses object exists and has data
+          if (responseData?.data?.addresses != null) {
+            final addressData = responseData!.data!.addresses!;
+
+            // Check if the address type is DELIVERY_ADDRESS and has fullAddress
+            if (addressData.type == 'DELIVERY_ADDRESS' &&
+                addressData.fullAddress != null &&
+                addressData.fullAddress!.isNotEmpty) {
+              displayAddress = addressData.fullAddress!;
+            } else if (addressData.fullAddress != null &&
+                addressData.fullAddress!.isNotEmpty) {
+              // Use any address if available
+              displayAddress = addressData.fullAddress!;
+            } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
+              // Fallback to locally fetched address
+              displayAddress = _currentAddress!;
+            } else {
+              displayAddress = "Tap to set location";
+            }
           } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
             // API has no address yet, but we have fetched location - show it
             displayAddress = _currentAddress!;
           } else {
-            displayAddress = "Tap to get location";
+            displayAddress = "Tap to set location";
           }
         } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
           // API not completed yet but we have fetched location - show it immediately
           displayAddress = _currentAddress!;
         } else {
-          displayAddress = "Tap to get location";
+          displayAddress = "Tap to set location";
         }
 
         switch (profileViewModel.profileviewUserData.status) {
@@ -500,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return _buildAppBarContent(
               screenWidth: screenWidth,
               screenHeight: screenHeight,
-              userName: "Unknown User",
+              userName: "Loading...",
               displayAddress: displayAddress,
               profileImageUrl: null,
             );
@@ -561,13 +574,18 @@ class _HomeScreenState extends State<HomeScreen> {
     String? profileImageUrl,
   }) {
     return Container(
+      height: 60,
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+        color: AppColors.containerBackground(context),
         border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
       ),
       child: Center(
         child: Container(
           width: screenWidth * 0.9,
-          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
