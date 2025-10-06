@@ -29,4 +29,9 @@ class RoutesName {
   static const String review = 'review_view';
   static const String support = 'support_view';
 
+
+  ///Task
+  static const String taskScreen = 'taskScreen_view';
+  static const String taskDetailsScreen = 'taskDetailsScreen_view';
+
 }
