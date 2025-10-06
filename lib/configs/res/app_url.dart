@@ -21,6 +21,7 @@ class AppUrl {
   ///Home
   static var viewProfile = baseUrl + '/users/get-user-data';
   static var addlocationPostAPI = baseUrl + '/customers/create-address';
+  static var updateAddressPatchAPI = baseUrl + '/customers/update-address-by-id';
   static var locationListGetAPI = baseUrl + '/customers/get-delivery-address';
 
   ///=========>

@@ -24,4 +24,23 @@ class AddLocationRepository {
     }
   }
 
+
+  Future updateAddressPatchApi(dynamic data, String userId) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? accessToken = prefs.getString('accessToken');
+      dynamic response = await _apiServices.getPatchApiResponse(
+        "${AppUrl.updateAddressPatchAPI}/$userId",
+        data,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$accessToken',
+        },
+      );
+      return response;
+    } catch (e) {
+      throw e;
+    }
+  }
+
 }
