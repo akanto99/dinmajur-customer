@@ -293,67 +293,79 @@ class ErrorStateEmptyHeaderWidget extends StatelessWidget {
         errorMessage.toLowerCase().contains('connection') ||
         errorMessage.toLowerCase().contains('timeout');
 
-    return Container(
-      // color: AppColors.blackColor,
-      // width: screenWidth*0.9,
-      padding: EdgeInsets.symmetric(horizontal:screenWidth * 0.04,vertical: screenHeight * 0.015),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Drawer Icon
-          Builder(
-            builder:
-                (context) =>
-                GestureDetector(
-                  onTap: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                  child: Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.appBackground(context),
-                      border: Border.all(width: 1, color: AppColors.textPrimary(context)),
+    return  Container(
+      height: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+        color: AppColors.containerBackground(context),
+        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
+      ),
+      child: Center(
+        child: Container(
+          width: screenWidth * 0.9,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Drawer Icon
+              Builder(
+                builder:
+                    (context) =>
+                    GestureDetector(
+                      onTap: () {
+                        Scaffold.of(context).openDrawer();
+                      },
+                      child: Container(
+                        height: 48,
+                        width: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.appBackground(context),
+                          border: Border.all(width: 1, color: AppColors.textPrimary(context)),
+                        ),
+                      ),
+                    ),
+              ),
+              // Right Side Icons
+              Row(
+                children: [
+                  GestureDetector(
+                      onTap: (){
+                        NotificationDialog.show(
+                          context,
+                          message: 'Empty Inbox',
+                          icon: CupertinoIcons.text_bubble,
+                          iconColor: AppColors.textPrimary(context),
+                          iconBackgroundColor:  AppColors.appBackground(context),
+                        );
+                      },
+                      child: Container(height: 30, width: 30,  padding: const EdgeInsets.all(2),child: SvgPicture.asset('assets/images/home/email.svg', color: AppColors.textPrimary(context)))),
+                  SizedboxSpaccing.width02(context),
+                  GestureDetector(
+                    onTap: (){
+                      NotificationDialog.show(
+                        context,
+                        message: 'No Notification Yet',
+                        icon: Icons.notifications_outlined,
+                        iconColor: AppColors.textPrimary(context),
+                        iconBackgroundColor:  AppColors.appBackground(context),
+                      );
+                    },
+                    child: Container(
+                      height: 30,
+                      width: 30,
+                      // color: Colors.red,
+                      padding: const EdgeInsets.all(2),
+                      child: SvgPicture.asset('assets/images/home/notification.svg', color: AppColors.textPrimary(context)),
                     ),
                   ),
-                ),
-          ),
-          // Right Side Icons
-          Row(
-            children: [
-              GestureDetector(
-                  onTap: (){
-                    NotificationDialog.show(
-                      context,
-                      message: 'Empty Inbox',
-                      icon: CupertinoIcons.text_bubble,
-                      iconColor: AppColors.textPrimary(context),
-                      iconBackgroundColor:  AppColors.appBackground(context),
-                    );
-                  },
-                  child: Container(height: 20, width: 20, child: SvgPicture.asset('assets/images/home/email.svg', color: AppColors.textPrimary(context)))),
-              SizedboxSpaccing.width02(context),
-              GestureDetector(
-                onTap: (){
-                  NotificationDialog.show(
-                    context,
-                    message: 'No Notification Yet',
-                    icon: Icons.notifications_outlined,
-                    iconColor: AppColors.textPrimary(context),
-                    iconBackgroundColor:  AppColors.appBackground(context),
-                  );
-                },
-                child: Container(
-                  height: 20,
-                  width: 20,
-                  // color: Colors.red,
-                  child: SvgPicture.asset('assets/images/home/notification.svg', color: AppColors.textPrimary(context)),
-                ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

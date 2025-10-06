@@ -123,9 +123,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             String? profileImageUrl = userData.profilePicture?.url;
             String userName = userData.firstName ?? userData.lastName ?? '${userData.firstName ?? ''} ${userData.lastName ?? ''}'.trim();
             if (userName.isEmpty) userName = 'Unknown User';
-            String userExperience = userData.experience?.toString() ?? '0';
             String userPhone = userData.phone ?? '0';
-            String allSkillsCategory = profileData.skills?.where((skill) => skill.category != null).map((skill) => skill.category!).join(' ও ') ?? 'No skills';
 
             return DrawerProfileHeader(
               title: "$userName",
