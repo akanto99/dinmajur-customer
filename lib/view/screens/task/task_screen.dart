@@ -18,68 +18,98 @@ class TaskScreen extends StatefulWidget {
 
 class _TaskScreenState extends State<TaskScreen> {
   int _selectedTabIndex = 0;
-
   List<Map<String, dynamic>> activeOrders = [
     {
+      "orderID": "jus938734433",
       "orderNo": "#FBZ-2305",
       "storeName": "Fresh Bazaar",
       "date": "June 28, 2023",
       "itemCount": 3,
       "totalAmount": "\$45.98",
       "status": "Available",
+      "orderStatus":"order_placed",
       "processingStatus": "Processing",
       "attachmentName": "Grocery List 1",
       "attachmentSize": "3 items • 2.3 MB • JPG",
+      "ordersItem": [
+        {"productname": "Tomato", "weight": "2 kg", "price": 120},
+        {"productname": "Rice", "weight": "6 kg", "price": 300},
+        {"productname": "Milk", "weight": "250 ml", "price": 50},
+      ],
     },
     {
-      "orderNo": "#FBZ-2305",
+      "orderID": "jus938734434",
+      "orderNo": "#FBZ-2306",
       "storeName": "Fresh Bazaar",
       "date": "June 28, 2023",
       "itemCount": 3,
-      "totalAmount": "\$45.98",
+      "totalAmount": "\$72.40",
       "status": "Available",
+      "orderStatus":"order_confirmed",
       "processingStatus": "Processing",
-      "attachmentName": "Grocery List 1",
-      "attachmentSize": "3 items • 2.3 MB • JPG",
+      "attachmentName": "Grocery List 2",
+      "attachmentSize": "3 items • 2.8 MB • JPG",
+      "ordersItem": [
+        {"productname": "Potato", "weight": "5 kg", "price": 200},
+        {"productname": "Chicken", "weight": "1.5 kg", "price": 450},
+        {"productname": "Onion", "weight": "2 kg", "price": 120},
+      ],
     },
     {
-      "orderNo": "#FBZ-2305",
+      "orderID": "jus938734435",
+      "orderNo": "#FBZ-2307",
       "storeName": "Fresh Bazaar",
       "date": "June 28, 2023",
       "itemCount": 3,
-      "totalAmount": "\$45.98",
+      "totalAmount": "\$39.90",
       "status": "Available",
+      "orderStatus":"order_processing",
       "processingStatus": "Processing",
-      "attachmentName": "Grocery List 1",
-      "attachmentSize": "3 items • 2.3 MB • JPG",
+      "attachmentName": "Grocery List 3",
+      "attachmentSize": "3 items • 2.1 MB • JPG",
+      "ordersItem": [
+        {"productname": "Apple", "weight": "1.5 kg", "price": 300},
+        {"productname": "Eggs", "weight": "12 pcs", "price": 180},
+        {"productname": "Bread", "weight": "400 g", "price": 90},
+      ],
     },
   ];
 
   List<Map<String, dynamic>> completedOrders = [
     {
+      "orderID": "jus938734436",
       "orderNo": "#FBZ-2204",
       "storeName": "Fresh Bazaar",
       "date": "June 15, 2023",
       "itemCount": 5,
       "totalAmount": "\$67.50",
       "status": "Delivered",
-      "processingStatus": "Completed",
+      "orderStatus":"completed",
       "attachmentName": "Grocery List 2",
       "attachmentSize": "5 items • 3.1 MB • JPG",
+      "ordersItem": [
+        {"productname": "Fish", "weight": "2 kg", "price": 600},
+        {"productname": "Cucumber", "weight": "1 kg", "price": 80},
+        {"productname": "Carrot", "weight": "1 kg", "price": 100},
+        {"productname": "Sugar", "weight": "2 kg", "price": 220},
+        {"productname": "Oil", "weight": "1 liter", "price": 250},
+      ],
     },
   ];
 
   List<Map<String, dynamic>> cancelledOrders = [
     {
+      "orderID": "jus938734437",
       "orderNo": "#FBZ-2103",
       "storeName": "Fresh Bazaar",
       "date": "June 10, 2023",
       "itemCount": 2,
       "totalAmount": "\$30.00",
       "status": "Cancelled",
-      "processingStatus": "Cancelled",
+      "orderStatus":"cancelled",
       "attachmentName": "Grocery List 3",
       "attachmentSize": "2 items • 1.5 MB • JPG",
+      "ordersItem": [],
     },
   ];
 
@@ -103,27 +133,25 @@ class _TaskScreenState extends State<TaskScreen> {
         Container(
           height: 60,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(24),
-              bottomRight: Radius.circular(24),
-            ),
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
             color: AppColors.containerBackground(context),
             border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
           ),
           child: Center(
             child: Container(
-              width: screenWidth*0.9,
+              width: screenWidth * 0.9,
               child: Row(
                 children: [
-                  Container(height: 20, width: 24,
-                      alignment: Alignment.centerLeft,
-                      child: SvgPicture.asset("assets/images/header_arrow.svg")),
-                        SizedboxSpaccing.width03(context),
-                  Text("My Orders", style: AppTextStyles.textSize24(context, weight: FontWeight.w600,color: AppColors.textPrimary(context))),
+                  Container(height: 20, width: 24, alignment: Alignment.centerLeft, child: SvgPicture.asset("assets/images/header_arrow.svg")),
+                  SizedboxSpaccing.width03(context),
+                  Text(
+                    "My Orders",
+                    style: AppTextStyles.textSize24(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
+                  ),
                   Spacer(),
                   Icon(Icons.mail_outline, color: AppColors.textPrimary(context), size: 24),
                   SizedboxSpaccing.width02(context),
-                  Icon( Icons.notifications_outlined,color: AppColors.textPrimary(context), size: 24),
+                  Icon(Icons.notifications_outlined, color: AppColors.textPrimary(context), size: 24),
                 ],
               ),
             ),
@@ -142,7 +170,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
         // Content
         Expanded(
-          child: Container(width: screenWidth*0.9, child: _getSelectedWidget()),
+          child: Container(width: screenWidth * 0.9, child: _getSelectedWidget()),
         ),
       ],
     );
@@ -291,15 +319,11 @@ class _TaskScreenState extends State<TaskScreen> {
               ],
             ),
           ),
-          Divider(height: 1,color: AppColors.border(context),),
+          Divider(height: 1, color: AppColors.border(context)),
 
           /// Items and Price
           Container(
-            padding: EdgeInsets.only(
-                top:screenHeight * 0.015 ,
-                left:screenHeight * 0.02 ,
-                right: screenHeight * 0.02,
-                bottom: screenHeight * 0.02),
+            padding: EdgeInsets.only(top: screenHeight * 0.015, left: screenHeight * 0.02, right: screenHeight * 0.02, bottom: screenHeight * 0.02),
             child: Column(
               children: [
                 Row(
@@ -342,7 +366,7 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
           ),
 
-          Divider(height: 1,color: AppColors.border(context),),
+          Divider(height: 1, color: AppColors.border(context)),
           // Action Buttons
           Container(
             height: 45,
@@ -350,16 +374,14 @@ class _TaskScreenState extends State<TaskScreen> {
               children: [
                 Container(
                   height: 45,
-                  width: screenWidth*0.45,
+                  width: screenWidth * 0.45,
                   decoration: BoxDecoration(
-                    border: Border(
-                      right: BorderSide(width: 1,color: AppColors.border(context))
-                    )
+                    border: Border(right: BorderSide(width: 1, color: AppColors.border(context))),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.chat_outlined,size: 16,color: AppColors.button(context),),
+                      Icon(Icons.chat_outlined, size: 16, color: AppColors.button(context)),
                       SizedboxSpaccing.width02(context),
                       Text(
                         "Contact",
@@ -369,19 +391,31 @@ class _TaskScreenState extends State<TaskScreen> {
                   ),
                 ),
 
-                Container(
-                  height: 45,
-                  width: screenWidth*0.45,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.arrow_forward_outlined,size: 16,color: AppColors.button(context),),
-                      SizedboxSpaccing.width02(context),
-                      Text(
-                        "Track Order",
-                        style: TextStyle(color:AppColors.button(context), fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
-                    ],
+                // In task_screen.dart, replace the GestureDetector's onTap method around line 367:
+
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context,
+                        RoutesName.taskDetailsScreen,
+                        arguments: order  // Changed from {OrderData: order} to just order
+                    );
+                  },
+                  child: Container(
+                    height: 45,
+                    width: screenWidth * 0.45,
+                    color: Colors.transparent,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.arrow_forward_outlined, size: 16, color: AppColors.button(context)),
+                        SizedboxSpaccing.width02(context),
+                        Text(
+                          "Track Order",
+                          style: TextStyle(color: AppColors.button(context), fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

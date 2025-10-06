@@ -6,7 +6,7 @@ import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
-import 'package:dinmajur_customer/view/screens/task_screen.dart';
+import 'package:dinmajur_customer/view/screens/task/task_screen.dart';
 import 'package:dinmajur_customer/view/screens/testscreen2.dart';
 import 'package:dinmajur_customer/view/screens/testscreen3.dart';
 import 'package:dinmajur_customer/view/screens/testscreen4.dart';

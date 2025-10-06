@@ -17,6 +17,8 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/map_
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now.dart';
+import 'package:dinmajur_customer/view/screens/task/task_details.dart';
+import 'package:dinmajur_customer/view/screens/task/task_screen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
 import 'package:dinmajur_customer/view/welcome_loginsignup/welcome_loginsignup.dart';
 import 'package:flutter/material.dart';
@@ -54,8 +56,8 @@ class Routes {
       ///Home
       case RoutesName.home:
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
-        //-----------location
-        case RoutesName.addlocation:
+      //-----------location
+      case RoutesName.addlocation:
         return MaterialPageRoute(builder: (BuildContext context) => const AddNewlocationScreen());
       case RoutesName.mapLocationScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const MapLocationScreen());
@@ -63,17 +65,28 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const OrderNow(), settings: settings);
       case RoutesName.checkoutScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
-     //===========>
+      //===========>
       case RoutesName.passwordChange:
         return MaterialPageRoute(builder: (BuildContext context) => const PasswordChange());
-     case RoutesName.paymentMethod:
+      case RoutesName.paymentMethod:
         return MaterialPageRoute(builder: (BuildContext context) => const PaymentMethod());
-        case RoutesName.review:
+      case RoutesName.review:
         return MaterialPageRoute(builder: (BuildContext context) => const Review());
-        case RoutesName.support:
+      case RoutesName.support:
         return MaterialPageRoute(builder: (BuildContext context) => const Support());
 
-
+      ///Task
+      case RoutesName.taskScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const TaskScreen());
+      case RoutesName.taskDetailsScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args == null) {
+          return _errorRoute();
+        }
+        return MaterialPageRoute(
+          builder: (BuildContext context) => TaskDetailsScreen(orderData: args),
+          settings: settings,
+        );
 
       default:
         return _errorRoute();
