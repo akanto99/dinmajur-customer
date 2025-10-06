@@ -2,7 +2,9 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 
 class OrderConfirmedScreen extends StatefulWidget {
@@ -38,7 +40,7 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
         child: Column(
           children: [
             GestureDetector(
-              onTap: () => Navigator.pop(context),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 0,))),
               child: Container(
                 height: 60,
                 child: AppBarHeader("Order Details"),
@@ -57,7 +59,8 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
   }
 
   Widget _buildOrderDetailsContent() {
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.of(context).size.height*1;
+    final screenWidth = MediaQuery.of(context).size.width*1;
 
     return SingleChildScrollView(
       child: Container(
@@ -92,8 +95,38 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
             SizedboxSpaccing.height02(context),
             _buildCustomerNotes(context),
             SizedboxSpaccing.height02(context),
-            _buildScannedDinmajurListSection(),
-            SizedboxSpaccing.height03(context),
+            _buildPaymentMethodSection(context),
+            SizedboxSpaccing.height02(context),
+            Container(
+              height: 50,
+              width: screenWidth * 0.75,
+              decoration: BoxDecoration(
+                  color: AppColors.button(context), borderRadius: BorderRadius.circular(16)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Icon(Icons.arrow_forward_ios_rounded, color: Colors.transparent, size: 14),
+                  Text("Track Order",
+                      style: AppTextStyles.textSize16(context,
+                          color: AppColors.whiteColor, weight: FontWeight.w600)),
+                  Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
+                ],
+              ),
+            ),
+            SizedboxSpaccing.height02(context),
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 0,))),
+              child: Container(
+                height: 50,
+                width: screenWidth * 0.75,
+                color: Colors.transparent,
+                child: Center(
+                  child: Text("Back to Home",
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                ),
+              ),
+            ),
+            SizedboxSpaccing.height02(context),
           ],
         ),
       ),
@@ -459,7 +492,7 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Order Items (${dummyItems.length})',
+              'Total Order Items  (${dummyItems.length})',
               style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
             ),
             SizedBox()
@@ -576,56 +609,6 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
     );
   }
 
-  Widget _buildScannedDinmajurListSection() {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Dummy dinmajur data
-    List<Map<String, dynamic>> dummyDinmajurList = [
-      {
-        'firstName': 'Karim',
-        'lastName': 'Rahman',
-        'phone': '+880 1712-345678',
-        'distance': '1.2 km',
-      },
-      {
-        'firstName': 'Rahim',
-        'lastName': 'Ahmed',
-        'phone': '+880 1823-456789',
-        'distance': '2.5 km',
-      },
-    ];
-
-    return Container(
-      width: screenWidth * 0.9,
-      child: Column(
-        children: [
-          _buildSectionHeader(
-            'Nearest Dinmajur',
-            '(${dummyDinmajurList.length})',
-                () {},
-          ),
-          SizedboxSpaccing.height02(context),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: dummyDinmajurList.length,
-            itemBuilder: (context, index) {
-              final dinmajur = dummyDinmajurList[index];
-              final isLastItem = index == dummyDinmajurList.length - 1;
-
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: isLastItem ? 0 : screenHeight * 0.02,
-                ),
-                child: _buildDinmajurCard(context, dinmajur),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildDinmajurCard(BuildContext context, Map<String, dynamic> dinmajur) {
     return Container(
@@ -676,22 +659,158 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, String count, VoidCallback onSeeAll) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '$title $count',
+// Add these state variables at the top of _OrderConfirmedScreenState class
+  String? selectedPaymentMethod;
+  Map<String, dynamic>? selectedMethodData;
+
+// Payment methods data
+  final List<Map<String, dynamic>> paymentMethods = [
+    {
+      'method': 'bkash',
+      'title': 'bkash',
+      'subtitle': 'Pay with Bkash',
+      'icon': FontAwesomeIcons.wallet,
+      'color': Color(0xFFE2136E),
+    },
+    {
+      'method': 'cash',
+      'title': 'hand cash',
+      'subtitle': 'Cash on delivery',
+      'icon': FontAwesomeIcons.sackDollar,
+      'color': Color(0xFF45A986),
+    },
+  ];
+
+// Replace the payment method section with this complete widget
+  Widget _buildPaymentMethodSection(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: screenWidth * 0.9,
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(width: 1, color: AppColors.border(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(screenHeight * 0.02),
+            child: Text(
+              'Payment Method',
               style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
             ),
-            SizedBox()
-          ],
+          ),
+          Container(
+            padding: EdgeInsets.all(screenHeight * 0.02),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColors.border(context), width: 1),
+              ),
+            ),
+            child: Column(
+              children: paymentMethods.asMap().entries.map((entry) {
+                final index = entry.key;
+                final methodData = entry.value;
+
+                final method = methodData['method'];
+                final title = methodData['title'];
+                final icon = methodData['icon'];
+                final iconColor = methodData['color'];
+                final isSelected = selectedPaymentMethod == method;
+
+                // ✅ Remove bottom padding for the last item
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == paymentMethods.length - 1
+                        ? 0
+                        : screenHeight * 0.01,
+                  ),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedPaymentMethod = method;
+                        selectedMethodData = methodData;
+                      });
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(screenHeight * 0.015),
+                      decoration: BoxDecoration(
+                        color: AppColors.textFieldFill(context),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                height: 24,
+                                width: 24,
+                                decoration: BoxDecoration(
+                                  color: iconColor,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Icon(
+                                  icon,
+                                  size: 12,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ),
+                              SizedboxSpaccing.width03(context),
+                              Text(
+                                title,
+                                style: AppTextStyles.textSize16(
+                                  context,
+                                  weight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                          _buildSelectionIndicator(isSelected),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+// Selection indicator widget
+  Widget _buildSelectionIndicator(bool isSelected) {
+    return Container(
+      height: 20,
+      width: 20,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isSelected
+              ? AppColors.button(context)
+              : AppColors.border(context),
+          width: 2,
         ),
-        SizedboxSpaccing.height01(context),
-        Divider(height: 1, color: AppColors.border(context)),
-      ],
+        color: AppColors.whiteColor ,
+      ),
+      child: Center(
+        child: Container(
+          height: 12,
+          width: 12,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isSelected
+                ? AppColors.button(context)
+                : AppColors.border(context),
+          ),
+        ),
+      )
     );
   }
 }
