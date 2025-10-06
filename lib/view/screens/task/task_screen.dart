@@ -31,6 +31,7 @@ class _TaskScreenState extends State<TaskScreen> {
       "processingStatus": "Processing",
       "attachmentName": "Grocery List 1",
       "attachmentSize": "3 items • 2.3 MB • JPG",
+      "paymentMethod":"cash",
       "ordersItem": [
         {"productname": "Tomato", "weight": "2 kg", "price": 120},
         {"productname": "Rice", "weight": "6 kg", "price": 300},
@@ -49,6 +50,7 @@ class _TaskScreenState extends State<TaskScreen> {
       "processingStatus": "Processing",
       "attachmentName": "Grocery List 2",
       "attachmentSize": "3 items • 2.8 MB • JPG",
+      "paymentMethod":"bkash",
       "ordersItem": [
         {"productname": "Potato", "weight": "5 kg", "price": 200},
         {"productname": "Chicken", "weight": "1.5 kg", "price": 450},
@@ -67,6 +69,7 @@ class _TaskScreenState extends State<TaskScreen> {
       "processingStatus": "Processing",
       "attachmentName": "Grocery List 3",
       "attachmentSize": "3 items • 2.1 MB • JPG",
+      "paymentMethod":"bkash",
       "ordersItem": [
         {"productname": "Apple", "weight": "1.5 kg", "price": 300},
         {"productname": "Eggs", "weight": "12 pcs", "price": 180},
@@ -85,8 +88,10 @@ class _TaskScreenState extends State<TaskScreen> {
       "totalAmount": "\$67.50",
       "status": "Delivered",
       "orderStatus":"completed",
+      "processingStatus": "Processing",
       "attachmentName": "Grocery List 2",
       "attachmentSize": "5 items • 3.1 MB • JPG",
+      "paymentMethod":"bkash",
       "ordersItem": [
         {"productname": "Fish", "weight": "2 kg", "price": 600},
         {"productname": "Cucumber", "weight": "1 kg", "price": 80},
@@ -107,8 +112,10 @@ class _TaskScreenState extends State<TaskScreen> {
       "totalAmount": "\$30.00",
       "status": "Cancelled",
       "orderStatus":"cancelled",
+      "processingStatus": "Processing",
       "attachmentName": "Grocery List 3",
       "attachmentSize": "2 items • 1.5 MB • JPG",
+      "paymentMethod":"bkash",
       "ordersItem": [],
     },
   ];
@@ -142,7 +149,12 @@ class _TaskScreenState extends State<TaskScreen> {
               width: screenWidth * 0.9,
               child: Row(
                 children: [
-                  Container(height: 20, width: 24, alignment: Alignment.centerLeft, child: SvgPicture.asset("assets/images/header_arrow.svg")),
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 0)));
+                      },child: Container(height: 20, width: 24, alignment: Alignment.centerLeft,
+                     color: Colors.transparent,
+                      child: SvgPicture.asset("assets/images/header_arrow.svg"))),
                   SizedboxSpaccing.width03(context),
                   Text(
                     "My Orders",
