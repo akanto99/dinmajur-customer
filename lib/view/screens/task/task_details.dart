@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
@@ -16,6 +17,55 @@ class TaskDetailsScreen extends StatefulWidget {
 }
 
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
+  final TextEditingController _withdrawalController = TextEditingController();
+
+  // Get status progress based on orderStatus
+  List<Map<String, dynamic>> getOrderStatusSteps() {
+    String orderStatus = widget.orderData["orderStatus"] ?? "order_placed";
+
+    List<Map<String, dynamic>> steps = [
+      {
+        "icon": Icons.check_circle,
+        "title": "Order Placed",
+        "time": widget.orderData["date"] ?? "N/A",
+        "isCompleted": true, // Always completed if order exists
+      },
+      {
+        "icon": Icons.check_circle,
+        "title": "Order Confirmed",
+        "time": widget.orderData["date"] ?? "N/A",
+        "isCompleted": orderStatus == "order_confirmed" ||
+            orderStatus == "order_processing" ||
+            orderStatus == "out_for_delivery" ||
+            orderStatus == "completed",
+      },
+      {
+        "icon": Icons.shopping_bag,
+        "title": "Order Processing",
+        "time": widget.orderData["date"] ?? "N/A",
+        "isCompleted": orderStatus == "order_processing" ||
+            orderStatus == "out_for_delivery" ||
+            orderStatus == "completed",
+      },
+      {
+        "icon": Icons.local_shipping,
+        "title": "Out for Delivery",
+        "time": "Estimated: Today",
+        "isCompleted": orderStatus == "out_for_delivery" ||
+            orderStatus == "completed",
+      },
+      {
+        "icon": Icons.home,
+        "title": "Delivered",
+        "time": "Estimated: Today, 2:00 PM - 4:00 PM",
+        "isCompleted": orderStatus == "completed",
+      },
+    ];
+
+    return steps;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -84,6 +134,12 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   _buildStoreInfoCard(screenWidth, screenHeight),
                   SizedboxSpaccing.height02(context),
 
+                  if (widget.orderData["orderStatus"] == "order_confirmed" ||
+                      widget.orderData["orderStatus"] == "order_processing" ||
+                      widget.orderData["orderStatus"] == "completed") ...[
+                    _buildAcceptedRiderInfo(screenWidth, screenHeight),
+                    SizedboxSpaccing.height02(context),
+                  ],
                   // Order Status
                   _buildOrderStatus(screenWidth, screenHeight),
                   SizedboxSpaccing.height02(context),
@@ -102,6 +158,16 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
                   // Action Buttons
                   _buildActionButtons(screenWidth, screenHeight),
+                  SizedboxSpaccing.height02(context),
+
+                  RoundButton(
+                    title:  "Payment",
+                    onPress: (){
+
+                    },
+                    iconData: Icons.arrow_forward_ios_rounded,
+                    loading: false,
+                  ),
                   SizedboxSpaccing.height02(context),
                 ],
               ),
@@ -190,6 +256,121 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 ],
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAcceptedRiderInfo(double screenWidth, double screenHeight) {
+
+    return Container(
+      padding: EdgeInsets.all(screenHeight * 0.02),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          // Rider Image
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppColors.appBackground(context),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.button(context), width: 2),
+            ),
+            child: ClipOval(
+              child: Icon(
+                Icons.person,
+                size: 32,
+                color: AppColors.button(context),
+              ),
+            ),
+          ),
+          SizedboxSpaccing.width02(context),
+
+          // Rider Name and Status
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Rider Assigned",
+                  style: AppTextStyles.textSize12(context,
+                      color: AppColors.subtitle(context)),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "John Doe",
+                  style: AppTextStyles.textSize16(context,
+                      weight: FontWeight.w600),
+                ),
+                SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber, size: 14),
+                    SizedBox(width: 4),
+                    Text(
+                      "4.8",
+                      style: AppTextStyles.textSize12(context,
+                          weight: FontWeight.w500),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      "• 150+ deliveries",
+                      style: AppTextStyles.textSize12(context,
+                          color: AppColors.subtitle(context)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Chat Button
+          GestureDetector(
+            onTap: () {
+              // Handle chat action
+              print("Chat with rider");
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.appBackground(context),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.button(context), width: 1),
+              ),
+              child: Icon(
+                Icons.chat_bubble_outline,
+                color: AppColors.button(context),
+                size: 20,
+              ),
+            ),
+          ),
+          SizedboxSpaccing.width02(context),
+
+          // Call Button
+          GestureDetector(
+            onTap: () {
+              // Handle call action
+              print("Call rider");
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.button(context),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.phone,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
           ),
         ],
       ),
@@ -421,6 +602,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     double tax = subtotal * 0.05;
     double total = subtotal + deliveryFee + tax;
 
+    // Get payment method from orderData
+    String paymentMethod = widget.orderData["paymentMethod"] ?? "cash";
+
     return Container(
       padding: EdgeInsets.all(screenHeight * 0.02),
       decoration: BoxDecoration(
@@ -437,13 +621,30 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           SizedboxSpaccing.height015(context),
           Row(
             children: [
-              Icon(FontAwesomeIcons.creditCard,
-                  color: AppColors.button(context), size: 16),
+            Container(
+            height: 30,
+            width: 30,
+            decoration: BoxDecoration(
+              color:  paymentMethod.toLowerCase() == "bkash"
+                  ?Color(0xffDB2777) :AppColors.button(context),
+              borderRadius: BorderRadius.circular(6),
+            ),
+                child: Icon(
+                    paymentMethod.toLowerCase() == "bkash"
+                        ? FontAwesomeIcons.wallet
+                        : FontAwesomeIcons.sackDollar,
+                    color: AppColors.whiteColor,
+                    size: 15
+                ),
+              ),
               SizedboxSpaccing.width02(context),
               Text(
-                "Visa ending in 4242",
+                paymentMethod.toLowerCase() == "bkash"
+                    ? "bKash"
+                    : "Hand Cash",
                 style: AppTextStyles.textSize14(context,
-                    weight: FontWeight.w500),
+                    weight: FontWeight.w500,color: paymentMethod.toLowerCase() == "bkash"
+                      ?Color(0xffDB2777) :AppColors.button(context),),
               ),
             ],
           ),

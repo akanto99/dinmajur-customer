@@ -34,4 +34,5 @@ class RoutesName {
   static const String taskScreen = 'taskScreen_view';
   static const String taskDetailsScreen = 'taskDetailsScreen_view';
 
+
 }
