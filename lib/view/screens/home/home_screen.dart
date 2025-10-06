@@ -168,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
         "type": "DELIVERY_ADDRESS",
       };
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-      await addLocationViewModel.addLocationPatchApi(context, locationData);
+      await addLocationViewModel.addLocationPostApi(context, locationData);
       debugPrint('Location data to post: $locationData');
       debugPrint('Location posted successfully to API');
     } catch (e) {

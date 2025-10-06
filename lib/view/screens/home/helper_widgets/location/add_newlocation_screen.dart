@@ -77,7 +77,15 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         throw Exception('Invalid coordinates');
       }
 
+      // Get the location ID from selected location data
+      final String locationId = _selectedLocationData.id ?? '';
+
+      if (locationId.isEmpty) {
+        throw Exception('Location ID not found');
+      }
+
       final locationData = {
+        "default":true,
         "geoLocation": {
           "type": "Point",
           "coordinates": [coordinates[0], coordinates[1]], // [longitude, latitude]
@@ -87,20 +95,22 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
       };
 
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-      await addLocationViewModel.addLocationPatchApi(context, locationData);
+
+      // Pass locationId as the userId parameter
+      await addLocationViewModel.updateAddressPatchApi(context, locationData, locationId);
 
       debugPrint('Updated location data: $locationData');
+      debugPrint('Location ID: $locationId');
 
       if (mounted) {
         // Refresh the location list
         Provider.of<GetLocationListViewModel>(context, listen: false).fetchLocationListApi();
 
         Utils.flushBarSuccessMessage('Location updated successfully', context);
+
         Future.delayed(const Duration(milliseconds: 1000), () {
           Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));
         });
-
-        // Clear selection after successful update
         setState(() {
           _selectedLocationId = null;
           _selectedLocationData = null;
@@ -176,7 +186,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
       };
 
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-      await addLocationViewModel.addLocationPatchApi(context, locationData);
+      await addLocationViewModel.addLocationPostApi(context, locationData);
 
       debugPrint('Location data to post: $locationData');
 
@@ -375,23 +385,23 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                   GestureDetector(
                     // onTap: _isDeleting ? null : _updateSelectedLocation,
                     child: Container(
-                      width: screenWidth*0.4,
+                      width: screenWidth * 0.4,
                       height: 42,
                       decoration: BoxDecoration(color: AppColors.darkRedColor, borderRadius: BorderRadius.circular(12)),
                       child: Center(
                         child: _isDeleting
                             ? Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 45))
                             : Text(
-                          "Delete",
-                          style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.whiteColor),
-                        ),
+                                "Delete",
+                                style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                              ),
                       ),
                     ),
                   ),
                   GestureDetector(
                     onTap: _isUpdating ? null : _updateSelectedLocation,
                     child: Container(
-                      width: screenWidth*0.4,
+                      width: screenWidth * 0.4,
                       height: 42,
                       decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(12)),
                       child: Center(
@@ -441,10 +451,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                   height: 120,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      width: 1,
-                      color: AppColors.border(context)
-                    )
+                    border: Border.all(width: 1, color: AppColors.border(context)),
                   ),
                   child: Center(
                     child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45)),
@@ -453,11 +460,8 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                 Status.ERROR => Container(
                   height: 120,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          width: 1,
-                          color: AppColors.border(context)
-                      )
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(width: 1, color: AppColors.border(context)),
                   ),
                   child: Center(
                     child: Column(
@@ -475,7 +479,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
 
                   if (locationList.isEmpty) {
                     return Container(
-                      width: screenWidth*0.9,
+                      width: screenWidth * 0.9,
                       height: 120,
                       decoration: BoxDecoration(
                         color: AppColors.textFieldFill(context),

@@ -277,7 +277,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
         };
 
         final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-        await addLocationViewModel.addLocationPatchApi(context, locationData);
+        await addLocationViewModel.addLocationPostApi(context, locationData);
 
         if (mounted) {
           Utils.flushBarSuccessMessage('Location saved successfully', context);
