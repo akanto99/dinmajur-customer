@@ -8,6 +8,7 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
@@ -17,6 +18,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -140,11 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
         });
 
         // Show error message to user
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Location error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Location error: ${e.toString()}'), backgroundColor: Colors.red, duration: Duration(seconds: 3)));
       }
     }
   }
@@ -175,20 +173,14 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('Error posting location to API: $e');
       // Optional: Show error message to user
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Failed to save location: ${e.toString()}'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 3),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save location: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
       }
     }
   }
 
-  // Method to fetch nearby retailers
+  /// Method to fetch nearby retailers
   Future<void> _fetchNearbyRetailers(String businessType) async {
     if (!mounted) return;
-
-    debugPrint('Starting to fetch retailers for: $businessType');
 
     setState(() {
       isLoadingStores = true;
@@ -196,35 +188,75 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+
+      double? customerLng;
+      double? customerLat;
+      String? fullAddress;
+
+      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+        final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
+
+        if (addressData?.geoLocation?.coordinates != null &&
+            addressData!.geoLocation!.coordinates!.length >= 2) {
+          customerLng = addressData.geoLocation!.coordinates![0];
+          customerLat = addressData.geoLocation!.coordinates![1];
+          fullAddress = addressData.fullAddress;
+        }
+      }
+
+      if (customerLng == null || customerLat == null) {
+        if (_currentPosition != null) {
+          customerLng = _currentPosition!.longitude;
+          customerLat = _currentPosition!.latitude;
+          fullAddress ??= "Current Location";
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Location not available. Please enable location services.'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          setState(() => isLoadingStores = false);
+          return;
+        }
+      }
+
       final viewModel = Provider.of<PostNearbyRetailersViewModel>(context, listen: false);
 
       final requestData = {
-        "customer_lng": 90.2484202,
-        "customer_lat": 24.0089881,
-        "businessType": businessType
+        "deliveryAddress": {
+          "geoLocation": {
+            "type": "Point",
+            "coordinates": [customerLng, customerLat]
+          },
+          "fullAddress": fullAddress ?? ""
+        },
+        "businessType": businessType,
       };
-      debugPrint('Request data: $requestData');
-
-      // Call the API and get the response
+      print("-----------------------");
+print("$customerLng $customerLat");
+print(fullAddress);
+print(businessType);
       List<dynamic>? stores = await viewModel.nearbyRetailersPostApi(context, requestData);
 
-      debugPrint('Received stores from API: $stores');
-      debugPrint('Stores count: ${stores?.length ?? 0}');
-
-      if (mounted && stores != null) {
-        setState(() {
-          nearbyStores = stores;
-        });
-        debugPrint('Updated nearbyStores in state: ${nearbyStores.length}');
+      if (mounted) {
+        if (stores != null && stores.isNotEmpty) {
+          setState(() => nearbyStores = stores);
+        } else {
+          Utils.snackBar("No nearby stores found for this business type.", context);
+        }
       }
     } catch (e) {
-      debugPrint('Error fetching nearby retailers: $e');
+      if (mounted) {
+    Utils.flushBarErrorMessage("Failed to fetch nearby stores", context);
+      }
     } finally {
       if (mounted) {
-        setState(() {
-          isLoadingStores = false;
-        });
-        debugPrint('Loading finished. Final nearbyStores count: ${nearbyStores.length}');
+        setState(() => isLoadingStores = false);
       }
     }
   }
@@ -252,11 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: body(context),
-          desktop: body(context),
-          tablet: body(context),
-        ),
+        child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
       ),
     );
   }
@@ -305,16 +333,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        AppLocalizations.of(context)!.nearby_stores(nearbyStores.length),
-                        style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-                      ),
+                      Text(AppLocalizations.of(context)!.nearby_stores(nearbyStores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                       GestureDetector(
                         onTap: () {},
-                        child: Text(
-                          AppLocalizations.of(context)!.see_all,
-                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                        ),
+                        child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                       ),
                     ],
                   ),
@@ -350,22 +372,39 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildStoreCard(Map<String, dynamic> store, double screenHeight, double screenWidth) {
     debugPrint('Building store card for: $store');
 
-    final retailer = store['retailer'] ?? {};
-    final distance = store['distance']?.toDouble() ?? 0.0;
-    final address = store['fullAddress'] ?? 'ঠিকানা উপলব্ধ নেই';
-    final businessName = retailer['businessName'] ?? 'দোকানের নাম উপলব্ধ নেই';
-    final businessType = retailer['businessType'] ?? 'অজানা';
-    final userID = store['userId'] ?? '';
+    final retailer = store;  // The store itself contains the business info
 
-    debugPrint('Store details - Name: $businessName, Distance: $distance, Address: $address');
+    // Extract distance properly from the nested object
+    final distanceData = store['distance'] as Map<String, dynamic>?;
+    final distanceValue = (distanceData?['value'] ?? 0).toDouble();
+    final distanceText = distanceData?['text'] ?? '0 m';
+    final fullAddress = store?['fullAddress'] ?? 'Address not found';
+    final status = store['status'];
+
+    // Extract duration
+    final durationData = store['duration'] as Map<String, dynamic>?;
+    final durationText = durationData?['text'] ?? '0 min';
+
+    final businessName = store['businessName'] ?? 'দোকানের নাম উপলব্ধ নেই';
+    final businessType = store['businessType'] ?? 'অজানা';
+    final userID = store['userId'] ?? '';
+    final logo = store['logo'] as Map<String, dynamic>?;
+    final logoUrl = logo?['url'];
+
+    // Extract coordinates for address (if needed)
+    final geoLocation = store['geoLocation'] as Map<String, dynamic>?;
+    final coordinates = geoLocation?['coordinates'] as List?;
+
+    debugPrint('Store details - Name: $businessName, Distance: $distanceText, Type: $businessType');
 
     return Container(
       width: screenWidth * 0.9,
+      margin: EdgeInsets.only(bottom: screenHeight * 0.02),
       padding: EdgeInsets.all(screenHeight * 0.02),
       decoration: BoxDecoration(
         color: AppColors.containerBackground(context),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(width: 1, color: AppColors.border(context)),
+        border: Border.all(width: 1, color: AppColors.oceanGreenColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,30 +413,65 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  businessName,
-                  style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: [
+                    if (logoUrl != null)
+                      Container(
+                        height: 40,
+                        width: 40,
+                        margin: EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          image: DecorationImage(
+                            image: NetworkImage(logoUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                businessName,
+                                style: AppTextStyles.textSize18(context, weight: FontWeight.w500,color: AppColors.button(context)),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Container(
+                                height: 24,
+                                width: 75,
+                                decoration: BoxDecoration(
+                                  color:status=="Available"? AppColors.oceanGreenColor : AppColors.darkRedColor,
+                                  borderRadius: BorderRadius.circular(100),),
+                                child: Center(
+                                  child: Text(status,
+                                    style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w400),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            storeTypes[businessType] ?? businessType,
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Row(
-                children: [
-                  Icon(Icons.check_circle, size: 16, color: Colors.green),
-                  SizedboxSpaccing.width01(context),
-                  Text(
-                    AppLocalizations.of(context)!.available,
-                    style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w400),
-                  ),
-                ],
-              ),
+
             ],
           ),
-          Text(
-            storeTypes[address] ?? address,
-            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+          SizedboxSpaccing.height01(context),
+          Divider(height: 1,color: AppColors.border(context),),
+
           SizedboxSpaccing.height005(context),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,32 +480,43 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 20,
                 width: 12,
                 alignment: Alignment.centerLeft,
-                child: Icon(Icons.location_on, size: 12, color: AppColors.textPrimary(context)),
+                child: Icon(Icons.location_on, size: 16, color: AppColors.button(context)),
               ),
-              SizedboxSpaccing.width01(context),
-              Text(
-                AppLocalizations.of(context)!.distance_away(distance.toStringAsFixed(0)),
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-              ),
-            ],
-          ),
-          SizedboxSpaccing.height01(context),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 20,
-                width: 12,
-                alignment: Alignment.centerLeft,
-                child: Icon(Icons.access_time_filled, size: 12, color: AppColors.textPrimary(context)),
-              ),
-              SizedboxSpaccing.width01(context),
-              Container(
-                child: Text(
-                  AppLocalizations.of(context)!.delivery_time,
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                ),
-              ),
+              SizedboxSpaccing.width03(context),
+             Expanded(
+               child: Column(
+                 crossAxisAlignment: CrossAxisAlignment.start,
+                 children: [
+                   Text("Store Address",
+                     style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                   ),
+                   Text(
+                     fullAddress,
+                     style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                     maxLines: 2,
+                     overflow: TextOverflow.ellipsis,
+                   ),
+                   Row(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: [
+                       Container(
+                         height: 20,
+                         width: 12,
+                         alignment: Alignment.centerLeft,
+                         child: Icon(FontAwesomeIcons.car, size: 12, color: AppColors.textPrimary(context)),
+                       ),
+                       SizedboxSpaccing.width02(context),
+                       Container(
+                         child: Text(
+                           distanceText,
+                           style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                         ),
+                       ),
+                     ],
+                   ),
+                 ],
+               ),
+             )
             ],
           ),
           SizedboxSpaccing.height02(context),
@@ -443,13 +528,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 RoutesName.orderNow,
                 arguments: {
                   'storeData': store,
-                  'retailer': retailer,
-                  'distance': distance,
-                  'address': address,
+                  'retailer': store,
+                  'distance': distanceValue,
+                  'distanceText': distanceText,
+                  'durationText': durationText,
                   'businessName': businessName,
                   'businessType': businessType,
                   'selectedStoreType': selectedStoreType,
                   'userID': userID,
+                  'logoUrl': logoUrl,
                 },
               );
             },
@@ -459,7 +546,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
   Widget _customAppBar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -481,12 +567,9 @@ class _HomeScreenState extends State<HomeScreen> {
             final addressData = responseData!.data!.addresses!;
 
             // Check if the address type is DELIVERY_ADDRESS and has fullAddress
-            if (addressData.type == 'DELIVERY_ADDRESS' &&
-                addressData.fullAddress != null &&
-                addressData.fullAddress!.isNotEmpty) {
+            if (addressData.type == 'DELIVERY_ADDRESS' && addressData.fullAddress != null && addressData.fullAddress!.isNotEmpty) {
               displayAddress = addressData.fullAddress!;
-            } else if (addressData.fullAddress != null &&
-                addressData.fullAddress!.isNotEmpty) {
+            } else if (addressData.fullAddress != null && addressData.fullAddress!.isNotEmpty) {
               // Use any address if available
               displayAddress = addressData.fullAddress!;
             } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
@@ -510,13 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
-            return _buildAppBarContent(
-              screenWidth: screenWidth,
-              screenHeight: screenHeight,
-              userName: "Loading...",
-              displayAddress: displayAddress,
-              profileImageUrl: null,
-            );
+            return _buildAppBarContent(screenWidth: screenWidth, screenHeight: screenHeight, userName: "Loading...", displayAddress: displayAddress, profileImageUrl: null);
 
           case Status.ERROR:
             return ErrorStateEmptyHeaderWidget(
@@ -546,13 +623,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             }
 
-            return _buildAppBarContent(
-              screenWidth: screenWidth,
-              screenHeight: screenHeight,
-              userName: userName,
-              displayAddress: displayAddress,
-              profileImageUrl: profileImageUrl,
-            );
+            return _buildAppBarContent(screenWidth: screenWidth, screenHeight: screenHeight, userName: userName, displayAddress: displayAddress, profileImageUrl: profileImageUrl);
 
           default:
             return Container(
@@ -566,20 +637,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAppBarContent({
-    required double screenWidth,
-    required double screenHeight,
-    required String userName,
-    required String displayAddress,
-    String? profileImageUrl,
-  }) {
+  Widget _buildAppBarContent({required double screenWidth, required double screenHeight, required String userName, required String displayAddress, String? profileImageUrl}) {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
         color: AppColors.containerBackground(context),
         border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
       ),
@@ -606,13 +668,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                             color: AppColors.appBackground(context),
                             border: Border.all(width: 1, color: AppColors.textPrimary(context)),
-                            image: profileImageUrl != null
-                                ? DecorationImage(image: NetworkImage(profileImageUrl), fit: BoxFit.cover)
-                                : null,
+                            image: profileImageUrl != null ? DecorationImage(image: NetworkImage(profileImageUrl), fit: BoxFit.cover) : null,
                           ),
-                          child: profileImageUrl == null
-                              ? Icon(Icons.person, color: AppColors.textPrimary(context), size: 20)
-                              : null,
+                          child: profileImageUrl == null ? Icon(Icons.person, color: AppColors.textPrimary(context), size: 20) : null,
                         ),
                       ),
                     ),
@@ -633,23 +691,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             Row(
                               children: [
-                                Icon(
-                                  Icons.location_on,
-                                  size: 16,
-                                  color: _isLoadingLocation
-                                      ? AppColors.subtitle(context)
-                                      : AppColors.textPrimary(context),
-                                ),
+                                Icon(Icons.location_on, size: 16, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                 Expanded(
                                   child: Text(
                                     displayAddress,
-                                    style: AppTextStyles.textSize14(
-                                      context,
-                                      weight: FontWeight.w400,
-                                      color: _isLoadingLocation
-                                          ? AppColors.subtitle(context)
-                                          : AppColors.textPrimary(context),
-                                    ),
+                                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -659,11 +705,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      height: 45,
-                      alignment: Alignment.bottomCenter,
-                      child: Icon(Icons.arrow_drop_down_sharp, size: 25),
-                    ),
+                    Container(height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
                   ],
                 ),
               ),
@@ -709,22 +751,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildIconButton({
-    required VoidCallback onTap,
-    required String svgAsset,
-    required BuildContext context,
-  }) {
+  Widget _buildIconButton({required VoidCallback onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 30,
         width: 30,
         padding: const EdgeInsets.all(2),
-        child: SvgPicture.asset(
-          svgAsset,
-          color: AppColors.textPrimary(context),
-          fit: BoxFit.contain,
-        ),
+        child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
       ),
     );
   }
