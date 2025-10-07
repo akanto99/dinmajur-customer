@@ -83,7 +83,7 @@ class Utils {
         scrollDirection: Axis.horizontal,
         child: Text(
           message,
-          style: AppTextStyles.textSize14(context,weight: FontWeight.w400),
+          style: AppTextStyles.textSize14(context,weight: FontWeight.w400,color: AppColors.whiteColor),
         ),
       ),
     ));

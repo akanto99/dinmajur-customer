@@ -11,6 +11,9 @@ class AppColors {
   static const Color splashScreenColor = Color(0xff6A8990);
 
 
+  static const Color oceanGreenColor = Color(0xff45A986);
+
+
 
 
 
