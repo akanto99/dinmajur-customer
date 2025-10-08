@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/respository/home_repositories/nearby_retailers_repository/order_now_repository/checkout_order_repository.dart';
-import 'package:dinmajur_customer/respository/home_repositories/post_change_password/post_change_password_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,29 +16,63 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> checkoutOrderPostApi(BuildContext context, dynamic fields,) async {
+  Future<void> checkoutOrderPostApi(BuildContext context, dynamic fields) async {
     setCheckoutOrderLoading(true);
+
+    // Print the request data
+    if (kDebugMode) {
+      print('========== CHECKOUT ORDER REQUEST ==========');
+      print('Request Data: ${jsonEncode(fields)}');
+      print('==========================================');
+    }
+
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? AToken = prefs.getString('accessToken');
+
+      if (kDebugMode) {
+        print('Access Token: ${AToken != null ? "Present" : "Missing"}');
+      }
+
       if (AToken == null || AToken.isEmpty) {
         Utils.flushBarErrorMessage('Invalid token', context);
         setCheckoutOrderLoading(false);
         return;
       }
+
+      // Make API call
       dynamic value = await _myRepo.checkoutOrderPostApi(fields);
+
       setCheckoutOrderLoading(false);
+
+      // Print the response
+      if (kDebugMode) {
+        print('========== CHECKOUT ORDER RESPONSE ==========');
+        print('Response: ${jsonEncode(value)}');
+        print('Response Type: ${value.runtimeType}');
+        print('==========================================');
+      }
+
       Utils.flushBarSuccessMessage('Order created successfully', context);
-      if (kDebugMode) print(value.toString());
+
+      // Navigate back or to order confirmation screen
+      Navigator.pop(context);
+      // Or navigate to order confirmation:
+      // Navigator.pushNamed(context, RoutesName.orderConfirmation, arguments: value);
+
     } catch (error) {
       setCheckoutOrderLoading(false);
+
+      if (kDebugMode) {
+        print('========== CHECKOUT ORDER ERROR ==========');
+        print('Error: $error');
+        print('Error Type: ${error.runtimeType}');
+        print('==========================================');
+      }
+
       _handleError(error, context);
-      if (kDebugMode) print('Error: $error');
     }
   }
-
-
-
 
   void _handleError(dynamic error, BuildContext context) {
     String errorMessage = '$error';
@@ -56,6 +89,11 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
     } catch (_) {
       errorMessage = 'Unexpected error occurred';
     }
+
+    if (kDebugMode) {
+      print('Parsed Error Message: $errorMessage');
+    }
+
     Utils.flushBarErrorMessage(errorMessage, context);
   }
 }

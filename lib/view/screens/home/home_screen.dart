@@ -237,10 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         "businessType": businessType,
       };
-      print("-----------------------");
-print("$customerLng $customerLat");
-print(fullAddress);
-print(businessType);
+
       List<dynamic>? stores = await viewModel.nearbyRetailersPostApi(context, requestData);
 
       if (mounted) {
@@ -265,12 +262,6 @@ print(businessType);
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-
-    // Only print in debug mode
-    debugPrint('Current locale: ${Localizations.localeOf(context)}');
-    debugPrint('Current nearbyStores length: ${nearbyStores.length}');
-    debugPrint('Is loading: $isLoadingStores');
-    debugPrint('Selected store type: $selectedStoreType');
 
     return Scaffold(
       key: widget.scaffoldKey,
@@ -372,13 +363,9 @@ print(businessType);
   Widget _buildStoreCard(Map<String, dynamic> store, double screenHeight, double screenWidth) {
     debugPrint('Building store card for: $store');
 
-    final retailer = store;  // The store itself contains the business info
-
-    // Extract distance properly from the nested object
     final distanceData = store['distance'] as Map<String, dynamic>?;
-    final distanceValue = (distanceData?['value'] ?? 0).toDouble();
     final distanceText = distanceData?['text'] ?? '0 m';
-    final fullAddress = store?['fullAddress'] ?? 'Address not found';
+    final fullAddress = store['fullAddress'] ?? 'Address not found'; // CORRECT
     final status = store['status'];
 
     // Extract duration
@@ -391,11 +378,11 @@ print(businessType);
     final logo = store['logo'] as Map<String, dynamic>?;
     final logoUrl = logo?['url'];
 
-    // Extract coordinates for address (if needed)
+    // CORRECT: Extract store coordinates
     final geoLocation = store['geoLocation'] as Map<String, dynamic>?;
     final coordinates = geoLocation?['coordinates'] as List?;
-
-    debugPrint('Store details - Name: $businessName, Distance: $distanceText, Type: $businessType');
+    final storeLatitude = coordinates != null && coordinates.length >= 2 ? coordinates[1] : null;
+    final storeLongitude = coordinates != null && coordinates.length >= 2 ? coordinates[0] : null;
 
     return Container(
       width: screenWidth * 0.9,
@@ -523,20 +510,57 @@ print(businessType);
           RoundButton(
             title: AppLocalizations.of(context)!.order_now,
             onPress: () {
+              final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+
+              double? customerLongitude;
+              double? customerLatitude;
+              String? customerFullAddress;
+              // Map<String, dynamic>? customerGeoLocation;
+
+              // Extract customer location from profile
+              if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
+
+                if (addressData?.geoLocation?.coordinates != null &&
+                    addressData!.geoLocation!.coordinates!.length >= 2) {
+                  customerLongitude = addressData.geoLocation!.coordinates![0];
+                  customerLatitude = addressData.geoLocation!.coordinates![1];
+                  customerFullAddress = addressData.fullAddress;
+                }
+              }
+
+              // Fallback to current position if profile doesn't have address
+              if (customerLongitude == null || customerLatitude == null) {
+                if (_currentPosition != null) {
+                  customerLongitude = _currentPosition!.longitude;
+                  customerLatitude = _currentPosition!.latitude;
+                  customerFullAddress = _currentAddress ?? "Current Location";
+                }
+              }
+
               Navigator.pushNamed(
                 context,
                 RoutesName.orderNow,
                 arguments: {
+                  // Store data
                   'storeData': store,
                   'retailer': store,
-                  'distance': distanceValue,
                   'distanceText': distanceText,
                   'durationText': durationText,
                   'businessName': businessName,
+                  'status': status,
                   'businessType': businessType,
                   'selectedStoreType': selectedStoreType,
                   'userID': userID,
                   'logoUrl': logoUrl,
+                  'storeFullAddress': fullAddress,
+                  'storeLatitude': storeLatitude,
+                  'storeLongitude': storeLongitude,
+
+                  // Customer/User location data
+                  'customerFullAddress': customerFullAddress,
+                  'customerLongitude': customerLongitude,
+                  'customerLatitude': customerLatitude,
                 },
               );
             },
@@ -613,14 +637,18 @@ print(businessType);
               final userData = responseData!.data!.user!;
               profileImageUrl = userData.profilePicture?.url;
 
-              // Handle user name properly
-              if (userData.firstName != null && userData.lastName != null) {
-                userName = '${userData.firstName!} ${userData.lastName!}'.trim();
-              } else if (userData.firstName != null) {
-                userName = userData.firstName!;
-              } else if (userData.lastName != null) {
-                userName = userData.lastName!;
+              // Handle user name properly - check for both null and empty strings
+              final firstName = userData.firstName?.trim();
+              final lastName = userData.lastName?.trim();
+
+              if (firstName != null && firstName.isNotEmpty && lastName != null && lastName.isNotEmpty) {
+                userName = '$firstName $lastName';
+              } else if (firstName != null && firstName.isNotEmpty) {
+                userName = firstName;
+              } else if (lastName != null && lastName.isNotEmpty) {
+                userName = lastName;
               }
+              // If all are null or empty, userName remains 'Unknown User'
             }
 
             return _buildAppBarContent(screenWidth: screenWidth, screenHeight: screenHeight, userName: userName, displayAddress: displayAddress, profileImageUrl: profileImageUrl);

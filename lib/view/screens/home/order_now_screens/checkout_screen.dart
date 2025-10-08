@@ -18,6 +18,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // Order data properties
   Map<String, dynamic>? storeData;
   String? businessName;
+  String? status;
   List<Map<String, dynamic>> orderItems = [];
   List<Map<String, dynamic>> uploadedPhotos = [];
   String? voiceRecordingPath;
