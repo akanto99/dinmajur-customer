@@ -11,6 +11,9 @@ class ManualEntryTab extends StatefulWidget {
   final Function(Map<String, dynamic>) onAddItem;
   final Function(int) onRemoveItem;
   final TextEditingController notesController;
+  final TextEditingController budgetController;
+  final Function(String?) onDeliveryTimeSelected;
+  final String? initialDeliveryTime;
 
   const ManualEntryTab({
     Key? key,
@@ -18,6 +21,9 @@ class ManualEntryTab extends StatefulWidget {
     required this.onAddItem,
     required this.onRemoveItem,
     required this.notesController,
+    required this.budgetController,
+    required this.onDeliveryTimeSelected,
+    this.initialDeliveryTime,
   }) : super(key: key);
 
   @override
@@ -27,87 +33,44 @@ class ManualEntryTab extends StatefulWidget {
 class _ManualEntryTabState extends State<ManualEntryTab> {
   final TextEditingController itemNameController = TextEditingController();
   final TextEditingController itemWeightController = TextEditingController();
-  final TextEditingController quantityController = TextEditingController(text: '1');
 
   // Weight types mapping with display names
-  final Map<String, String> weightTypes = {
-    'gm': 'Grams',
-    'kg': 'Kilograms',
-    'lr': 'Liters',
-    'pics': 'Pieces',
-  };
-  String? selectedWeightType = 'gm'; // Default selection
+  final Map<String, String> weightTypes = {'gm': 'Grams', 'kg': 'Kilograms', 'lr': 'Liters', 'pics': 'Pieces'};
+  String? selectedWeightType = 'gm';
+  String? selectedDeliveryTime;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedDeliveryTime = widget.initialDeliveryTime;
+  }
+
+  @override
+  void didUpdateWidget(ManualEntryTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialDeliveryTime != oldWidget.initialDeliveryTime) {
+      setState(() {
+        selectedDeliveryTime = widget.initialDeliveryTime;
+      });
+    }
+  }
 
   void _addItem() {
-    if (itemNameController.text.trim().isNotEmpty &&
-        itemWeightController.text.trim().isNotEmpty) {
-
-      // Generate estimated price based on weight/quantity and type
-      double estimatedPrice = _calculateEstimatedPrice(
-        itemNameController.text.trim(),
-        itemWeightController.text.trim(),
-        selectedWeightType ?? 'gm',
-      );
-
+    if (itemNameController.text.trim().isNotEmpty && itemWeightController.text.trim().isNotEmpty) {
       final newItem = {
         'name': itemNameController.text.trim(),
         'quantity': itemWeightController.text.trim(),
         'quantityType': selectedWeightType ?? 'gm',
         'weightType': weightTypes[selectedWeightType ?? 'gm'] ?? 'Grams',
-        'estimatedPrice': estimatedPrice.toString(),
       };
 
       widget.onAddItem(newItem);
 
-      // Clear the form
       itemNameController.clear();
       itemWeightController.clear();
       setState(() {
-        selectedWeightType = 'gm'; // Reset to default
+        selectedWeightType = 'gm';
       });
-    }
-  }
-
-  double _calculateEstimatedPrice(String itemName, String quantity, String quantityType) {
-    // Base prices for common items (per unit/kg)
-    Map<String, double> basePrices = {
-      'tomato': 2.50,
-      'tomatoes': 2.50,
-      'rice': 3.00,
-      'basmati rice': 4.50,
-      'chicken': 6.00,
-      'beef': 8.00,
-      'milk': 3.50,
-      'bread': 2.00,
-      'onion': 1.50,
-      'onions': 1.50,
-      'potato': 1.80,
-      'potatoes': 1.80,
-      'apple': 3.20,
-      'apples': 3.20,
-      'banana': 2.10,
-      'bananas': 2.10,
-    };
-
-    // Get base price
-    String itemKey = itemName.toLowerCase();
-    double basePrice = basePrices[itemKey] ?? 4.50; // Default price if item not found
-
-    // Parse quantity
-    double qty = double.tryParse(quantity) ?? 1.0;
-
-    // Calculate total based on quantity type
-    switch (quantityType) {
-      case 'kg':
-        return basePrice * qty;
-      case 'gm':
-        return basePrice * (qty / 1000); // Convert grams to kg
-      case 'lr':
-        return basePrice * qty; // Price per liter
-      case 'pics':
-        return basePrice * qty; // Price per piece
-      default:
-        return basePrice * qty;
     }
   }
 
@@ -126,21 +89,14 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
               left: BorderSide(width: 1, color: AppColors.border(context)),
               bottom: BorderSide(width: 1, color: AppColors.border(context)),
             ),
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(24),
-              bottomRight: Radius.circular(24),
-            ),
+            borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
           ),
           padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedboxSpaccing.height02(context),
-              CustomTextFormField(
-                titleText: "Item Name",
-                placeholder: "e.g., Tomatoes, Basmati Rice...",
-                controller: itemNameController,
-              ),
+              CustomTextFormField(titleText: "Item Name", placeholder: "e.g., Tomatoes, Basmati Rice...", controller: itemNameController),
               SizedboxSpaccing.height02(context),
               _buildQuantityTypeSelector(),
               SizedboxSpaccing.height02(context),
@@ -150,10 +106,90 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
           ),
         ),
         SizedboxSpaccing.height02(context),
-        if (widget.orderItems.isNotEmpty) ...[_buildOrderItemsList(),        SizedboxSpaccing.height02(context),],
-
+        if (widget.orderItems.isNotEmpty) ...[_buildOrderItemsList(), SizedboxSpaccing.height02(context)],
+        _buildDeliveryTimeSection(),
+        SizedboxSpaccing.height02(context),
         _buildNotesSection(),
+        SizedboxSpaccing.height02(context),
       ],
+    );
+  }
+
+  Widget _buildDeliveryTimeSection() {
+    return Container(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Set Delivery Time', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+              if (selectedDeliveryTime != null) Icon(Icons.check_circle, color: Colors.green, size: 20),
+            ],
+          ),
+          SizedboxSpaccing.height005(context),
+          Divider(height: 1, color: AppColors.border(context)),
+          SizedboxSpaccing.height02(context),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              DeliveryTimeCard(
+                icon: FontAwesomeIcons.bolt,
+                iconColor: const Color(0xffEF4444),
+                label: 'ASAP',
+                isSelected: selectedDeliveryTime == 'ASAP',
+                onTap: () {
+                  setState(() {
+                    selectedDeliveryTime = 'ASAP';
+                  });
+                  widget.onDeliveryTimeSelected('ASAP');
+                },
+              ),
+              DeliveryTimeCard(
+                icon: Icons.timelapse,
+                iconColor: AppColors.textPrimary(context),
+                label: '30 mins',
+                isSelected: selectedDeliveryTime == '30 mins',
+                onTap: () {
+                  setState(() {
+                    selectedDeliveryTime = '30 mins';
+                  });
+                  widget.onDeliveryTimeSelected('30 mins');
+                },
+              ),
+            ],
+          ),
+          SizedboxSpaccing.height02(context),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              DeliveryTimeCard(
+                icon: Icons.timelapse,
+                iconColor: AppColors.textPrimary(context),
+                label: '1 hour',
+                isSelected: selectedDeliveryTime == '1 hour',
+                onTap: () {
+                  setState(() {
+                    selectedDeliveryTime = '1 hour';
+                  });
+                  widget.onDeliveryTimeSelected('1 hour');
+                },
+              ),
+              DeliveryTimeCard(
+                icon: Icons.timelapse,
+                iconColor: AppColors.textPrimary(context),
+                label: '2 hour',
+                isSelected: selectedDeliveryTime == '2 hour',
+                onTap: () {
+                  setState(() {
+                    selectedDeliveryTime = '2 hour';
+                  });
+                  widget.onDeliveryTimeSelected('2 hour');
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -163,10 +199,7 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Order Items (${widget.orderItems.length})",
-          style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-        ),
+        Text("Order Items (${widget.orderItems.length})", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         SizedboxSpaccing.height01(context),
         Container(
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
@@ -191,28 +224,8 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            item['name'],
-                            style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                "${item['quantity']} ${item['quantityType']}",
-                                style: AppTextStyles.textSize12(context, color: Colors.grey),
-                              ),
-                              const SizedBox(width: 8),
-                              // if (item['estimatedPrice'] != null)
-                              //   Text(
-                              //     "৳${double.parse(item['estimatedPrice']).toStringAsFixed(2)}",
-                              //     style: AppTextStyles.textSize12(
-                              //       context,
-                              //       color: AppColors.button(context),
-                              //       weight: FontWeight.w500,
-                              //     ),
-                              //   ),
-                            ],
-                          ),
+                          Text(item['name'], style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                          Text("${item['quantity']} ${item['quantityType']}", style: AppTextStyles.textSize12(context, color: Colors.grey)),
                         ],
                       ),
                     ),
@@ -220,10 +233,7 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
                       onTap: () => widget.onRemoveItem(index),
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                        decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
                         child: const Icon(Icons.delete, size: 16, color: Colors.red),
                       ),
                     ),
@@ -246,16 +256,12 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
       children: [
         SizedBox(
           width: screenWidth * 0.9,
-          child: Text(
-            "Weight/Quantity",
-            style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-          ),
+          child: Text("Weight/Quantity", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         ),
         SizedBox(height: screenHeight * 0.012),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Quantity/Weight Input Field
             Container(
               width: screenWidth * 0.38,
               height: 42,
@@ -266,21 +272,16 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
               ),
               child: TextFormField(
                 controller: itemWeightController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
                 decoration: InputDecoration(
                   hintText: selectedWeightType == 'pics' ? "5" : "500",
-                  hintStyle: AppTextStyles.textSize16(
-                    context,
-                    color: AppColors.hintColor(context),
-                    weight: FontWeight.w400,
-                  ),
+                  hintStyle: AppTextStyles.textSize16(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
                   border: const OutlineInputBorder(borderSide: BorderSide.none),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
                 ),
               ),
             ),
-            // Weight Type Dropdown
             Container(
               width: screenWidth * 0.38,
               height: 42,
@@ -296,45 +297,24 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
                   style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
                   hint: Text(
                     "Select Unit",
-                    style: AppTextStyles.textSize16(
-                      context,
-                      color: AppColors.hintColor(context),
-                      weight: FontWeight.w400,
-                    ),
+                    style: AppTextStyles.textSize16(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
                   ),
-                  iconStyleData: IconStyleData(
-                    icon: Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 25,
-                      color: AppColors.form_hover(context),
-                    ),
-                  ),
-                  buttonStyleData: ButtonStyleData(
-                    width: screenWidth * 0.38,
-                    height: 42,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                  ),
+                  iconStyleData: IconStyleData(icon: Icon(Icons.keyboard_arrow_down, size: 25, color: AppColors.form_hover(context))),
+                  buttonStyleData: ButtonStyleData(width: screenWidth * 0.38, height: 42, padding: const EdgeInsets.symmetric(horizontal: 10)),
                   dropdownStyleData: DropdownStyleData(
                     maxHeight: 200,
                     width: screenWidth * 0.38,
-                    decoration: BoxDecoration(
-                      color: AppColors.textFieldFill(context),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(12)),
                   ),
                   items: weightTypes.entries.map((entry) {
                     return DropdownMenuItem<String>(
                       value: entry.key,
-                      child: Text(
-                        entry.value,
-                        style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
-                      ),
+                      child: Text(entry.value, style: AppTextStyles.textSize16(context, weight: FontWeight.w400)),
                     );
                   }).toList(),
                   onChanged: (String? newValue) {
                     setState(() {
                       selectedWeightType = newValue;
-                      // Update hint text based on selection
                       if (newValue == 'pics') {
                         itemWeightController.text = '';
                       }
@@ -354,10 +334,7 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
       onTap: _addItem,
       child: Container(
         height: 48,
-        decoration: BoxDecoration(
-          color: AppColors.button(context),
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -365,11 +342,7 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
             SizedboxSpaccing.width01(context),
             Text(
               "Add Item",
-              style: AppTextStyles.textSize16(
-                context,
-                color: Colors.white,
-                weight: FontWeight.w600,
-              ),
+              style: AppTextStyles.textSize16(context, color: Colors.white, weight: FontWeight.w600),
             ),
           ],
         ),
@@ -378,7 +351,6 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
   }
 
   Widget _buildNotesSection() {
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
@@ -386,10 +358,7 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Notes",
-            style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-          ),
+          Text("Notes", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
           SizedboxSpaccing.height012(context),
           Container(
             width: screenWidth * 0.9,
@@ -404,13 +373,9 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
               style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
               decoration: InputDecoration(
                 hintText: "Special instructions (e.g., 'ripe avocado')",
-                hintStyle: AppTextStyles.textSize16(
-                  context,
-                  color: AppColors.hintColor(context),
-                  weight: FontWeight.w400,
-                ),
+                hintStyle: AppTextStyles.textSize16(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
                 border: const OutlineInputBorder(borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
               ),
             ),
           ),
@@ -423,7 +388,44 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
   void dispose() {
     itemNameController.dispose();
     itemWeightController.dispose();
-    quantityController.dispose();
     super.dispose();
+  }
+}
+
+// Reusable Delivery Time Card Widget
+class DeliveryTimeCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const DeliveryTimeCard({Key? key, required this.icon, required this.iconColor, required this.label, required this.isSelected, required this.onTap}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 80,
+        width: 170,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.button(context).withOpacity(0.1) : AppColors.subtitle(context).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(width: 1, color: isSelected ? AppColors.button(context) : Colors.transparent),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isSelected ? AppColors.button(context) : iconColor, size: 18),
+            SizedboxSpaccing.height005(context),
+            Text(
+              label,
+              style: AppTextStyles.textSize14(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : null),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

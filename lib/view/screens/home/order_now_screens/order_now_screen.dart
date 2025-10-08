@@ -21,18 +21,30 @@ class OrderNow extends StatefulWidget {
 }
 
 class _OrderNowState extends State<OrderNow> {
-  // Store data properties (existing)
+  // Store data properties
   Map<String, dynamic>? storeData;
-  Map<String, dynamic>? retailer;
-  double? distance;
-  String? address;
-  String? businessName;
-  String? businessType;
+  String? store_distance;
+  String? store_address;
+  String? store_businessName;
+  String? store_status;
+  String? store_businessType;
   String? selectedStoreType;
-  String? userID;
+  String? store_userID;
+  String? store_FullAddress;
+  String? store_logoUrl;
+  double? storeLatitude;
+  double? storeLongitude;
 
-  // Controllers and state (existing)
+  // Customer location
+  String? customerFullAddress;
+  double? customerLongitude;
+  double? customerLatitude;
+
+  /// Controllers  For manual entry tab
   final TextEditingController notesController = TextEditingController();
+  final TextEditingController budgetController = TextEditingController();
+  String? selectedDeliveryTime;
+
   List<Map<String, dynamic>> orderItems = [];
   int _selectedTabIndex = 0;
 
@@ -51,16 +63,23 @@ class _OrderNowState extends State<OrderNow> {
 
     if (arguments != null) {
       storeData = arguments['storeData'];
-      retailer = arguments['retailer'];
-      distance = arguments['distance'];
-      address = arguments['address'];
-      businessName = arguments['businessName'];
-      businessType = arguments['businessType'];
+      store_distance = arguments['distanceText'];
+      store_businessName = arguments['businessName'];
+      store_status = arguments['status'];
+      store_businessType = arguments['businessType'];
       selectedStoreType = arguments['selectedStoreType'];
-      userID = arguments['userID'];
+      store_userID = arguments['userID'];
+      store_FullAddress = arguments['storeFullAddress'];
+      storeLatitude = arguments['storeLatitude'];
+      storeLongitude = arguments['storeLongitude'];
+      store_logoUrl = arguments['logoUrl'];
+
+      // Customer/User location data
+      customerFullAddress = arguments['customerFullAddress'];
+      customerLongitude = arguments['customerLongitude'];
+      customerLatitude = arguments['customerLatitude'];
     }
   }
-
   void _addOrderItem(Map<String, dynamic> item) {
     setState(() {
       orderItems.add(item);
@@ -72,8 +91,28 @@ class _OrderNowState extends State<OrderNow> {
       orderItems.removeAt(index);
     });
   }
-
   void _proceedToCheckout() {
+    // Validation for manual entry tab
+    if (_selectedTabIndex == 0) {
+      // Check budget
+      if (budgetController.text.trim().isEmpty) {
+        Utils.flushBarErrorMessage("Please enter your budget before proceeding", context);
+        return;
+      }
+
+      // Check if at least one item is added
+      if (orderItems.isEmpty) {
+        Utils.flushBarErrorMessage("Please add at least one item to your order", context);
+        return;
+      }
+
+      // Check if delivery time is selected
+      if (selectedDeliveryTime == null) {
+        Utils.flushBarErrorMessage("Please select a delivery time", context);
+        return;
+      }
+    }
+
     // Check if user has added any content from any tab
     bool hasManualItems = orderItems.isNotEmpty;
     bool hasPhotos = uploadedPhotos.isNotEmpty;
@@ -98,25 +137,34 @@ class _OrderNowState extends State<OrderNow> {
     // Navigate to checkout screen with all data
     Navigator.pushNamed(
       context,
-      RoutesName.checkoutScreen,
+      RoutesName.checkoutScreenNew,
       arguments: {
         'storeData': storeData,
-        'businessName': businessName,
-        'businessType': businessType,
-        'retailer': retailer,
-        'distance': distance,
-        'address': address,
+        'businessName': store_businessName,
+        'status': store_status,
+        'businessType': store_businessType,
+        'distanceText': store_distance,
+        'address': store_FullAddress,
+        'logoUrl': store_logoUrl,
         'selectedStoreType': selectedStoreType,
         'orderType': orderType,
-        'orderItems': orderItems, // Manual entry items
-        'uploadedPhotos': uploadedPhotos, // Photo items
-        'voiceRecordingPath': voiceRecordingPath, // Voice recording
+        'orderItems': orderItems,
+        'uploadedPhotos': uploadedPhotos,
+        'voiceRecordingPath': voiceRecordingPath,
         'notes': notesController.text.trim(),
-        // Summary counts
+        'budget': budgetController.text.trim(),
+        'deliveryTime': selectedDeliveryTime,
         'manualItemCount': orderItems.length,
         'photoCount': uploadedPhotos.length,
         'hasVoiceRecording': hasVoiceRecording,
-        'userID': userID,
+        'userID': store_userID,
+        'storeLatitude': storeLatitude, // ADD THIS
+        'storeLongitude': storeLongitude, // ADD THIS
+
+        // Customer location data
+        'customerFullAddress': customerFullAddress,
+        'customerLongitude': customerLongitude,
+        'customerLatitude': customerLatitude,
       },
     );
   }
@@ -142,7 +190,67 @@ class _OrderNowState extends State<OrderNow> {
             child: Column(
               children: [
                 SizedboxSpaccing.height02(context),
-                if (businessName != null) _buildStoreInfoCard(),
+                if ( store_businessName != null) _buildStoreInfoCard(),
+                SizedboxSpaccing.height02(context),
+                Container(
+                  width: screenWidth*0.9,
+                  decoration: BoxDecoration(
+                    color: AppColors.containerBackground(context),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(width: 1, color: AppColors.border(context)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: screenWidth*0.9,
+                        padding: EdgeInsets.only(left:screenHeight * 0.02,top:screenHeight * 0.015 ,bottom:screenHeight * 0.015 ),
+                        decoration:  BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(24),
+                            topRight: Radius.circular(24),
+                          ),
+                          border: Border(
+                            bottom: BorderSide(
+                              width: 1,
+                              color: AppColors.border(context),
+                            )
+                          )
+                        ),
+                        child:Text(
+                            'Set Budget',
+                            style: AppTextStyles.textSize18(context, weight: FontWeight.w500)
+                        ),
+                      ),
+                      Padding(
+                        padding:  EdgeInsets.all(screenHeight * 0.02),
+                        child: Container(
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: AppColors.textFieldFill(context),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              width: 1,
+                              color: AppColors.border(context),
+                            ),
+                          ),
+                          child: TextFormField(
+                            controller: budgetController,
+                            keyboardType: TextInputType.number,
+                            style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                            decoration: InputDecoration(
+                              hintText: "e.g., 1500",
+                              hintStyle: AppTextStyles.textSize16(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 SizedboxSpaccing.height02(context),
                 _buildTabSection(),
                 SizedboxSpaccing.height02(context),
@@ -182,10 +290,33 @@ class _OrderNowState extends State<OrderNow> {
   Widget _buildStoreInfo() {
     return Row(
       children: [
-        Icon(Icons.shopping_cart, color: AppColors.textPrimary(context), size: 20),
+        Container(
+          height: 40,
+          width: 40,
+          margin: EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: store_logoUrl != null && store_logoUrl!.isNotEmpty
+                ? Colors.transparent
+                : AppColors.textPrimary(context),
+            borderRadius: BorderRadius.circular(6),
+            image: store_logoUrl != null && store_logoUrl!.isNotEmpty
+                ? DecorationImage(
+              image: NetworkImage(store_logoUrl!),
+              fit: BoxFit.cover,
+            )
+                : null,
+          ),
+          child: store_logoUrl == null || store_logoUrl!.isEmpty
+              ? Icon(
+            Icons.local_grocery_store,
+            color: AppColors.textPrimary(context),
+            size: 20,
+          )
+              : null,
+        ),
         SizedboxSpaccing.width02(context),
         Text(
-          businessName ?? 'Store Name',
+          store_businessName ?? 'Store Name',
           style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
           overflow: TextOverflow.ellipsis,
         ),
@@ -194,16 +325,16 @@ class _OrderNowState extends State<OrderNow> {
   }
 
   Widget _buildAvailabilityBadge(double screenHeight) {
-    return Container(
-      child: Row(
-        children: [
-          Icon(Icons.check_circle, size: 16, color: Colors.green),
-          SizedboxSpaccing.width02(context),
-          Text(
-            "Available",
-            style: AppTextStyles.textSize14(context, color: Colors.green, weight: FontWeight.w400),
-          ),
-        ],
+    return         Container(
+      height: 24,
+      width: 75,
+      decoration: BoxDecoration(
+        color: store_status=="Available"? AppColors.oceanGreenColor : AppColors.darkRedColor,
+        borderRadius: BorderRadius.circular(100),),
+      child: Center(
+        child: Text( store_status!,
+          style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w400),
+        ),
       ),
     );
   }
@@ -293,7 +424,7 @@ class _OrderNowState extends State<OrderNow> {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [_buildTab("Manual Entry", 0, FontAwesomeIcons.edit), _buildTab("Photo Upload", 1, FontAwesomeIcons.camera), _buildTab("Voice List", 2, Icons.mic)],
+            children: [_buildTab("Manual", 0, FontAwesomeIcons.edit), _buildTab("Upload", 1, FontAwesomeIcons.camera), _buildTab("Voice", 2, Icons.mic)],
           ),
         ),
       ),
@@ -303,8 +434,19 @@ class _OrderNowState extends State<OrderNow> {
   Widget _buildTabContent() {
     switch (_selectedTabIndex) {
       case 0:
-        return ManualEntryTab(orderItems: orderItems, onAddItem: _addOrderItem, onRemoveItem: _removeOrderItem, notesController: notesController);
-      case 1:
+        return ManualEntryTab(
+          orderItems: orderItems,
+          onAddItem: _addOrderItem,
+          onRemoveItem: _removeOrderItem,
+          notesController: notesController,
+          budgetController: budgetController,
+          initialDeliveryTime: selectedDeliveryTime,
+          onDeliveryTimeSelected: (time) {
+            setState(() {
+              selectedDeliveryTime = time;
+            });
+          },
+        );      case 1:
         return PhotoUploadTab(
           initialPhotos: uploadedPhotos, // PASS EXISTING PHOTOS
           onPhotosChanged: (photos) {
@@ -344,26 +486,6 @@ class _OrderNowState extends State<OrderNow> {
     );
   }
 
-  Widget _buildProceedButton() {
-    return GestureDetector(
-      onTap: _proceedToCheckout,
-      child: Container(
-        height: 42,
-        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.shopping_cart, size: 18, color: Colors.white),
-            SizedboxSpaccing.width01(context),
-            Text(
-              "Proceed",
-              style: AppTextStyles.textSize12(context, color: Colors.white, weight: FontWeight.w400),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   void dispose() {
