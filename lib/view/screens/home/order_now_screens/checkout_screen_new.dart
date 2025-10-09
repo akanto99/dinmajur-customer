@@ -21,12 +21,12 @@ class CheckoutScreenNew extends StatefulWidget {
 
 class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
   Map<String, dynamic>? storeData;
-  String? businessName;
-  String? status;
-  String? businessType;
-  String? distanceText;
-  String? address;
-  String? userID;
+  String? store_businessName;
+  String? store_status;
+  String? store_businessType;
+  String? store_distanceText;
+  String? store_address;
+  String? store_userID;
   double? storeLatitude;
   double? storeLongitude;
   String? store_logoUrl;
@@ -104,12 +104,12 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
 
     if (arguments != null) {
       storeData = arguments['storeData'];
-      businessName = arguments['businessName'];
-      status = arguments['status'];
-      businessType = arguments['businessType'];
-      distanceText = arguments['distanceText'];
-      address = arguments['address'];
-      userID = arguments['userID'];
+      store_businessName = arguments['businessName'];
+      store_status = arguments['status'];
+      store_businessType = arguments['businessType'];
+      store_distanceText = arguments['distanceText'];
+      store_address = arguments['address'];
+      store_userID = arguments['userID'];
       storeLatitude = arguments['storeLatitude'];
       storeLongitude = arguments['storeLongitude'];
       store_logoUrl = arguments['logoUrl'];
@@ -129,7 +129,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
       orderType = arguments['orderType'] ?? 'manual';
 
       debugPrint('========== CHECKOUT SCREEN DATA ==========');
-      debugPrint('Business: $businessName');
+      debugPrint('Business: $store_businessName');
       debugPrint('Customer Address: $customerFullAddress');
       debugPrint('Budget: $budget');
       debugPrint('Delivery Time: $deliveryTime');
@@ -231,11 +231,11 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      businessName ?? 'Store Name',
+                      store_businessName ?? 'Store Name',
                       style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text('Under: ${businessType ?? 'Store'}', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+                    Text('Under: ${store_businessType ?? 'Store'}', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
                   ],
                 ),
               ),
@@ -256,7 +256,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                   children: [
                     Text('Store Address', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                     Text(
-                      address ?? 'No address found',
+                      store_address ?? 'No address found',
                       style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -265,7 +265,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                       children: [
                         Icon(FontAwesomeIcons.car, size: 12, color: AppColors.textPrimary(context)),
                         SizedboxSpaccing.width01(context),
-                        Text("$distanceText", style: AppTextStyles.textSize12(context)),
+                        Text("$store_distanceText", style: AppTextStyles.textSize12(context)),
                         Spacer(),
                         GestureDetector(
                           onTap: () {
@@ -597,7 +597,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                       }
 
                       Map<String, dynamic> orderData = {
-                        "retailerId": userID,
+                        "retailerId": store_userID,
                         "items": _buildOrderItemsForApi(),
                         "status": "PENDING",
                         "paymentMethod": selectedPaymentMethod,
