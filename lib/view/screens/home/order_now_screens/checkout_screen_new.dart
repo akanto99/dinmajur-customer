@@ -54,6 +54,32 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
     {'method': 'nagad', 'title': 'Nagad', 'icon': FontAwesomeIcons.wallet, 'color': Color(0xFFEE4237)},
     {'method': 'cash', 'title': 'Hand Cash', 'icon': FontAwesomeIcons.sackDollar, 'color': Color(0xFF45A986)},
   ];
+  Map<String, dynamic> _getPaymentMethodData(String? method) {
+    switch (method) {
+      case 'bkash':
+        return {
+          "type": "WALLET",
+          "provider": "bkash"
+        };
+      case 'nagad':
+        return {
+          "type": "WALLET",
+          "provider": "nagad"
+        };
+      case 'cash':
+        return {
+          "type": "OTHER",
+          "provider": "cash_on_delivery"
+        };
+      default:
+        return {
+          "type": "OTHER",
+          "provider": "cash_on_delivery"
+        };
+    }
+  }
+
+
   Future<void> _openGoogleMapsDirections() async {
     if (customerLatitude == null || customerLongitude == null || storeLatitude == null || storeLongitude == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -599,15 +625,17 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                       Map<String, dynamic> orderData = {
                         "retailerId": store_userID,
                         "items": _buildOrderItemsForApi(),
-                        "status": "PENDING",
-                        "paymentMethod": selectedPaymentMethod,
+                        "paymentMethod": _getPaymentMethodData(selectedPaymentMethod),
                         "customerNote": notes?.trim(),
-                        "deliveryTime": deliveryTime,
+                        "estimatedDeliveryTime": deliveryTime,
                         "budget": budget,
-                        "geoLocation": {
-                          "type": "Point",
-                          "coordinates": [customerLongitude, customerLatitude]
-                        },
+                        "deliveryAddress": {
+                          "geoLocation": {
+                            "type": "Point",
+                            "coordinates": [customerLongitude, customerLatitude]
+                          },},
+                        "fullAddress":customerFullAddress,
+
                       };
 
                       print("🛒 Final Order Data: ${jsonEncode(orderData)}");
@@ -631,7 +659,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
     // Add manual entry items
     for (var item in orderItems) {
       double quantity = double.tryParse(item['quantity']?.toString() ?? '1') ?? 1.0;
-      items.add({"itemName": item['name'] ?? 'Unknown Item', "quantity": quantity, "unit": item['quantityType'] ?? 'gm'});
+      items.add({"name": item['name'] ?? 'Unknown Item', "quantity": quantity, "unit": item['quantityType'] ?? 'gm'});
     }
 
     // Add photo items

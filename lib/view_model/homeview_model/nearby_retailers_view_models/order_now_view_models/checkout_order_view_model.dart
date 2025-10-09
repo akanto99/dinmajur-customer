@@ -55,11 +55,6 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
 
       Utils.flushBarSuccessMessage('Order created successfully', context);
 
-      // Navigate back or to order confirmation screen
-      Navigator.pop(context);
-      // Or navigate to order confirmation:
-      // Navigator.pushNamed(context, RoutesName.orderConfirmation, arguments: value);
-
     } catch (error) {
       setCheckoutOrderLoading(false);
 

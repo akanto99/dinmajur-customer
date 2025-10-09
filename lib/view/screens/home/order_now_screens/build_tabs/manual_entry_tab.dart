@@ -35,7 +35,7 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
   final TextEditingController itemWeightController = TextEditingController();
 
   // Weight types mapping with display names
-  final Map<String, String> weightTypes = {'gm': 'Grams', 'kg': 'Kilograms', 'lr': 'Liters', 'pics': 'Pieces'};
+  final Map<String, String> weightTypes = {'gm': 'Grams', 'kg': 'Kilograms', 'lr': 'Liters', 'pcs': 'Pieces'};
   String? selectedWeightType = 'gm';
   String? selectedDeliveryTime;
 
