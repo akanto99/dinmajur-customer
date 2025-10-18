@@ -108,7 +108,7 @@ flutter:
     - assets/images/navBar/navbar_new/
     - assets/images/home/
 #    - assets/images/home/home_screen/
-#    - assets/images/home/drawer/
+    - assets/images/home/drawer/
     #    - assets/images/task/
 
 
