@@ -63,7 +63,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   Navigator.pop(context);
                 },
                 child: Container(height: 60, 
-                    // color: AppColors.containerBackground(context),
+                    color: AppColors.containerBackground(context),
                     child: AppBarHeader(AppLocalizations.of(context)!.profile_menu)),
               ),
          Expanded(child: SingleChildScrollView(
@@ -93,12 +93,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
-            return Container(height: 220, child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
+            return Container(height: 220,
+                color: AppColors.containerBackground(context),
+                child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
 
           case Status.ERROR:
             return Container(
               height: 220,
-              color: AppColors.appBackground(context),
+              color: AppColors.containerBackground(context),
               child: Center(
                 child: GestureDetector(
                   onTap: () {
