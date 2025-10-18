@@ -1,8 +1,8 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
-import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
+import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/view_model/authview_model/authview_model.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/authview_model/otp_verify_view_model.dart';

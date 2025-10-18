@@ -353,4 +353,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get no_data_found => 'No data found';
+
+  @override
+  String get save_address => 'Save Addresses';
+
+  @override
+  String get orders => 'Orders';
+
+  @override
+  String get promo_codes => 'Promo Codes';
+
+  @override
+  String get offers => 'Offers';
+
+  @override
+  String get terms_conditions => 'Terms & Condition';
+
+  @override
+  String get privacy_ploicy => 'Privacy Policy';
 }

@@ -44,7 +44,21 @@ class _ViewProfileState extends State<ViewProfile> {
           },
           child: SizedBox(height: 60, child: AppBarHeader("My Profile")),
         ),
-
+    // DrawerProfileHeader(
+    // title: "$userName",
+    // isActive: true,
+    // phone: "$userPhone",
+    // order: "0",
+    // Wishlist: "0",
+    // reviews: "0",
+    // onImageTap: () {
+    // // if (imageUrl != null && imageUrl!.isNotEmpty) {
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => FullScreenImage(imageUrl: "$profileImageUrl")));
+    // // }
+    // },
+    // onCameraTap: patchprofileImageUpdateViewMode.profileImageUpdateLoading ? () {} : _handleImagePick,
+    // profileImage: "$profileImageUrl",
+    // );
 
         /// Fixed navigation bar at bottom
         Container(

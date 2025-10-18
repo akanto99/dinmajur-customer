@@ -1,57 +1,4 @@
-// import 'package:flutter/foundation.dart';
-// import 'package:socket_io_client/socket_io_client.dart' as IO;
-//
-// class SocketProvider extends ChangeNotifier {
-//   IO.Socket? _socket;
-//
-//   IO.Socket? get socket => _socket;
-//   bool get isConnected => _socket?.connected ?? false;
-//
-//   void connect() {
-//     if (_socket != null && _socket!.connected) {
-//       debugPrint("ℹ️ Already connected to WebSocket");
-//       return;
-//     }
-//
-//     // আপনার API URL এবং পোর্ট সঠিকভাবে দিন
-//     _socket = IO.io(
-//       'https://api-staging.dinmajur.com',
-//       IO.OptionBuilder()
-//           .setTransports(['websocket'])
-//           .disableAutoConnect()
-//           .enableForceNew()
-//           .build(),
-//     );
-//
-//     _socket!.connect();
-//
-//     _socket!.onConnect((_) {
-//       debugPrint('✅ WebSocket Connected');
-//       notifyListeners();
-//     });
-//
-//     _socket!.onDisconnect((_) {
-//       debugPrint('❌ WebSocket Disconnected');
-//       notifyListeners();
-//     });
-//
-//     _socket!.onError((data) {
-//       debugPrint('⚠️ WebSocket Error: $data');
-//     });
-//
-//     _socket!.onConnectError((data) {
-//       debugPrint('🚫 WebSocket Connect Error: $data');
-//     });
-//   }
-//
-//   void disconnect() {
-//     _socket?.disconnect();
-//     _socket = null;
-//     debugPrint("🔌 WebSocket Disconnected Manually");
-//     notifyListeners();
-//   }
-// }
-import 'package:dinmajur_customer/configs/services/socket/socket_services.dart';
+import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_services.dart';
 import 'package:flutter/foundation.dart';
 
 class SocketProvider with ChangeNotifier {
@@ -67,8 +14,9 @@ class SocketProvider with ChangeNotifier {
   bool get isConnecting => _isConnecting;
   String? get connectionError => _connectionError;
   String? get lastActivity => _lastActivity;
+  SocketService get socketService => _socketService;
 
-  // Connect socket with user credentials
+  /// Connect socket with user credentials
   Future<void> connectWithUser({
     required String userId,
     required String role,
@@ -84,8 +32,8 @@ class SocketProvider with ChangeNotifier {
         userRole: role,
       );
 
-      // Setup socket event listeners
-      _setupSocketListeners();
+      // Setup basic connection listeners
+      _setupConnectionListeners();
 
       _isConnecting = false;
       notifyListeners();
@@ -106,9 +54,8 @@ class SocketProvider with ChangeNotifier {
     }
   }
 
-  // Setup socket event listeners
-  void _setupSocketListeners() {
-    // Listen for connection status
+  /// Setup basic connection event listeners
+  void _setupConnectionListeners() {
     _socketService.socket?.on('connect', (_) {
       _isConnected = true;
       _connectionError = null;
@@ -141,8 +88,8 @@ class SocketProvider with ChangeNotifier {
       }
     });
 
-    // Listen for user registration confirmation
-    _socketService.socket?.on('user-registered', (data) {
+    // User registration/unregistration confirmations
+    _socketService.socket?.on('register-user', (data) {
       _lastActivity = DateTime.now().toString();
       notifyListeners();
 
@@ -151,8 +98,7 @@ class SocketProvider with ChangeNotifier {
       }
     });
 
-    // Listen for user unregistration confirmation
-    _socketService.socket?.on('user-unregistered', (data) {
+    _socketService.socket?.on('unregister-user', (data) {
       _lastActivity = DateTime.now().toString();
       notifyListeners();
 
@@ -160,37 +106,9 @@ class SocketProvider with ChangeNotifier {
         print('🔌 Socket Provider: User unregistered successfully - $data');
       }
     });
-
-    // Listen for delivery-related events
-    _socketService.socket?.on('deliveryRequest', (data) {
-      _lastActivity = DateTime.now().toString();
-      notifyListeners();
-
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Delivery request received - $data');
-      }
-    });
-
-    _socketService.socket?.on('deliveryAccepted', (data) {
-      _lastActivity = DateTime.now().toString();
-      notifyListeners();
-
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Delivery accepted - $data');
-      }
-    });
-
-    _socketService.socket?.on('deliveryTaken', (data) {
-      _lastActivity = DateTime.now().toString();
-      notifyListeners();
-
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Delivery taken - $data');
-      }
-    });
   }
 
-  // Unregister user and disconnect socket
+  /// Unregister user and disconnect socket
   Future<void> unregisterAndDisconnect({
     required String userId,
     required String role,
@@ -207,7 +125,7 @@ class SocketProvider with ChangeNotifier {
           print('🔌 Socket Provider: Unregistering user $userId');
         }
 
-        // Wait a moment for the server to process
+        // Wait for server to process
         await Future.delayed(Duration(milliseconds: 500));
       }
 
@@ -233,7 +151,7 @@ class SocketProvider with ChangeNotifier {
     }
   }
 
-  // Force disconnect socket
+  /// Force disconnect socket
   Future<void> disconnect() async {
     try {
       await _socketService.disconnect();
@@ -256,43 +174,15 @@ class SocketProvider with ChangeNotifier {
     }
   }
 
-  // Reconnect socket
-  Future<void> reconnect() async {
-    try {
-      await _socketService.reconnect();
-      _setupSocketListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Reconnected');
-      }
 
-    } catch (e) {
-      _connectionError = e.toString();
-      _isConnected = false;
-      notifyListeners();
-
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Reconnection failed - $e');
-      }
-    }
-  }
-
-  // Emit custom events
+  /// Emit custom events
   void emit(String event, dynamic data) {
-    if (_isConnected) {
-      _socketService.emit(event, data);
+    if (_isConnected && _socketService.socket != null) {
+      _socketService.socket!.emit(event, data);
       _lastActivity = DateTime.now().toString();
       notifyListeners();
     }
-  }
-
-  // Listen to custom events
-  void on(String event, Function(dynamic) callback) {
-    _socketService.on(event, (data) {
-      _lastActivity = DateTime.now().toString();
-      notifyListeners();
-      callback(data);
-    });
   }
 
   // Get socket status as string
@@ -309,5 +199,96 @@ class SocketProvider with ChangeNotifier {
     if (_isConnected) return 0xFF4CAF50; // Green
     if (_connectionError != null) return 0xFFF44336; // Red
     return 0xFF9E9E9E; // Grey
+  }
+
+
+  /// Reconnect socket
+  Future<void> reconnect() async {
+    try {
+      _isConnecting = true;
+      _connectionError = null;
+      notifyListeners();
+
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Attempting reconnection...');
+      }
+
+      // Check if we can reconnect
+      if (!_socketService.canReconnect()) {
+        throw Exception('Cannot reconnect: Missing user credentials');
+      }
+
+      // Attempt reconnection
+      await _socketService.reconnect();
+
+      _isConnecting = false;
+      notifyListeners();
+
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Reconnection attempt completed');
+      }
+
+    } catch (e) {
+      _isConnecting = false;
+      _connectionError = e.toString();
+      _isConnected = false;
+      notifyListeners();
+
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Reconnection failed - $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Auto-reconnect with retry logic
+  Future<void> autoReconnect({int maxRetries = 3, Duration delay = const Duration(seconds: 2)}) async {
+    int retryCount = 0;
+
+    while (retryCount < maxRetries && !_isConnected) {
+      try {
+        if (kDebugMode) {
+          print('🔌 Socket Provider: Auto-reconnect attempt ${retryCount + 1}/$maxRetries');
+        }
+
+        await reconnect();
+
+        // Wait a bit to check if connection is successful
+        await Future.delayed(Duration(milliseconds: 500));
+
+        if (_isConnected) {
+          if (kDebugMode) {
+            print('🔌 Socket Provider: Auto-reconnect successful');
+          }
+          return;
+        }
+
+        retryCount++;
+
+        if (retryCount < maxRetries) {
+          await Future.delayed(delay);
+        }
+
+      } catch (e) {
+        retryCount++;
+
+        if (kDebugMode) {
+          print('🔌 Socket Provider: Auto-reconnect attempt $retryCount failed - $e');
+        }
+
+        if (retryCount < maxRetries) {
+          await Future.delayed(delay);
+        }
+      }
+    }
+
+    if (!_isConnected) {
+      _connectionError = 'Failed to reconnect after $maxRetries attempts';
+      notifyListeners();
+
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Auto-reconnect failed after $maxRetries attempts');
+      }
+    }
   }
 }

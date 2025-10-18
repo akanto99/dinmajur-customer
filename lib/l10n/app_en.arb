@@ -112,5 +112,11 @@
    "logout_confirm": "Are you sure you'd like to Log Out?",
    "cancel": "Cancel",
    "log_out": "Log out",
-   "no_data_found": "No data found"
+   "no_data_found": "No data found",
+   "save_address": "Save Addresses",
+   "orders": "Orders",
+   "promo_codes": "Promo Codes",
+   "offers": "Offers",
+   "terms_conditions": "Terms & Condition",
+    "privacy_ploicy": "Privacy Policy"
 }

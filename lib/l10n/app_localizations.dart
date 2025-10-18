@@ -751,6 +751,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data found'**
   String get no_data_found;
+
+  /// No description provided for @save_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Addresses'**
+  String get save_address;
+
+  /// No description provided for @orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get orders;
+
+  /// No description provided for @promo_codes.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo Codes'**
+  String get promo_codes;
+
+  /// No description provided for @offers.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers'**
+  String get offers;
+
+  /// No description provided for @terms_conditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Condition'**
+  String get terms_conditions;
+
+  /// No description provided for @privacy_ploicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacy_ploicy;
 }
 
 class _AppLocalizationsDelegate
