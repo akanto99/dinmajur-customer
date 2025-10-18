@@ -8,16 +8,24 @@ import 'package:dinmajur_customer/view/forgot_password/otp_verify.dart';
 import 'package:dinmajur_customer/view/login/login_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/password/password_change.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/privacy_policy/privacy_policy_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/promo_codes/promo_code_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/review/review.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/save_address/save_address_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/terms_conditions/terms_conditions_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/view_edit_profile/view_profile.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/add_newlocation_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/map_location_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 // import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_new.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
 import 'package:dinmajur_customer/view/screens/task/task_details.dart';
 import 'package:dinmajur_customer/view/screens/task/task_screen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
@@ -57,6 +65,15 @@ class Routes {
       ///Home
       case RoutesName.home:
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
+      case RoutesName.orderDetailsSocketScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => OrderDetailsSocketScreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
       //-----------location
       case RoutesName.addlocation:
         return MaterialPageRoute(builder: (BuildContext context) => const AddNewlocationScreen());
@@ -68,15 +85,29 @@ class Routes {
       //   return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
         case RoutesName.checkoutScreenNew:
         return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreenNew(), settings: settings);
-      //===========>
+      //drawer===========>
+      case RoutesName.viewProfile:
+        return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());
       case RoutesName.passwordChange:
         return MaterialPageRoute(builder: (BuildContext context) => const PasswordChange());
       case RoutesName.paymentMethod:
         return MaterialPageRoute(builder: (BuildContext context) => const PaymentMethod());
+      case RoutesName.saveAddress:
+        return MaterialPageRoute(builder: (BuildContext context) => const SaveAddressScreen());
+      case RoutesName.ordersScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
+      case RoutesName.promoCodes:
+        return MaterialPageRoute(builder: (BuildContext context) => const PromoCodeScreen());
+      case RoutesName.offers:
+        return MaterialPageRoute(builder: (BuildContext context) => const OffersScreen());
       case RoutesName.review:
         return MaterialPageRoute(builder: (BuildContext context) => const Review());
       case RoutesName.support:
         return MaterialPageRoute(builder: (BuildContext context) => const Support());
+      case RoutesName.termsAndCondition:
+        return MaterialPageRoute(builder: (BuildContext context) => const TermsConditionsScreen());
+      case RoutesName.privacyPolicy:
+        return MaterialPageRoute(builder: (BuildContext context) => const PrivacyPolicyScreen());
 
       ///Task
       case RoutesName.taskScreen:

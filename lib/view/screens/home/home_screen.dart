@@ -12,6 +12,9 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
+import 'package:dinmajur_customer/socket_connection_model/screens_sockets/home_sceens_socket/get_all_orders_socket/socket_get_all_order_retailer.dart';
+import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
+import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/socket_getall_order/socket_getall_order_section.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
@@ -68,6 +71,20 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       profileViewModel.fetchProfileViewUserDataApi();
+
+
+      /// SOCKET.IO
+      // Future.delayed(Duration(milliseconds: 1500), () {
+      //   if (mounted) {
+      //     final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      //     final orderSocketProvider = Provider.of<OrderSocketProvider>(context, listen: false);
+      //
+      //     // Initialize with automatic retry logic
+      //     orderSocketProvider.initializeWithRetry(socketProvider);
+      //   }
+      // });
+
+
     });
 
     _checkAndGetLocation();
@@ -258,6 +275,23 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
+
+
+  // @override
+  // void dispose() {
+  //   try {
+  //     final orderSocketProvider = Provider.of<OrderSocketProvider>(context, listen: false);
+  //     orderSocketProvider.cleanupListener();
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print('🏠 HomeScreen: Dispose error - $e');
+  //     }
+  //   }
+  //   super.dispose();
+  // }
+
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -336,7 +370,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           SizedboxSpaccing.height02(context),
+
           _buildStoresList(),
+          SizedboxSpaccing.height02(context),
+          // ///From SOCKET.IO order getting
+          // SocketGetallOrderSection(
+          //   onSeeAll: () {
+          //     // Navigation logic
+          //   },
+          // ),
         ],
       ),
     );

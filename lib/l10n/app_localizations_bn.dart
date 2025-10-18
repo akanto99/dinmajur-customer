@@ -353,4 +353,22 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get no_data_found => 'কোনো তথ্য পাওয়া যায়নি';
+
+  @override
+  String get save_address => 'ঠিকানা সংরক্ষণ করুন';
+
+  @override
+  String get orders => 'অর্ডারসমূহ';
+
+  @override
+  String get promo_codes => 'প্রোমো কোডসমূহ';
+
+  @override
+  String get offers => 'অফারসমূহ';
+
+  @override
+  String get terms_conditions => 'শর্তাবলী';
+
+  @override
+  String get privacy_ploicy => 'Privacy Policy';
 }
