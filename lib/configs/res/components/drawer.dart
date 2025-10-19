@@ -62,7 +62,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Container(height: 60, 
+                child: Container(height: 60,
                     color: AppColors.containerBackground(context),
                     child: AppBarHeader(AppLocalizations.of(context)!.profile_menu)),
               ),
@@ -76,7 +76,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
            ),
          )),
 
-              
+
             ],
           ),
         ),
@@ -123,7 +123,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             final profileData = profileViewModel.profileviewUserData.data!.data!;
 
             String? profileImageUrl = userData.profilePicture?.url;
-            String userName = userData.firstName ?? userData.lastName ?? '${userData.firstName ?? ''} ${userData.lastName ?? ''}'.trim();
+            String userName = '${userData.fullName ?? ''}'.trim();
             if (userName.isEmpty) userName = 'Unknown User';
             String userPhone = userData.phone ?? '0';
 
@@ -134,7 +134,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 border: Border(
                   bottom: BorderSide(
                     color: AppColors.border(context),
-                    width: 1.0,        
+                    width: 1.0,
                   ),
                 )
               ),

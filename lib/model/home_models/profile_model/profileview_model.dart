@@ -35,20 +35,24 @@ class ProfileViewModel {
 class Data {
   User? user;
   Addresses? addresses;
+  Orders? orders;
 
   Data({
     this.user,
     this.addresses,
+    this.orders,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     user: json["user"] == null ? null : User.fromJson(json["user"]),
     addresses: json["addresses"] == null ? null : Addresses.fromJson(json["addresses"]),
+    orders: json["orders"] == null ? null : Orders.fromJson(json["orders"]),
   );
 
   Map<String, dynamic> toJson() => {
     "user": user?.toJson(),
     "addresses": addresses?.toJson(),
+    "orders": orders?.toJson(),
   };
 }
 
@@ -120,39 +124,91 @@ class GeoLocation {
   };
 }
 
-class User {
-  String? id;
-  String? firstName;
-  String? lastName;
-  String? phone;
-  ProfilePicture? profilePicture;
-  String? role;
+class Orders {
+  int? totalSpend;
+  int? totalOrders;
+  int? totalReviews;
+  RecentOrder? recentOrder;
 
-  User({
-    this.id,
-    this.firstName,
-    this.lastName,
-    this.phone,
-    this.profilePicture,
-    this.role,
+  Orders({
+    this.totalSpend,
+    this.totalOrders,
+    this.totalReviews,
+    this.recentOrder,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => User(
+  factory Orders.fromJson(Map<String, dynamic> json) => Orders(
+    totalSpend: json["totalSpend"],
+    totalOrders: json["totalOrders"],
+    totalReviews: json["totalReviews"],
+    recentOrder: json["recentOrder"] == null ? null : RecentOrder.fromJson(json["recentOrder"]),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "totalSpend": totalSpend,
+    "totalOrders": totalOrders,
+    "totalReviews": totalReviews,
+    "recentOrder": recentOrder?.toJson(),
+  };
+}
+
+class RecentOrder {
+  String? id;
+  int? total;
+  String? status;
+
+  RecentOrder({
+    this.id,
+    this.total,
+    this.status,
+  });
+
+  factory RecentOrder.fromJson(Map<String, dynamic> json) => RecentOrder(
     id: json["_id"],
-    firstName: json["firstName"],
-    lastName: json["lastName"],
-    phone: json["phone"],
-    profilePicture: json["profilePicture"] == null ? null : ProfilePicture.fromJson(json["profilePicture"]),
-    role: json["role"],
+    total: json["total"],
+    status: json["status"],
   );
 
   Map<String, dynamic> toJson() => {
     "_id": id,
-    "firstName": firstName,
-    "lastName": lastName,
+    "total": total,
+    "status": status,
+  };
+}
+
+class User {
+  String? id;
+  String? fullName;
+  String? phone;
+  ProfilePicture? profilePicture;
+  String? role;
+  DateTime? createdAt;
+
+  User({
+    this.id,
+    this.fullName,
+    this.phone,
+    this.profilePicture,
+    this.role,
+    this.createdAt,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) => User(
+    id: json["_id"],
+    fullName: json["fullName"],
+    phone: json["phone"],
+    profilePicture: json["profilePicture"] == null ? null : ProfilePicture.fromJson(json["profilePicture"]),
+    role: json["role"],
+    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "fullName": fullName,
     "phone": phone,
     "profilePicture": profilePicture?.toJson(),
     "role": role,
+    "createdAt": createdAt?.toIso8601String(),
   };
 }
 

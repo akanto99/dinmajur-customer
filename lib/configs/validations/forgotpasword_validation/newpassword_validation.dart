@@ -77,9 +77,7 @@ class NewPasswordValidation {
       return AppLocalizations.of(context)!.invalid_phone_number;
     }
 
-    List<String> validPrefixes = [
-      '013', '014', '015', '016', '017', '018', '019'
-    ];
+    List<String> validPrefixes = ['013', '014', '015', '016', '017', '018', '019'];
 
     String prefix = cleanPhone.substring(0, 3);
     if (!validPrefixes.contains(prefix)) {
@@ -149,6 +147,7 @@ class NewPasswordValidation {
 
     return null;
   }
+
   // ✅ Full Name Validation
   static String? validateFullName(String? fullName, BuildContext context) {
     if (fullName == null || fullName.trim().isEmpty) {
@@ -157,6 +156,9 @@ class NewPasswordValidation {
 
     if (fullName.trim().length < 3) {
       return AppLocalizations.of(context)!.full_name_min_length;
+    }
+    if (fullName.trim().length > 26) {
+      return AppLocalizations.of(context)!.full_name_max_length;
     }
 
     if (!RegExp(r'^[a-zA-Z\u0980-\u09FF\s]+$').hasMatch(fullName.trim())) {
@@ -179,28 +181,15 @@ class NewPasswordValidation {
             margin: const EdgeInsets.only(right: 10),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: isMet ? Colors.green : AppColors.border(context),
-                width: 1,
-              ),
+              border: Border.all(color: isMet ? Colors.green : AppColors.border(context), width: 1),
               color: isMet ? Colors.green : Colors.transparent,
             ),
-            child: isMet
-                ? Icon(
-              Icons.check,
-              size: 8,
-              color: AppColors.whiteColor,
-            )
-                : null,
+            child: isMet ? Icon(Icons.check, size: 8, color: AppColors.whiteColor) : null,
           ),
           Flexible(
             child: Text(
               text,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: isMet ? Colors.green : AppColors.textPrimary(context),
-                fontWeight: FontWeight.w400,
-              ),
+              style: GoogleFonts.poppins(fontSize: 14, color: isMet ? Colors.green : AppColors.textPrimary(context), fontWeight: FontWeight.w400),
             ),
           ),
         ],
@@ -222,26 +211,16 @@ class NewPasswordValidation {
         SizedBox(height: 8),
         Text(
           'Password strength: $strengthText',
-          style: TextStyle(
-            fontSize: 14,
-            color: strengthColor,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(fontSize: 14, color: strengthColor, fontWeight: FontWeight.w500),
         ),
       ],
     );
   }
 
   Widget buildRequirementsList(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: getRequirements()
-          .map((requirement) => buildRequirement(context, requirement.text, requirement.isMet))
-          .toList(),
-    );
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: getRequirements().map((requirement) => buildRequirement(context, requirement.text, requirement.isMet)).toList());
   }
 }
-
 
 // Helper class for password requirements
 class PasswordRequirement {
@@ -253,15 +232,8 @@ class PasswordRequirement {
 
 // Extension class for additional validation methods (Optional)
 extension NewPasswordValidationExtension on NewPasswordValidation {
-
   // Method for complete form validation (Registration)
-  ValidationResult validateRegistrationForm({
-    required String fullName,
-    required String phone,
-    required String password,
-    required String confirmPassword,
-    required BuildContext context,
-  }) {
+  ValidationResult validateRegistrationForm({required String fullName, required String phone, required String password, required String confirmPassword, required BuildContext context}) {
     // ✅ Full name validation
     String? fullNameError = NewPasswordValidation.validateFullName(fullName, context);
     if (fullNameError != null) {
@@ -283,13 +255,8 @@ extension NewPasswordValidationExtension on NewPasswordValidation {
     return ValidationResult(isValid: true);
   }
 
-
   // Method for forgot password validation
-  ValidationResult validateForgotPasswordForm({
-    required String password,
-    required String confirmPassword,
-    required BuildContext context,
-  }) {
+  ValidationResult validateForgotPasswordForm({required String password, required String confirmPassword, required BuildContext context}) {
     String? passwordError = _validatePasswords(password, confirmPassword, context);
     if (passwordError != null) {
       return ValidationResult(isValid: false, errorMessage: passwordError);

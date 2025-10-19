@@ -1,12 +1,18 @@
+
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class ViewProfile extends StatefulWidget {
   const ViewProfile({super.key});
@@ -16,14 +22,16 @@ class ViewProfile extends StatefulWidget {
 }
 
 class _ViewProfileState extends State<ViewProfile> {
-  // Sample data
-  String profileImage = "https://example.com/profile.jpg"; // Replace with actual image
-  String title = "Emily Johnson";
-  String phone = "01833182808";
-  bool isActive = true;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+      profileViewModel.fetchProfileViewUserDataApi();
+    });
+  }
 
   int _currentIndex = 0;
-  int _tappedIndex = -1;
   final List<String> icons = [
     "assets/images/navBar/navbar_new/home.svg",
     "assets/images/navBar/navbar_new/scan.svg",
@@ -66,113 +74,139 @@ class _ViewProfileState extends State<ViewProfile> {
           child: SizedBox(height: 60, child: AppBarHeader("My Profile")),
         ),
 
-        // Scrollable content
+        // Scrollable content with Consumer
         Expanded(
-          child: SingleChildScrollView(
-            child: Container(
-              width: screenWidth*0.9,
-              child: Column(
-                children: [
-                  SizedBox(height: screenHeight * 0.02),
-                  _buildProfileCard(screenWidth, screenHeight),
-                  SizedBox(height: screenHeight * 0.02),
-                  _buildStatsCard(screenWidth, screenHeight),
+          child: Consumer<ProfileViewViewModel>(
+            builder: (context, profileViewModel, _) {
+              print("ProfileViewModel Status: ${profileViewModel.profileviewUserData.status}");
 
-                  SizedBox(height: screenHeight * 0.02),
+              switch (profileViewModel.profileviewUserData.status) {
+                case Status.LOADING:
+                  return Center(
+                    child: LoadingAnimationWidget.progressiveDots(
+                      color: AppColors.button(context),
+                      size: 45,
+                    ),
+                  );
 
-                  // Personal Information
-                  _buildPersonalInformation(screenWidth, screenHeight),
-
-                  SizedBox(height: screenHeight * 0.025),
-
-                  // Delivery Address
-                  _buildDeliveryAddress(screenWidth, screenHeight),
-
-                  SizedBox(height: screenHeight * 0.025),
-
-                  // Recent Orders
-                  _buildRecentOrders(screenWidth, screenHeight),
-
-                  SizedBox(height: screenHeight * 0.025),
-
-                  // Back to Dashboard Button
-                  _buildBackButton(screenWidth),
-
-                  SizedBox(height: screenHeight * 0.02),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        /// Fixed navigation bar at bottom
-        Container(
-          height: 60,
-          decoration: BoxDecoration(
-            color: AppColors.globalBlackWhite(context),
-            boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? Colors.white12.withOpacity(0.02) : Colors.white10, blurRadius: 10, offset: Offset(0, -2))],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Divider(color: AppColors.border(context), height: 1),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(icons.length, (index) {
-                  bool isSelected = _currentIndex == index;
-                  return GestureDetector(
-                    onTap: () async {
-                      setState(() {
-                        _tappedIndex = index;
-                      });
-                      await Future.delayed(Duration(milliseconds: 300));
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: index)));
-                      print(index);
-                      setState(() {
-                        _tappedIndex = -1;
-                      });
-                    },
-                    child: Container(
-                      width: screenWidth * 0.2,
-                      color: Colors.transparent,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SvgPicture.asset(
-                            icons[index],
-                            width: 20,
-                            height: 20,
-                            color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                            semanticsLabel: labels[index], // Accessibility
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            labels[index],
-                            style: AppTextStyles.textSize12(
-                              context,
-                              weight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                              color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                case Status.ERROR:
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 60, color: AppColors.subtitle(context)),
+                        SizedBox(height: 16),
+                        Text(
+                          'Failed to load profile',
+                          style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                        ),
+                        SizedBox(height: 16),
+                        GestureDetector(
+                          onTap: () {
+                            profileViewModel.fetchProfileViewUserDataApi();
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.button(context),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.restart_alt_outlined, size: 20, color: AppColors.whiteColor),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Retry',
+                                  style: AppTextStyles.textSize14(
+                                    context,
+                                    weight: FontWeight.w600,
+                                    color: AppColors.whiteColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                        ),
+                      ],
+                    ),
+                  );
+
+                case Status.COMPLETED:
+                  print("Data: ${profileViewModel.profileviewUserData.data}");
+
+                  if (profileViewModel.profileviewUserData.data?.data?.user == null) {
+                    return Center(
+                      child: Text(
+                        'No data found',
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
+                      ),
+                    );
+                  }
+
+                  final userData = profileViewModel.profileviewUserData.data!.data!.user!;
+                  final addresses = profileViewModel.profileviewUserData.data!.data!.addresses;
+                  final orders = profileViewModel.profileviewUserData.data!.data!.orders;
+
+                  String? profileImageUrl = userData.profilePicture?.url;
+                  String userName = userData.fullName?.trim() ?? 'Unknown User';
+                  String userPhone = userData.phone ?? 'N/A';
+
+                  // Orders data
+                  int totalOrders = orders?.totalOrders ?? 0;
+                  int totalSpend = orders?.totalSpend ?? 0;
+                  int totalReviews = orders?.totalReviews ?? 0;
+
+                  // Address data
+                  String deliveryAddress = addresses?.fullAddress ?? 'No address set';
+
+                  // Recent order
+                  String? recentOrderId = orders?.recentOrder?.id;
+                  String? recentOrderStatus = orders?.recentOrder?.status;
+                  int? recentOrderTotal = orders?.recentOrder?.total;
+
+                  return SingleChildScrollView(
+                    child: Container(
+                      width: screenWidth * 0.9,
+                      child: Column(
+                        children: [
+                          _buildProfileCard(screenWidth, screenHeight, profileImageUrl, userName, userPhone),
+                          _buildStatsCard(screenWidth, screenHeight, totalOrders, totalSpend, totalReviews),
+                          SizedBox(height: screenHeight * 0.02),
+                          _buildPersonalInformation(screenWidth, screenHeight, userPhone, userData.createdAt),
+                          SizedBox(height: screenHeight * 0.02),
+                          _buildDeliveryAddress(screenWidth, screenHeight, deliveryAddress),
+                          SizedBox(height: screenHeight * 0.02),
+                          // _buildRecentOrders(screenWidth, screenHeight,),
+                          // SizedBox(height: screenHeight * 0.02),
+                          _buildBackButton(screenWidth),
+                          SizedBox(height: screenHeight * 0.02),
                         ],
                       ),
                     ),
                   );
-                }),
-              ),
-              Container(height: 1),
-            ],
+
+                default:
+                  return Center(
+                    child: Text(
+                      'Unknown state',
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                    ),
+                  );
+              }
+            },
           ),
         ),
+
+        /// Fixed navigation bar at bottom
+        _buildNavigationBar(screenWidth, screenHeight),
       ],
     );
   }
 
-
-
-Widget _buildProfileCard(double screenWidth, double screenHeight) {
+  Widget _buildProfileCard(double screenWidth, double screenHeight, String? profileImageUrl, String userName, String userPhone) {
     return Container(
+      padding: EdgeInsets.all(screenHeight * 0.02),
       decoration: BoxDecoration(
         color: AppColors.globalBlackWhite(context),
         borderRadius: BorderRadius.circular(12),
@@ -187,10 +221,7 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
                 decoration: BoxDecoration(
                   color: AppColors.textFieldFill(context),
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    width: 2,
-                    color: AppColors.border(context)
-                  )
+                  border: Border.all(width: 2, color: AppColors.border(context)),
                 ),
                 child: Center(
                   child: Container(
@@ -200,11 +231,13 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
                       shape: BoxShape.circle,
                       color: AppColors.textFieldFill(context),
                       border: Border.all(width: 1, color: AppColors.button(context)),
-                      image: DecorationImage(
-                        image: NetworkImage(profileImage),
-                        fit: BoxFit.cover,
-                      ),
+                      image: profileImageUrl != null && profileImageUrl.isNotEmpty
+                          ? DecorationImage(image: NetworkImage(profileImageUrl), fit: BoxFit.cover)
+                          : null,
                     ),
+                    child: profileImageUrl == null || profileImageUrl.isEmpty
+                        ? Icon(Icons.person, size: 30, color: AppColors.subtitle(context))
+                        : null,
                   ),
                 ),
               ),
@@ -229,13 +262,13 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  userName,
                   style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 4),
                 Text(
-                  phone,
+                  userPhone,
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -247,19 +280,18 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
     );
   }
 
-  Widget _buildStatsCard(double screenWidth, double screenHeight) {
+  Widget _buildStatsCard(double screenWidth, double screenHeight, int totalOrders, int totalSpend, int totalReviews) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildStatItem("24", "Orders"),
+        _buildStatItem(totalOrders.toString(), "Orders"),
         _buildVerticalDivider(),
-        _buildStatItem("12k", "Spent"),
+        _buildStatItem("৳${totalSpend}", "Spent"),
         _buildVerticalDivider(),
-        _buildStatItem("8", "Reviews"),
+        _buildStatItem(totalReviews.toString(), "Reviews"),
       ],
     );
   }
-
   Widget _buildStatItem(String value, String label) {
     final screenWidth = MediaQuery.of(context).size.width*1;
     final screenHeight = MediaQuery.of(context).size.height*1;
@@ -301,7 +333,13 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
     );
   }
 
-  Widget _buildPersonalInformation(double screenWidth, double screenHeight) {
+  Widget _buildPersonalInformation(double screenWidth, double screenHeight, String phone, DateTime? createdAt) {
+    // Format the date
+    String memberSince = 'N/A';
+    if (createdAt != null) {
+      memberSince = DateFormat('dd MMM, yyyy').format(createdAt);
+    }
+
     return Container(
       width: screenWidth * 0.9,
       decoration: BoxDecoration(
@@ -324,19 +362,16 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
             decoration: BoxDecoration(
               color: AppColors.containerBackground(context),
               borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
               ),
-              border: Border(top: BorderSide(
-                  width: 1, color: AppColors.border(context)
-              )
-              ),
+              border: Border(top: BorderSide(width: 1, color: AppColors.border(context))),
             ),
             child: Column(
               children: [
-                _buildInfoRow(Icons.phone, "+1 234 567 8900"),
+                _buildInfoRow(Icons.phone, phone),
                 SizedBox(height: screenHeight * 0.015),
-                _buildInfoRow(Icons.calendar_today_outlined, "Member since: 15 Aug, 2023"),
+                _buildInfoRow(Icons.calendar_today_outlined, "Member since: $memberSince"),
               ],
             ),
           ),
@@ -344,7 +379,6 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
       ),
     );
   }
-
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
@@ -360,7 +394,7 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
     );
   }
 
-  Widget _buildDeliveryAddress(double screenWidth, double screenHeight) {
+  Widget _buildDeliveryAddress(double screenWidth, double screenHeight, String address) {
     return Container(
       width: screenWidth * 0.9,
       decoration: BoxDecoration(
@@ -381,12 +415,10 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
                   style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
                 ),
                 GestureDetector(
-                  onTap: (){
-
-                  },
+                  onTap: () {},
                   child: Text(
                     "Change",
-                    style: AppTextStyles.textSize12(context, weight: FontWeight.w500,     color: AppColors.button(context),),
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
                   ),
                 ),
               ],
@@ -400,10 +432,7 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
               ),
-              border: Border(top: BorderSide(
-                  width: 1, color: AppColors.border(context)
-              )
-              ),
+              border: Border(top: BorderSide(width: 1, color: AppColors.border(context))),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -411,18 +440,9 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
                 Icon(Icons.location_on, size: 20, color: AppColors.subtitle(context)),
                 SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "123 Market Street, Suite 200",
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                      ),
-                      Text(
-                        "San Francisco, CA 94103",
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                      ),
-                    ],
+                  child: Text(
+                    address,
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                   ),
                 ),
               ],
@@ -551,6 +571,67 @@ Widget _buildProfileCard(double screenWidth, double screenHeight) {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildNavigationBar(double screenWidth, double screenHeight) {
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppColors.globalBlackWhite(context),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white12.withOpacity(0.02) : Colors.white10,
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          )
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Divider(color: AppColors.border(context), height: 1),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(icons.length, (index) {
+              bool isSelected = _currentIndex == index;
+              return GestureDetector(
+                onTap: () async {
+                  await Future.delayed(Duration(milliseconds: 300));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: index)));
+                },
+                child: Container(
+                  width: screenWidth * 0.2,
+                  color: Colors.transparent,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SvgPicture.asset(
+                        icons[index],
+                        width: 20,
+                        height: 20,
+                        color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                        semanticsLabel: labels[index],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        labels[index],
+                        style: AppTextStyles.textSize12(
+                          context,
+                          weight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                          color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+          Container(height: 1),
+        ],
       ),
     );
   }

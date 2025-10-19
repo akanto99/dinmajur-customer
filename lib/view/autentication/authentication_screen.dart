@@ -328,6 +328,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       final prefs = await SharedPreferences.getInstance();
       if (mounted) {
         setState(() {
+          _fullNameController.text = prefs.getString('fullName') ?? '';
           _phoneController.text = prefs.getString('otpphone') ?? '';
           _passwordController.text = prefs.getString('otppassword') ?? '';
           _reenterPasswordController.text = prefs.getString('re_enterpassword') ?? '';
@@ -341,6 +342,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   Future<void> _saveFormData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('fullName', _fullNameController.text);
       await prefs.setString('otpphone', _phoneController.text);
       await prefs.setString('otppassword', _passwordController.text);
       await prefs.setString('re_enterpassword', _reenterPasswordController.text);
@@ -352,12 +354,14 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   Future<void> _clearFormDataAndControllers() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('fullName');
       await prefs.remove('otpphone');
       await prefs.remove('otppassword');
       await prefs.remove('re_enterpassword');
 
       if (mounted) {
         setState(() {
+          _fullNameController.clear();
           _phoneController.clear();
           _passwordController.clear();
           _reenterPasswordController.clear();

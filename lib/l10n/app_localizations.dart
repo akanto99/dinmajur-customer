@@ -290,6 +290,12 @@ abstract class AppLocalizations {
   /// **'Full name must be at least 3 characters long'**
   String get full_name_min_length;
 
+  /// No description provided for @full_name_max_length.
+  ///
+  /// In en, this message translates to:
+  /// **'Name cannot exceed 26 characters'**
+  String get full_name_max_length;
+
   /// No description provided for @full_name_invalid_characters.
   ///
   /// In en, this message translates to:

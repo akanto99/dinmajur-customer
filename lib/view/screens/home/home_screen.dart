@@ -680,15 +680,10 @@ class _HomeScreenState extends State<HomeScreen> {
               profileImageUrl = userData.profilePicture?.url;
 
               // Handle user name properly - check for both null and empty strings
-              final firstName = userData.firstName?.trim();
-              final lastName = userData.lastName?.trim();
+              final fullName = userData.fullName?.trim();
 
-              if (firstName != null && firstName.isNotEmpty && lastName != null && lastName.isNotEmpty) {
-                userName = '$firstName $lastName';
-              } else if (firstName != null && firstName.isNotEmpty) {
-                userName = firstName;
-              } else if (lastName != null && lastName.isNotEmpty) {
-                userName = lastName;
+              if (fullName != null && fullName.isNotEmpty) {
+                userName = '$fullName';
               }
               // If all are null or empty, userName remains 'Unknown User'
             }
