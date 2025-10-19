@@ -31,6 +31,7 @@
     "error_try_again": "An error occurred. Please try again.",
     "enter_full_name": "Please enter your full name",
     "full_name_min_length": "Full name must be at least 3 characters long",
+      "full_name_max_length": "Name cannot exceed 26 characters",
     "full_name_invalid_characters": "Full name can only contain letters and spaces",
     "otp_screen":"----------------------------------------------OTP Screen-------------------------",
     "otp_verification_title": "OTP Verification",

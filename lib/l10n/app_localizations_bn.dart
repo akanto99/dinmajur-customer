@@ -107,6 +107,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get full_name_min_length => 'নাম কমপক্ষে ৩ অক্ষরের হতে হবে';
 
   @override
+  String get full_name_max_length => 'নাম সর্বোচ্চ ২৬ অক্ষরের হতে হবে';
+
+  @override
   String get full_name_invalid_characters =>
       'নামে শুধুমাত্র অক্ষর ও ফাঁকা স্থান থাকতে পারে';
 

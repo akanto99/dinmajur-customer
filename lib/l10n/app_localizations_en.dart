@@ -107,6 +107,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Full name must be at least 3 characters long';
 
   @override
+  String get full_name_max_length => 'Name cannot exceed 26 characters';
+
+  @override
   String get full_name_invalid_characters =>
       'Full name can only contain letters and spaces';
 
