@@ -30,6 +30,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get log_in_subtitle => 'আপনার লগইন তথ্য দিন';
 
   @override
+  String get fullName => 'আপনার নাম';
+
+  @override
+  String get fullName_hint => 'আপনার পুরো নাম লিখুন';
+
+  @override
   String get phone => 'মোবাইল নম্বর';
 
   @override
@@ -93,6 +99,16 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get error_try_again =>
       'একটি ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
+
+  @override
+  String get enter_full_name => 'দয়া করে আপনার নাম লিখুন';
+
+  @override
+  String get full_name_min_length => 'নাম কমপক্ষে ৩ অক্ষরের হতে হবে';
+
+  @override
+  String get full_name_invalid_characters =>
+      'নামে শুধুমাত্র অক্ষর ও ফাঁকা স্থান থাকতে পারে';
 
   @override
   String get otp_screen =>
