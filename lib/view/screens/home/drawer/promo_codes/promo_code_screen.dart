@@ -56,17 +56,8 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
 
     // Check if promo code exists and is valid
     PromoCode? foundPromo = _availablePromos.firstWhere(
-          (promo) => promo.code == enteredCode && !promo.isExpired,
-      orElse: () => PromoCode(
-        code: '',
-        discount: '',
-        description: '',
-        restrictions: '',
-        expiryDate: '',
-        isExpired: true,
-        discountPercentage: 0,
-        minimumAmount: 0,
-      ),
+      (promo) => promo.code == enteredCode && !promo.isExpired,
+      orElse: () => PromoCode(code: '', discount: '', description: '', restrictions: '', expiryDate: '', isExpired: true, discountPercentage: 0, minimumAmount: 0),
     );
 
     if (foundPromo.code.isEmpty) {
@@ -91,13 +82,7 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
   }
 
   void _showMessage(String message, {required bool isError}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: isError ? Colors.red : AppColors.button(context), duration: Duration(seconds: 2)));
   }
 
   @override
@@ -105,11 +90,7 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: body(),
-          desktop: body(),
-          tablet: body(),
-        ),
+        child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
       ),
     );
   }
@@ -122,12 +103,7 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
       children: [
         GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NavigationScreen(initialIndex: 0),
-              ),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
           },
           child: AppBarHeader("Promo Code"),
         ),
@@ -168,13 +144,7 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Enter Promo Code',
-            style: AppTextStyles.textSize18(
-              context,
-              weight: FontWeight.w500,
-            ),
-          ),
+          Text('Enter Promo Code', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
           SizedboxSpaccing.height012(context),
           Row(
             children: [
@@ -189,46 +159,27 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
                   child: TextFormField(
                     controller: _promoController,
                     textCapitalization: TextCapitalization.characters,
-                    style: AppTextStyles.textSize16(
-                      context,
-                      weight: FontWeight.w500,
-                    ),
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                     decoration: InputDecoration(
                       hintText: 'e.g. SUMMER25',
-                      hintStyle: AppTextStyles.textSize14(
-                        context,
-                        color: AppColors.subtitle(context),
-                        weight: FontWeight.w400,
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
+                      hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context), weight: FontWeight.w400),
+                      border: OutlineInputBorder(borderSide: BorderSide.none),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     ),
                   ),
                 ),
               ),
-    SizedboxSpaccing.width03(context),
+              SizedboxSpaccing.width03(context),
               GestureDetector(
                 onTap: _applyPromoCode,
                 child: Container(
                   height: 50,
                   padding: EdgeInsets.symmetric(horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: AppColors.textPrimary(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(12)),
                   child: Center(
                     child: Text(
                       'Apply',
-                      style: AppTextStyles.textSize16(
-                        context,
-                        weight: FontWeight.w600,
-                        color: AppColors.whiteColor,
-                      ),
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
                     ),
                   ),
                 ),
@@ -246,32 +197,26 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
       children: [
         Row(
           children: [
-            Text(
-              'Available Promos',
-              style: AppTextStyles.textSize18(
-                context,
-                weight: FontWeight.w500,
-              ),
-            ),
+            Text('Available Promos', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
             Text(
               ' (${_availablePromos.where((p) => !p.isExpired).length})',
-              style: AppTextStyles.textSize18(
-                context,
-                weight: FontWeight.w600,
-                color: AppColors.textPrimary(context),
-              ),
+              style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
             ),
           ],
         ),
         SizedboxSpaccing.height01(context),
-        Divider(height: 1,color: AppColors.border(context),),
+        Divider(height: 1, color: AppColors.border(context)),
         SizedboxSpaccing.height02(context),
 
         // Promo Cards
-        ..._availablePromos.map((promo) => Padding(
-          padding: EdgeInsets.only(bottom: screenHeight*0.02),
-          child: _buildPromoCard(promo, screenWidth, screenHeight),
-        )).toList(),
+        ..._availablePromos
+            .map(
+              (promo) => Padding(
+                padding: EdgeInsets.only(bottom: screenHeight * 0.02),
+                child: _buildPromoCard(promo, screenWidth, screenHeight),
+              ),
+            )
+            .toList(),
       ],
     );
   }
@@ -281,67 +226,40 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
       decoration: BoxDecoration(
         color: AppColors.containerBackground(context),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: promo.isExpired
-              ? AppColors.border(context)
-              : Color(0xFF3B82F6).withOpacity(0.3),
-          width: 1,
-        ),
+        // border: Border.all(color: promo.isExpired ? AppColors.border(context) : Color(0xFF3B82F6).withOpacity(0.3), width: 1),
+        border: Border.all(color:  AppColors.border(context), width: 1),
       ),
       child: Column(
         children: [
           // Promo Header
           Container(
-            padding:  EdgeInsets.all(screenHeight*0.02),
+            padding: EdgeInsets.all(screenHeight * 0.02),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Promo Code Badge
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: promo.isExpired
-                        ? Colors.grey.withOpacity(0.2)
-                        : Color(0xFF3B82F6).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: promo.isExpired
-                          ? Colors.grey
-                          : Color(0xFF3B82F6),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    promo.code,
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w700,
-                      color: promo.isExpired
-                          ? Colors.grey
-                          : AppColors.textPrimary(context),
-                    ),
-                  ),
+                Text(
+                  promo.code,
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
                 ),
 
                 // Discount Badge
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: promo.isExpired
-                        ? Colors.grey.withOpacity(0.2)
-                        : Color(0xFF3B82F6),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    promo.discount,
-                    style: AppTextStyles.textSize12(
-                      context,
-                      weight: FontWeight.w600,
-                      color: promo.isExpired
-                          ? Colors.grey
-                          : AppColors.whiteColor,
+                // Container(
+                //   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                //   decoration: BoxDecoration(color: promo.isExpired ? Colors.grey.withOpacity(0.2) : Color(0xFF3B82F6), borderRadius: BorderRadius.circular(4)),
+                //   child: Text(
+                //     promo.discount,
+                //     style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: promo.isExpired ? Colors.grey : AppColors.whiteColor),
+                //   ),
+                // ),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 14, color: AppColors.textPrimary(context)),
+                    SizedboxSpaccing.width02(context),
+                    Text(
+                      'Expires: ${promo.expiryDate}',
+                      style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context), weight: FontWeight.w400),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -349,49 +267,16 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
 
           // Promo Details
           Container(
-            padding: EdgeInsets.symmetric(horizontal:screenWidth * 0.04),
+            padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Expiry Date
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 14,
-                      color: AppColors.textPrimary(context),
-                    ),
-SizedboxSpaccing.width02(context),
-                    Text(
-                      'Expires: ${promo.expiryDate}',
-                      style: AppTextStyles.textSize14(
-                        context,
-                        color: AppColors.textPrimary(context),
-                        weight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedboxSpaccing.height012(context),
 
                 // Description
-                Text(
-                  promo.description,
-                  style: AppTextStyles.textSize14(
-                    context,
-                    weight: FontWeight.w400,
-
-                  ),
-                ),
+                Text(promo.description, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
 
                 // Restrictions
-                Text(
-                  promo.restrictions,
-                  style: AppTextStyles.textSize14(
-                    context,
-                    weight: FontWeight.w400,
-                  ),
-                ),
+                Text(promo.restrictions, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                 SizedboxSpaccing.height015(context),
 
                 // Action Button
@@ -400,25 +285,14 @@ SizedboxSpaccing.width02(context),
                   child: Container(
                     height: 44,
                     decoration: BoxDecoration(
-                      color: promo.isExpired
-                          ? Colors.grey.withOpacity(0.3)
-                          : AppColors.textFieldFill(context),
+                      color: AppColors.textFieldFill(context),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        width: 1,
-                        color: AppColors.border(context)
-                      )
+                      border: Border.all(width: 1, color: AppColors.border(context)),
                     ),
                     child: Center(
                       child: Text(
                         promo.isExpired ? 'Expired' : 'Apply Code',
-                        style: AppTextStyles.textSize16(
-                          context,
-                          weight: FontWeight.w600,
-                          color: promo.isExpired
-                              ? Colors.grey
-                              : AppColors.textPrimary(context),
-                        ),
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: promo.isExpired ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                       ),
                     ),
                   ),
@@ -426,7 +300,7 @@ SizedboxSpaccing.width02(context),
               ],
             ),
           ),
-          SizedboxSpaccing.height02(context)
+          SizedboxSpaccing.height02(context),
         ],
       ),
     );
