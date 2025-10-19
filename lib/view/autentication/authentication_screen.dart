@@ -24,6 +24,7 @@ class AuthenticationScreen extends StatefulWidget {
 }
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
+  TextEditingController _fullNameController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   ValueNotifier<bool> _obsecurePassword = ValueNotifier<bool>(true);
@@ -31,6 +32,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   TextEditingController _reenterPasswordController = TextEditingController();
   ValueNotifier<bool> _reObsecurePassword = ValueNotifier<bool>(true);
 
+  final FocusNode _fullNameFocus = FocusNode();
   final FocusNode _phoneFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _rePasswordFocus = FocusNode();
@@ -62,11 +64,13 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
+    _fullNameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
     _obsecurePassword.dispose();
     _reObsecurePassword.dispose();
 
+    _fullNameFocus.dispose();
     _phoneFocus.dispose();
     _passwordFocus.dispose();
     _rePasswordFocus.dispose();
@@ -124,6 +128,14 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                  ),
                  child: Column(
                    children: [
+                     CustomTextFieldWithFormFieldPoppins(
+                       titleText: "${AppLocalizations.of(context)!.fullName}*",
+                       placeholder: AppLocalizations.of(context)!.fullName_hint,
+                       controller: _fullNameController,
+                       focusCurrent: _fullNameFocus,
+                       keyboardType: TextInputType.name,
+                     ),
+                     SizedboxSpaccing.height015(context),
                      CustomTextFieldWithFormFieldPoppins(
                        titleText: "${AppLocalizations.of(context)!.phone}*",
                        placeholder: AppLocalizations.of(context)!.phone_hint,
@@ -245,17 +257,19 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     try {
       await _saveFormData();
       // First validate using new password validation
-      String? validationMessage = _newPasswordValidation.getValidationMessage(
-        _phoneController.text,
-        _passwordController.text,
-        _reenterPasswordController.text,
-        context
+      final validationResult = _newPasswordValidation.validateRegistrationForm(
+        fullName: _fullNameController.text,
+        phone: _phoneController.text,
+        password: _passwordController.text,
+        confirmPassword: _reenterPasswordController.text,
+        context: context,
       );
 
-      if (validationMessage != null) {
-        Utils.flushBarErrorMessage(validationMessage, context);
+      if (!validationResult.isValid) {
+        Utils.flushBarErrorMessage(validationResult.errorMessage!, context);
         return;
       }
+
 
       // Additional validation using existing validation
       String? error = AutheticationValidation.getFirstError(
@@ -269,6 +283,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
         return;
       }
       Map data = {
+        'fullName':_fullNameController.text,
         'phone': _phoneController.text.trim(),
         'password': _passwordController.text.trim(),
         'role': 'CUSTOMER'

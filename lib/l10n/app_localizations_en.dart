@@ -30,6 +30,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get log_in_subtitle => 'Please enter your login credential';
 
   @override
+  String get fullName => 'Your Name';
+
+  @override
+  String get fullName_hint => 'Enter your full name';
+
+  @override
   String get phone => 'Mobile Number';
 
   @override
@@ -92,6 +98,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get error_try_again => 'An error occurred. Please try again.';
+
+  @override
+  String get enter_full_name => 'Please enter your full name';
+
+  @override
+  String get full_name_min_length =>
+      'Full name must be at least 3 characters long';
+
+  @override
+  String get full_name_invalid_characters =>
+      'Full name can only contain letters and spaces';
 
   @override
   String get otp_screen =>

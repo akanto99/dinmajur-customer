@@ -149,6 +149,23 @@ class NewPasswordValidation {
 
     return null;
   }
+  // ✅ Full Name Validation
+  static String? validateFullName(String? fullName, BuildContext context) {
+    if (fullName == null || fullName.trim().isEmpty) {
+      return AppLocalizations.of(context)!.enter_full_name;
+    }
+
+    if (fullName.trim().length < 3) {
+      return AppLocalizations.of(context)!.full_name_min_length;
+    }
+
+    if (!RegExp(r'^[a-zA-Z\u0980-\u09FF\s]+$').hasMatch(fullName.trim())) {
+      // Allows Bangla and English letters only
+      return AppLocalizations.of(context)!.full_name_invalid_characters;
+    }
+
+    return null;
+  }
 
   // UI builder methods unchanged...
   Widget buildRequirement(BuildContext context, String text, bool isMet) {
@@ -239,18 +256,25 @@ extension NewPasswordValidationExtension on NewPasswordValidation {
 
   // Method for complete form validation (Registration)
   ValidationResult validateRegistrationForm({
+    required String fullName,
     required String phone,
     required String password,
     required String confirmPassword,
     required BuildContext context,
   }) {
-    // Check phone with context
+    // ✅ Full name validation
+    String? fullNameError = NewPasswordValidation.validateFullName(fullName, context);
+    if (fullNameError != null) {
+      return ValidationResult(isValid: false, errorMessage: fullNameError);
+    }
+
+    // Phone validation
     String? phoneError = NewPasswordValidation.validateBangladeshiPhone(phone, context);
     if (phoneError != null) {
       return ValidationResult(isValid: false, errorMessage: phoneError);
     }
 
-    // Check passwords with context
+    // Password validation
     String? passwordError = _validatePasswords(password, confirmPassword, context);
     if (passwordError != null) {
       return ValidationResult(isValid: false, errorMessage: passwordError);
@@ -258,6 +282,7 @@ extension NewPasswordValidationExtension on NewPasswordValidation {
 
     return ValidationResult(isValid: true);
   }
+
 
   // Method for forgot password validation
   ValidationResult validateForgotPasswordForm({

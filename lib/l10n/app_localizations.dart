@@ -140,6 +140,18 @@ abstract class AppLocalizations {
   /// **'Please enter your login credential'**
   String get log_in_subtitle;
 
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Name'**
+  String get fullName;
+
+  /// No description provided for @fullName_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your full name'**
+  String get fullName_hint;
+
   /// No description provided for @phone.
   ///
   /// In en, this message translates to:
@@ -265,6 +277,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An error occurred. Please try again.'**
   String get error_try_again;
+
+  /// No description provided for @enter_full_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your full name'**
+  String get enter_full_name;
+
+  /// No description provided for @full_name_min_length.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name must be at least 3 characters long'**
+  String get full_name_min_length;
+
+  /// No description provided for @full_name_invalid_characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name can only contain letters and spaces'**
+  String get full_name_invalid_characters;
 
   /// No description provided for @otp_screen.
   ///
