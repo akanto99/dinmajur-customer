@@ -34,10 +34,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
   final List<String> icons = [
     "assets/images/navBar/navbar_new/home.svg",
-    "assets/images/navBar/navbar_new/task.svg",
-    "assets/images/navBar/navbar_new/scan.svg",
-    "assets/images/navBar/navbar_new/stores.svg",
-    "assets/images/navBar/navbar_new/income.svg",
+    "assets/images/navBar/navbar_new/offers.svg",
+    "assets/images/navBar/navbar_new/order.svg",
+    "assets/images/navBar/navbar_new/draft.svg",
   ];
 
   late List<String> labels;
@@ -52,10 +51,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
     _pages = [
       HomeScreen(scaffoldKey: _key),
       // SocketStatusWidget(),
-      TaskScreen(),
       TestScreen2(),
+      TaskScreen(),
       TestScreen3(),
-      TestScreen4(),
     ];
     ///Network Connectivity initialize
     initConnectivity();
@@ -218,10 +216,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
     _setSystemUIColors();
     labels = [
       AppLocalizations.of(context)!.home,
-      AppLocalizations.of(context)!.task,
-      AppLocalizations.of(context)!.scan,
-      AppLocalizations.of(context)!.stores,
-      AppLocalizations.of(context)!.income,
+      AppLocalizations.of(context)!.offers,
+      AppLocalizations.of(context)!.order,
+      AppLocalizations.of(context)!.draft,
+      // AppLocalizations.of(context)!.income,
     ];
   }
 

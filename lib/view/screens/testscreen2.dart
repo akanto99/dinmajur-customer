@@ -39,10 +39,10 @@ class _TestScreen2State extends State<TestScreen2> {
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 0)));
             },
-            child: AppBarHeader("Task"),
+            child: AppBarHeader("Offers"),
           ),
           Center(child: SizedboxSpaccing.height025(context)),
-          _buildSection(title: 'Task', count: '(0)', emptyMessage: 'No Task Yet'),
+          _buildSection(title: 'Offers', count: '(0)', emptyMessage: 'No Offers Yet'),
 
         ]);
   }

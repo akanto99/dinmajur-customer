@@ -254,16 +254,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get home => 'হোম';
 
   @override
-  String get scan => 'স্ক্যান';
+  String get offers => 'অফারসমূহ';
 
   @override
-  String get task => 'টাস্ক';
+  String get order => 'অর্ডার';
 
   @override
-  String get stores => 'স্টোরস';
-
-  @override
-  String get income => 'ইনকাম';
+  String get draft => 'ড্রাফট';
 
   @override
   String get home_screen =>
@@ -329,9 +326,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String get profile_menu => 'প্রোফাইল মেনু';
 
   @override
-  String get order => 'অর্ডার';
-
-  @override
   String get wishlist => 'পছন্দের তালিকা';
 
   @override
@@ -381,9 +375,6 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get promo_codes => 'প্রোমো কোডসমূহ';
-
-  @override
-  String get offers => 'অফারসমূহ';
 
   @override
   String get terms_conditions => 'শর্তাবলী';
