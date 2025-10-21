@@ -560,29 +560,23 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get home;
 
-  /// No description provided for @scan.
+  /// No description provided for @offers.
   ///
   /// In en, this message translates to:
-  /// **'Scan'**
-  String get scan;
+  /// **'Offers'**
+  String get offers;
 
-  /// No description provided for @task.
+  /// No description provided for @order.
   ///
   /// In en, this message translates to:
-  /// **'Task'**
-  String get task;
+  /// **'Order'**
+  String get order;
 
-  /// No description provided for @stores.
+  /// No description provided for @draft.
   ///
   /// In en, this message translates to:
-  /// **'Stores'**
-  String get stores;
-
-  /// No description provided for @income.
-  ///
-  /// In en, this message translates to:
-  /// **'Income'**
-  String get income;
+  /// **'Draft'**
+  String get draft;
 
   /// No description provided for @home_screen.
   ///
@@ -698,12 +692,6 @@ abstract class AppLocalizations {
   /// **'Profile Menu'**
   String get profile_menu;
 
-  /// No description provided for @order.
-  ///
-  /// In en, this message translates to:
-  /// **'Order'**
-  String get order;
-
   /// No description provided for @wishlist.
   ///
   /// In en, this message translates to:
@@ -805,12 +793,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Promo Codes'**
   String get promo_codes;
-
-  /// No description provided for @offers.
-  ///
-  /// In en, this message translates to:
-  /// **'Offers'**
-  String get offers;
 
   /// No description provided for @terms_conditions.
   ///

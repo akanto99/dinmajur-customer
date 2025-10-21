@@ -255,16 +255,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home => 'Home';
 
   @override
-  String get scan => 'Scan';
+  String get offers => 'Offers';
 
   @override
-  String get task => 'Task';
+  String get order => 'Order';
 
   @override
-  String get stores => 'Stores';
-
-  @override
-  String get income => 'Income';
+  String get draft => 'Draft';
 
   @override
   String get home_screen =>
@@ -330,9 +327,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_menu => 'Profile Menu';
 
   @override
-  String get order => 'Order';
-
-  @override
   String get wishlist => 'Wishlist';
 
   @override
@@ -382,9 +376,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get promo_codes => 'Promo Codes';
-
-  @override
-  String get offers => 'Offers';
 
   @override
   String get terms_conditions => 'Terms & Condition';
