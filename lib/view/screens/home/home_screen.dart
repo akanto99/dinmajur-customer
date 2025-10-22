@@ -313,7 +313,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
   Widget body(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -350,7 +349,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedboxSpaccing.height02(context),
-          if (nearbyStores.isNotEmpty)
+
+          /// Loading indicator
+          if (isLoadingStores)
+            Container(
+              width: screenWidth * 0.9,
+              padding: EdgeInsets.all(screenHeight * 0.04),
+              child: Column(
+                children: [
+                  Text("Fetching nearby stores...",
+                    style: AppTextStyles.textSize16(context,
+                        weight: FontWeight.w400,
+                        color: AppColors.subtitle(context)
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Show stores list only when not loading and stores are available
+          if (!isLoadingStores && nearbyStores.isNotEmpty)
             Container(
               width: screenWidth * 0.9,
               child: Column(
@@ -358,10 +376,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(AppLocalizations.of(context)!.nearby_stores(nearbyStores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                      Text(
+                          AppLocalizations.of(context)!.nearby_stores(nearbyStores.length),
+                          style: AppTextStyles.textSize18(context, weight: FontWeight.w500)
+                      ),
                       GestureDetector(
                         onTap: () {},
-                        child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                        child: Text(
+                            AppLocalizations.of(context)!.see_all,
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400)
+                        ),
                       ),
                     ],
                   ),
@@ -369,20 +393,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-          SizedboxSpaccing.height02(context),
 
-          _buildStoresList(),
+          if (!isLoadingStores && nearbyStores.isNotEmpty)
+            SizedboxSpaccing.height02(context),
+
+          if (!isLoadingStores && nearbyStores.isNotEmpty)
+            _buildStoresList(),
+
           SizedboxSpaccing.height02(context),
-          // ///From SOCKET.IO order getting
-          // SocketGetallOrderSection(
-          //   onSeeAll: () {
-          //     // Navigation logic
-          //   },
-          // ),
         ],
       ),
     );
   }
+
 
   Widget _buildStoresList() {
     final screenHeight = MediaQuery.of(context).size.height;
