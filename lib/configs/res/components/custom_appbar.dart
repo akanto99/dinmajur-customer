@@ -47,10 +47,10 @@ class CustomAppBar extends StatelessWidget {
                       "assets/images/header_arrow.svg",
                     ),
                   ),
-                  SizedboxSpaccing.width02(context),
+                  SizedboxSpaccing.width03(context),
                   Text(
                     appBarTitle,
-                    style: AppTextStyles.textSize16(
+                    style: AppTextStyles.textSize18(
                       context,
                       weight: FontWeight.w500,
                     ),

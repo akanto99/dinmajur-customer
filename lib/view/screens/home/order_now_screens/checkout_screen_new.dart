@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_view_models/order_now_view_models/checkout_order_view_model.dart';
 import 'package:flutter/material.dart';
@@ -183,7 +184,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
           onTap: () {
             Navigator.pop(context);
           },
-          child: AppBarHeader("New Order"),
+          child: AppBarHeader("Checkout Order"),
         ),
 
         Expanded(
@@ -640,7 +641,15 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
 
                       print("🛒 Final Order Data: ${jsonEncode(orderData)}");
 
-                      await checkOutViewModel.checkoutOrderPostApi(context, orderData);
+                      // await checkOutViewModel.checkoutOrderPostApi(context, orderData);
+                      Navigator.pushNamed(
+                        context,
+                        RoutesName.orderConfirmScreen,
+                        arguments: {
+                          'businessName': store_businessName,
+                          'businessType': store_businessType,
+                        },
+                      );
                     },
                     showRightIcon: true,
                     showLeftIcon: false

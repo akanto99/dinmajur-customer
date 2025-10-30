@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/custom_appbar.dart';
+import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
@@ -184,7 +185,8 @@ class _OrderNowState extends State<OrderNow> {
     final screenHeight = MediaQuery.of(context).size.height * 1;
     return Column(
       children: [
-        _buildAppBar(),
+        // _buildAppBar(),
+        AppBarHeader("New Order"),
         Expanded(
           child: SingleChildScrollView(
             child: Column(
