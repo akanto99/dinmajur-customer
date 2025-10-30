@@ -25,6 +25,7 @@ class RoutesName {
   static const String orderNow = 'orderNow_view';
   // static const String checkoutScreen = 'checkout_view';
   static const String checkoutScreenNew = 'checkoutNew_view';
+  static const String orderConfirmScreen = 'orderConfirmScreen_view';
   //drawer===========>
   static const String passwordChange = 'passwordChange_view';
   static const String paymentMethod = 'paymentMethod_view';

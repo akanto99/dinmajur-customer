@@ -22,8 +22,9 @@ import 'package:dinmajur_customer/view/screens/home/drawer/view_edit_profile/vie
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/add_newlocation_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/map_location_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
-// import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen.dart';
+// import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_old.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_new.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
 import 'package:dinmajur_customer/view/screens/task/task_details.dart';
@@ -85,7 +86,9 @@ class Routes {
       //   return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
         case RoutesName.checkoutScreenNew:
         return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreenNew(), settings: settings);
-      //drawer===========>
+      case RoutesName.orderConfirmScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const OrderConfirmedScreen(), settings: settings);
+        //drawer===========>
       case RoutesName.viewProfile:
         return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());
       case RoutesName.passwordChange:
