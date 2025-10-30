@@ -629,12 +629,12 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                         "customerNote": notes?.trim(),
                         "estimatedDeliveryTime": deliveryTime,
                         "budget": budget,
-                        "deliveryAddress": {
-                          "geoLocation": {
-                            "type": "Point",
-                            "coordinates": [customerLongitude, customerLatitude]
-                          },},
-                        "fullAddress":customerFullAddress,
+                        // "deliveryAddress": {
+                        //   "geoLocation": {
+                        //     "type": "Point",
+                        //     "coordinates": [customerLongitude, customerLatitude]
+                        //   },},
+                        // "fullAddress":customerFullAddress,
 
                       };
 
