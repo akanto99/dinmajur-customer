@@ -39,6 +39,8 @@ class AppUrl {
   //order Now
   static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
   static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";
+  static var orderDetailsGetAPI = baseUrl + '/orders';
+
 
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';

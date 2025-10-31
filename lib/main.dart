@@ -11,6 +11,8 @@ import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotr
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotverifyotp_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/nearby_retailers_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/checkout_order_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/post_change_passwordview_model/post_change_passwordview_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
@@ -30,8 +32,7 @@ import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/ge
 import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/payment_method_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/support_view_model/support_view_model.dart';
-import 'view_model/homeview_model/nearby_retailers_view_models/nearby_retailers_view_model.dart';
-import 'view_model/homeview_model/nearby_retailers_view_models/order_now_view_models/checkout_order_view_model.dart';
+import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/order_confirmed_getorderdetails_view_model.dart';
 
 
 void main() async {
@@ -70,6 +71,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GetLocationListViewModel()),
         ChangeNotifierProvider(create: (_) => PostNearbyRetailersViewModel()),
         ChangeNotifierProvider(create: (_) => PostCheckOutOrderViewModel()),
+        //order Under Nearby Retailers and Order
+        ChangeNotifierProvider(create: (_) => GetOrderDetailsViewModel()),//view Details in Nearby order directory Order Confirmed Screen Get Order Details
         //====drawer
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),//profile image update
         ChangeNotifierProvider(create: (_) => PostChangePasswordViewModel()),

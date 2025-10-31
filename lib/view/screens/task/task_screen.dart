@@ -375,7 +375,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
                     GestureDetector(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderConfirmedScreen()));
+                          // Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderConfirmedScreen()));
                         },child: Icon(FontAwesomeIcons.solidEye, color: Colors.grey[600], size: 16)),
                   ],
                 ),
