@@ -2,6 +2,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/socket_home_model/socket_get_all_orders_model/socket_orderdetails_model.dart';
 import 'package:dinmajur_customer/socket_connection_model/screens_sockets/home_sceens_socket/get_all_orders_socket/socket_order_view_details.dart';
@@ -52,17 +53,60 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     }
   }
 
-  @override
+  String? _previousDeliveryStatus;
+  bool _hasNavigatedToDelivered = false;
+
+
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ///Initialize View Details Order Socket
       if (!_isDisposed && mounted) {
         _initializeProviders();
       }
     });
   }
 
+  void _checkDeliveryStatusForNavigation(String? currentStatus) {
+    if (_hasNavigatedToDelivered || !mounted || _isDisposed) return;
+
+    // Print status changes
+    print('Checking delivery status for navigation:');
+    print('Current Status: $currentStatus');
+    print('Previous Status: $_previousDeliveryStatus');
+
+    // Check if status changed to ARRIVED_DESTINATION or DELIVERED
+    bool shouldNavigate = false;
+
+    if (currentStatus?.toUpperCase() == 'ARRIVED_DESTINATION' &&
+        _previousDeliveryStatus?.toUpperCase() != 'ARRIVED_DESTINATION') {
+      print('Status changed to ARRIVED_DESTINATION - will navigate in 2 seconds');
+      shouldNavigate = true;
+    } else if (currentStatus?.toUpperCase() == 'DELIVERED' &&
+        _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
+      print('Status changed to DELIVERED - will navigate in 2 seconds');
+      shouldNavigate = true;
+    }
+
+    if (shouldNavigate) {
+      _hasNavigatedToDelivered = true;
+
+      // Wait 2000 milliseconds before navigating
+      Future.delayed(Duration(milliseconds: 2000), () {
+        if (mounted && !_isDisposed) {
+          print('Navigating to delivered screen...');
+          Navigator.pushNamed(
+            context,
+            RoutesName.deliverdScreen,
+            arguments: {
+              'orderId': widget.orderId,
+            },
+          );
+        }
+      });
+    }
+
+    _previousDeliveryStatus = currentStatus;
+  }
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -122,7 +166,6 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       attempts++;
     }
   }
-
   Future<void> _fetchOrderDetailsFromSocket() async {
     if (!_orderDetailsSocketInitialized || _isDisposed || _hasRequestedOrder || !mounted) {
       return;
@@ -146,6 +189,9 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       _orderDetailsSocketProvider!.setOrderDetailsListener((OrderDetailsModel orderDetailsModel) {
         if (mounted && !_isDisposed) {
           try {
+            // Check delivery status for automatic navigation
+            _checkDeliveryStatusForNavigation(orderDetailsModel.delivery?.status);
+
             setState(() {
               _orderDetailsModel = orderDetailsModel;
               _isLoadingOrderDetails = false;
@@ -236,7 +282,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Container(height: 60, child: AppBarHeader("Order Details")),
+          child: Container(height: 60, child: AppBarHeader("Track Order Details")),
         ),
         Expanded(child: _buildContent()),
       ],

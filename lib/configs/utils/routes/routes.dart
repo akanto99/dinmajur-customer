@@ -24,6 +24,7 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/map_
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 // import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_old.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_new.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/deliverd_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
@@ -101,6 +102,15 @@ class Routes {
         if (args != null) {
           return MaterialPageRoute(
             builder: (BuildContext context) => TrackOrderViewdetailsSocketScreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+        case RoutesName.deliverdScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => DeliverdScreen(orderId: args['orderId']),
             settings: settings,
           );
         }

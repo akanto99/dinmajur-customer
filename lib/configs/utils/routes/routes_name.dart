@@ -26,7 +26,8 @@ class RoutesName {
   // static const String checkoutScreen = 'checkout_view';
   static const String checkoutScreenNew = 'checkoutNew_view';
   static const String orderConfirmScreen = 'orderConfirmScreen_view';
-  static const String trackOrderViewdetailsSocketScreen = 'trackOrderViewdetailsSocketScreen_view';
+  static const String trackOrderViewdetailsSocketScreen = 'trackOrderViewdetailsSocketScreen_view';//SOCKET GET VIEW DETAILS
+  static const String deliverdScreen = 'deliverdScreen_view';//delivered screen get api
   //drawer===========>
   static const String passwordChange = 'passwordChange_view';
   static const String paymentMethod = 'paymentMethod_view';
