@@ -102,7 +102,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       // Disconnect socket with unregister-user event
       if (userId.isNotEmpty && userRole.isNotEmpty) {
         try {
-          await socketProvider.unregisterAndDisconnect(userId: userId, role: userRole);
+          await socketProvider.unregisterAndDisconnect(userId: userId);
           print("🔌 Socket disconnected and user unregistered successfully");
         } catch (e) {
           print("🔌 Socket disconnect error: $e");

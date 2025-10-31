@@ -2,6 +2,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/nearby_retailers_and_order_models/get_order_details_model.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -106,7 +107,7 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
             if (data.order?.customerNote != null && data.order!.customerNote!.isNotEmpty) SizedboxSpaccing.height02(context),
             _buildPaymentMethodSection(context, data),
             SizedboxSpaccing.height02(context),
-            _buildActionButtons(context, screenWidth),
+            _buildActionButtons(context, screenWidth, data),
             SizedboxSpaccing.height02(context),
           ],
         ),
@@ -583,23 +584,35 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, double screenWidth) {
+  Widget _buildActionButtons(BuildContext context, double screenWidth, Data data) {
+    final order = data.order;
     return Column(
       children: [
-        Container(
-          height: 50,
-          width: screenWidth * 0.75,
-          decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(16)),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Icon(Icons.arrow_forward_ios_rounded, color: Colors.transparent, size: 14),
-              Text(
-                "Track Order",
-                style: AppTextStyles.textSize16(context, color: AppColors.whiteColor, weight: FontWeight.w600),
-              ),
-              Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
-            ],
+        GestureDetector(
+          onTap: (){
+            Navigator.pushNamed(
+              context,
+              RoutesName.trackOrderViewdetailsSocketScreen,
+              arguments: {
+                'orderId': order?.id,
+              },
+            );
+          },
+          child: Container(
+            height: 50,
+            width: screenWidth * 0.75,
+            decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(16)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Icon(Icons.arrow_forward_ios_rounded, color: Colors.transparent, size: 14),
+                Text(
+                  "Track Order",
+                  style: AppTextStyles.textSize16(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                ),
+                Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
+              ],
+            ),
           ),
         ),
         SizedboxSpaccing.height02(context),

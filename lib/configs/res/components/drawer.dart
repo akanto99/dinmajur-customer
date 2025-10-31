@@ -544,7 +544,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
         if (userId.isNotEmpty && userRole.isNotEmpty) {
           await socketProvider.unregisterAndDisconnect(
             userId: userId,
-            role: userRole,
           );
         }
 

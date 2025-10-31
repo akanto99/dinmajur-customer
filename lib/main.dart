@@ -2,6 +2,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
+import 'package:dinmajur_customer/socket_connection_model/screens_sockets/home_sceens_socket/get_all_orders_socket/socket_order_view_details.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/view_model/authview_model/authview_model.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
@@ -73,6 +74,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PostCheckOutOrderViewModel()),
         //order Under Nearby Retailers and Order
         ChangeNotifierProvider(create: (_) => GetOrderDetailsViewModel()),//view Details in Nearby order directory Order Confirmed Screen Get Order Details
+        ChangeNotifierProvider<OrderDetailsSocketProvider>(create: (context) => OrderDetailsSocketProvider()),//Track Order Details SOCKET.IO
+
         //====drawer
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),//profile image update
         ChangeNotifierProvider(create: (_) => PostChangePasswordViewModel()),
@@ -87,6 +90,7 @@ void main() async {
 
         // Add Socket Provider here
         ChangeNotifierProvider(create: (_) => SocketProvider()),
+
       ],
       child: MyApp(),
     ),

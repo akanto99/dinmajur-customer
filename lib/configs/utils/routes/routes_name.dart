@@ -21,11 +21,12 @@ class RoutesName {
   //-----------location
   static const String addlocation = 'addLocation_view';
   static const String mapLocationScreen = 'mapLocationScreen_view';
-
+///order in Home screen
   static const String orderNow = 'orderNow_view';
   // static const String checkoutScreen = 'checkout_view';
   static const String checkoutScreenNew = 'checkoutNew_view';
   static const String orderConfirmScreen = 'orderConfirmScreen_view';
+  static const String trackOrderViewdetailsSocketScreen = 'trackOrderViewdetailsSocketScreen_view';
   //drawer===========>
   static const String passwordChange = 'passwordChange_view';
   static const String paymentMethod = 'paymentMethod_view';

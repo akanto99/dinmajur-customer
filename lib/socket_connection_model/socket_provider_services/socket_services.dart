@@ -9,17 +9,15 @@ class SocketService {
   IO.Socket? _socket;
   bool _isConnected = false;
   String? _userId;
-  String? _userRole;
 
   // Getters
   bool get isConnected => _isConnected;
   IO.Socket? get socket => _socket;
 
   // Initialize socket connection
-  Future<void> initializeSocket({required String userId, String userRole = 'CUSTOMER'}) async {
+  Future<void> initializeSocket({required String userId}) async {
     try {
       _userId = userId;
-      _userRole = userRole;
 
       // Disconnect existing connection if any
       if (_socket != null) {
@@ -29,6 +27,7 @@ class SocketService {
       // Create socket connection
       _socket = IO.io(
         'https://api-staging.dinmajur.com',
+        // 'https://api.dinmajur.com',
         IO.OptionBuilder().setTransports(['websocket']).enableAutoConnect().enableForceNew().setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
       );
 
@@ -54,10 +53,11 @@ class SocketService {
       if (kDebugMode) {
         print('🔌 Socket connected successfully');
       }
-      monitorConnection(); // Add this line
+      monitorConnection();
+
       // Register user after connection
-      if (_userId != null && _userRole != null) {
-        registerUser(_userId!, _userRole!);
+      if (_userId != null) {
+        registerUser(_userId!);
       }
     });
 
@@ -82,7 +82,7 @@ class SocketService {
     });
   }
 
-  // Add to SocketService class
+  // Monitor connection with ping/pong
   void monitorConnection() {
     if (_socket != null) {
       _socket!.on('ping', (_) {
@@ -100,12 +100,12 @@ class SocketService {
   }
 
   // Register user with the socket server
-  void registerUser(String userId, String role) {
+  void registerUser(String userId) {
     if (_socket != null && _isConnected) {
-      _socket!.emit('register-user', {'userId': userId, 'role': role});
+      _socket!.emit('register-user', {'userId': userId});
 
       if (kDebugMode) {
-        print('🔌 User registration sent - userId: $userId, role: $role');
+        print('🔌 User registration sent - userId: $userId');
       }
     }
   }
@@ -151,10 +151,8 @@ class SocketService {
     } finally {
       _isConnected = false;
       _userId = null;
-      _userRole = null;
     }
   }
-  // Add to SocketService class
 
   // Reconnect to socket
   Future<void> reconnect() async {
@@ -172,8 +170,8 @@ class SocketService {
         }
       }
       // If socket is null, reinitialize with previous credentials
-      else if (_socket == null && _userId != null && _userRole != null) {
-        await initializeSocket(userId: _userId!, userRole: _userRole!);
+      else if (_socket == null && _userId != null) {
+        await initializeSocket(userId: _userId!);
 
         if (kDebugMode) {
           print('🔌 Socket reinitialized with userId: $_userId');
@@ -193,6 +191,6 @@ class SocketService {
 
   // Check if reconnection is possible
   bool canReconnect() {
-    return _userId != null && _userRole != null && !_isConnected;
+    return _userId != null && !_isConnected;
   }
 }
