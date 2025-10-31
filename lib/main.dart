@@ -33,6 +33,7 @@ import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/ge
 import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/payment_method_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/support_view_model/support_view_model.dart';
+import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/freelancer_rating_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/order_confirmed_getorderdetails_view_model.dart';
 
 
@@ -75,10 +76,11 @@ void main() async {
         //order Under Nearby Retailers and Order
         ChangeNotifierProvider(create: (_) => GetOrderDetailsViewModel()),//view Details in Nearby order directory Order Confirmed Screen Get Order Details
         ChangeNotifierProvider<OrderDetailsSocketProvider>(create: (context) => OrderDetailsSocketProvider()),//Track Order Details SOCKET.IO
-
+        ChangeNotifierProvider(create: (_) => PatchFreelancerRatingViewModel()),//Freelancer Rating
         //====drawer
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),//profile image update
         ChangeNotifierProvider(create: (_) => PostChangePasswordViewModel()),
+
         //----------payment method screen
         ChangeNotifierProvider(create: (_) => GetBkashNagadViewModel()),
         ChangeNotifierProvider(create: (_) => PostPaymentMethodViewModel()),

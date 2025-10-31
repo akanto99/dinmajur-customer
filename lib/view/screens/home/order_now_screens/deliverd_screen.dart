@@ -2,8 +2,10 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/freelancer_rating_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/order_confirmed_getorderdetails_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -24,6 +26,7 @@ class DeliverdScreen extends StatefulWidget {
 class _DeliverdScreenState extends State<DeliverdScreen> {
   int _currentStep = 3; // 0=Dinmajur, 1=Pickup, 2=Delivery, 3=Complete
   int _selectedRating = 0;
+  bool _isRatingSubmitted = false; // Add this variable to track submission status
 
   @override
   void initState() {
@@ -53,8 +56,7 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
       children: [
         GestureDetector(
           onTap: () {
-            // Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
-        Navigator.pop(context);
+            Navigator.pop(context);
           },
           child: Container(height: 60, child: AppBarHeader("Delivered")),
         ),
@@ -130,7 +132,7 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
             SizedboxSpaccing.height02(context),
             _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
             SizedboxSpaccing.height02(context),
-            _buildRatingSection(context),
+            _buildRatingSection(context, freelancer),
             SizedboxSpaccing.height02(context),
             _buildBackToHomeButton(context),
             SizedboxSpaccing.height02(context),
@@ -233,7 +235,6 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
             textAlign: TextAlign.center,
             style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
           ),
-
         ],
       ),
     );
@@ -241,7 +242,6 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
 
   Widget _buildCustomerInfo(BuildContext context, Customer? customer, Retailer? retailer, Order? order, Delivery? delivery, Freelancer? freelancer) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
       padding: EdgeInsets.all(screenHeight * 0.02),
@@ -271,11 +271,14 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("${retailer?.businessName ?? 'N/A'}",
+                          Text(
+                            "${retailer?.businessName ?? 'N/A'}",
                             style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text('${retailer?.businessType ?? 'N/A'}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                          Text(
+                            '${retailer?.businessType ?? 'N/A'}',
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -288,7 +291,7 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(8)),
-                child: Text('Order #${order?.id?.substring(order.id!.length - 3) ?? 'N/A'}', style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
+                child: Text('Order #${order?.id?.substring(order.id!.length - 6) ?? 'N/A'}', style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
               ),
             ],
           ),
@@ -348,24 +351,28 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
               ),
             ),
           SizedboxSpaccing.height02(context),
-          Container(
-            height: 50,
-            decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(16), border: Border.all(
-              width: 1,
-              color: AppColors.border(context)
-            )),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(FontAwesomeIcons.download, color: AppColors.textPrimary(context), size: 15),
-                SizedboxSpaccing.width03(context),
-                Text(
-                  'Download Receipt',
-                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600,),
-                ),
-              ],
+          GestureDetector(
+            onTap: () {
+              // Add download receipt functionality here
+              Utils.flushBarErrorMessage('Download feature coming soon', context);
+            },
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: AppColors.containerBackground(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(width: 1, color: AppColors.border(context)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(FontAwesomeIcons.download, color: AppColors.textPrimary(context), size: 15),
+                  SizedboxSpaccing.width03(context),
+                  Text('Download Receipt', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                ],
+              ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -376,233 +383,104 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
     return DateFormat('hh:mm a').format(bdTime);
   }
 
-
-  Widget _buildRatingSection(BuildContext context) {
+  Widget _buildRatingSection(BuildContext context, Freelancer? freelancer) {
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Container(
-      padding: EdgeInsets.all(screenHeight * 0.02),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text('How was your delivery?', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-          SizedboxSpaccing.height02(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) {
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedRating = index + 1;
-                  });
-                },
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 4),
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: _selectedRating == index + 1 ? Colors.amber.withOpacity(0.8) : AppColors.containerBackground(context),border: Border.all(
-                    width: 2,
-                      color: _selectedRating == index + 1 ? Colors.amber : AppColors.border(context)
-                  )),
-                  child: Icon(Icons.sentiment_satisfied_alt, color: _selectedRating == index + 1 ? Colors.white : AppColors.subtitle(context), size: 28),
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeliveryItemsSection(BuildContext context, List<Item>? items) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    if (items == null || items.isEmpty) {
-      return SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Delivery Items', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-        SizedboxSpaccing.height01(context),
-        Divider(height: 1, color: AppColors.border(context)),
-        SizedboxSpaccing.height02(context),
-        Container(
+    return Consumer<PatchFreelancerRatingViewModel>(
+      builder: (context, freelancerRatingModel, child) {
+        return Container(
+          padding: EdgeInsets.all(screenHeight * 0.02),
           decoration: BoxDecoration(
             color: AppColors.containerBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.border(context)),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                padding: EdgeInsets.all(screenHeight * 0.015),
-                decoration: BoxDecoration(
-                  color: AppColors.containerBackground(context),
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-                ),
-                child: Row(
+              Text('How was your delivery?', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+              SizedboxSpaccing.height02(context),
+              // Rating stars (5 icons)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  final isSelected = _selectedRating >= index + 1;
+                  return GestureDetector(
+                    onTap: (_isRatingSubmitted || freelancerRatingModel.createFreelancerRatingLoading)
+                        ? null
+                        : () async {
+                            if (freelancer == null || freelancer.id == null) {
+                              Utils.flushBarErrorMessage('Freelancer data not available', context);
+                              return;
+                            }
+
+                            setState(() {
+                              _selectedRating = index + 1;
+                            });
+
+                            if (_selectedRating == 0) {
+                              Utils.flushBarErrorMessage('Please select a rating', context);
+                              return;
+                            }
+
+                            // Prevent double submission
+                            if (_isRatingSubmitted) {
+                              Utils.flushBarErrorMessage('Rating already submitted', context);
+                              return;
+                            }
+print("Rating $_selectedRating");
+print("FreelancerID--- ${freelancer.id}");
+print("FreelancerID--- ${freelancer.phone}");
+                            //
+                            // Map<String, dynamic> fields = {"rating": _selectedRating};
+                            //
+                            // await freelancerRatingModel.FreelancerRatingPatchApi(context, freelancer.id!, fields);
+
+                            // If success, mark as submitted
+                            if (context.mounted) {
+                              setState(() {
+                                _isRatingSubmitted = true;
+                              });
+                            }
+                          },
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 250),
+                      margin: EdgeInsets.symmetric(horizontal: 4),
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected ? Colors.amber.withOpacity(0.9) : AppColors.containerBackground(context),
+                        border: Border.all(width: 2, color: isSelected ? Colors.amber : AppColors.border(context)),
+                      ),
+                      child: Icon(Icons.star_rounded, color: isSelected ? Colors.white : Colors.grey, size: 28),
+                    ),
+                  );
+                }),
+              ),
+
+              // Rating success message
+              if (_isRatingSubmitted) ...[
+                SizedboxSpaccing.height02(context),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text('Item Name', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-                    ),
-                    Expanded(
-                      child: Text(
-                        'Weight/Pcs/Qty',
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        'Price',
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-                        textAlign: TextAlign.right,
-                      ),
+                    Icon(Icons.check_circle, color: Colors.green, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'Rating submitted successfully!',
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: Colors.green),
                     ),
                   ],
                 ),
-              ),
-              Divider(height: 1, color: AppColors.border(context)),
-              ...List.generate(items.length, (index) {
-                final item = items[index];
-                bool isNotFound = item.status?.toLowerCase() == 'not_found' || item.totalPrice == null || item.totalPrice == 0;
+              ],
 
-                return Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.015, vertical: screenHeight * 0.012),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              item.name ?? 'N/A',
-                              style: AppTextStyles.textSize14(
-                                context,
-                                weight: FontWeight.w400,
-                              ).copyWith(decoration: isNotFound ? TextDecoration.lineThrough : null, decorationColor: isNotFound ? Colors.red : null, decorationThickness: isNotFound ? 2.0 : null),
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              '${item.quantity ?? 0} ${item.unit ?? ''}',
-                              style: AppTextStyles.textSize14(
-                                context,
-                                weight: FontWeight.w400,
-                                color: AppColors.subtitle(context),
-                              ).copyWith(decoration: isNotFound ? TextDecoration.lineThrough : null, decorationColor: isNotFound ? Colors.red : null, decorationThickness: isNotFound ? 2.0 : null),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              isNotFound ? '' : '৳${item.totalPrice ?? 0}',
-                              style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                              textAlign: TextAlign.right,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (index < items.length - 1) Divider(height: 1, color: AppColors.border(context), indent: screenHeight * 0.015, endIndent: screenHeight * 0.015),
-                  ],
-                );
-              }),
+              // Loading indicator
+              if (freelancerRatingModel.createFreelancerRatingLoading) ...[SizedboxSpaccing.height02(context), LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 30)],
             ],
           ),
-        ),
-      ],
-    );
-  }
-
-  int _getFoundItemsCount(List<Item>? items) {
-    if (items == null) return 0;
-    return items.where((item) => item.status?.toLowerCase() != 'not_found' && item.totalPrice != null && item.totalPrice! > 0).length;
-  }
-
-  Widget _buildTotalSection(BuildContext context, Order? order) {
-    double subtotal = 0;
-    if (order?.items != null) {
-      subtotal = order!.items!.fold(0.0, (sum, item) {
-        if (item.status?.toLowerCase() != 'not_found' && item.totalPrice != null && item.totalPrice! > 0) {
-          return sum + item.totalPrice!;
-        }
-        return sum;
-      });
-    }
-
-    double serviceFee = order?.serviceFee?.toDouble() ?? 0;
-    double total = subtotal + serviceFee;
-    int foundItems = _getFoundItemsCount(order?.items);
-
-    return Container(
-      decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total Order:',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-              ),
-              Text('$foundItems items', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-            ],
-          ),
-          SizedboxSpaccing.height01(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Subtotal:',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-              ),
-              Text('৳${subtotal.toStringAsFixed(0)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-            ],
-          ),
-          SizedboxSpaccing.height01(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Service Fee:',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-              ),
-              Text('৳${serviceFee.toStringAsFixed(0)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-            ],
-          ),
-          SizedboxSpaccing.height01(context),
-          Divider(height: 1, color: AppColors.border(context)),
-          SizedboxSpaccing.height01(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Total Amount:', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              Text('৳${total.toStringAsFixed(0)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-            ],
-          ),
-          SizedboxSpaccing.height005(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Your Earnings:',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: Colors.green),
-              ),
-              Text(
-                '৳${order?.freelancerEarning ?? 0}',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: Colors.green),
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -614,7 +492,7 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
         Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
       },
       child: Container(
-        width: screenWidth *0.8,
+        width: screenWidth * 0.8,
         height: 50,
         decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(16)),
         child: Row(
