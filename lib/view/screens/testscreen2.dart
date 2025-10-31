@@ -14,17 +14,12 @@ class TestScreen2 extends StatefulWidget {
 }
 
 class _TestScreen2State extends State<TestScreen2> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-          child: ResPonsiveUi(
-              mobile: body(),
-              desktop: body(),
-              tablet: body()
-          )
+        child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
       ),
     );
   }
@@ -34,18 +29,19 @@ class _TestScreen2State extends State<TestScreen2> {
     final screenHeight = MediaQuery.of(context).size.height * 1;
 
     return Column(
-        children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 0)));
-            },
-            child: AppBarHeader("Offers"),
-          ),
-          Center(child: SizedboxSpaccing.height025(context)),
-          _buildSection(title: 'Offers', count: '(0)', emptyMessage: 'No Offers Yet'),
-
-        ]);
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
+          },
+          child: AppBarHeader("Offers"),
+        ),
+        Center(child: SizedboxSpaccing.height025(context)),
+        _buildSection(title: 'Offers', count: '(0)', emptyMessage: 'No Offers Yet'),
+      ],
+    );
   }
+
   Widget _buildSection({required String title, required String count, required String emptyMessage}) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -75,12 +71,15 @@ class _TestScreen2State extends State<TestScreen2> {
           Container(
             width: double.infinity,
             height: 120,
-            decoration: BoxDecoration(color: AppColors.appBackground(context), borderRadius: BorderRadius.circular(12),border: Border.all(width: 1,
-                color: AppColors.border(context))),
+            decoration: BoxDecoration(
+              color: AppColors.appBackground(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(width: 1, color: AppColors.border(context)),
+            ),
             child: Center(
               child: Text(
                 emptyMessage,
-                style: AppTextStyles.textSize18(context,weight: FontWeight.w500, color: AppColors.form_hover(context)),
+                style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.form_hover(context)),
               ),
             ),
           ),
@@ -88,5 +87,4 @@ class _TestScreen2State extends State<TestScreen2> {
       ),
     );
   }
-
 }
