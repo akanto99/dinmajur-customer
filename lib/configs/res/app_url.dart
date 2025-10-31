@@ -40,6 +40,8 @@ class AppUrl {
   static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
   static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";
   static var orderDetailsGetAPI = baseUrl + '/orders';
+  //Freelancer Rating
+  static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
 
 
   ///Forgot Password
