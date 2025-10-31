@@ -520,7 +520,7 @@ class _OrderDetailsSocketScreenState extends State<OrderDetailsSocketScreen> {
   }
 
   Widget _buildDeliveryAddress(BuildContext context, Delivery? delivery, String retailerName) {
-    String deliveryAddress = delivery?.destination?.fullAddress ?? 'No address provided';
+    String deliveryAddress = delivery?.destinationFullAddress ?? 'No address provided';
     String distance = _getFormattedDistance(delivery?.distance);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;

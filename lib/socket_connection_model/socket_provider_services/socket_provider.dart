@@ -19,7 +19,6 @@ class SocketProvider with ChangeNotifier {
   /// Connect socket with user credentials
   Future<void> connectWithUser({
     required String userId,
-    required String role,
   }) async {
     try {
       _isConnecting = true;
@@ -27,10 +26,7 @@ class SocketProvider with ChangeNotifier {
       notifyListeners();
 
       // Initialize socket with user credentials
-      await _socketService.initializeSocket(
-        userId: userId,
-        userRole: role,
-      );
+      await _socketService.initializeSocket(userId: userId);
 
       // Setup basic connection listeners
       _setupConnectionListeners();
@@ -39,7 +35,7 @@ class SocketProvider with ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print('🔌 Socket Provider: Connected with user $userId, role: $role');
+        print('🔌 Socket Provider: Connected with user $userId');
       }
 
     } catch (e) {
@@ -111,14 +107,12 @@ class SocketProvider with ChangeNotifier {
   /// Unregister user and disconnect socket
   Future<void> unregisterAndDisconnect({
     required String userId,
-    required String role,
   }) async {
     try {
       if (_socketService.socket != null && _isConnected) {
         // Emit unregister-user event
         _socketService.socket!.emit('unregister-user', {
           'userId': userId,
-          'role': role,
         });
 
         if (kDebugMode) {
@@ -174,8 +168,6 @@ class SocketProvider with ChangeNotifier {
     }
   }
 
-
-
   /// Emit custom events
   void emit(String event, dynamic data) {
     if (_isConnected && _socketService.socket != null) {
@@ -200,7 +192,6 @@ class SocketProvider with ChangeNotifier {
     if (_connectionError != null) return 0xFFF44336; // Red
     return 0xFF9E9E9E; // Grey
   }
-
 
   /// Reconnect socket
   Future<void> reconnect() async {

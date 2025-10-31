@@ -94,7 +94,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
             print("🔌 NavigationScreen: Socket not connected, connecting now...");
             await socketProvider.connectWithUser(
               userId: userId,
-              role: userRole,
             );
             print("🔌 NavigationScreen: Socket connected successfully");
             _socketInitialized = true; // ✅ Mark as initialized
@@ -130,7 +129,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
             print("🔌 NavigationScreen: Reconnecting socket after connectivity restored...");
             await socketProvider.connectWithUser(
               userId: userId,
-              role: userRole,
             );
             print("🔌 NavigationScreen: Socket reconnected successfully");
           } else {

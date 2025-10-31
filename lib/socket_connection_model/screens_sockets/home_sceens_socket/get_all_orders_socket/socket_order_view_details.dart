@@ -22,9 +22,10 @@ class OrderDetailsSocketProvider with ChangeNotifier {
   Retailer? get retailerData => orderDetailsModel?.retailer;
   Freelancer? get freelancerData => orderDetailsModel?.freelancer;
   Delivery? get deliveryData => orderDetailsModel?.delivery;
-  bool get isLoadingAvailableTaskDetails => _isLoadingOrderDetails;
+  bool get isLoadingOrderDetails => _isLoadingOrderDetails;
   String? get orderDetailsError => _orderDetailsError;
   String? get currentOrderId => _currentOrderId;
+
 
   void initializeWithSocketProvider(SocketProvider socketProvider) {
     String? newSocketId = socketProvider.socketService.socket?.id;
@@ -72,9 +73,8 @@ class OrderDetailsSocketProvider with ChangeNotifier {
   void _cleanupSocketListeners() {
     if (_socketProvider?.socketService.socket != null && _listenersInitialized) {
       try {
-        // Changed from 'view-order' to 'order-details'
-        _socketProvider!.socketService.socket!.off('order-details');
-        _socketProvider!.socketService.socket!.off('view-order-error');
+        _socketProvider!.socketService.socket!.off('get-order-details');
+        _socketProvider!.socketService.socket!.off('request-order-details-error');
         _socketProvider!.socketService.socket!.off('error');
         _socketProvider!.socketService.socket!.offAny();
       } catch (e) {
@@ -109,7 +109,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
       _orderDetailsError = null;
       notifyListeners();
 
-      _socketProvider!.socketService.socket!.emit('view-order', {
+      _socketProvider!.socketService.socket!.emit('request-order-details', {
         'orderId': orderId,
       });
     } catch (e) {
@@ -125,20 +125,16 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     if (_socketProvider?.socketService.socket == null) {
       return;
     }
-
-    // Clean up old listeners first
-    _socketProvider!.socketService.socket!.off('order-details');
-    _socketProvider!.socketService.socket!.off('view-order-error');
+    _socketProvider!.socketService.socket!.off('get-order-details');
+    _socketProvider!.socketService.socket!.off('request-order-details-error');
     _socketProvider!.socketService.socket!.off('error');
 
-    // CHANGED: Listen for 'order-details' instead of 'view-order'
-    _socketProvider!.socketService.socket!.on('order-details', (data) {
+    _socketProvider!.socketService.socket!.on('get-order-details', (data) {
       try {
         print('==================== RAW SOCKET RESPONSE ====================');
         print('Response Type: ${data.runtimeType}');
         print('Response Data: $data');
         print('============================================================');
-
         if (data != null) {
           OrderDetailsModel orderDetailsModel = _parseSocketResponse(data);
           String? receivedOrderId = orderDetailsModel.order?.id;
@@ -153,7 +149,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
           _orderDetailsListener?.call(_orderDetailsModel!);
           notifyListeners();
         } else {
-          throw Exception('Received null data for orderDetails');
+          throw Exception('Received null data for OrderDetails');
         }
       } catch (e) {
         _isLoadingOrderDetails = false;
@@ -185,11 +181,11 @@ class OrderDetailsSocketProvider with ChangeNotifier {
           notifyListeners();
         }
       } catch (e) {
-        print('❌ Error handling socket error: $e');
+        // Handle error silently
       }
     });
 
-    _socketProvider!.socketService.socket!.on('view-order-error', (data) {
+    _socketProvider!.socketService.socket!.on('request-order-details-error', (data) {
       try {
         String errorMessage = 'Unknown error occurred';
 
@@ -209,11 +205,9 @@ class OrderDetailsSocketProvider with ChangeNotifier {
         _orderDetailsErrorListener?.call(errorMessage);
         notifyListeners();
       } catch (e) {
-        print('❌ Error handling view-order-error: $e');
+        // Handle error silently
       }
     });
-
-    print('✅ Order details socket listeners setup complete');
   }
 
   OrderDetailsModel _parseSocketResponse(dynamic data) {
