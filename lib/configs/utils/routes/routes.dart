@@ -87,7 +87,14 @@ class Routes {
         case RoutesName.checkoutScreenNew:
         return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreenNew(), settings: settings);
       case RoutesName.orderConfirmScreen:
-        return MaterialPageRoute(builder: (BuildContext context) => const OrderConfirmedScreen(), settings: settings);
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => OrderConfirmedScreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
         //drawer===========>
       case RoutesName.viewProfile:
         return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());

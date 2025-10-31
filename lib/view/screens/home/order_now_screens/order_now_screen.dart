@@ -23,6 +23,7 @@ class OrderNow extends StatefulWidget {
 
 class _OrderNowState extends State<OrderNow> {
   // Store data properties
+  //  String ? orderId;
   Map<String, dynamic>? storeData;
   String? store_distance;
   String? store_address;
@@ -58,11 +59,12 @@ class _OrderNowState extends State<OrderNow> {
     super.didChangeDependencies();
     _loadArguments();
   }
-
   void _loadArguments() {
     final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     if (arguments != null) {
+      // orderId = arguments['orderId'];
+      storeData = arguments['storeData'];
       storeData = arguments['storeData'];
       store_distance = arguments['distanceText'];
       store_businessName = arguments['businessName'];
@@ -141,6 +143,7 @@ class _OrderNowState extends State<OrderNow> {
       RoutesName.checkoutScreenNew,
       arguments: {
         'storeData': storeData,
+        // 'orderId': orderId,
         'businessName': store_businessName,
         'status': store_status,
         'businessType': store_businessType,
@@ -186,6 +189,7 @@ class _OrderNowState extends State<OrderNow> {
     return Column(
       children: [
         // _buildAppBar(),
+
         AppBarHeader("New Order"),
         Expanded(
           child: SingleChildScrollView(

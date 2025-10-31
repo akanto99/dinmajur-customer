@@ -3,7 +3,7 @@ import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_view_models/order_now_view_models/checkout_order_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/checkout_order_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
@@ -22,6 +22,7 @@ class CheckoutScreenNew extends StatefulWidget {
 
 class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
   Map<String, dynamic>? storeData;
+  // String? orderId;
   String? store_businessName;
   String? store_status;
   String? store_businessType;
@@ -131,6 +132,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
 
     if (arguments != null) {
       storeData = arguments['storeData'];
+      // orderId = arguments['orderId'];
       store_businessName = arguments['businessName'];
       store_status = arguments['status'];
       store_businessType = arguments['businessType'];
@@ -641,15 +643,8 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
 
                       print("🛒 Final Order Data: ${jsonEncode(orderData)}");
 
-                      // await checkOutViewModel.checkoutOrderPostApi(context, orderData);
-                      Navigator.pushNamed(
-                        context,
-                        RoutesName.orderConfirmScreen,
-                        arguments: {
-                          'businessName': store_businessName,
-                          'businessType': store_businessType,
-                        },
-                      );
+                      await checkOutViewModel.checkoutOrderPostApi(context, orderData);
+
                     },
                     showRightIcon: true,
                     showLeftIcon: false
