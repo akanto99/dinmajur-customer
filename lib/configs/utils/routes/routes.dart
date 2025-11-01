@@ -29,6 +29,7 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
 import 'package:dinmajur_customer/view/screens/order/order_details_old.dart';
+import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
 import 'package:dinmajur_customer/view/welcome_loginsignup/welcome_loginsignup.dart';
 import 'package:flutter/material.dart';
@@ -140,6 +141,18 @@ class Routes {
       ///Task
       case RoutesName.orderScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
+        //running Order Details SOCKET.IO Screen
+      case RoutesName.runningOrdersViewDetailsSocketscreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => RunningOrdersViewDetailsSocketscreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+
       case RoutesName.orderDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args == null) {
