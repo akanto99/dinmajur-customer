@@ -45,6 +45,8 @@ class RoutesName {
   ///Task
   static const String orderScreen = 'orderScreen_view';
   static const String orderDetailsScreen = 'orderDetailsScreen_view';
+  //running Order Details SOCKET.IO Screen
+  static const String runningOrdersViewDetailsSocketscreen = 'runningOrdersViewDetailsSocketscreen_view';
 
 
 }

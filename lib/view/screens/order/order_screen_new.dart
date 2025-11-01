@@ -157,9 +157,9 @@ class _OrderScreenState extends State<OrderScreen> {
       builder: (context, viewModel, child) {
         switch (viewModel.runningOrdersData.status) {
           case Status.LOADING:
-           return  Container(height: screenHeight,
-               color: AppColors.containerBackground(context),
-               child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
+            return  Container(height: screenHeight,
+                color: AppColors.containerBackground(context),
+                child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
           case Status.ERROR:
             return Center(
               child: Column(
@@ -238,7 +238,7 @@ class _OrderScreenState extends State<OrderScreen> {
                 itemCount: orderData.data!.data!.length,
                 itemBuilder: (context, index) {
                   final datum = orderData.data!.data![index];
-                  return _buildOrderCard(datum, screenWidth, screenHeight);
+                  return _buildOrderCard(datum, screenWidth, screenHeight, isRunningTab: true);
                 },
               ),
             );
@@ -341,7 +341,7 @@ class _OrderScreenState extends State<OrderScreen> {
                 itemCount: orderData.data!.data!.length,
                 itemBuilder: (context, index) {
                   final datum = orderData.data!.data![index];
-                  return _buildOrderCard(datum, screenWidth, screenHeight);
+                  return _buildOrderCard(datum, screenWidth, screenHeight, isRunningTab: false);
                 },
               ),
             );
@@ -353,7 +353,7 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  Widget _buildOrderCard(Datum datum, double screenWidth, double screenHeight) {
+  Widget _buildOrderCard(Datum datum, double screenWidth, double screenHeight, {bool isRunningTab = false}) {
     final order = datum.order;
     final retailer = datum.retailer;
     final delivery = datum.delivery;
@@ -366,11 +366,23 @@ class _OrderScreenState extends State<OrderScreen> {
       ),
       child: GestureDetector(
         onTap: () {
-          Navigator.pushNamed(
-            context,
-            RoutesName.orderDetailsScreen,
-            arguments: datum,
-          );
+          if (isRunningTab) {
+            // Navigate to running order details screen for Running tab
+            Navigator.pushNamed(
+              context,
+              RoutesName.runningOrdersViewDetailsSocketscreen,
+              arguments: {
+                'orderId': order?.id ?? '',
+              },
+            );
+          } else {
+            // Navigate to completed order details screen for Completed tab
+            Navigator.pushNamed(
+              context,
+              RoutesName.orderDetailsScreen,
+              arguments: datum,
+            );
+          }
         },
         child: Container(
           padding: EdgeInsets.all(screenHeight * 0.02),
