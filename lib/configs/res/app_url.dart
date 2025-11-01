@@ -53,4 +53,10 @@ class AppUrl {
 
 
   static var suppportAPI = baseUrl + '/contact';//support
+
+
+///Order Tab
+ static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';
+ static var completedOrderGetAPI = baseUrl + '/customers/orders?status=COMPLETED';
+
 }

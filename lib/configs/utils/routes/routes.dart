@@ -22,15 +22,13 @@ import 'package:dinmajur_customer/view/screens/home/drawer/view_edit_profile/vie
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/add_newlocation_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/map_location_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
-// import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_old.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_new.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/deliverd_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
-import 'package:dinmajur_customer/view/screens/task/task_details.dart';
-import 'package:dinmajur_customer/view/screens/task/task_screen.dart';
+import 'package:dinmajur_customer/view/screens/order/order_details_old.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
 import 'package:dinmajur_customer/view/welcome_loginsignup/welcome_loginsignup.dart';
 import 'package:flutter/material.dart';
@@ -140,15 +138,15 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const PrivacyPolicyScreen());
 
       ///Task
-      case RoutesName.taskScreen:
-        return MaterialPageRoute(builder: (BuildContext context) => const TaskScreen());
-      case RoutesName.taskDetailsScreen:
+      case RoutesName.orderScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
+      case RoutesName.orderDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args == null) {
           return _errorRoute();
         }
         return MaterialPageRoute(
-          builder: (BuildContext context) => TaskDetailsScreen(orderData: args),
+          builder: (BuildContext context) => OrderDetailsScreen(orderData: args),
           settings: settings,
         );
 

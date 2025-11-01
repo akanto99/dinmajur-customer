@@ -43,8 +43,8 @@ class RoutesName {
 
 
   ///Task
-  static const String taskScreen = 'taskScreen_view';
-  static const String taskDetailsScreen = 'taskDetailsScreen_view';
+  static const String orderScreen = 'orderScreen_view';
+  static const String orderDetailsScreen = 'orderDetailsScreen_view';
 
 
 }

@@ -6,14 +6,14 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:flutter/material.dart';
 
-class TestScreen2 extends StatefulWidget {
-  const TestScreen2({super.key});
+class OffersScreen extends StatefulWidget {
+  const OffersScreen({super.key});
 
   @override
-  State<TestScreen2> createState() => _TestScreen2State();
+  State<OffersScreen> createState() => _OffersScreenState();
 }
 
-class _TestScreen2State extends State<TestScreen2> {
+class _OffersScreenState extends State<OffersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

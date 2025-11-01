@@ -35,7 +35,7 @@ class _ViewProfileState extends State<ViewProfile> {
   final List<String> icons = [
     "assets/images/navBar/navbar_new/home.svg",
     "assets/images/navBar/navbar_new/scan.svg",
-    "assets/images/navBar/navbar_new/task.svg",
+    "assets/images/navBar/navbar_new/order.svg",
     "assets/images/navBar/navbar_new/stores.svg",
     "assets/images/navBar/navbar_new/income.svg",
   ];

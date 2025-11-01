@@ -214,12 +214,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
               child: _buildDrawerItem(Icons.shopping_bag_outlined, AppLocalizations.of(context)!.payment_method),
             ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, RoutesName.promoCodes);
-              },
-              child: _buildDrawerItem(Icons.view_sidebar_outlined, AppLocalizations.of(context)!.promo_codes),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     Navigator.pushNamed(context, RoutesName.promoCodes);
+            //   },
+            //   child: _buildDrawerItem(Icons.view_sidebar_outlined, AppLocalizations.of(context)!.promo_codes),
+            // ),
             GestureDetector(
               onTap: () {
                 Navigator.pushNamed(context, RoutesName.offers);
