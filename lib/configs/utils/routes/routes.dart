@@ -28,6 +28,7 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_conf
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
+import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/order_details_old.dart';
 import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
@@ -151,17 +152,27 @@ class Routes {
           );
         }
         return _errorRoute();
-
-
-      case RoutesName.orderDetailsScreen:
+        //Complete Order Details API Get Data
+      case RoutesName.completeOrdersDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>?;
-        if (args == null) {
-          return _errorRoute();
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CompleteOrdersDetailsScreen(orderId: args['orderId']),
+            settings: settings,
+          );
         }
-        return MaterialPageRoute(
-          builder: (BuildContext context) => OrderDetailsScreen(orderData: args),
-          settings: settings,
-        );
+        return _errorRoute();
+
+
+      // case RoutesName.orderDetailsScreen:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   if (args == null) {
+      //     return _errorRoute();
+      //   }
+      //   return MaterialPageRoute(
+      //     builder: (BuildContext context) => OrderDetailsScreen(orderData: args),
+      //     settings: settings,
+      //   );
 
 
       default:
