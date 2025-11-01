@@ -7,16 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class TaskDetailsScreen extends StatefulWidget {
+class OrderDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> orderData;
 
-  const TaskDetailsScreen({super.key, required this.orderData});
+  const OrderDetailsScreen({super.key, required this.orderData});
 
   @override
-  State<TaskDetailsScreen> createState() => _TaskDetailsScreenState();
+  State<OrderDetailsScreen> createState() => _OrderDetailsScreenState();
 }
 
-class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
+class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   final TextEditingController _withdrawalController = TextEditingController();
 
   // Get status progress based on orderStatus

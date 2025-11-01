@@ -16,6 +16,8 @@ import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/checkout_order_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/post_change_passwordview_model/post_change_passwordview_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
+import 'package:dinmajur_customer/view_model/order_view_models/complete_orders_view_model.dart';
+import 'package:dinmajur_customer/view_model/order_view_models/running_orders_view_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -87,6 +89,11 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PatchAccountUpdateViewModel()),
         //-------------Support
         ChangeNotifierProvider(create: (_) => PostSupportViewModel()),
+
+
+        ///Order Tab
+        ChangeNotifierProvider(create: (_) => RunningOrdersViewModel()),
+        ChangeNotifierProvider(create: (_) => CompleteOrdersViewModel()),
 
 
 

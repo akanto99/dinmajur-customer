@@ -109,7 +109,7 @@ flutter:
     - assets/images/home/
 #    - assets/images/home/home_screen/
     - assets/images/home/drawer/
-    #    - assets/images/task/
+    #    - assets/images/order/
 
 
     - assets/map_theme/nighttheme.json

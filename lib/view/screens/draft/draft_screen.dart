@@ -6,14 +6,14 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:flutter/material.dart';
 
-class TestScreen3 extends StatefulWidget {
-  const TestScreen3({super.key});
+class DraftScreen extends StatefulWidget {
+  const DraftScreen({super.key});
 
   @override
-  State<TestScreen3> createState() => _TestScreen3State();
+  State<DraftScreen> createState() => _DraftScreenState();
 }
 
-class _TestScreen3State extends State<TestScreen3> {
+class _DraftScreenState extends State<DraftScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +39,10 @@ class _TestScreen3State extends State<TestScreen3> {
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 0)));
             },
-            child: AppBarHeader("Store"),
+            child: AppBarHeader("Draft"),
           ),
           Center(child: SizedboxSpaccing.height025(context)),
-          _buildSection(title: 'Store', count: '(0)', emptyMessage: 'No Store Yet'),
+          _buildSection(title: 'Draft', count: '(0)', emptyMessage: 'No Draft Yet'),
 
         ]);
   }

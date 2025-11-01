@@ -5,11 +5,10 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
+import 'package:dinmajur_customer/view/screens/draft/draft_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
-import 'package:dinmajur_customer/view/screens/task/task_screen.dart';
-import 'package:dinmajur_customer/view/screens/testscreen2.dart';
-import 'package:dinmajur_customer/view/screens/testscreen3.dart';
-import 'package:dinmajur_customer/view/screens/testscreen4.dart';
+import 'package:dinmajur_customer/view/screens/order/order_screen_new.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -51,9 +50,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
     _pages = [
       HomeScreen(scaffoldKey: _key),
       // SocketStatusWidget(),
-      TestScreen2(),
-      TaskScreen(),
-      TestScreen3(),
+      OffersScreen(),
+      OrderScreen(),
+      DraftScreen(),
     ];
     ///Network Connectivity initialize
     initConnectivity();
