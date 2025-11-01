@@ -409,14 +409,18 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                     onTap: (_isRatingSubmitted || freelancerRatingModel.createFreelancerRatingLoading)
                         ? null
                         : () async {
-                            if (freelancer == null || freelancer.id == null) {
-                              Utils.flushBarErrorMessage('Freelancer data not available', context);
-                              return;
-                            }
+                      if (freelancer == null || freelancer.id == null) {
+                        Utils.flushBarErrorMessage('Freelancer data not available', context);
+                        return;
+                      }
 
-                            setState(() {
-                              _selectedRating = index + 1;
-                            });
+                      setState(() {
+                        _selectedRating = index + 1;
+                      });
+
+                      print("Rating $_selectedRating");
+                      print("FreelancerID--- ${freelancer.id}");
+                      print("FreelancerID--- ${freelancer.phone}");
 
                             if (_selectedRating == 0) {
                               Utils.flushBarErrorMessage('Please select a rating', context);
@@ -428,13 +432,10 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                               Utils.flushBarErrorMessage('Rating already submitted', context);
                               return;
                             }
-print("Rating $_selectedRating");
-print("FreelancerID--- ${freelancer.id}");
-print("FreelancerID--- ${freelancer.phone}");
-                            //
-                            // Map<String, dynamic> fields = {"rating": _selectedRating};
-                            //
-                            // await freelancerRatingModel.FreelancerRatingPatchApi(context, freelancer.id!, fields);
+
+                            Map<String, dynamic> fields = {"rating": _selectedRating};
+
+                            await freelancerRatingModel.FreelancerRatingPatchApi(context, freelancer.id!, fields);
 
                             // If success, mark as submitted
                             if (context.mounted) {
