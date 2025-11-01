@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/order_models/get_all_order_model.dart';
+import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/order_view_models/complete_orders_view_model.dart';
 import 'package:dinmajur_customer/view_model/order_view_models/running_orders_view_model.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +51,9 @@ class _OrderScreenState extends State<OrderScreen> {
     return Column(
       children: [
         // Header AppBar
-        AppBarHeader("Orders"),
+        GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0))),
+            child: AppBarHeader("Orders")),
 
         /// Tabs
         Container(
@@ -419,18 +422,19 @@ class _OrderScreenState extends State<OrderScreen> {
                     children: [
                       Text(
                         "Order #${order?.id?.substring(order.id!.length - 6) ?? 'N/A'}",
+                        style: AppTextStyles.textSize14(
+                          context,
+                          weight: FontWeight.w400,
+                          color: AppColors.textPrimary(context),
+                        ),
+                      ),
+                      // SizedBox(height: 4),
+                      Text(
+                        retailer?.businessName ?? 'Unknown Store',
                         style: AppTextStyles.textSize12(
                           context,
                           color: AppColors.subtitle(context),
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        retailer?.businessName ?? 'Unknown Store',
-                        style: AppTextStyles.textSize10(
-                          context,
-                          color: AppColors.textPrimary(context),
-                          weight: FontWeight.w500,
+                          weight: FontWeight.w400,
                         ),
                       ),
 
@@ -464,7 +468,7 @@ class _OrderScreenState extends State<OrderScreen> {
                         style: AppTextStyles.textSize10(
                           context,
                           color: AppColors.textPrimary(context),
-                          weight: FontWeight.w500,
+                          weight: FontWeight.w400,
                         )
                     ),
                   ),
