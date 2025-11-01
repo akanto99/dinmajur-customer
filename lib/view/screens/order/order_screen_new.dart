@@ -376,11 +376,13 @@ class _OrderScreenState extends State<OrderScreen> {
               },
             );
           } else {
-            // Navigate to completed order details screen for Completed tab
+
             Navigator.pushNamed(
               context,
-              RoutesName.orderDetailsScreen,
-              arguments: datum,
+              RoutesName.completeOrdersDetailsScreen,
+              arguments: {
+                'orderId': order?.id ?? '',
+              },
             );
           }
         },
