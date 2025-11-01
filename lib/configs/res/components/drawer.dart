@@ -11,6 +11,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
+import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
@@ -220,6 +221,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
             //   },
             //   child: _buildDrawerItem(Icons.view_sidebar_outlined, AppLocalizations.of(context)!.promo_codes),
             // ),
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2))),
+              child: _buildDrawerItem(Icons.check_box_outline_blank, AppLocalizations.of(context)!.order),
+            ),
             GestureDetector(
               onTap: () {
                 Navigator.pushNamed(context, RoutesName.offers);
