@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_reciept_generator_auto_open_download.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import 'package:dinmajur_customer/model/home_models/nearby_retailers_and_order_models/get_order_details_model.dart';
 
@@ -24,9 +26,9 @@ class DeliverdScreen extends StatefulWidget {
 }
 
 class _DeliverdScreenState extends State<DeliverdScreen> {
-  int _currentStep = 3; // 0=Dinmajur, 1=Pickup, 2=Delivery, 3=Complete
+  int _currentStep = 3;
   int _selectedRating = 0;
-  bool _isRatingSubmitted = false; // Add this variable to track submission status
+  bool _isRatingSubmitted = false;
 
   @override
   void initState() {
@@ -131,7 +133,7 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
             SizedboxSpaccing.height02(context),
             _buildDeliveryCompletedCard(context, order),
             SizedboxSpaccing.height02(context),
-            _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
+            _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer, data), // ✅ PASS data HERE
             SizedboxSpaccing.height02(context),
             _buildRatingSection(context, freelancer),
             SizedboxSpaccing.height02(context),
@@ -241,7 +243,16 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
     );
   }
 
-  Widget _buildCustomerInfo(BuildContext context, Customer? customer, Retailer? retailer, Order? order, Delivery? delivery, Freelancer? freelancer) {
+  // ✅ UPDATED METHOD - Added Data parameter
+  Widget _buildCustomerInfo(
+      BuildContext context,
+      Customer? customer,
+      Retailer? retailer,
+      Order? order,
+      Delivery? delivery,
+      Freelancer? freelancer,
+      Data data, // ✅ ADD THIS PARAMETER
+      ) {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
@@ -315,19 +326,10 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                       Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.button(context),
-                        ),
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
                         child: ClipOval(
-                          child: freelancer.profilePicture?.url != null &&
-                              freelancer.profilePicture!.url!.isNotEmpty
-                              ? Image.network(
-                            freelancer.profilePicture!.url!,
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                          )
+                          child: freelancer.profilePicture?.url != null && freelancer.profilePicture!.url!.isNotEmpty
+                              ? Image.network(freelancer.profilePicture!.url!, width: 40, height: 40, fit: BoxFit.cover)
                               : Icon(Icons.person, color: Colors.white, size: 20),
                         ),
                       ),
@@ -365,10 +367,65 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
               ),
             ),
           SizedboxSpaccing.height02(context),
+
+          // ✅ DOWNLOAD RECEIPT BUTTON
           GestureDetector(
-            onTap: () {
-              // Add download receipt functionality here
-              Utils.flushBarErrorMessage('Download feature coming soon', context);
+            onTap: () async {
+              try {
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Center(
+                    child: Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.containerBackground(context),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: LoadingAnimationWidget.progressiveDots(
+                        color: AppColors.button(context),
+                        size: 45,
+                      ),
+                    ),
+                  ),
+                );
+
+                // ✅ Generate PDF - Now 'data' is available
+                final file = await ReceiptPdfGenerator.generateAndDownloadReceipt(data);
+
+                // Close loading dialog
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+
+                if (file != null) {
+                  // Show success message
+                  Utils.flushBarSuccessMessage(
+                    'Receipt downloaded successfully!',
+                    context,
+                  );
+
+                  // ✅ Open the PDF file
+                  await OpenFile.open(file.path);
+                } else {
+                  Utils.flushBarErrorMessage(
+                    'Failed to generate receipt',
+                    context,
+                  );
+                }
+              } catch (e) {
+                // Close loading dialog if open
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+
+                print('Error: $e');
+                Utils.flushBarErrorMessage(
+                  'Error: ${e.toString()}',
+                  context,
+                );
+              }
             },
             child: Container(
               height: 50,
@@ -380,13 +437,23 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(FontAwesomeIcons.download, color: AppColors.textPrimary(context), size: 15),
+                  Icon(
+                    FontAwesomeIcons.download,
+                    color: AppColors.textPrimary(context),
+                    size: 15,
+                  ),
                   SizedboxSpaccing.width03(context),
-                  Text('Download Receipt', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                  Text(
+                    'Download Receipt',
+                    style: AppTextStyles.textSize16(
+                      context,
+                      weight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
+          )
         ],
       ),
     );
@@ -414,7 +481,7 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
             children: [
               Text('How was your delivery?', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
               SizedboxSpaccing.height02(context),
-              // Rating stars (5 icons)
+              // Rating stars
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(5, (index) {
@@ -432,32 +499,26 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                         _selectedRating = index + 1;
                       });
 
-                      print("Rating $_selectedRating");
-                      print("FreelancerID--- ${freelancer.id}");
-                      print("FreelancerID--- ${freelancer.phone}");
+                      if (_selectedRating == 0) {
+                        Utils.flushBarErrorMessage('Please select a rating', context);
+                        return;
+                      }
 
-                            if (_selectedRating == 0) {
-                              Utils.flushBarErrorMessage('Please select a rating', context);
-                              return;
-                            }
+                      if (_isRatingSubmitted) {
+                        Utils.flushBarErrorMessage('Rating already submitted', context);
+                        return;
+                      }
 
-                            // Prevent double submission
-                            if (_isRatingSubmitted) {
-                              Utils.flushBarErrorMessage('Rating already submitted', context);
-                              return;
-                            }
+                      Map<String, dynamic> fields = {"rating": _selectedRating};
 
-                            Map<String, dynamic> fields = {"rating": _selectedRating};
+                      await freelancerRatingModel.FreelancerRatingPatchApi(context, freelancer.id!, fields);
 
-                            await freelancerRatingModel.FreelancerRatingPatchApi(context, freelancer.id!, fields);
-
-                            // If success, mark as submitted
-                            if (context.mounted) {
-                              setState(() {
-                                _isRatingSubmitted = true;
-                              });
-                            }
-                          },
+                      if (context.mounted) {
+                        setState(() {
+                          _isRatingSubmitted = true;
+                        });
+                      }
+                    },
                     child: AnimatedContainer(
                       duration: Duration(milliseconds: 250),
                       margin: EdgeInsets.symmetric(horizontal: 4),
@@ -474,7 +535,6 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                 }),
               ),
 
-              // Rating success message
               if (_isRatingSubmitted) ...[
                 SizedboxSpaccing.height02(context),
                 Row(
@@ -490,8 +550,10 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                 ),
               ],
 
-              // Loading indicator
-              if (freelancerRatingModel.createFreelancerRatingLoading) ...[SizedboxSpaccing.height02(context), LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 30)],
+              if (freelancerRatingModel.createFreelancerRatingLoading) ...[
+                SizedboxSpaccing.height02(context),
+                LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 30)
+              ],
             ],
           ),
         );
