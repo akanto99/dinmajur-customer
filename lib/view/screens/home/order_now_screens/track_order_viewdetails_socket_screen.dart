@@ -56,7 +56,6 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   String? _previousDeliveryStatus;
   bool _hasNavigatedToDelivered = false;
 
-
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -77,12 +76,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     // Check if status changed to ARRIVED_DESTINATION or DELIVERED
     bool shouldNavigate = false;
 
-    if (currentStatus?.toUpperCase() == 'ARRIVED_DESTINATION' &&
-        _previousDeliveryStatus?.toUpperCase() != 'ARRIVED_DESTINATION') {
+    if (currentStatus?.toUpperCase() == 'ARRIVED_DESTINATION' && _previousDeliveryStatus?.toUpperCase() != 'ARRIVED_DESTINATION') {
       print('Status changed to ARRIVED_DESTINATION - will navigate in 2 seconds');
       shouldNavigate = true;
-    } else if (currentStatus?.toUpperCase() == 'DELIVERED' &&
-        _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
+    } else if (currentStatus?.toUpperCase() == 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
       print('Status changed to DELIVERED - will navigate in 2 seconds');
       shouldNavigate = true;
     }
@@ -94,19 +91,14 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       Future.delayed(Duration(milliseconds: 2000), () {
         if (mounted && !_isDisposed) {
           print('Navigating to delivered screen...');
-          Navigator.pushNamed(
-            context,
-            RoutesName.deliverdScreen,
-            arguments: {
-              'orderId': widget.orderId,
-            },
-          );
+          Navigator.pushNamed(context, RoutesName.deliverdScreen, arguments: {'orderId': widget.orderId});
         }
       });
     }
 
     _previousDeliveryStatus = currentStatus;
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -166,6 +158,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       attempts++;
     }
   }
+
   Future<void> _fetchOrderDetailsFromSocket() async {
     if (!_orderDetailsSocketInitialized || _isDisposed || _hasRequestedOrder || !mounted) {
       return;
@@ -348,7 +341,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
     // Set current step based on delivery status
     _currentStep = _getCurrentStepFromStatus(delivery?.status);
-
+    bool isPending = delivery?.status?.toUpperCase() == 'PENDING';
     return SingleChildScrollView(
       child: Container(
         padding: EdgeInsets.all(screenHeight * 0.02),
@@ -358,8 +351,11 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             SizedboxSpaccing.height02(context),
             _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
             SizedboxSpaccing.height02(context),
-            _buildContactSection(context, freelancer),
-            SizedboxSpaccing.height02(context),
+            if (!isPending)...[
+              _buildContactSection(context, freelancer),
+              SizedboxSpaccing.height02(context),
+
+            ] ,
             _buildCustomerOrderItems(context, order.items),
             SizedboxSpaccing.height02(context),
             if (order.customerNote != null && order.customerNote!.isNotEmpty) _buildCustomerNotes(context, order.customerNote!),
@@ -536,14 +532,18 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
-                        child: Icon(Icons.person, color: Colors.white, size: 20),
+                        child: ClipOval(
+                          child: freelancer.profilePicture?.url != null && freelancer.profilePicture!.url!.isNotEmpty
+                              ? Image.network(freelancer.profilePicture!.url!, width: 40, height: 40, fit: BoxFit.cover)
+                              : Icon(Icons.person, color: Colors.white, size: 20),
+                        ),
                       ),
                       SizedboxSpaccing.width03(context),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${freelancer.firstName ?? ''} ${freelancer.lastName ?? ''}'.trim().isEmpty ? 'N/A' : '${freelancer.firstName ?? ''} ${freelancer.lastName ?? ''}'.trim(),
+                            '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim(),
                             style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
                           ),
                           Row(
@@ -735,16 +735,32 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   Container(
                     width: 34,
                     height: 34,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.border(context)),
-                    child: Icon(Icons.person, color: AppColors.textPrimary(context), size: 20),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
+                    child: ClipOval(
+                      child: freelancer?.profilePicture?.url != null && freelancer!.profilePicture!.url!.isNotEmpty
+                          ? Image.network(
+                              freelancer.profilePicture!.url!,
+                              width: 34,
+                              height: 34,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.person, color: Colors.white, size: 20);
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)));
+                              },
+                            )
+                          : Icon(Icons.person, color: Colors.white, size: 20),
+                    ),
                   ),
                   SizedboxSpaccing.width03(context),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        freelancer?.firstName ?? 'N/A',
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                        '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim().isEmpty ? 'N/A' : '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim(),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500,color: AppColors.button(context)),
                       ),
                       Text(freelancerPhone.isEmpty ? 'N/A' : freelancerPhone, style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
                     ],

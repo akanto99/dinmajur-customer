@@ -31,6 +31,7 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
   @override
   void initState() {
     super.initState();
+    print(widget.orderId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final getOrderDetailsModel = Provider.of<GetOrderDetailsViewModel>(context, listen: false);
       getOrderDetailsModel.fetchOrderDetailsData(widget.orderId);
@@ -314,8 +315,21 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                       Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
-                        child: Icon(Icons.person, color: Colors.white, size: 20),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.button(context),
+                        ),
+                        child: ClipOval(
+                          child: freelancer.profilePicture?.url != null &&
+                              freelancer.profilePicture!.url!.isNotEmpty
+                              ? Image.network(
+                            freelancer.profilePicture!.url!,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          )
+                              : Icon(Icons.person, color: Colors.white, size: 20),
+                        ),
                       ),
                       SizedboxSpaccing.width03(context),
                       Column(

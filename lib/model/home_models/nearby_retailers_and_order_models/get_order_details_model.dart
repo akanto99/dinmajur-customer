@@ -212,26 +212,79 @@ class Freelancer {
   String? firstName;
   String? lastName;
   String? phone;
+  ProfilePicture? profilePicture;
+  double? rating;
+  DateTime? acceptedAt;
+  int? totalOrders;
 
   Freelancer({
     this.id,
     this.firstName,
     this.lastName,
     this.phone,
+    this.profilePicture,
+    this.rating,
+    this.acceptedAt,
+    this.totalOrders,
   });
 
-  factory Freelancer.fromJson(Map<String, dynamic> json) => Freelancer(
-    id: json["_id"],
-    firstName: json["firstName"],
-    lastName: json["lastName"],
-    phone: json["phone"],
-  );
+  factory Freelancer.fromJson(Map<String, dynamic> json) {
+    // Helper function for safe date parsing
+    DateTime? parseDateTime(dynamic value) {
+      if (value == null) return null;
+      try {
+        if (value is String) {
+          return DateTime.parse(value);
+        }
+        return null;
+      } catch (e) {
+        print('⚠️ Freelancer date parse error: $value - $e');
+        return null;
+      }
+    }
+
+    return Freelancer(
+      id: json["_id"],
+      firstName: json["firstName"],
+      lastName: json["lastName"],
+      phone: json["phone"],
+      profilePicture: json["profilePicture"] != null
+          ? ProfilePicture.fromJson(json["profilePicture"])
+          : null,
+      rating: json["rating"]?.toDouble(),
+      acceptedAt: parseDateTime(json["acceptedAt"]),
+      totalOrders: json["totalOrders"],
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     "_id": id,
     "firstName": firstName,
     "lastName": lastName,
     "phone": phone,
+    "profilePicture": profilePicture?.toJson(),
+    "rating": rating,
+    "acceptedAt": acceptedAt?.toIso8601String(),
+    "totalOrders": totalOrders,
+  };
+}
+class ProfilePicture {
+  String? url;
+  String? key;
+
+  ProfilePicture({
+    this.url,
+    this.key,
+  });
+
+  factory ProfilePicture.fromJson(Map<String, dynamic> json) => ProfilePicture(
+    url: json["url"],
+    key: json["key"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "url": url,
+    "key": key,
   };
 }
 
