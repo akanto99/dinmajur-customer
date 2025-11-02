@@ -377,7 +377,7 @@ class _OrderNowState extends State<OrderNow> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
@@ -385,17 +385,14 @@ class _OrderNowState extends State<OrderNow> {
                 size: screenWidth * 0.035, // Responsive icon size
                 color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
               ),
-              SizedBox(width: screenWidth * 0.01), // Responsive spacing
-              Expanded(
-                // Changed from Flexible to Expanded
-                child: Text(
-                  title,
-                  style: AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  softWrap: false, // Prevents text wrapping
-                ),
+              SizedboxSpaccing.width03(context), // Responsive spacing
+              Text(
+                title,
+                style: AppTextStyles.textSize16(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                softWrap: false, // Prevents text wrapping
               ),
             ],
           ),
@@ -430,7 +427,9 @@ class _OrderNowState extends State<OrderNow> {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [_buildTab("Manual", 0, FontAwesomeIcons.edit), _buildTab("Upload", 1, FontAwesomeIcons.camera), _buildTab("Voice", 2, Icons.mic)],
+            children: [_buildTab("Manual Entry", 0, FontAwesomeIcons.edit),
+              // _buildTab("Upload", 1, FontAwesomeIcons.camera), _buildTab("Voice", 2, Icons.mic)
+            ],
           ),
         ),
       ),

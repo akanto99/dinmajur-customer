@@ -169,6 +169,7 @@ class Freelancer {
   String? firstName;
   String? lastName;
   String? phone;
+  ProfilePicture? profilePicture;
   double? rating;
   DateTime? acceptedAt;
   int? totalOrders;
@@ -178,6 +179,7 @@ class Freelancer {
     this.firstName,
     this.lastName,
     this.phone,
+    this.profilePicture,
     this.rating,
     this.acceptedAt,
     this.totalOrders,
@@ -203,6 +205,9 @@ class Freelancer {
       firstName: json["firstName"],
       lastName: json["lastName"],
       phone: json["phone"],
+      profilePicture: json["profilePicture"] != null
+          ? ProfilePicture.fromJson(json["profilePicture"])
+          : null,
       rating: json["rating"]?.toDouble(),
       acceptedAt: parseDateTime(json["acceptedAt"]),
       totalOrders: json["totalOrders"],
@@ -214,9 +219,30 @@ class Freelancer {
     "firstName": firstName,
     "lastName": lastName,
     "phone": phone,
+    "profilePicture": profilePicture?.toJson(),
     "rating": rating,
     "acceptedAt": acceptedAt?.toIso8601String(),
     "totalOrders": totalOrders,
+  };
+}
+
+class ProfilePicture {
+  String? url;
+  String? key;
+
+  ProfilePicture({
+    this.url,
+    this.key,
+  });
+
+  factory ProfilePicture.fromJson(Map<String, dynamic> json) => ProfilePicture(
+    url: json["url"],
+    key: json["key"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "url": url,
+    "key": key,
   };
 }
 
