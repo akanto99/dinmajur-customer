@@ -515,7 +515,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
           SizedboxSpaccing.height02(context),
 
           // Freelancer Info Section
-          if (freelancer != null && delivery?.status?.toUpperCase() != 'PENDING')
+          if (freelancer != null && delivery?.status?.toUpperCase() != 'PENDING')...[
             Container(
               padding: EdgeInsets.all(screenHeight * 0.015),
               decoration: BoxDecoration(
@@ -579,9 +579,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 ],
               ),
             ),
-
-          if (freelancer != null && delivery?.status?.toUpperCase() != 'PENDING') SizedboxSpaccing.height02(context),
-
+    SizedboxSpaccing.height02(context),],
           Row(
             children: [
               Text('Budget: ', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
