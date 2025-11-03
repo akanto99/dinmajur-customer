@@ -212,7 +212,7 @@ class _OrderScreenState extends State<OrderScreen> {
                     Icon(
                       FontAwesomeIcons.boxOpen,
                       color: AppColors.subtitle(context),
-                      size: 60,
+                      size: 50,
                     ),
                     SizedBox(height: 16),
                     Text(
@@ -315,7 +315,7 @@ class _OrderScreenState extends State<OrderScreen> {
                     Icon(
                       FontAwesomeIcons.checkCircle,
                       color: AppColors.subtitle(context),
-                      size: 60,
+                      size: 50,
                     ),
                     SizedBox(height: 16),
                     Text(

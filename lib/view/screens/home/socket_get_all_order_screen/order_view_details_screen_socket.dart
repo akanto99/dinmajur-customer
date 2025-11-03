@@ -299,7 +299,7 @@ class _OrderDetailsSocketScreenState extends State<OrderDetailsSocketScreen> {
         case 'PENDING':
           _currentStep = 0;
           break;
-        case 'PICKUP':
+        case 'PICKED_UP':
           _currentStep = 1;
           break;
         case 'DELIVERY':

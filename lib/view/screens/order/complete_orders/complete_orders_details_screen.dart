@@ -2,7 +2,6 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
-import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/nearby_retailers_and_order_models/get_order_details_model.dart';
@@ -316,7 +315,16 @@ class _CompleteOrdersDetailsScreenState extends State<CompleteOrdersDetailsScree
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
-                        child: Icon(Icons.person, color: Colors.white, size: 20),
+                        child: ClipOval(
+                          child: freelancer?.profilePicture?.url != null && freelancer!.profilePicture!.url!.isNotEmpty
+                              ? Image.network(
+                            freelancer.profilePicture!.url!,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          )
+                              : Icon(Icons.person, color: Colors.white, size: 20),
+                        ),
                       ),
                       SizedboxSpaccing.width03(context),
                       Column(
