@@ -285,6 +285,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get storeType_clothing => 'পোশাক';
 
   @override
+  String get storeType_housekeeper => 'প্রিমিয়াম হাউস কিপার';
+
+  @override
   String get select_store_type => 'কি লাগবে?';
 
   @override

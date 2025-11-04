@@ -11,7 +11,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
-class RetailStoresSection extends StatelessWidget {
+class GroceryStoresSection extends StatelessWidget {
   final bool isLoading;
   final List<dynamic> stores;
   final Map<String, String> storeTypes;
@@ -19,15 +19,7 @@ class RetailStoresSection extends StatelessWidget {
   final Position? currentPosition;
   final String? currentAddress;
 
-  const RetailStoresSection({
-    Key? key,
-    required this.isLoading,
-    required this.stores,
-    required this.storeTypes,
-    this.selectedStoreType,
-    this.currentPosition,
-    this.currentAddress,
-  }) : super(key: key);
+  const GroceryStoresSection({Key? key, required this.isLoading, required this.stores, required this.storeTypes, this.selectedStoreType, this.currentPosition, this.currentAddress}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -40,23 +32,12 @@ class RetailStoresSection extends StatelessWidget {
         if (isLoading)
           Container(
             width: screenWidth * 0.9,
-            padding: EdgeInsets.all(screenHeight * 0.04),
-            child: Column(
-              children: [
-                CircularProgressIndicator(
-                  color: AppColors.button(context),
-                  strokeWidth: 3,
-                ),
-                SizedboxSpaccing.height02(context),
-                Text(
-                  "Fetching nearby retail stores...",
-                  style: AppTextStyles.textSize16(
-                    context,
-                    weight: FontWeight.w400,
-                    color: AppColors.subtitle(context),
-                  ),
-                ),
-              ],
+            height: 120,
+            child:   Center(
+              child: Text(
+                "Fetching nearby retail stores...",
+                style: AppTextStyles.textSize16(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+              ),
             ),
           ),
 
@@ -69,24 +50,12 @@ class RetailStoresSection extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      AppLocalizations.of(context)!.nearby_stores(stores.length),
-                      style: AppTextStyles.textSize18(
-                        context,
-                        weight: FontWeight.w500,
-                      ),
-                    ),
+                    Text(AppLocalizations.of(context)!.nearby_stores(stores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                     GestureDetector(
                       onTap: () {
                         // Navigate to see all retail stores
                       },
-                      child: Text(
-                        AppLocalizations.of(context)!.see_all,
-                        style: AppTextStyles.textSize14(
-                          context,
-                          weight: FontWeight.w400,
-                        ),
-                      ),
+                      child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                     ),
                   ],
                 ),
@@ -95,12 +64,10 @@ class RetailStoresSection extends StatelessWidget {
             ),
           ),
 
-        if (!isLoading && stores.isNotEmpty)
-          SizedboxSpaccing.height02(context),
+        if (!isLoading && stores.isNotEmpty) SizedboxSpaccing.height02(context),
 
         // Stores list
-        if (!isLoading && stores.isNotEmpty)
-          _buildRetailStoresList(context),
+        if (!isLoading && stores.isNotEmpty) _buildRetailStoresList(context),
       ],
     );
   }
@@ -123,12 +90,7 @@ class RetailStoresSection extends StatelessWidget {
     );
   }
 
-  Widget _buildRetailStoreCard(
-      BuildContext context,
-      Map<String, dynamic> store,
-      double screenHeight,
-      double screenWidth,
-      ) {
+  Widget _buildRetailStoreCard(BuildContext context, Map<String, dynamic> store, double screenHeight, double screenWidth) {
     final distanceData = store['distance'] as Map<String, dynamic>?;
     final distanceText = distanceData?['text'] ?? '0 m';
     final fullAddress = store['fullAddress'] ?? 'Address not found';
@@ -173,10 +135,7 @@ class RetailStoresSection extends StatelessWidget {
                         margin: EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
-                          image: DecorationImage(
-                            image: NetworkImage(logoUrl),
-                            fit: BoxFit.cover,
-                          ),
+                          image: DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover),
                         ),
                       ),
                     Expanded(
@@ -189,11 +148,7 @@ class RetailStoresSection extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   businessName,
-                                  style: AppTextStyles.textSize18(
-                                    context,
-                                    weight: FontWeight.w500,
-                                    color: AppColors.button(context),
-                                  ),
+                                  style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.button(context)),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -201,20 +156,11 @@ class RetailStoresSection extends StatelessWidget {
                               Container(
                                 height: 24,
                                 width: 75,
-                                decoration: BoxDecoration(
-                                  color: status == "Available"
-                                      ? AppColors.oceanGreenColor
-                                      : AppColors.darkRedColor,
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
+                                decoration: BoxDecoration(color: status == "Available" ? AppColors.oceanGreenColor : AppColors.darkRedColor, borderRadius: BorderRadius.circular(100)),
                                 child: Center(
                                   child: Text(
                                     status ?? 'N/A',
-                                    style: AppTextStyles.textSize10(
-                                      context,
-                                      color: AppColors.whiteColor,
-                                      weight: FontWeight.w400,
-                                    ),
+                                    style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w400),
                                   ),
                                 ),
                               ),
@@ -222,11 +168,7 @@ class RetailStoresSection extends StatelessWidget {
                           ),
                           Text(
                             storeTypes[businessType] ?? businessType,
-                            style: AppTextStyles.textSize14(
-                              context,
-                              weight: FontWeight.w400,
-                              color: AppColors.subtitle(context),
-                            ),
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -248,11 +190,7 @@ class RetailStoresSection extends StatelessWidget {
                 height: 20,
                 width: 12,
                 alignment: Alignment.centerLeft,
-                child: Icon(
-                  Icons.location_on,
-                  size: 16,
-                  color: AppColors.button(context),
-                ),
+                child: Icon(Icons.location_on, size: 16, color: AppColors.button(context)),
               ),
               SizedboxSpaccing.width03(context),
               Expanded(
@@ -261,19 +199,11 @@ class RetailStoresSection extends StatelessWidget {
                   children: [
                     Text(
                       "Store Address",
-                      style: AppTextStyles.textSize14(
-                        context,
-                        weight: FontWeight.w500,
-                        color: AppColors.button(context),
-                      ),
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
                     ),
                     Text(
                       fullAddress,
-                      style: AppTextStyles.textSize14(
-                        context,
-                        weight: FontWeight.w400,
-                        color: AppColors.subtitle(context),
-                      ),
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -284,28 +214,20 @@ class RetailStoresSection extends StatelessWidget {
                           height: 20,
                           width: 12,
                           alignment: Alignment.centerLeft,
-                          child: Icon(
-                            FontAwesomeIcons.car,
-                            size: 12,
-                            color: AppColors.textPrimary(context),
-                          ),
+                          child: Icon(FontAwesomeIcons.car, size: 12, color: AppColors.textPrimary(context)),
                         ),
                         SizedboxSpaccing.width02(context),
                         Container(
                           child: Text(
                             distanceText,
-                            style: AppTextStyles.textSize14(
-                              context,
-                              weight: FontWeight.w400,
-                              color: AppColors.button(context),
-                            ),
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
                           ),
                         ),
                       ],
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
           SizedboxSpaccing.height02(context),
@@ -320,19 +242,19 @@ class RetailStoresSection extends StatelessWidget {
   }
 
   void _navigateToOrderScreen(
-      BuildContext context,
-      Map<String, dynamic> store,
-      String distanceText,
-      String durationText,
-      String businessName,
-      String? status,
-      String businessType,
-      String userID,
-      String? logoUrl,
-      String fullAddress,
-      double? storeLatitude,
-      double? storeLongitude,
-      ) {
+    BuildContext context,
+    Map<String, dynamic> store,
+    String distanceText,
+    String durationText,
+    String businessName,
+    String? status,
+    String businessType,
+    String userID,
+    String? logoUrl,
+    String fullAddress,
+    double? storeLatitude,
+    double? storeLongitude,
+  ) {
     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 
     double? customerLongitude;
@@ -343,8 +265,7 @@ class RetailStoresSection extends StatelessWidget {
     if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
       final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
 
-      if (addressData?.geoLocation?.coordinates != null &&
-          addressData!.geoLocation!.coordinates!.length >= 2) {
+      if (addressData?.geoLocation?.coordinates != null && addressData!.geoLocation!.coordinates!.length >= 2) {
         customerLongitude = addressData.geoLocation!.coordinates![0];
         customerLatitude = addressData.geoLocation!.coordinates![1];
         customerFullAddress = addressData.fullAddress;

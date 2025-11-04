@@ -620,6 +620,12 @@ abstract class AppLocalizations {
   /// **'Clothing'**
   String get storeType_clothing;
 
+  /// No description provided for @storeType_housekeeper.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium House Keeper'**
+  String get storeType_housekeeper;
+
   /// No description provided for @select_store_type.
   ///
   /// In en, this message translates to:

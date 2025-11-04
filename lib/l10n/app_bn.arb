@@ -90,6 +90,7 @@
     "storeType_pharmacy": "ফার্মেসি",
     "storeType_electronics": "ইলেকট্রনিক্স",
     "storeType_clothing": "পোশাক",
+        "storeType_housekeeper": "প্রিমিয়াম হাউস কিপার",
     "select_store_type": "কি লাগবে?",
     "select_store_type_hint": "নির্বাচন করুন",
     "nearby_stores": "নিকটবর্তী দোকান ({count}টি)",
