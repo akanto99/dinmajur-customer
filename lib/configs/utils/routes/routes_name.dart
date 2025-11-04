@@ -42,13 +42,17 @@ class RoutesName {
   static const String privacyPolicy = 'privacyPolicy_view';
 
 
-  ///Order
+  ///Order Now DropDown- 1
   static const String orderScreen = 'orderScreen_view';
   static const String orderDetailsScreen = 'orderDetailsScreen_view';
   //running Order Details SOCKET.IO Screen
   static const String runningOrdersViewDetailsSocketscreen = 'runningOrdersViewDetailsSocketscreen_view';
   //Complete Order Details API Get Data
   static const String completeOrdersDetailsScreen = 'completeOrdersDetailsScreen_view';
+
+  ///In HOME SCreen- DropDown 2 Premium House Keeper
+  static const String bookNowPremiumHouseKeeper = 'bookNowPremiumHouseKeeper_view';
+
 
 
 }

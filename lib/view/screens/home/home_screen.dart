@@ -18,10 +18,11 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
+import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -52,12 +53,13 @@ class _HomeScreenState extends State<HomeScreen> {
     super.didChangeDependencies();
 
     storeTypes = {
-      'Retail': AppLocalizations.of(context)!.storeType_retail,
-      'grocery': AppLocalizations.of(context)!.storeType_grocery,
-      'restaurant': AppLocalizations.of(context)!.storeType_restaurant,
-      'pharmacy': AppLocalizations.of(context)!.storeType_pharmacy,
-      'electronics': AppLocalizations.of(context)!.storeType_electronics,
-      'clothing': AppLocalizations.of(context)!.storeType_clothing,
+      // 'Retail': AppLocalizations.of(context)!.storeType_retail,
+      'Retail': AppLocalizations.of(context)!.storeType_grocery,
+      'Premium House Keeper': AppLocalizations.of(context)!.storeType_housekeeper,
+      // 'restaurant': AppLocalizations.of(context)!.storeType_restaurant,
+      // 'pharmacy': AppLocalizations.of(context)!.storeType_pharmacy,
+      // 'electronics': AppLocalizations.of(context)!.storeType_electronics,
+      // 'clothing': AppLocalizations.of(context)!.storeType_clothing,
     };
   }
 
@@ -276,11 +278,17 @@ class _HomeScreenState extends State<HomeScreen> {
               onChanged: (String? newValue) {
                 setState(() {
                   selectedStoreType = newValue;
+                  nearbyStores = []; // Clear previous stores
                 });
 
                 if (newValue != null) {
                   debugPrint('Selected store type: $newValue');
-                  _fetchNearbyRetailers(newValue);
+
+                  // Only fetch nearby retailers for "Retail" type
+                  if (newValue == 'Retail') {
+                    _fetchNearbyRetailers(newValue);
+                  }
+                  // For Premium House Keeper, we don't fetch retailers
                 }
               },
               valueToBengaliMap: storeTypes,
@@ -288,45 +296,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SizedboxSpaccing.height02(context),
 
-          /// Loading indicator
-          if (isLoadingStores)
-            Container(
-              width: screenWidth * 0.9,
-              padding: EdgeInsets.all(screenHeight * 0.04),
-              child: Column(
-                children: [
-                  Text(
-                    "Fetching nearby stores...",
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                  ),
-                ],
-              ),
-            ),
-
-          // Show stores list only when not loading and stores are available
-          if (!isLoadingStores && nearbyStores.isNotEmpty)
-            Container(
-              width: screenWidth * 0.9,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(AppLocalizations.of(context)!.nearby_stores(nearbyStores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-                      GestureDetector(
-                        onTap: () {},
-                        child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-                      ),
-                    ],
-                  ),
-                  Divider(height: 1, color: AppColors.border(context)),
-                ],
-              ),
-            ),
-
-          if (!isLoadingStores && nearbyStores.isNotEmpty) SizedboxSpaccing.height02(context),
-
-          if (!isLoadingStores && nearbyStores.isNotEmpty) _buildStoresList(),
+          // Conditionally show either Grocery Stores or Premium House Keeper
+          if (selectedStoreType == 'Retail')
+            GroceryStoresSection(
+              isLoading: isLoadingStores,
+              stores: nearbyStores,
+              storeTypes: storeTypes,
+              selectedStoreType: selectedStoreType,
+              currentPosition: _currentPosition,
+              currentAddress: _currentAddress,
+            )
+          else if (selectedStoreType == 'Premium House Keeper')
+            PremiumHouseKeeperSection(),
 
           SizedboxSpaccing.height02(context),
         ],
@@ -334,225 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStoresList() {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
 
-    return Container(
-      width: screenWidth * 0.9,
-      child: ListView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        itemCount: nearbyStores.length,
-        itemBuilder: (context, index) {
-          final store = nearbyStores[index];
-          return _buildStoreCard(store, screenHeight, screenWidth);
-        },
-      ),
-    );
-  }
-
-  Widget _buildStoreCard(Map<String, dynamic> store, double screenHeight, double screenWidth) {
-    debugPrint('Building store card for: $store');
-
-    final distanceData = store['distance'] as Map<String, dynamic>?;
-    final distanceText = distanceData?['text'] ?? '0 m';
-    final fullAddress = store['fullAddress'] ?? 'Address not found';
-    final status = store['status'];
-
-    final durationData = store['duration'] as Map<String, dynamic>?;
-    final durationText = durationData?['text'] ?? '0 min';
-
-    final businessName = store['businessName'] ?? 'দোকানের নাম উপলব্ধ নেই';
-    final businessType = store['businessType'] ?? 'অজানা';
-    final userID = store['userId'] ?? '';
-    final orderId = store['_id'] ?? ''; // Extract order ID
-    final logo = store['logo'] as Map<String, dynamic>?;
-    final logoUrl = logo?['url'];
-
-    final geoLocation = store['geoLocation'] as Map<String, dynamic>?;
-    final coordinates = geoLocation?['coordinates'] as List?;
-    final storeLatitude = coordinates != null && coordinates.length >= 2 ? coordinates[1] : null;
-    final storeLongitude = coordinates != null && coordinates.length >= 2 ? coordinates[0] : null;
-
-    return Container(
-      width: screenWidth * 0.9,
-      margin: EdgeInsets.only(bottom: screenHeight * 0.02),
-      padding: EdgeInsets.all(screenHeight * 0.02),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(width: 1, color: AppColors.oceanGreenColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    if (logoUrl != null)
-                      Container(
-                        height: 40,
-                        width: 40,
-                        margin: EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          image: DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover),
-                        ),
-                      ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                businessName,
-                                style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.button(context)),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Container(
-                                height: 24,
-                                width: 75,
-                                decoration: BoxDecoration(color: status == "Available" ? AppColors.oceanGreenColor : AppColors.darkRedColor, borderRadius: BorderRadius.circular(100)),
-                                child: Center(
-                                  child: Text(
-                                    status,
-                                    style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w400),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            storeTypes[businessType] ?? businessType,
-                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedboxSpaccing.height01(context),
-          Divider(height: 1, color: AppColors.border(context)),
-          SizedboxSpaccing.height005(context),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 20,
-                width: 12,
-                alignment: Alignment.centerLeft,
-                child: Icon(Icons.location_on, size: 16, color: AppColors.button(context)),
-              ),
-              SizedboxSpaccing.width03(context),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Store Address",
-                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
-                    ),
-                    Text(
-                      fullAddress,
-                      style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: 20,
-                          width: 12,
-                          alignment: Alignment.centerLeft,
-                          child: Icon(FontAwesomeIcons.car, size: 12, color: AppColors.textPrimary(context)),
-                        ),
-                        SizedboxSpaccing.width02(context),
-                        Container(
-                          child: Text(
-                            distanceText,
-                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedboxSpaccing.height02(context),
-          RoundButton(
-            title: AppLocalizations.of(context)!.order_now,
-            onPress: () {
-              final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-
-              double? customerLongitude;
-              double? customerLatitude;
-              String? customerFullAddress;
-
-              if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
-
-                if (addressData?.geoLocation?.coordinates != null && addressData!.geoLocation!.coordinates!.length >= 2) {
-                  customerLongitude = addressData.geoLocation!.coordinates![0];
-                  customerLatitude = addressData.geoLocation!.coordinates![1];
-                  customerFullAddress = addressData.fullAddress;
-                }
-              }
-
-              if (customerLongitude == null || customerLatitude == null) {
-                if (_currentPosition != null) {
-                  customerLongitude = _currentPosition!.longitude;
-                  customerLatitude = _currentPosition!.latitude;
-                  customerFullAddress = _currentAddress ?? "Current Location";
-                }
-              }
-
-              Navigator.pushNamed(
-                context,
-                RoutesName.orderNow,
-                arguments: {
-                  // Store data
-                  'storeData': store,
-                  'retailer': store,
-                  // 'orderId': orderId, // ADDED: Pass order ID
-                  'distanceText': distanceText,
-                  'durationText': durationText,
-                  'businessName': businessName,
-                  'status': status,
-                  'businessType': businessType,
-                  'selectedStoreType': selectedStoreType,
-                  'userID': userID,
-                  'logoUrl': logoUrl,
-                  'storeFullAddress': fullAddress,
-                  'storeLatitude': storeLatitude,
-                  'storeLongitude': storeLongitude,
-
-                  // Customer/User location data
-                  'customerFullAddress': customerFullAddress,
-                  'customerLongitude': customerLongitude,
-                  'customerLatitude': customerLatitude,
-                },
-              );
-            },
-            iconData: Icons.arrow_forward_ios_rounded,
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _customAppBar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
