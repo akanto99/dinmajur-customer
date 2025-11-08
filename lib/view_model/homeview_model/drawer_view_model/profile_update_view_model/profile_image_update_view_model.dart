@@ -44,6 +44,10 @@ class PatchprofileImageUpdateViewModel with ChangeNotifier {
           await Future.delayed(Duration(milliseconds: 1000));
           Navigator.pushNamedAndRemoveUntil(context, RoutesName.navigationBar, (route) => false);
         }
+        else if (routeCount == 2) {
+          await Future.delayed(Duration(milliseconds: 1000));
+          Navigator.pushNamedAndRemoveUntil(context, RoutesName.viewProfile, (route) => false);
+        }
       } else {
         Utils.flushBarErrorMessage('Failed to upload Profile Image', context);
       }
