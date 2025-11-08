@@ -1,11 +1,16 @@
 
+import 'dart:typed_data';
+
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/dynamic_image_picker/dynamic_image_picker.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -40,6 +45,41 @@ class _ViewProfileState extends State<ViewProfile> {
     "assets/images/navBar/navbar_new/income.svg",
   ];
   final List<String> labels = ["Home", "Scan", "Task", "Stores", "Income"];
+  Uint8List? _selectedProfileImageData;
+  String? _selectedProfileImageName;
+  String? _selectedProfileDisplayName;
+
+  void _handleImagePick() {
+    DynamicImagePicker.pickImage(
+      context: context,
+      imageType: ImageType.profilePicture,
+      onImageSelected: (imageData, actualName, displayName) {
+        if (mounted) {
+          setState(() {
+            _selectedProfileImageData = imageData;
+            _selectedProfileImageName = actualName;
+            _selectedProfileDisplayName = displayName;
+          });
+        }
+      },
+      onApiCall: () {
+        _callprofileImageAPI();
+      },
+    );
+  }
+
+  void _callprofileImageAPI() {
+    if (_selectedProfileImageData != null && _selectedProfileImageName != null) {
+      final patchImagePostViewModel = Provider.of<PatchprofileImageUpdateViewModel>(context, listen: false);
+      patchImagePostViewModel.profileImageUpdatePatchApi(
+          _selectedProfileImageData!,
+          _selectedProfileImageName!,
+          "profilePicture",
+          2,
+          context
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,6 +245,8 @@ class _ViewProfileState extends State<ViewProfile> {
   }
 
   Widget _buildProfileCard(double screenWidth, double screenHeight, String? profileImageUrl, String userName, String userPhone) {
+    final patchprofileImageUpdateViewMode = Provider.of<PatchprofileImageUpdateViewModel>(context);
+
     return Container(
       padding: EdgeInsets.all(screenHeight * 0.02),
       decoration: BoxDecoration(
@@ -244,14 +286,17 @@ class _ViewProfileState extends State<ViewProfile> {
               Positioned(
                 bottom: 10,
                 right: 0,
-                child: Container(
-                  height: 19,
-                  width: 19,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.border(context),
+                child: GestureDetector(
+                  onTap: patchprofileImageUpdateViewMode.profileImageUpdateLoading ? () {} : _handleImagePick,
+                  child: Container(
+                    height: 19,
+                    width: 19,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.border(context),
+                    ),
+                    child: Icon(Icons.camera_alt, size: 10, color: AppColors.textPrimary(context)),
                   ),
-                  child: Icon(Icons.camera_alt, size: 10, color: AppColors.textPrimary(context)),
                 ),
               ),
             ],
@@ -415,7 +460,9 @@ class _ViewProfileState extends State<ViewProfile> {
                   style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, RoutesName.addlocation);
+                  },
                   child: Text(
                     "Change",
                     style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),

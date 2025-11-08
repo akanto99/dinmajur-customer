@@ -194,7 +194,11 @@ class _OrderNowState extends State<OrderNow> {
       children: [
         // _buildAppBar(),
 
-        AppBarHeader("New Order"),
+        GestureDetector(
+            onTap: (){
+              Navigator.pop(context);
+            },
+            child: AppBarHeader("New Order")),
         Expanded(
           child: SingleChildScrollView(
             child: Column(
