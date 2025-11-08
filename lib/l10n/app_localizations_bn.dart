@@ -270,7 +270,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get storeType_retail => 'রিটেল';
 
   @override
-  String get storeType_grocery => 'কিরানা দোকান';
+  String get storeType_grocery => 'মুদি দোকান';
 
   @override
   String get storeType_restaurant => 'রেস্তোরাঁ';
