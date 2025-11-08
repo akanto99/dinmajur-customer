@@ -94,7 +94,7 @@ class GroceryStoresSection extends StatelessWidget {
     final distanceData = store['distance'] as Map<String, dynamic>?;
     final distanceText = distanceData?['text'] ?? '0 m';
     final fullAddress = store['fullAddress'] ?? 'Address not found';
-    final status = store['status'];
+    final bool isAvailable = store['isAvailable'];
 
     final durationData = store['duration'] as Map<String, dynamic>?;
     final durationText = durationData?['text'] ?? '0 min';
@@ -156,10 +156,10 @@ class GroceryStoresSection extends StatelessWidget {
                               Container(
                                 height: 24,
                                 width: 75,
-                                decoration: BoxDecoration(color: status == "Available" ? AppColors.oceanGreenColor : AppColors.darkRedColor, borderRadius: BorderRadius.circular(100)),
+                                decoration: BoxDecoration(color: isAvailable == true ? AppColors.oceanGreenColor : AppColors.darkRedColor, borderRadius: BorderRadius.circular(100)),
                                 child: Center(
                                   child: Text(
-                                    status ?? 'N/A',
+                                    isAvailable == true ? "Available": 'N/A',
                                     style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w400),
                                   ),
                                 ),
@@ -233,7 +233,7 @@ class GroceryStoresSection extends StatelessWidget {
           SizedboxSpaccing.height02(context),
           RoundButton(
             title: AppLocalizations.of(context)!.order_now,
-            onPress: () => _navigateToOrderScreen(context, store, distanceText, durationText, businessName, status, businessType, userID, logoUrl, fullAddress, storeLatitude, storeLongitude),
+            onPress: () => _navigateToOrderScreen(context, store, distanceText, durationText, businessName, isAvailable, businessType, userID, logoUrl, fullAddress, storeLatitude, storeLongitude),
             iconData: Icons.arrow_forward_ios_rounded,
           ),
         ],
@@ -247,8 +247,8 @@ class GroceryStoresSection extends StatelessWidget {
     String distanceText,
     String durationText,
     String businessName,
-    String? status,
-    String businessType,
+      bool isAvailable,
+      String businessType,
     String userID,
     String? logoUrl,
     String fullAddress,
@@ -290,7 +290,7 @@ class GroceryStoresSection extends StatelessWidget {
         'distanceText': distanceText,
         'durationText': durationText,
         'businessName': businessName,
-        'status': status,
+        'isAvailable': isAvailable,
         'businessType': businessType,
         'selectedStoreType': selectedStoreType,
         'userID': userID,

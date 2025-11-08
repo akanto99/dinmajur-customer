@@ -209,12 +209,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
               child: _buildDrawerItem(Icons.maps_home_work_outlined, AppLocalizations.of(context)!.save_address),
             ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, RoutesName.ordersScreen);
-              },
-              child: _buildDrawerItem(Icons.shopping_bag_outlined, AppLocalizations.of(context)!.payment_method),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     Navigator.pushNamed(context, RoutesName.ordersScreen);
+            //   },
+            //   child: _buildDrawerItem(Icons.shopping_bag_outlined, AppLocalizations.of(context)!.order),
+            // ),
             // GestureDetector(
             //   onTap: () {
             //     Navigator.pushNamed(context, RoutesName.promoCodes);
@@ -223,7 +223,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             // ),
             GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2))),
-              child: _buildDrawerItem(Icons.check_box_outline_blank, AppLocalizations.of(context)!.order),
+              child: _buildDrawerItem(Icons.shopping_bag_outlined, AppLocalizations.of(context)!.order),
             ),
             GestureDetector(
               onTap: () {
