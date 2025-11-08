@@ -28,7 +28,7 @@ class _OrderNowState extends State<OrderNow> {
   String? store_distance;
   String? store_address;
   String? store_businessName;
-  String? store_status;
+  bool? store_isAvailable;
   String? store_businessType;
   String? selectedStoreType;
   String? store_userID;
@@ -68,7 +68,7 @@ class _OrderNowState extends State<OrderNow> {
       storeData = arguments['storeData'];
       store_distance = arguments['distanceText'];
       store_businessName = arguments['businessName'];
-      store_status = arguments['status'];
+      store_isAvailable = arguments['isAvailable'];
       store_businessType = arguments['businessType'];
       selectedStoreType = arguments['selectedStoreType'];
       store_userID = arguments['userID'];
@@ -82,6 +82,10 @@ class _OrderNowState extends State<OrderNow> {
       customerLongitude = arguments['customerLongitude'];
       customerLatitude = arguments['customerLatitude'];
     }
+  }
+  String _getStatusText() {
+    if (store_isAvailable == null) return 'N/A';
+    return store_isAvailable! ? 'Available' : 'N/A';
   }
   void _addOrderItem(Map<String, dynamic> item) {
     setState(() {
@@ -145,7 +149,7 @@ class _OrderNowState extends State<OrderNow> {
         'storeData': storeData,
         // 'orderId': orderId,
         'businessName': store_businessName,
-        'status': store_status,
+        'status': _getStatusText(),
         'businessType': store_businessType,
         'distanceText': store_distance,
         'address': store_FullAddress,
@@ -331,14 +335,19 @@ class _OrderNowState extends State<OrderNow> {
   }
 
   Widget _buildAvailabilityBadge(double screenHeight) {
-    return         Container(
+    String statusText = _getStatusText();  // CHANGED: Use helper method
+    return Container(
       height: 24,
       width: 75,
       decoration: BoxDecoration(
-        color: store_status=="Available"? AppColors.oceanGreenColor : AppColors.darkRedColor,
-        borderRadius: BorderRadius.circular(100),),
+        color: store_isAvailable == true  // CHANGED: Use store_isAvailable boolean
+            ? AppColors.oceanGreenColor
+            : AppColors.darkRedColor,
+        borderRadius: BorderRadius.circular(100),
+      ),
       child: Center(
-        child: Text( store_status!,
+        child: Text(
+          statusText,  // CHANGED: Use converted string
           style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w400),
         ),
       ),
