@@ -130,6 +130,51 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
     }
   }
 
+  // Future<void> _getLocationWithAddress() async {
+  //   if (!mounted) return;
+  //
+  //   setState(() {
+  //     _isLoadingLocation = true;
+  //   });
+  //
+  //   try {
+  //     Map<String, dynamic> locationData = await _locationService.getCurrentLocationWithAddress();
+  //     Position position = locationData['position'];
+  //     String fullAddress = locationData['address'];
+  //     String shortAddr = await _locationService.getShortAddress(position.latitude, position.longitude);
+  //
+  //     if (mounted) {
+  //       setState(() {
+  //         _currentPosition = position;
+  //         _currentAddress = fullAddress;
+  //         _shortAddress = shortAddr;
+  //         _locationMessage = "Latitude: ${position.latitude}, Longitude: ${position.longitude}";
+  //         _isLoadingLocation = false;
+  //       });
+  //
+  //       debugPrint('========== CURRENT LOCATION WITH ADDRESS ==========');
+  //       debugPrint('Latitude: ${position.latitude}');
+  //       debugPrint('Longitude: ${position.longitude}');
+  //       debugPrint('Full Address: $fullAddress');
+  //       debugPrint('Short Address: $shortAddr');
+  //       debugPrint('==================================================');
+  //
+  //       await _postLocationToApi(position.longitude, position.latitude, fullAddress);
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Error getting location with address: $e');
+  //     if (mounted) {
+  //       setState(() {
+  //         _locationMessage = "Please enable location to use this app.";
+  //         _isLoadingLocation = false;
+  //       });
+  //
+  //       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Location error: ${e.toString()}'), backgroundColor: Colors.red, duration: Duration(seconds: 3)));
+  //     }
+  //   }
+  // }
+// Replace the existing _getLocationWithAddress method with this updated version
+
   Future<void> _getLocationWithAddress() async {
     if (!mounted) return;
 
@@ -138,6 +183,77 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
     });
 
     try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          setState(() {
+            _isLoadingLocation = false;
+            _locationMessage = "Location services are disabled.";
+          });
+
+          // Show dialog for location services
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Location Services Disabled'),
+                content: Text('Please enable location services to use this feature.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await Geolocator.openLocationSettings();
+                    },
+                    child: Text('Open Settings'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+        return;
+      }
+
+      // Check location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            setState(() {
+              _isLoadingLocation = false;
+              _locationMessage = "Location permission denied.";
+            });
+
+            // Directly open app settings when permission is denied
+            await Geolocator.openAppSettings();
+          }
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          setState(() {
+            _isLoadingLocation = false;
+            _locationMessage = "Location permission permanently denied.";
+          });
+
+          // Directly open app settings when permission is permanently denied
+          await Geolocator.openAppSettings();
+        }
+        return;
+      }
+
+      // If we reach here, we have permission - proceed with getting location
       Map<String, dynamic> locationData = await _locationService.getCurrentLocationWithAddress();
       Position position = locationData['position'];
       String fullAddress = locationData['address'];
@@ -169,11 +285,16 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
           _isLoadingLocation = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Location error: ${e.toString()}'), backgroundColor: Colors.red, duration: Duration(seconds: 3)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Location error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
     }
   }
-
   Future<void> _postLocationToApi(double longitude, double latitude, String fullAddress) async {
     try {
       final locationData = {

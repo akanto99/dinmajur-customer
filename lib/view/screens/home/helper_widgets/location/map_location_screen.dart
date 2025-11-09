@@ -117,29 +117,136 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
   }
 
   // Get current location
+  // Future<void> _getCurrentLocation() async {
+  //   setState(() {
+  //     _isLoadingCurrentLocation = true;
+  //   });
+  //
+  //   try {
+  //     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  //     if (!serviceEnabled) {
+  //       throw Exception('Location services are disabled.');
+  //     }
+  //
+  //     LocationPermission permission = await Geolocator.checkPermission();
+  //     if (permission == LocationPermission.denied) {
+  //       permission = await Geolocator.requestPermission();
+  //       if (permission == LocationPermission.denied) {
+  //         throw Exception('Location permissions are denied');
+  //       }
+  //     }
+  //
+  //     if (permission == LocationPermission.deniedForever) {
+  //       throw Exception('Location permissions are permanently denied');
+  //     }
+  //
+  //     Position position = await Geolocator.getCurrentPosition();
+  //     LatLng currentLocation = LatLng(position.latitude, position.longitude);
+  //
+  //     await _updateSelectedLocation(currentLocation);
+  //
+  //     // Move camera to current location
+  //     final GoogleMapController controller = await _controller.future;
+  //     controller.animateCamera(
+  //       CameraUpdate.newCameraPosition(
+  //         CameraPosition(
+  //           target: currentLocation,
+  //           zoom: 16.0,
+  //         ),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     debugPrint('Error getting current location: $e');
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Error getting current location: ${e.toString()}'),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //     }
+  //   } finally {
+  //     setState(() {
+  //       _isLoadingCurrentLocation = false;
+  //     });
+  //   }
+  // }
+// Replace the existing _getCurrentLocation method with this updated version
+
   Future<void> _getCurrentLocation() async {
     setState(() {
       _isLoadingCurrentLocation = true;
     });
 
     try {
+      // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        throw Exception('Location services are disabled.');
+        if (mounted) {
+          setState(() {
+            _isLoadingCurrentLocation = false;
+          });
+
+          // Show dialog for location services
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Location Services Disabled'),
+                content: Text('Please enable location services to use this feature.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await Geolocator.openLocationSettings();
+                    },
+                    child: Text('Open Settings'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+        return;
       }
 
+      // Check location permission
       LocationPermission permission = await Geolocator.checkPermission();
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          throw Exception('Location permissions are denied');
+          if (mounted) {
+            setState(() {
+              _isLoadingCurrentLocation = false;
+            });
+
+            // Directly open app settings when permission is denied
+            await Geolocator.openAppSettings();
+          }
+          return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        throw Exception('Location permissions are permanently denied');
+        if (mounted) {
+          setState(() {
+            _isLoadingCurrentLocation = false;
+          });
+
+          // Directly open app settings when permission is permanently denied
+          await Geolocator.openAppSettings();
+        }
+        return;
       }
 
+      // If we reach here, we have permission - get current location
       Position position = await Geolocator.getCurrentPosition();
       LatLng currentLocation = LatLng(position.latitude, position.longitude);
 
@@ -158,6 +265,10 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
     } catch (e) {
       debugPrint('Error getting current location: $e');
       if (mounted) {
+        setState(() {
+          _isLoadingCurrentLocation = false;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error getting current location: ${e.toString()}'),
@@ -166,12 +277,13 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
         );
       }
     } finally {
-      setState(() {
-        _isLoadingCurrentLocation = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingCurrentLocation = false;
+        });
+      }
     }
   }
-
   // Update selected location and get address
   Future<void> _updateSelectedLocation(LatLng location) async {
     setState(() {
