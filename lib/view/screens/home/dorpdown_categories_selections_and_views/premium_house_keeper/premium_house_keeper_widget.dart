@@ -3,6 +3,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -73,12 +74,14 @@ class PremiumHouseKeeperSection extends StatelessWidget {
               ),
               SizedboxSpaccing.height02(context),
               // Book Now Button
-              RoundButton(title: "Book Now", onPress: () {
-                Navigator.pushNamed(
-                    context,
-                    RoutesName.bookNowPremiumHouseKeeper,);
-
-              }, iconData: Icons.arrow_forward_ios_rounded),
+              RoundButton(
+                title: "Book Now",
+                onPress: () {
+                  Utils.snackBar("This feature is coming soon!", context);
+                  // Navigator.pushNamed(context, RoutesName.bookNowPremiumHouseKeeper);
+                },
+                iconData: Icons.arrow_forward_ios_rounded,
+              ),
             ],
           ),
         ),
@@ -121,17 +124,17 @@ class PremiumHouseKeeperSection extends StatelessWidget {
                   Container(
                     height: 64,
                     width: 78,
-                    decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(8)),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           "70%",
-                          style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                          style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
                         ),
                         Text(
                           "OFF",
-                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.whiteColor),
+                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
                         ),
                       ],
                     ),

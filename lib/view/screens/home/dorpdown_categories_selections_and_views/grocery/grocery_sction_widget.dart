@@ -135,6 +135,10 @@ class GroceryStoresSection extends StatelessWidget {
                         margin: EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            width: 1,
+                            color: AppColors.border(context)
+                          ),
                           image: DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover),
                         ),
                       ),
