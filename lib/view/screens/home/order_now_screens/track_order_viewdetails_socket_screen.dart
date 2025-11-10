@@ -76,10 +76,11 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     // Check if status changed to ARRIVED_DESTINATION or DELIVERED
     bool shouldNavigate = false;
 
-    if (currentStatus?.toUpperCase() == 'ARRIVED_DESTINATION' && _previousDeliveryStatus?.toUpperCase() != 'ARRIVED_DESTINATION') {
-      print('Status changed to ARRIVED_DESTINATION - will navigate in 2 seconds');
-      shouldNavigate = true;
-    } else if (currentStatus?.toUpperCase() == 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
+    // if (currentStatus?.toUpperCase() == 'ARRIVED_DESTINATION' && _previousDeliveryStatus?.toUpperCase() != 'ARRIVED_DESTINATION') {
+    //   print('Status changed to ARRIVED_DESTINATION - will navigate in 2 seconds');
+    //   shouldNavigate = true;
+    // } else
+      if (currentStatus?.toUpperCase() == 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
       print('Status changed to DELIVERED - will navigate in 2 seconds');
       shouldNavigate = true;
     }
