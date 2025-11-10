@@ -28,7 +28,13 @@ class SocketService {
       _socket = IO.io(
         'https://api-staging.dinmajur.com',
         // 'https://api.dinmajur.com',
-        IO.OptionBuilder().setTransports(['websocket']).enableAutoConnect().enableForceNew().setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
+        IO.OptionBuilder().setTransports(['websocket'])
+            .enableAutoConnect()
+            .enableForceNew()
+            .setReconnectionAttempts(10)
+            .setReconnectionDelay(5000)
+            .setReconnectionDelayMax(10000)
+            .setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
       );
 
       _setupSocketListeners();
