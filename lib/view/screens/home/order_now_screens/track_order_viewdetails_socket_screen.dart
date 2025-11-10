@@ -1075,20 +1075,20 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               Text('৳${total.toStringAsFixed(0)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
             ],
           ),
-          SizedboxSpaccing.height005(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Your Earnings:',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: Colors.green),
-              ),
-              Text(
-                '৳${order.freelancerEarning ?? 0}',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: Colors.green),
-              ),
-            ],
-          ),
+          // SizedboxSpaccing.height005(context),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   children: [
+          //     Text(
+          //       'Your Earnings:',
+          //       style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: Colors.green),
+          //     ),
+          //     Text(
+          //       '৳${order.freelancerEarning ?? 0}',
+          //       style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: Colors.green),
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );
