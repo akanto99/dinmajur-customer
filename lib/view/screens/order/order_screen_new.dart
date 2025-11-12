@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/order_models/get_all_order_model.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -33,7 +34,33 @@ class _OrderScreenState extends State<OrderScreen> {
       runningOrderViewModel.fetchRunningOrdersGetDataApi();
     });
   }
+  Future<void> _handleRefresh() async {
+    try {
+      debugPrint('🔄 OrderScreen: Pull to refresh triggered');
 
+      // 2. Refresh orders based on selected tab
+      if (_selectedTabIndex == 0) {
+        // Running orders tab
+        final runningOrderViewModel = Provider.of<RunningOrdersViewModel>(context, listen: false);
+        await runningOrderViewModel.fetchRunningOrdersGetDataApi();
+        debugPrint('🔄 OrderScreen: Running orders refreshed');
+      } else if (_selectedTabIndex == 1) {
+        // Completed orders tab
+        final completeOrderViewModel = Provider.of<CompleteOrdersViewModel>(context, listen: false);
+        await completeOrderViewModel.fetchCompleteOrdersGetDataApi();
+        debugPrint('🔄 OrderScreen: Completed orders refreshed');
+      }
+
+      debugPrint('🔄 OrderScreen: Refresh completed successfully');
+
+
+    } catch (e) {
+      debugPrint('🔄 OrderScreen: Refresh failed - $e');
+      if (mounted) {
+        Utils.flushBarErrorMessage("Refresh failed", context);
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -72,9 +99,16 @@ class _OrderScreenState extends State<OrderScreen> {
 
         // Content
         Expanded(
-          child: Container(
-            width: screenWidth * 0.9,
-            child: _getSelectedWidget(),
+          child: RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: AppColors.textPrimary(context),
+            backgroundColor: AppColors.containerBackground(context),
+            displacement: 40,
+            strokeWidth: 2.0,
+            child: Container(
+              width: screenWidth * 0.9,
+              child: _getSelectedWidget(),
+            ),
           ),
         ),
       ],
@@ -205,31 +239,40 @@ class _OrderScreenState extends State<OrderScreen> {
                 orderData.data == null ||
                 orderData.data!.data == null ||
                 orderData.data!.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      FontAwesomeIcons.boxOpen,
-                      color: AppColors.subtitle(context),
-                      size: 50,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No Running Orders',
-                      style: AppTextStyles.textSize16(context),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'You don\'t have any running orders at the moment',
-                      style: AppTextStyles.textSize12(
-                        context,
-                        color: AppColors.subtitle(context),
+              // ✅ IMPORTANT: Wrap empty state with ListView to enable pull-to-refresh
+              return ListView(
+                physics: AlwaysScrollableScrollPhysics(),
+                children: [
+                  Container(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            FontAwesomeIcons.boxOpen,
+                            color: AppColors.subtitle(context),
+                            size: 50,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'No Running Orders',
+                            style: AppTextStyles.textSize16(context),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'You don\'t have any running orders at the moment',
+                            style: AppTextStyles.textSize12(
+                              context,
+                              color: AppColors.subtitle(context),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               );
             }
 
@@ -308,31 +351,40 @@ class _OrderScreenState extends State<OrderScreen> {
                 orderData.data == null ||
                 orderData.data!.data == null ||
                 orderData.data!.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      FontAwesomeIcons.checkCircle,
-                      color: AppColors.subtitle(context),
-                      size: 50,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No Completed Orders',
-                      style: AppTextStyles.textSize16(context),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'You don\'t have any completed orders yet',
-                      style: AppTextStyles.textSize12(
-                        context,
-                        color: AppColors.subtitle(context),
+              // ✅ IMPORTANT: Wrap empty state with ListView to enable pull-to-refresh
+              return ListView(
+                physics: AlwaysScrollableScrollPhysics(),
+                children: [
+                  Container(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            FontAwesomeIcons.checkCircle,
+                            color: AppColors.subtitle(context),
+                            size: 50,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'No Completed Orders',
+                            style: AppTextStyles.textSize16(context),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'You don\'t have any completed orders yet',
+                            style: AppTextStyles.textSize12(
+                              context,
+                              color: AppColors.subtitle(context),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               );
             }
 
