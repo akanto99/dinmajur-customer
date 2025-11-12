@@ -76,10 +76,6 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     // Check if status changed to ARRIVED_DESTINATION or DELIVERED
     bool shouldNavigate = false;
 
-    // if (currentStatus?.toUpperCase() == 'ARRIVED_DESTINATION' && _previousDeliveryStatus?.toUpperCase() != 'ARRIVED_DESTINATION') {
-    //   print('Status changed to ARRIVED_DESTINATION - will navigate in 2 seconds');
-    //   shouldNavigate = true;
-    // } else
       if (currentStatus?.toUpperCase() == 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
       print('Status changed to DELIVERED - will navigate in 2 seconds');
       shouldNavigate = true;
@@ -773,8 +769,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     child: Container(
                       width: 34,
                       height: 34,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? AppColors.textPrimary(context) : Colors.grey),
-                      child: Icon(Icons.message, color: Colors.white, size: 18),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? AppColors.containerBackground(context) : Colors.grey),
+                      child: Icon(Icons.message, color: AppColors.textPrimary(context), size: 18),
                     ),
                   ),
                   SizedboxSpaccing.width02(context),
@@ -783,8 +779,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     child: Container(
                       width: 34,
                       height: 34,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? AppColors.textPrimary(context) : Colors.grey),
-                      child: Icon(Icons.call, color: Colors.white, size: 18),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? AppColors.containerBackground(context) : Colors.grey),
+                      child: Icon(Icons.call, color:AppColors.textPrimary(context), size: 18),
                     ),
                   ),
                 ],

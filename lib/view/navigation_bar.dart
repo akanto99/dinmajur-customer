@@ -17,6 +17,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
 
 class NavigationScreen extends StatefulWidget {
@@ -28,7 +29,8 @@ class NavigationScreen extends StatefulWidget {
   State<NavigationScreen> createState() => _NavigationScreenState();
 }
 
-class _NavigationScreenState extends State<NavigationScreen> {
+// ✅ ADD: WidgetsBindingObserver to listen to app lifecycle changes
+class _NavigationScreenState extends State<NavigationScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
   final List<String> icons = [
@@ -42,18 +44,20 @@ class _NavigationScreenState extends State<NavigationScreen> {
   late final List<Widget> _pages;
   bool _socketInitialized = false;
 
-
-
   @override
   void initState() {
     super.initState();
+
+    // ✅ ADD: Register lifecycle observer
+    WidgetsBinding.instance.addObserver(this);
+
     _pages = [
       HomeScreen(scaffoldKey: _key),
-      // SocketStatusWidget(),
       OffersScreen(),
       OrderScreen(),
       DraftScreen(),
     ];
+
     ///Network Connectivity initialize
     initConnectivity();
     getConnectivity();
@@ -65,9 +69,99 @@ class _NavigationScreenState extends State<NavigationScreen> {
     });
   }
 
+  // ✅ ADD: Override didChangeAppLifecycleState to handle app state changes
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    print("🔌 NavigationScreen: App lifecycle state changed to: $state");
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+      // App came to foreground - check and reconnect socket if needed
+        print("🔌 NavigationScreen: App resumed - checking socket connection");
+        _handleAppResumed();
+        break;
+
+      case AppLifecycleState.inactive:
+      // App is inactive (e.g., phone call, switching apps)
+        print("🔌 NavigationScreen: App inactive");
+        break;
+
+      case AppLifecycleState.paused:
+      // App is in background
+        print("🔌 NavigationScreen: App paused");
+        break;
+
+      case AppLifecycleState.detached:
+      // App is detached
+        print("🔌 NavigationScreen: App detached");
+        break;
+
+      case AppLifecycleState.hidden:
+      // App is hidden (iOS specific)
+        print("🔌 NavigationScreen: App hidden");
+        break;
+    }
+  }
+
+  // ✅ ADD: Handle app resumed - reconnect socket if needed
+  Future<void> _handleAppResumed() async {
+    try {
+      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+
+      // Get userId from SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('userId');
+
+      if (userId != null && userId.isNotEmpty) {
+        print("🔌 NavigationScreen: Checking socket status after app resume");
+
+        // Check if socket is connected
+        if (!socketProvider.isConnected) {
+          print("🔌 NavigationScreen: Socket disconnected, reconnecting...");
+
+          // Wait a bit for network to stabilize
+          await Future.delayed(Duration(milliseconds: 500));
+
+          // Check internet connectivity first
+          bool hasInternet = await InternetConnectionChecker().hasConnection;
+
+          if (hasInternet) {
+            print("🔌 NavigationScreen: Internet available, reconnecting socket");
+
+            // Fully disconnect first
+            await socketProvider.disconnect();
+            await Future.delayed(Duration(milliseconds: 300));
+
+            // Reconnect with user credentials
+            await socketProvider.connectWithUser(userId: userId);
+
+            // Verify connection
+            await Future.delayed(Duration(milliseconds: 1000));
+
+            if (socketProvider.isConnected) {
+              print("🔌 NavigationScreen: ✅ Socket reconnected successfully on app resume");
+            } else {
+              print("🔌 NavigationScreen: ⚠️ Socket reconnection uncertain, trying auto-reconnect");
+              await socketProvider.autoReconnect(maxRetries: 2, delay: Duration(seconds: 2));
+            }
+          } else {
+            print("🔌 NavigationScreen: No internet connection, cannot reconnect socket");
+          }
+        } else {
+          print("🔌 NavigationScreen: Socket already connected");
+        }
+      } else {
+        print("🔌 NavigationScreen: No userId found, skipping socket reconnection");
+      }
+    } catch (e) {
+      print("🔌 NavigationScreen: Error handling app resume - $e");
+    }
+  }
+
   // ✅ IMPROVED: Initialize socket connection with proper checks
   Future<void> _initializeSocketConnection() async {
-
     if (_socketInitialized) {
       print("🔌 NavigationScreen: Socket already initialized, skipping");
       return;
@@ -80,73 +174,95 @@ class _NavigationScreenState extends State<NavigationScreen> {
       // Load user data from preferences first
       await userViewModel.loadUserFromPrefs();
 
-      // Check if user is authenticated and get user data
-      if (userViewModel.isAuthenticated && userViewModel.currentUser != null) {
-        final userId = userViewModel.currentUser?.data?.user?.userId ?? '';
-        final userRole = userViewModel.currentUser?.data?.user?.role ?? '';
+      // Get userId from SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('userId');
 
-        print("🔌 NavigationScreen: Initializing socket for user: $userId, role: $userRole");
+      if (userId != null && userId.isNotEmpty) {
+        print("🔌 NavigationScreen: Initializing socket for user: $userId");
 
-        if (userId.isNotEmpty && userRole.isNotEmpty) {
-          // ✅ Check if socket is not already connected AND not connecting
-          if (!socketProvider.isConnected) {
-            print("🔌 NavigationScreen: Socket not connected, connecting now...");
-            await socketProvider.connectWithUser(
-              userId: userId,
-            );
-            print("🔌 NavigationScreen: Socket connected successfully");
-            _socketInitialized = true; // ✅ Mark as initialized
-          } else {
-            print("🔌 NavigationScreen: Socket already connected");
-            _socketInitialized = true; // ✅ Mark as initialized
-          }
+        if (!socketProvider.isConnected) {
+          print("🔌 NavigationScreen: Socket not connected, connecting now...");
+          await socketProvider.connectWithUser(userId: userId);
+          print("🔌 NavigationScreen: Socket connected successfully");
+          _socketInitialized = true;
         } else {
-          print("🔌 NavigationScreen: Missing user credentials for socket connection");
+          print("🔌 NavigationScreen: Socket already connected");
+          _socketInitialized = true;
         }
       } else {
-        print("🔌 NavigationScreen: User not authenticated, skipping socket connection");
+        print("🔌 NavigationScreen: No userId found, skipping socket initialization");
       }
     } catch (e) {
       print("🔌 NavigationScreen: Socket initialization failed - $e");
-      _socketInitialized = false; // ✅ Reset flag on failure
+      _socketInitialized = false;
     }
   }
 
   // ✅ IMPROVED: Reconnect socket when internet connectivity is restored
   Future<void> _reconnectSocketAfterConnectivity() async {
     try {
-      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
       final socketProvider = Provider.of<SocketProvider>(context, listen: false);
 
-      if (userViewModel.isAuthenticated && userViewModel.currentUser != null) {
-        final userId = userViewModel.currentUser?.data?.user?.userId ?? '';
-        final userRole = userViewModel.currentUser?.data?.user?.role ?? '';
+      // Get userId from SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('userId');
 
-        if (userId.isNotEmpty && userRole.isNotEmpty) {
-          // ✅ Only reconnect if not already connected
-          if (!socketProvider.isConnected) {
-            print("🔌 NavigationScreen: Reconnecting socket after connectivity restored...");
-            await socketProvider.connectWithUser(
-              userId: userId,
-            );
-            print("🔌 NavigationScreen: Socket reconnected successfully");
+      if (userId != null && userId.isNotEmpty) {
+        print("🔌 NavigationScreen: Checking socket connection status...");
+
+        // Check if socket is truly connected
+        if (!socketProvider.isConnected) {
+          print("🔌 NavigationScreen: Socket disconnected, initiating full reconnection...");
+
+          // IMPORTANT: Fully disconnect first to ensure clean state
+          await socketProvider.disconnect();
+
+          // Small delay to ensure clean disconnect
+          await Future.delayed(Duration(milliseconds: 500));
+
+          // Now reconnect with fresh connection
+          await socketProvider.connectWithUser(userId: userId);
+
+          print("🔌 NavigationScreen: Socket reconnection completed");
+
+          // Verify connection after a short delay
+          await Future.delayed(Duration(milliseconds: 1000));
+
+          if (socketProvider.isConnected) {
+            print("🔌 NavigationScreen: ✅ Socket reconnected and verified successfully");
           } else {
-            print("🔌 NavigationScreen: Socket already connected, no need to reconnect");
+            print("🔌 NavigationScreen: ⚠️ Socket reconnection uncertain, attempting auto-reconnect...");
+            // Try auto-reconnect with retries
+            await socketProvider.autoReconnect(maxRetries: 3, delay: Duration(seconds: 2));
           }
+        } else {
+          print("🔌 NavigationScreen: Socket already connected");
         }
+      } else {
+        print("🔌 NavigationScreen: No userId found for reconnection");
       }
     } catch (e) {
       print("🔌 NavigationScreen: Socket reconnection failed - $e");
+
+      // On failure, try one more time with auto-reconnect
+      try {
+        final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+        await socketProvider.autoReconnect(maxRetries: 2, delay: Duration(seconds: 3));
+      } catch (retryError) {
+        print("🔌 NavigationScreen: Final reconnection attempt failed - $retryError");
+        _socketInitialized = false; // Reset flag for future attempts
+      }
     }
   }
 
   bool isDeviceConnected = false;
   bool isAlertSet = false;
 
-
   late StreamSubscription<List<ConnectivityResult>> subscription;
   List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
   final Connectivity _connectivity = Connectivity();
+
   /// Initialize connectivity status
   Future<void> initConnectivity() async {
     late List<ConnectivityResult> result;
@@ -173,7 +289,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     // Check if device has internet connection
     isDeviceConnected = await InternetConnectionChecker().hasConnection;
 
-    // Check if we have any active connection (not just 'none')
+    // Check if we have any active connection
     bool hasConnection = !result.contains(ConnectivityResult.none) &&
         result.isNotEmpty &&
         isDeviceConnected;
@@ -187,15 +303,17 @@ class _NavigationScreenState extends State<NavigationScreen> {
       Navigator.of(context, rootNavigator: true).pop(); // Close the dialog
       setState(() => isAlertSet = false);
 
-      // ✅ IMPROVED: Only reconnect if socket was initialized before
+      // ✅ Reconnect socket after connectivity is restored using WidgetsBinding
       if (_socketInitialized) {
-        await _reconnectSocketAfterConnectivity();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _reconnectSocketAfterConnectivity();
+        });
       }
 
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0))
-      );
+      // Reset to home screen
+      setState(() {
+        _currentIndex = 0;
+      });
     }
   }
 
@@ -206,7 +324,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
     },
   );
 
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -216,7 +333,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
       AppLocalizations.of(context)!.offers,
       AppLocalizations.of(context)!.order,
       AppLocalizations.of(context)!.draft,
-      // AppLocalizations.of(context)!.income,
     ];
   }
 
@@ -238,6 +354,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
 
   @override
   void dispose() {
+    // ✅ ADD: Remove lifecycle observer
+    WidgetsBinding.instance.removeObserver(this);
     subscription.cancel();
     super.dispose();
   }
@@ -441,10 +559,24 @@ class _NavigationScreenState extends State<NavigationScreen> {
           onPressed: () async {
             Navigator.pop(context, 'Cancel');
             setState(() => isAlertSet = false);
-            isDeviceConnected = await InternetConnectionChecker().hasConnection;
-            if (isDeviceConnected) {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
-            } else if (!isDeviceConnected && !isAlertSet) {
+
+            List<ConnectivityResult> result = await _connectivity.checkConnectivity();
+            bool hasInternet = await InternetConnectionChecker().hasConnection;
+            bool hasConnection = !result.contains(ConnectivityResult.none) &&
+                result.isNotEmpty &&
+                hasInternet;
+
+            if (hasConnection) {
+              print("🔌 NavigationScreen: Retry - Connection restored");
+
+              // ✅ Use the improved reconnection method
+              await _reconnectSocketAfterConnectivity();
+
+              setState(() {
+                _currentIndex = 0;
+              });
+            } else {
+              print("🔌 NavigationScreen: Retry - Still no connection");
               showDialogBox();
               setState(() => isAlertSet = true);
             }

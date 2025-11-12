@@ -1,3 +1,5 @@
+///Customer
+
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_services.dart';
 import 'package:flutter/foundation.dart';
 
@@ -15,6 +17,24 @@ class SocketProvider with ChangeNotifier {
   String? get connectionError => _connectionError;
   String? get lastActivity => _lastActivity;
   SocketService get socketService => _socketService;
+
+  // ✅ NEW: Callback for when socket is fully ready (connected + user registered)
+  List<Function()> _onReadyCallbacks = [];
+
+  /// ✅ Register callback to be called when socket is ready
+  void onSocketReady(Function() callback) {
+    _onReadyCallbacks.add(callback);
+
+    // If already connected, call immediately
+    if (_isConnected) {
+      callback();
+    }
+  }
+
+  /// ✅ Remove callback
+  void removeSocketReadyCallback(Function() callback) {
+    _onReadyCallbacks.remove(callback);
+  }
 
   /// Connect socket with user credentials
   Future<void> connectWithUser({
@@ -90,7 +110,18 @@ class SocketProvider with ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print('🔌 Socket Provider: User registered successfully - $data');
+        print('🔌 Socket Provider: User registered - socket is READY');
+      }
+
+      // ✅ Trigger all ready callbacks
+      for (var callback in _onReadyCallbacks) {
+        try {
+          callback();
+        } catch (e) {
+          if (kDebugMode) {
+            print('🔌 Socket Provider: Error in ready callback - $e');
+          }
+        }
       }
     });
 
@@ -281,5 +312,11 @@ class SocketProvider with ChangeNotifier {
         print('🔌 Socket Provider: Auto-reconnect failed after $maxRetries attempts');
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _onReadyCallbacks.clear();
+    super.dispose();
   }
 }

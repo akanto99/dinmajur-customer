@@ -62,7 +62,30 @@ class _HomeScreenState extends State<HomeScreen> {
       // 'clothing': AppLocalizations.of(context)!.storeType_clothing,
     };
   }
+  Future<void> _handleRefresh() async {
+    try {
+      debugPrint('🔄 HomeScreen: Pull to refresh triggered');
 
+      // 1. Refresh profile data
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+      await profileViewModel.fetchProfileViewUserDataApi();
+      debugPrint('🔄 HomeScreen: Profile data refreshed');
+
+      // 3. If a store type is selected and it's Retail, refresh nearby retailers
+      if (selectedStoreType == 'Retail') {
+        debugPrint('🔄 HomeScreen: Refreshing nearby retailers');
+        await _fetchNearbyRetailers(selectedStoreType!);
+      }
+
+      debugPrint('🔄 HomeScreen: Refresh completed successfully');
+
+    } catch (e) {
+      debugPrint('🔄 HomeScreen: Refresh failed - $e');
+      if (mounted) {
+        Utils.flushBarErrorMessage("Refresh failed", context);
+      }
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -258,59 +281,67 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Center(child: SizedboxSpaccing.height02(context)),
-          Container(
-            width: screenWidth * 0.9,
-            padding: EdgeInsets.all(screenHeight * 0.02),
-            decoration: BoxDecoration(
-              color: AppColors.containerBackground(context),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(width: 1, color: AppColors.border(context)),
-            ),
-            child: CustomDropdown(
-              titleText: AppLocalizations.of(context)!.select_store_type,
-              items: storeTypes.keys.toList(),
-              selectedItem: selectedStoreType,
-              hintText: AppLocalizations.of(context)!.select_store_type_hint,
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedStoreType = newValue;
-                  nearbyStores = []; // Clear previous stores
-                });
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: AppColors.textPrimary(context),
+      backgroundColor: AppColors.containerBackground(context),
+      displacement: 40,
+      strokeWidth: 2.0,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            Center(child: SizedboxSpaccing.height02(context)),
+            Container(
+              width: screenWidth * 0.9,
+              padding: EdgeInsets.all(screenHeight * 0.02),
+              decoration: BoxDecoration(
+                color: AppColors.containerBackground(context),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(width: 1, color: AppColors.border(context)),
+              ),
+              child: CustomDropdown(
+                titleText: AppLocalizations.of(context)!.select_store_type,
+                items: storeTypes.keys.toList(),
+                selectedItem: selectedStoreType,
+                hintText: AppLocalizations.of(context)!.select_store_type_hint,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedStoreType = newValue;
+                    nearbyStores = []; // Clear previous stores
+                  });
 
-                if (newValue != null) {
-                  debugPrint('Selected store type: $newValue');
+                  if (newValue != null) {
+                    debugPrint('Selected store type: $newValue');
 
-                  // Only fetch nearby retailers for "Retail" type
-                  if (newValue == 'Retail') {
-                    _fetchNearbyRetailers(newValue);
+                    // Only fetch nearby retailers for "Retail" type
+                    if (newValue == 'Retail') {
+                      _fetchNearbyRetailers(newValue);
+                    }
+                    // For Premium House Keeper, we don't fetch retailers
                   }
-                  // For Premium House Keeper, we don't fetch retailers
-                }
-              },
-              valueToBengaliMap: storeTypes,
+                },
+                valueToBengaliMap: storeTypes,
+              ),
             ),
-          ),
-          SizedboxSpaccing.height02(context),
+            SizedboxSpaccing.height02(context),
 
-          // Conditionally show either Grocery Stores or Premium House Keeper
-          if (selectedStoreType == 'Retail')
-            GroceryStoresSection(
-              isLoading: isLoadingStores,
-              stores: nearbyStores,
-              storeTypes: storeTypes,
-              selectedStoreType: selectedStoreType,
-              currentPosition: _currentPosition,
-              currentAddress: _currentAddress,
-            )
-          else if (selectedStoreType == 'Premium House Keeper')
-            PremiumHouseKeeperSection(),
+            // Conditionally show either Grocery Stores or Premium House Keeper
+            if (selectedStoreType == 'Retail')
+              GroceryStoresSection(
+                isLoading: isLoadingStores,
+                stores: nearbyStores,
+                storeTypes: storeTypes,
+                selectedStoreType: selectedStoreType,
+                currentPosition: _currentPosition,
+                currentAddress: _currentAddress,
+              )
+            else if (selectedStoreType == 'Premium House Keeper')
+              PremiumHouseKeeperSection(),
 
-          SizedboxSpaccing.height02(context),
-        ],
+            SizedboxSpaccing.height02(context),
+          ],
+        ),
       ),
     );
   }

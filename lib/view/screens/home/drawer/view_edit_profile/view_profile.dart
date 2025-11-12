@@ -35,7 +35,10 @@ class _ViewProfileState extends State<ViewProfile> {
       profileViewModel.fetchProfileViewUserDataApi();
     });
   }
-
+  Future<void> _handleRefresh() async {
+    final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+    await profileViewModel.fetchProfileViewUserDataApi();
+  }
   int _currentIndex = 0;
   final List<String> icons = [
     "assets/images/navBar/navbar_new/home.svg",
@@ -205,23 +208,31 @@ class _ViewProfileState extends State<ViewProfile> {
                   String? recentOrderStatus = orders?.recentOrder?.status;
                   int? recentOrderTotal = orders?.recentOrder?.total;
 
-                  return SingleChildScrollView(
-                    child: Container(
-                      width: screenWidth * 0.9,
-                      child: Column(
-                        children: [
-                          _buildProfileCard(screenWidth, screenHeight, profileImageUrl, userName, userPhone),
-                          _buildStatsCard(screenWidth, screenHeight, totalOrders, totalSpend, totalReviews),
-                          SizedBox(height: screenHeight * 0.02),
-                          _buildPersonalInformation(screenWidth, screenHeight, userPhone, userData.createdAt),
-                          SizedBox(height: screenHeight * 0.02),
-                          _buildDeliveryAddress(screenWidth, screenHeight, deliveryAddress),
-                          SizedBox(height: screenHeight * 0.02),
-                          // _buildRecentOrders(screenWidth, screenHeight,),
-                          // SizedBox(height: screenHeight * 0.02),
-                          _buildBackButton(screenWidth),
-                          SizedBox(height: screenHeight * 0.02),
-                        ],
+                  return  RefreshIndicator(
+                    onRefresh: _handleRefresh,
+                    color: AppColors.textPrimary(context),
+                    backgroundColor: AppColors.containerBackground(context),
+                    displacement: 40,
+                    strokeWidth: 2.0,
+                    child: SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: Container(
+                        width: screenWidth * 0.9,
+                        child: Column(
+                          children: [
+                            _buildProfileCard(screenWidth, screenHeight, profileImageUrl, userName, userPhone),
+                            _buildStatsCard(screenWidth, screenHeight, totalOrders, totalSpend, totalReviews),
+                            SizedBox(height: screenHeight * 0.02),
+                            _buildPersonalInformation(screenWidth, screenHeight, userPhone, userData.createdAt),
+                            SizedBox(height: screenHeight * 0.02),
+                            _buildDeliveryAddress(screenWidth, screenHeight, deliveryAddress),
+                            SizedBox(height: screenHeight * 0.02),
+                            // _buildRecentOrders(screenWidth, screenHeight,),
+                            // SizedBox(height: screenHeight * 0.02),
+                            _buildBackButton(screenWidth),
+                            SizedBox(height: screenHeight * 0.02),
+                          ],
+                        ),
                       ),
                     ),
                   );

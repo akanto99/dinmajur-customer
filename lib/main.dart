@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
 
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
@@ -51,6 +52,18 @@ void main() async {
   await languageProvider.getLanguage();
 
   await Upgrader.clearSavedSettings();
+
+  // ✅ Initialize socket provider early
+  final socketProvider = SocketProvider();
+
+  // ✅ Auto-connect if user is already logged in
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? userId = prefs.getString('userId');
+
+  if (userId != null && userId.isNotEmpty) {
+    print("🔌 Main: Auto-connecting socket for logged-in user: $userId");
+    await socketProvider.connectWithUser(userId: userId);
+  }
 
   runApp(
     MultiProvider(
@@ -98,7 +111,9 @@ void main() async {
 
 
         // Add Socket Provider here
-        ChangeNotifierProvider(create: (_) => SocketProvider()),
+        // ChangeNotifierProvider(create: (_) => SocketProvider()),
+        ChangeNotifierProvider<SocketProvider>.value(value: socketProvider),
+
 
       ],
       child: MyApp(),
