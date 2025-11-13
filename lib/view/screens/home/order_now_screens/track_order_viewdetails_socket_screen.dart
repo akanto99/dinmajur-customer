@@ -34,6 +34,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   OrderDetailsSocketProvider? _orderDetailsSocketProvider;
   bool _isDisposed = false;
   bool _hasRequestedOrder = false;
+  bool _isRefreshing = false;
+
   int _getCurrentStepFromStatus(String? deliveryStatus) {
     if (deliveryStatus == null) return 0;
 
@@ -48,6 +50,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
         return 2; // Delivery step
       case 'DELIVERED':
         return 3; // Complete step
+      case 'COMPLETED':  // ← ADD THIS CASE
+        return 3; // Complete step
       default:
         return 0;
     }
@@ -55,7 +59,57 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   String? _previousDeliveryStatus;
   bool _hasNavigatedToDelivered = false;
+  Future<void> _handleRefresh() async {
+    if (_isDisposed || !mounted || _isRefreshing) return;
 
+    try {
+      if (mounted) {
+        setState(() {
+          _isRefreshing = true;
+        });
+      }
+
+      print('🔄 Refresh triggered - re-fetching order details...');
+
+      // Reset the request flag to allow new request
+      _hasRequestedOrder = false;
+
+      // Clear any existing errors
+      if (mounted) {
+        setState(() {
+          _orderDetailsError = null;
+        });
+      }
+
+      // Check if socket is still connected
+      if (_socketProvider == null || !_socketProvider!.isConnected) {
+        print('⚠️ Socket disconnected during refresh - reinitializing...');
+        await _initializeProviders();
+        return;
+      }
+
+      // Re-fetch order details
+      await _fetchOrderDetailsFromSocket();
+
+      // Add a small delay to show refresh animation
+      await Future.delayed(Duration(milliseconds: 500));
+
+      print('✅ Refresh completed successfully');
+    } catch (e) {
+      print('❌ Refresh failed: $e');
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _orderDetailsError = 'Refresh failed: $e';
+        });
+      }
+    } finally {
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -65,26 +119,26 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     });
   }
 
+// Also update your navigation check
   void _checkDeliveryStatusForNavigation(String? currentStatus) {
     if (_hasNavigatedToDelivered || !mounted || _isDisposed) return;
 
-    // Print status changes
     print('Checking delivery status for navigation:');
-    print('Current Status: $currentStatus');
+    print('Current Status:------------------------------------- $currentStatus');
     print('Previous Status: $_previousDeliveryStatus');
 
-    // Check if status changed to ARRIVED_DESTINATION or DELIVERED
     bool shouldNavigate = false;
 
-      if (currentStatus?.toUpperCase() == 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
-      print('Status changed to DELIVERED - will navigate in 2 seconds');
+    // Check for both DELIVERED and COMPLETED status
+    if ((currentStatus?.toUpperCase() == 'DELIVERED' || currentStatus?.toUpperCase() == 'COMPLETED') &&
+        (_previousDeliveryStatus?.toUpperCase() != 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'COMPLETED')) {
+      print('Status changed to ${currentStatus?.toUpperCase()} - will navigate in 2 seconds');
       shouldNavigate = true;
     }
 
     if (shouldNavigate) {
       _hasNavigatedToDelivered = true;
 
-      // Wait 2000 milliseconds before navigating
       Future.delayed(Duration(milliseconds: 2000), () {
         if (mounted && !_isDisposed) {
           print('Navigating to delivered screen...');
@@ -302,19 +356,19 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red),
+            Icon(Icons.error_outline, size: 50, color: Colors.red),
             SizedboxSpaccing.height02(context),
             Text(
               'Failed to load order details',
               style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
-            SizedboxSpaccing.height01(context),
-            Text(
-              'Order ID: ${widget.orderId}',
-              style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
-              textAlign: TextAlign.center,
-            ),
+            // SizedboxSpaccing.height01(context),
+            // Text(
+            //   'Order ID: ${widget.orderId}',
+            //   style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+            //   textAlign: TextAlign.center,
+            // ),
             SizedboxSpaccing.height03(context),
             ElevatedButton.icon(
               onPressed: _retryOrderDetails,
@@ -339,31 +393,39 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     // Set current step based on delivery status
     _currentStep = _getCurrentStepFromStatus(delivery?.status);
     bool isPending = delivery?.status?.toUpperCase() == 'PENDING';
-    return SingleChildScrollView(
-      child: Container(
-        padding: EdgeInsets.all(screenHeight * 0.02),
-        child: Column(
-          children: [
-            _buildOrderProgress(context, delivery?.status),
-            SizedboxSpaccing.height02(context),
-            _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
-            SizedboxSpaccing.height02(context),
-            if (!isPending)...[
-              _buildContactSection(context, freelancer),
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: AppColors.button(context),
+      backgroundColor: AppColors.containerBackground(context),
+      displacement: 40,
+      strokeWidth: 2.0,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Container(
+          padding: EdgeInsets.all(screenHeight * 0.02),
+          child: Column(
+            children: [
+              _buildOrderProgress(context, delivery?.status),
               SizedboxSpaccing.height02(context),
+              _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
+              SizedboxSpaccing.height02(context),
+              if (!isPending)...[
+                _buildContactSection(context, freelancer),
+                SizedboxSpaccing.height02(context),
 
-            ] ,
-            _buildCustomerOrderItems(context, order.items),
-            SizedboxSpaccing.height02(context),
-            if (order.customerNote != null && order.customerNote!.isNotEmpty) _buildCustomerNotes(context, order.customerNote!),
-            if (order.customerNote != null && order.customerNote!.isNotEmpty) SizedboxSpaccing.height02(context),
-            _buildDeliveryItemsSection(context, order.items),
-            SizedboxSpaccing.height02(context),
-            Divider(height: 1, color: AppColors.border(context)),
-            SizedboxSpaccing.height01(context),
-            _buildTotalSection(context, order),
-            SizedboxSpaccing.height02(context),
-          ],
+              ] ,
+              _buildCustomerOrderItems(context, order.items),
+              SizedboxSpaccing.height02(context),
+              if (order.customerNote != null && order.customerNote!.isNotEmpty) _buildCustomerNotes(context, order.customerNote!),
+              if (order.customerNote != null && order.customerNote!.isNotEmpty) SizedboxSpaccing.height02(context),
+              _buildDeliveryItemsSection(context, order.items),
+              SizedboxSpaccing.height02(context),
+              Divider(height: 1, color: AppColors.border(context)),
+              SizedboxSpaccing.height01(context),
+              _buildTotalSection(context, order),
+              SizedboxSpaccing.height02(context),
+            ],
+          ),
         ),
       ),
     );
@@ -576,7 +638,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 ],
               ),
             ),
-    SizedboxSpaccing.height02(context),],
+            SizedboxSpaccing.height02(context),],
           Row(
             children: [
               Text('Budget: ', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
@@ -734,18 +796,18 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     child: ClipOval(
                       child: freelancer?.profilePicture?.url != null && freelancer!.profilePicture!.url!.isNotEmpty
                           ? Image.network(
-                              freelancer.profilePicture!.url!,
-                              width: 34,
-                              height: 34,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(Icons.person, color: Colors.white, size: 20);
-                              },
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Center(child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)));
-                              },
-                            )
+                        freelancer.profilePicture!.url!,
+                        width: 34,
+                        height: 34,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.person, color: Colors.white, size: 20);
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)));
+                        },
+                      )
                           : Icon(Icons.person, color: Colors.white, size: 20),
                     ),
                   ),
