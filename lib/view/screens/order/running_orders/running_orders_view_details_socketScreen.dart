@@ -56,7 +56,58 @@ class _RunningOrdersViewDetailsSocketscreenState extends State<RunningOrdersView
 
   String? _previousDeliveryStatus;
   bool _hasNavigatedToDelivered = false;
+  bool _isRefreshing = false;
+  Future<void> _handleRefresh() async {
+    if (_isDisposed || !mounted || _isRefreshing) return;
 
+    try {
+      if (mounted) {
+        setState(() {
+          _isRefreshing = true;
+        });
+      }
+
+      print('🔄 Refresh triggered - re-fetching order details...');
+
+      // Reset the request flag to allow new request
+      _hasRequestedOrder = false;
+
+      // Clear any existing errors
+      if (mounted) {
+        setState(() {
+          _orderDetailsError = null;
+        });
+      }
+
+      // Check if socket is still connected
+      if (_socketProvider == null || !_socketProvider!.isConnected) {
+        print('⚠️ Socket disconnected during refresh - reinitializing...');
+        await _initializeProviders();
+        return;
+      }
+
+      // Re-fetch order details
+      await _fetchOrderDetailsFromSocket();
+
+      // Add a small delay to show refresh animation
+      await Future.delayed(Duration(milliseconds: 500));
+
+      print('✅ Refresh completed successfully');
+    } catch (e) {
+      print('❌ Refresh failed: $e');
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _orderDetailsError = 'Refresh failed: $e';
+        });
+      }
+    } finally {
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
 
   void initState() {
     super.initState();
@@ -309,7 +360,7 @@ class _RunningOrdersViewDetailsSocketscreenState extends State<RunningOrdersView
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red),
+            Icon(Icons.error_outline, size: 50, color: Colors.red),
             SizedboxSpaccing.height02(context),
             Text(
               'Failed to load order details',
@@ -346,28 +397,36 @@ class _RunningOrdersViewDetailsSocketscreenState extends State<RunningOrdersView
     // Set current step based on delivery status
     _currentStep = _getCurrentStepFromStatus(delivery?.status);
 
-    return SingleChildScrollView(
-      child: Container(
-        padding: EdgeInsets.all(screenHeight * 0.02),
-        child: Column(
-          children: [
-            _buildOrderProgress(context, delivery?.status),
-            SizedboxSpaccing.height02(context),
-            _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
-            SizedboxSpaccing.height02(context),
-            _buildContactSection(context, freelancer),
-            SizedboxSpaccing.height02(context),
-            _buildCustomerOrderItems(context, order.items),
-            SizedboxSpaccing.height02(context),
-            if (order.customerNote != null && order.customerNote!.isNotEmpty) _buildCustomerNotes(context, order.customerNote!),
-            if (order.customerNote != null && order.customerNote!.isNotEmpty) SizedboxSpaccing.height02(context),
-            _buildDeliveryItemsSection(context, order.items),
-            SizedboxSpaccing.height02(context),
-            Divider(height: 1, color: AppColors.border(context)),
-            SizedboxSpaccing.height01(context),
-            _buildTotalSection(context, order),
-            SizedboxSpaccing.height02(context),
-          ],
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: AppColors.button(context),
+      backgroundColor: AppColors.containerBackground(context),
+      displacement: 40,
+      strokeWidth: 2.0,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Container(
+          padding: EdgeInsets.all(screenHeight * 0.02),
+          child: Column(
+            children: [
+              _buildOrderProgress(context, delivery?.status),
+              SizedboxSpaccing.height02(context),
+              _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
+              SizedboxSpaccing.height02(context),
+              _buildContactSection(context, freelancer),
+              SizedboxSpaccing.height02(context),
+              _buildCustomerOrderItems(context, order.items),
+              SizedboxSpaccing.height02(context),
+              if (order.customerNote != null && order.customerNote!.isNotEmpty) _buildCustomerNotes(context, order.customerNote!),
+              if (order.customerNote != null && order.customerNote!.isNotEmpty) SizedboxSpaccing.height02(context),
+              _buildDeliveryItemsSection(context, order.items),
+              SizedboxSpaccing.height02(context),
+              Divider(height: 1, color: AppColors.border(context)),
+              SizedboxSpaccing.height01(context),
+              _buildTotalSection(context, order),
+              SizedboxSpaccing.height02(context),
+            ],
+          ),
         ),
       ),
     );

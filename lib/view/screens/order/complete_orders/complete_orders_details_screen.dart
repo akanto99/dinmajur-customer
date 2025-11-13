@@ -27,7 +27,38 @@ class _CompleteOrdersDetailsScreenState extends State<CompleteOrdersDetailsScree
   int _currentStep = 3; // 0=Dinmajur, 1=Pickup, 2=Delivery, 3=Complete
   int _selectedRating = 0;
   bool _isRatingSubmitted = false; // Add this variable to track submission status
+  bool _isRefreshing = false;
+  Future<void> _handleRefresh() async {
+    if (!mounted || _isRefreshing) return;
 
+    try {
+      setState(() {
+        _isRefreshing = true;
+      });
+
+      print('🔄 Refresh triggered - re-fetching order details from API...');
+
+      // Fetch fresh data from API
+      final getOrderDetailsModel = Provider.of<GetOrderDetailsViewModel>(context, listen: false);
+      await getOrderDetailsModel.fetchOrderDetailsData(widget.orderId);
+
+      // Add small delay for smooth UX
+      await Future.delayed(Duration(milliseconds: 500));
+
+      print('✅ Refresh completed successfully');
+    } catch (e) {
+      print('❌ Refresh failed: $e');
+      if (mounted) {
+        Utils.flushBarErrorMessage('Failed to refresh: ${e.toString()}', context);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -91,7 +122,7 @@ class _CompleteOrdersDetailsScreenState extends State<CompleteOrdersDetailsScree
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red),
+            Icon(Icons.error_outline, size: 50, color: Colors.red),
             SizedboxSpaccing.height02(context),
             Text(
               'Failed to load order details',
@@ -121,22 +152,30 @@ class _CompleteOrdersDetailsScreenState extends State<CompleteOrdersDetailsScree
     final customer = data.customer;
     final freelancer = data.freelancer;
 
-    return SingleChildScrollView(
-      child: Container(
-        padding: EdgeInsets.all(screenHeight * 0.02),
-        child: Column(
-          children: [
-            _buildOrderProgress(context),
-            SizedboxSpaccing.height02(context),
-            _buildDeliveryCompletedCard(context, order),
-            SizedboxSpaccing.height02(context),
-            _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
-            SizedboxSpaccing.height02(context),
-            _buildRatingSection(context, freelancer),
-            SizedboxSpaccing.height02(context),
-            _buildBackToHomeButton(context),
-            SizedboxSpaccing.height02(context),
-          ],
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: AppColors.button(context),
+      backgroundColor: AppColors.containerBackground(context),
+      displacement: 40,
+      strokeWidth: 2.5,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Container(
+          padding: EdgeInsets.all(screenHeight * 0.02),
+          child: Column(
+            children: [
+              _buildOrderProgress(context),
+              SizedboxSpaccing.height02(context),
+              _buildDeliveryCompletedCard(context, order),
+              SizedboxSpaccing.height02(context),
+              _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
+              SizedboxSpaccing.height02(context),
+              _buildRatingSection(context, freelancer),
+              SizedboxSpaccing.height02(context),
+              _buildBackToHomeButton(context),
+              SizedboxSpaccing.height02(context),
+            ],
+          ),
         ),
       ),
     );
