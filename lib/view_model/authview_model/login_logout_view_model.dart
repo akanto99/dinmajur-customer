@@ -37,44 +37,61 @@ class LoginLogoutViewModel with ChangeNotifier {
 
       // Parse the response
       final user = UserModel.fromJson(response);
-      final userPreference = Provider.of<UserViewModel>(context, listen: false);
-
-      await userPreference.saveUser(user);
-
-      // Save tokens and user status
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('accessToken', user.data?.accessToken ?? '');
-      await prefs.setBool('isPhoneVerified', user.data?.user?.isPhoneVerified ?? false);
-      await prefs.setBool('isRegistered', user.data?.user?.isRegistered ?? false);
-
-      setLoading(false);
-
-      // Add delay before showing success message
-      await Future.delayed(Duration(milliseconds: 300));
-      Utils.flushBarSuccessMessage('Login Successfully', context);
 
       final bool isPhoneVerified = user.data?.user?.isPhoneVerified ?? false;
       final bool isRegistered = user.data?.user?.isRegistered ?? false;
       final String userRole = user.data?.user?.role ?? '';
       final String userId = user.data?.user?.userId ?? '';
 
-      print("Login Navigation - accessToken: ${user.data?.accessToken}");
-      print("Login Navigation - isPhoneVerified: $isPhoneVerified");
-      print("Login Navigation - isRegistered: $isRegistered");
-      print("Login Navigation - userRole: $userRole");
-      print("Login Navigation - userId: $userId");
+      print("🔍 Login Response Check:");
+      print("   - accessToken: ${user.data?.accessToken != null ? 'Present' : 'Missing'}");
+      print("   - isPhoneVerified: $isPhoneVerified");
+      print("   - isRegistered: $isRegistered");
+      print("   - userRole: $userRole");
+      print("   - userId: $userId");
 
-      // ✅ REMOVED SOCKET CONNECTION FROM LOGIN
-      // Socket will be handled by NavigationScreen
+      // ✅ CHECK ROLE FIRST - Before saving anything
+      if (userRole != 'CUSTOMER') {
+        setLoading(false);
+        print("❌ Login Failed: User role is '$userRole', not 'CUSTOMER'");
+        Utils.flushBarErrorMessage("এই অ্যাকাউন্টটি কাস্টমার অ্যাকাউন্ট নয়", context);
+        return; // Exit early - don't save user data or navigate
+      }
+
+      // ✅ CHECK PHONE VERIFICATION
+      if (!isPhoneVerified) {
+        setLoading(false);
+        print("❌ Login Failed: Phone not verified");
+        Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
+        return; // Exit early
+      }
+
+      // ✅ If we reach here, user is a verified CUSTOMER - proceed with login
+      final userPreference = Provider.of<UserViewModel>(context, listen: false);
+      await userPreference.saveUser(user);
+
+      // Save additional preferences (already saved in UserViewModel, but keeping for backward compatibility)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('accessToken', user.data?.accessToken ?? '');
+      await prefs.setBool('isPhoneVerified', isPhoneVerified);
+      await prefs.setBool('isRegistered', isRegistered);
+      await prefs.setString('role', userRole); // Ensure role is saved
+
+      setLoading(false);
+
+      // Show success message
+      await Future.delayed(Duration(milliseconds: 300));
+      Utils.flushBarSuccessMessage('Login Successfully', context);
+
+      print("✅ Login Success: Customer verified - Navigating to home");
       print("🔌 Login: Socket connection will be handled by NavigationScreen");
 
-      // Navigation logic - Check both phone verification and role
-      if (isPhoneVerified == true) {
-        Navigator.pushNamedAndRemoveUntil(context, RoutesName.navigationBar, (route) => false);
-      } else {
-        print("🔥 Navigation: Error - Phone not verified");
-        Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
-      }
+      // Navigate to home
+      Navigator.pushNamedAndRemoveUntil(
+          context,
+          RoutesName.navigationBar,
+              (route) => false
+      );
 
       if (kDebugMode) print("Login Response: ${response.toString()}");
     } catch (error) {
@@ -119,7 +136,11 @@ class LoginLogoutViewModel with ChangeNotifier {
       Utils.flushBarSuccessMessage('Logged out successfully', context);
 
       // Navigate to login screen
-      Navigator.pushNamedAndRemoveUntil(context, RoutesName.welcomeLoginSignup, (route) => false);
+      Navigator.pushNamedAndRemoveUntil(
+          context,
+          RoutesName.welcomeLoginSignup,
+              (route) => false
+      );
 
       print("🔓 Logout: Process completed successfully");
     } catch (error) {
@@ -145,7 +166,9 @@ class LoginLogoutViewModel with ChangeNotifier {
         // Extract error message from different possible structures
         if (decoded['message'] != null) {
           errorMessage = decoded['message'];
-        } else if (decoded['errorMessages'] is List && decoded['errorMessages'].isNotEmpty && decoded['errorMessages'][0]['message'] != null) {
+        } else if (decoded['errorMessages'] is List &&
+            decoded['errorMessages'].isNotEmpty &&
+            decoded['errorMessages'][0]['message'] != null) {
           errorMessage = decoded['errorMessages'][0]['message'];
         }
       } else {
