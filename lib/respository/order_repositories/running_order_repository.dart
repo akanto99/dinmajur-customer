@@ -26,4 +26,23 @@ class GetRunningOrderRepository {
       throw e;
     }
   }
+  Future<GetAllOrderModel> fetchPendingOrderGetApi() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? accessToken = prefs.getString('accessToken');
+
+      dynamic response = await _apiServices.getGetApiWithHeaderResponse(
+        AppUrl.pendingOrderGetAPI,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$accessToken',
+        },
+      );
+
+      // Parse the Map response to GetAllOrderModel
+      return GetAllOrderModel.fromJson(response);
+    } catch (e) {
+      throw e;
+    }
+  }
 }

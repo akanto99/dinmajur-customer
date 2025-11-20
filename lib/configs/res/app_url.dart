@@ -57,8 +57,8 @@ class AppUrl {
 
 
 ///Order Tab
-//  static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';
- static var runningOrderGetAPI = baseUrl + '/customers/orders?status=PENDING';
+ static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';
+ static var pendingOrderGetAPI = baseUrl + '/customers/orders?status=PENDING';
  static var completedOrderGetAPI = baseUrl + '/customers/orders?status=COMPLETED';
 
 }
