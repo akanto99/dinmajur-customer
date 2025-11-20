@@ -8,6 +8,12 @@ class RunningOrdersViewModel with ChangeNotifier {
   final _myRepo = GetRunningOrderRepository();
 
   ApiResponse<GetAllOrderModel> runningOrdersData = ApiResponse.loading();
+  ApiResponse<GetAllOrderModel> pendingOrdersData = ApiResponse.loading();
+
+  setPendingOrdersData(ApiResponse<GetAllOrderModel> response){
+    pendingOrdersData = response ;
+    notifyListeners();
+  }
 
   setRunningOrdersData(ApiResponse<GetAllOrderModel> response){
     runningOrdersData = response ;
@@ -33,6 +39,23 @@ class RunningOrdersViewModel with ChangeNotifier {
     });
   }
 
+  Future<void> fetchPendingOrdersGetDataApi ()async{
+
+    setPendingOrdersData(ApiResponse.loading());
+
+    _myRepo.fetchPendingOrderGetApi().then((value){
+      print(value);
+      setPendingOrdersData(ApiResponse.completed(value));
+
+
+    }).onError((error, stackTrace){
+      if (kDebugMode) {
+        print(error);
+        print(stackTrace);
+      }
+      setPendingOrdersData(ApiResponse.error(error.toString()));
+    });
+  }
 
 
 

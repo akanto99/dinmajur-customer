@@ -31,6 +31,7 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_orde
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/order_details_old.dart';
+import 'package:dinmajur_customer/view/screens/order/pending_orders/pending_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
 import 'package:dinmajur_customer/view/welcome_loginsignup/welcome_loginsignup.dart';
@@ -153,6 +154,17 @@ class Routes {
       ///Task
       case RoutesName.orderScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
+        //pending Order Details SOCKET.IO Screen
+      case RoutesName.pendingOrdersViewDetailsSocketscreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => PendingOrdersViewDetailsSocketscreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
         //running Order Details SOCKET.IO Screen
       case RoutesName.runningOrdersViewDetailsSocketscreen:
         final args = settings.arguments as Map<String, dynamic>?;
