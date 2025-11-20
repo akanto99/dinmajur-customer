@@ -1,6 +1,7 @@
 class AppUrl {
 
-  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
   static var loginEndPint = baseUrl + '/auth/login';
@@ -56,7 +57,8 @@ class AppUrl {
 
 
 ///Order Tab
- static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';
+//  static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';
+ static var runningOrderGetAPI = baseUrl + '/customers/orders?status=PENDING';
  static var completedOrderGetAPI = baseUrl + '/customers/orders?status=COMPLETED';
 
 }
