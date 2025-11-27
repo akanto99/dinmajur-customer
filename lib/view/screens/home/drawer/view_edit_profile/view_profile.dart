@@ -42,12 +42,11 @@ class _ViewProfileState extends State<ViewProfile> {
   int _currentIndex = 0;
   final List<String> icons = [
     "assets/images/navBar/navbar_new/home.svg",
-    "assets/images/navBar/navbar_new/scan.svg",
+    "assets/images/navBar/navbar_new/offers.svg",
     "assets/images/navBar/navbar_new/order.svg",
-    "assets/images/navBar/navbar_new/stores.svg",
-    "assets/images/navBar/navbar_new/income.svg",
+    "assets/images/navBar/navbar_new/draft.svg",
   ];
-  final List<String> labels = ["Home", "Scan", "Task", "Stores", "Income"];
+  final List<String> labels = ["Home", "Offers", "Order", "Draft"];
   Uint8List? _selectedProfileImageData;
   String? _selectedProfileImageName;
   String? _selectedProfileDisplayName;

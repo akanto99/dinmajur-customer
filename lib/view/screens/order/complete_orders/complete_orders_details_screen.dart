@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_reciept_generator_auto_open_download.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 
 class CompleteOrdersDetailsScreen extends StatefulWidget {
@@ -168,7 +170,7 @@ class _CompleteOrdersDetailsScreenState extends State<CompleteOrdersDetailsScree
               SizedboxSpaccing.height02(context),
               _buildDeliveryCompletedCard(context, order),
               SizedboxSpaccing.height02(context),
-              _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
+              _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer,data),
               SizedboxSpaccing.height02(context),
               _buildRatingSection(context, freelancer),
               SizedboxSpaccing.height02(context),
@@ -279,7 +281,7 @@ class _CompleteOrdersDetailsScreenState extends State<CompleteOrdersDetailsScree
     );
   }
 
-  Widget _buildCustomerInfo(BuildContext context, Customer? customer, Retailer? retailer, Order? order, Delivery? delivery, Freelancer? freelancer) {
+  Widget _buildCustomerInfo(BuildContext context, Customer? customer, Retailer? retailer, Order? order, Delivery? delivery, Freelancer? freelancer, Data data,) {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
@@ -400,9 +402,62 @@ class _CompleteOrdersDetailsScreenState extends State<CompleteOrdersDetailsScree
             ),
           SizedboxSpaccing.height02(context),
           GestureDetector(
-            onTap: () {
-              // Add download receipt functionality here
-              Utils.flushBarErrorMessage('Download feature coming soon', context);
+            onTap: () async {
+              try {
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Center(
+                    child: Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.containerBackground(context),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: LoadingAnimationWidget.progressiveDots(
+                        color: AppColors.button(context),
+                        size: 45,
+                      ),
+                    ),
+                  ),
+                );
+
+                // ✅ Generate PDF - Now 'data' is available
+                final file = await ReceiptPdfGenerator.generateAndDownloadReceipt(data);
+
+                // Close loading dialog
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+
+                if (file != null) {
+                  // Show success message
+                  Utils.flushBarSuccessMessage(
+                    'Receipt downloaded successfully!',
+                    context,
+                  );
+
+                  // ✅ Open the PDF file
+                  await OpenFile.open(file.path);
+                } else {
+                  Utils.flushBarErrorMessage(
+                    'Failed to generate receipt',
+                    context,
+                  );
+                }
+              } catch (e) {
+                // Close loading dialog if open
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+
+                print('Error: $e');
+                Utils.flushBarErrorMessage(
+                  'Error: ${e.toString()}',
+                  context,
+                );
+              }
             },
             child: Container(
               height: 50,
@@ -414,13 +469,23 @@ class _CompleteOrdersDetailsScreenState extends State<CompleteOrdersDetailsScree
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(FontAwesomeIcons.download, color: AppColors.textPrimary(context), size: 15),
+                  Icon(
+                    FontAwesomeIcons.download,
+                    color: AppColors.textPrimary(context),
+                    size: 15,
+                  ),
                   SizedboxSpaccing.width03(context),
-                  Text('Download Receipt', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                  Text(
+                    'Download Receipt',
+                    style: AppTextStyles.textSize16(
+                      context,
+                      weight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
+          )
         ],
       ),
     );

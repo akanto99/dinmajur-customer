@@ -348,6 +348,7 @@ class Item {
   String? status;
   DateTime? createdAt;
   DateTime? updatedAt;
+  String? comment;
 
   Item({
     this.id,
@@ -359,6 +360,7 @@ class Item {
     this.status,
     this.createdAt,
     this.updatedAt,
+    this.comment,
   });
 
   factory Item.fromJson(Map<String, dynamic> json) {
@@ -386,6 +388,7 @@ class Item {
       status: json["status"],
       createdAt: parseDateTime(json["createdAt"]),
       updatedAt: parseDateTime(json["updatedAt"]),
+      comment: json["comment"],
     );
   }
 
@@ -399,6 +402,7 @@ class Item {
     "status": status,
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
+    "comment": comment,
   };
 }
 

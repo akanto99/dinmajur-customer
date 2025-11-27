@@ -12,6 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TrackOrderViewdetailsSocketScreen extends StatefulWidget {
@@ -22,8 +23,8 @@ class TrackOrderViewdetailsSocketScreen extends StatefulWidget {
   State<TrackOrderViewdetailsSocketScreen> createState() => _TrackOrderViewdetailsSocketScreenState();
 }
 
-class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetailsSocketScreen> {
-  int _currentStep = 0; // 0=Dinmajur, 1=Pickup, 2=Delivery, 3=Complete
+class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetailsSocketScreen> with WidgetsBindingObserver {
+  int _currentStep = 0;
 
   OrderDetailsModel? _orderDetailsModel;
   bool _isLoadingOrderDetails = false;
@@ -34,24 +35,35 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   OrderDetailsSocketProvider? _orderDetailsSocketProvider;
   bool _isDisposed = false;
   bool _hasRequestedOrder = false;
-  bool _isRefreshing = false;
+
+  // ✅ Track reconnection attempts
+  bool _isReconnecting = false;
+  int _reconnectionAttempts = 0;
+  static const int MAX_RECONNECTION_ATTEMPTS = 3;
+
+  bool _isProcessing = false;
+
+
+  // ✅ NEW: Flag to track if we're currently handling app resume
+  bool _isHandlingResume = false;
+
+  // ✅ NEW: Track if we're waiting for socket to be ready
+  bool _isWaitingForSocket = false;
 
   int _getCurrentStepFromStatus(String? deliveryStatus) {
     if (deliveryStatus == null) return 0;
 
     switch (deliveryStatus.toUpperCase()) {
       case 'PENDING':
-        return 0; // No progress
+        return 0;
       case 'ACCEPTED':
-        return 0; // Dinmajur step
+        return 0;
       case 'PICKED_UP':
-        return 1; // Pickup step
+        return 1;
       case 'ARRIVED_DESTINATION':
-        return 2; // Delivery step
+        return 2;
       case 'DELIVERED':
-        return 3; // Complete step
-      case 'COMPLETED':  // ← ADD THIS CASE
-        return 3; // Complete step
+        return 3;
       default:
         return 0;
     }
@@ -59,80 +71,284 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   String? _previousDeliveryStatus;
   bool _hasNavigatedToDelivered = false;
+  bool _isRefreshing = false;
+
   Future<void> _handleRefresh() async {
-    if (_isDisposed || !mounted || _isRefreshing) return;
+    if (_isDisposed || !mounted || _isProcessing) return;
 
     try {
-      if (mounted) {
-        setState(() {
-          _isRefreshing = true;
-        });
-      }
+      setState(() {
+        _isProcessing = true;
+        _orderDetailsError = null;
+      });
 
-      print('🔄 Refresh triggered - re-fetching order details...');
+      print('🔄 Refresh triggered');
+      await _ensureSocketIsReady();
 
-      // Reset the request flag to allow new request
       _hasRequestedOrder = false;
-
-      // Clear any existing errors
-      if (mounted) {
-        setState(() {
-          _orderDetailsError = null;
-        });
-      }
-
-      // Check if socket is still connected
-      if (_socketProvider == null || !_socketProvider!.isConnected) {
-        print('⚠️ Socket disconnected during refresh - reinitializing...');
-        await _initializeProviders();
-        return;
-      }
-
-      // Re-fetch order details
       await _fetchOrderDetailsFromSocket();
 
-      // Add a small delay to show refresh animation
-      await Future.delayed(Duration(milliseconds: 500));
-
-      print('✅ Refresh completed successfully');
+      print('✅ Refresh completed');
     } catch (e) {
       print('❌ Refresh failed: $e');
       if (mounted && !_isDisposed) {
         setState(() {
+          _isProcessing = false;
           _orderDetailsError = 'Refresh failed: $e';
-        });
-      }
-    } finally {
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _isRefreshing = false;
         });
       }
     }
   }
+
+
+  @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_isDisposed && mounted) {
-        _initializeProviders();
+        _initializeProvidersWithSocketReady();
       }
     });
   }
 
-// Also update your navigation check
+  // ✅ IMPROVED: Handle app lifecycle changes with better timing
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    print('📱 PendingOrderDetails: App lifecycle state changed to: $state');
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        print('📱 PendingOrderDetails: App resumed - scheduling socket check');
+        // ✅ Use a short delay to allow NavigationScreen to reconnect first
+        Future.delayed(Duration(milliseconds: 1500), () {
+          if (!_isDisposed && mounted && !_isHandlingResume) {
+            _handleAppResumed();
+          }
+        });
+        break;
+
+      case AppLifecycleState.paused:
+        print('📱 PendingOrderDetails: App paused');
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  // ✅ NEW: Enhanced app resume handler that waits for socket
+  Future<void> _handleAppResumed() async {
+    if (_isDisposed || !mounted || _isHandlingResume) {
+      return;
+    }
+
+    try {
+      _isHandlingResume = true;
+      print('📱 Starting app resume handling');
+
+      // ✅ Single state update
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _isProcessing = true;  // One flag for everything
+          _orderDetailsError = null;
+        });
+      }
+
+      // Do all the work without state updates
+      await _ensureSocketIsReady();
+
+      _hasRequestedOrder = false;
+      _orderDetailsSocketInitialized = false;
+
+      await _reinitializeProvidersAfterReconnection();
+      await Future.delayed(Duration(milliseconds: 300));
+      await _fetchOrderDetailsFromSocket();
+
+      print('📱 Resume completed successfully');
+    } catch (e) {
+      print('📱 Resume error: $e');
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _isProcessing = false;
+          _orderDetailsError = 'Connection lost. Pull down to refresh.';
+        });
+      }
+    } finally {
+      _isHandlingResume = false;
+    }
+  }
+
+
+  // ✅ NEW: Wait for socket to be ready with timeout
+  Future<void> _ensureSocketIsReady() async {
+    if (_isDisposed || !mounted) return;
+
+    print('🔌 Ensuring socket is ready...');
+    _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+
+    if (_socketProvider!.isConnected) {
+      print('🔌 Socket already connected');
+      return;
+    }
+
+    print('🔌 Waiting for connection...');
+
+    // ✅ No state updates - just wait
+    int waitAttempts = 0;
+    const maxWaitAttempts = 20;
+    const waitInterval = Duration(milliseconds: 500);
+
+    while (waitAttempts < maxWaitAttempts &&
+        !_socketProvider!.isConnected &&
+        !_isDisposed &&
+        mounted) {
+      await Future.delayed(waitInterval);
+      waitAttempts++;
+      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+    }
+
+    if (!_socketProvider!.isConnected) {
+      await _manualSocketReconnection();
+    }
+
+    print('🔌 Socket ready');
+  }
+
+
+  // ✅ NEW: Manual socket reconnection as fallback
+  Future<void> _manualSocketReconnection() async {
+    if (_isDisposed || !mounted) return;
+
+    try {
+      print('🔌 Manual reconnection starting...');
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userId = prefs.getString('userId');
+
+      if (userId == null || userId.isEmpty) {
+        throw Exception('No userId found for reconnection');
+      }
+
+      // Disconnect first
+      await _socketProvider!.disconnect();
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // Reconnect
+      await _socketProvider!.connectWithUser(userId: userId);
+      await Future.delayed(Duration(milliseconds: 1500));
+
+      if (_socketProvider!.isConnected) {
+        print('🔌 Manual reconnection successful');
+      } else {
+        throw Exception('Failed to reconnect manually');
+      }
+    } catch (e) {
+      print('🔌 Manual reconnection failed: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ IMPROVED: Initialize with proper socket ready check
+  Future<void> _initializeProvidersWithSocketReady() async {
+    if (_isDisposed || !mounted) return;
+
+    try {
+      if (widget.orderId.isEmpty || widget.orderId == 'N/A') {
+        throw Exception('Invalid order ID: ${widget.orderId}');
+      }
+
+      // Show loading
+      setState(() {
+        _isLoadingOrderDetails = true;
+        _orderDetailsError = null;
+      });
+
+      // ✅ CRITICAL: Wait for socket to be ready first
+      await _ensureSocketIsReady();
+
+      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
+
+      if (_socketProvider == null || _orderDetailsSocketProvider == null) {
+        throw Exception('Providers not available');
+      }
+
+      if (!_socketProvider!.isConnected) {
+        throw Exception('Socket not connected after waiting');
+      }
+
+      _orderDetailsSocketProvider!.initializeWithSocketProvider(_socketProvider!);
+      await Future.delayed(Duration(milliseconds: 500));
+
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _orderDetailsSocketInitialized = true;
+        });
+        await _fetchOrderDetailsFromSocket();
+      }
+    } catch (e) {
+      print('❌ Initialization failed: $e');
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _orderDetailsError = 'Failed to connect. Pull down to refresh.';
+          _isLoadingOrderDetails = false;
+        });
+      }
+    }
+  }
+
+  // ✅ IMPROVED: Reinitialize with proper error handling
+  Future<void> _reinitializeProvidersAfterReconnection() async {
+    if (_isDisposed || !mounted) return;
+
+    try {
+      print('🔌 Reinitializing providers after reconnection...');
+
+      // ✅ Clear old listeners first
+      if (_orderDetailsSocketProvider != null) {
+        _orderDetailsSocketProvider!.clearOrderDetailsListeners();
+      }
+
+      // Get fresh provider instance
+      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
+
+      if (_socketProvider == null || _orderDetailsSocketProvider == null) {
+        throw Exception('Providers not available after reconnection');
+      }
+
+      // Reinitialize order details socket provider
+      _orderDetailsSocketProvider!.initializeWithSocketProvider(_socketProvider!);
+      await Future.delayed(Duration(milliseconds: 500));
+
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _orderDetailsSocketInitialized = true;
+        });
+      }
+
+      print('🔌 Providers reinitialized successfully');
+    } catch (e) {
+      print('🔌 Failed to reinitialize providers: $e');
+      rethrow;
+    }
+  }
+
   void _checkDeliveryStatusForNavigation(String? currentStatus) {
     if (_hasNavigatedToDelivered || !mounted || _isDisposed) return;
 
     print('Checking delivery status for navigation:');
-    print('Current Status:------------------------------------- $currentStatus');
+    print('Current Status: $currentStatus');
     print('Previous Status: $_previousDeliveryStatus');
 
     bool shouldNavigate = false;
 
-    // Check for both DELIVERED and COMPLETED status
-    if ((currentStatus?.toUpperCase() == 'DELIVERED' || currentStatus?.toUpperCase() == 'COMPLETED') &&
-        (_previousDeliveryStatus?.toUpperCase() != 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'COMPLETED')) {
-      print('Status changed to ${currentStatus?.toUpperCase()} - will navigate in 2 seconds');
+    if (currentStatus?.toUpperCase() == 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
+      print('Status changed to DELIVERED - will navigate in 2 seconds');
       shouldNavigate = true;
     }
 
@@ -159,57 +375,6 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     }
   }
 
-  Future<void> _initializeProviders() async {
-    if (_isDisposed || !mounted) return;
-
-    try {
-      if (widget.orderId.isEmpty || widget.orderId == 'N/A') {
-        throw Exception('Invalid order ID: ${widget.orderId}');
-      }
-
-      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
-      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
-
-      if (_socketProvider == null || _orderDetailsSocketProvider == null) {
-        throw Exception('Providers not available');
-      }
-
-      await _waitForSocketConnection(_socketProvider!);
-
-      if (!_socketProvider!.isConnected) {
-        throw Exception('Main socket not connected after timeout');
-      }
-
-      _orderDetailsSocketProvider!.initializeWithSocketProvider(_socketProvider!);
-      await Future.delayed(Duration(milliseconds: 500));
-
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _orderDetailsSocketInitialized = true;
-        });
-        await _fetchOrderDetailsFromSocket();
-      }
-    } catch (e) {
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _orderDetailsError = 'Failed to initialize: $e';
-          _isLoadingOrderDetails = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _waitForSocketConnection(SocketProvider socketProvider) async {
-    int attempts = 0;
-    const maxAttempts = 30;
-    const delayMs = 500;
-
-    while (attempts < maxAttempts && !socketProvider.isConnected && !_isDisposed && mounted) {
-      await Future.delayed(Duration(milliseconds: delayMs));
-      attempts++;
-    }
-  }
-
   Future<void> _fetchOrderDetailsFromSocket() async {
     if (!_orderDetailsSocketInitialized || _isDisposed || _hasRequestedOrder || !mounted) {
       return;
@@ -218,31 +383,26 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     try {
       _hasRequestedOrder = true;
 
-      if (mounted) {
-        setState(() {
-          _isLoadingOrderDetails = true;
-          _orderDetailsError = null;
-        });
-      }
+      // ✅ Keep _isProcessing true (already set by parent caller)
+      // Don't set state here
 
       String orderId = widget.orderId.trim();
       if (orderId.isEmpty || orderId == 'N/A') {
         throw Exception('Invalid order ID: $orderId');
       }
 
-      _orderDetailsSocketProvider!.setOrderDetailsListener((OrderDetailsModel orderDetailsModel) {
+      _orderDetailsSocketProvider!.setOrderDetailsListener((OrderDetailsModel model) {
         if (mounted && !_isDisposed) {
           try {
-            // Check delivery status for automatic navigation
-            _checkDeliveryStatusForNavigation(orderDetailsModel.delivery?.status);
+            _checkDeliveryStatusForNavigation(model.delivery?.status);
 
             setState(() {
-              _orderDetailsModel = orderDetailsModel;
-              _isLoadingOrderDetails = false;
+              _orderDetailsModel = model;
+              _isProcessing = false;  // ✅ Turn off here when data arrives
               _orderDetailsError = null;
             });
           } catch (e) {
-            // Handle setState error silently
+            print('Error updating state: $e');
           }
         }
       });
@@ -250,7 +410,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       _orderDetailsSocketProvider!.setOrderDetailsErrorListener((error) {
         if (mounted && !_isDisposed) {
           setState(() {
-            _isLoadingOrderDetails = false;
+            _isProcessing = false;
             _orderDetailsError = error;
           });
         }
@@ -258,10 +418,11 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
       await _orderDetailsSocketProvider!.viewOrderDetails(orderId);
 
+      // Timeout handler
       Future.delayed(Duration(seconds: 20), () {
-        if (mounted && !_isDisposed && _isLoadingOrderDetails) {
+        if (mounted && !_isDisposed && _isProcessing) {
           setState(() {
-            _isLoadingOrderDetails = false;
+            _isProcessing = false;
             _orderDetailsError = 'Request timeout - please try again';
           });
           _hasRequestedOrder = false;
@@ -271,28 +432,47 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       _hasRequestedOrder = false;
       if (mounted && !_isDisposed) {
         setState(() {
-          _isLoadingOrderDetails = false;
-          _orderDetailsError = 'Failed to fetch order details: $e';
+          _isProcessing = false;
+          _orderDetailsError = 'Failed to fetch: $e';
         });
       }
     }
   }
 
+  // ✅ IMPROVED: Enhanced retry with socket ready check
   Future<void> _retryOrderDetails() async {
+    if (_isDisposed || !mounted) return;
+
+    // Reset states
     _hasRequestedOrder = false;
+    _orderDetailsSocketInitialized = false;
 
     if (mounted) {
       setState(() {
         _orderDetailsError = null;
+        _isLoadingOrderDetails = true;
       });
     }
 
-    await Future.delayed(Duration(milliseconds: 500));
+    try {
+      // ✅ CRITICAL: Ensure socket is ready before retrying
+      await _ensureSocketIsReady();
 
-    if (!_orderDetailsSocketInitialized) {
-      await _initializeProviders();
-    } else {
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // Reinitialize providers
+      await _reinitializeProvidersAfterReconnection();
+
+      // Fetch order details
       await _fetchOrderDetailsFromSocket();
+    } catch (e) {
+      print('🔄 Retry failed: $e');
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _isLoadingOrderDetails = false;
+          _orderDetailsError = 'Retry failed. Please check your connection.';
+        });
+      }
     }
   }
 
@@ -300,12 +480,15 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   void dispose() {
     _isDisposed = true;
 
+    // Remove lifecycle observer
+    WidgetsBinding.instance.removeObserver(this);
+
     try {
       if (_orderDetailsSocketProvider != null) {
         _orderDetailsSocketProvider!.clearOrderDetailsListeners();
       }
     } catch (e) {
-      // Handle error silently
+      print('Error clearing listeners: $e');
     }
 
     _socketProvider = null;
@@ -334,20 +517,35 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   }
 
   Widget _buildContent() {
-    if (_isLoadingOrderDetails) {
-      return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
+    // Show loading if processing
+    if (_isProcessing) {
+      return Center(
+          child: LoadingAnimationWidget.progressiveDots(
+              color: AppColors.button(context),
+              size: 45
+          )
+      );
     }
 
-    if (_orderDetailsError != null) {
+    // Show error only if no data
+    if (_orderDetailsError != null && _orderDetailsModel?.order == null) {
       return _buildErrorState();
     }
 
+    // Show data if available
     if (_orderDetailsModel?.order != null) {
       return _buildOrderDetailsContent();
     }
 
-    return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
+    // Fallback
+    return Center(
+        child: LoadingAnimationWidget.progressiveDots(
+            color: AppColors.button(context),
+            size: 45
+        )
+    );
   }
+
 
   Widget _buildErrorState() {
     return Center(
@@ -356,24 +554,33 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 50, color: Colors.red),
+            Icon(Icons.cloud_off_outlined, size: 50, color: Colors.red),
             SizedboxSpaccing.height02(context),
             Text(
-              'Failed to load order details',
+              'Connection Issue',
               style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
             // SizedboxSpaccing.height01(context),
             // Text(
-            //   'Order ID: ${widget.orderId}',
+            //   _orderDetailsError ?? 'Failed to load order details',
+            //   style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+            //   textAlign: TextAlign.center,
+            // ),
+            // SizedboxSpaccing.height005(context),
+            // Text(
+            //   'Order ID: ${widget.orderId.substring(widget.orderId.length - 6)}',
             //   style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
             //   textAlign: TextAlign.center,
             // ),
             SizedboxSpaccing.height03(context),
             ElevatedButton.icon(
-              onPressed: _retryOrderDetails,
+              // onPressed: _retryOrderDetails,
+              onPressed: (){
+                Navigator.pushNamed(context, RoutesName.splash);
+              },
               icon: Icon(Icons.refresh),
-              label: Text('Retry'),
+              label: Text('Retry Connection'),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context), foregroundColor: Colors.white, padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
             ),
           ],
@@ -409,11 +616,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               SizedboxSpaccing.height02(context),
               _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
               SizedboxSpaccing.height02(context),
-              if (!isPending)...[
-                _buildContactSection(context, freelancer),
-                SizedboxSpaccing.height02(context),
-
-              ] ,
+              if (!isPending) ...[_buildContactSection(context, freelancer), SizedboxSpaccing.height02(context)],
               _buildCustomerOrderItems(context, order.items),
               SizedboxSpaccing.height02(context),
               if (order.customerNote != null && order.customerNote!.isNotEmpty) _buildCustomerNotes(context, order.customerNote!),
@@ -574,7 +777,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
           SizedboxSpaccing.height02(context),
 
           // Freelancer Info Section
-          if (freelancer != null && delivery?.status?.toUpperCase() != 'PENDING')...[
+          if (freelancer != null && delivery?.status?.toUpperCase() != 'PENDING') ...[
             Container(
               padding: EdgeInsets.all(screenHeight * 0.015),
               decoration: BoxDecoration(
@@ -638,20 +841,21 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 ],
               ),
             ),
-            SizedboxSpaccing.height02(context),],
+            SizedboxSpaccing.height02(context),
+          ],
           Row(
             children: [
               Text('Budget: ', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
               Text('৳${order.budget ?? 0}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             ],
           ),
-          SizedboxSpaccing.height005(context),
-          Row(
-            children: [
-              Text('Income: ', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-              Text('৳${order.freelancerEarning ?? 0}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-            ],
-          ),
+          // SizedboxSpaccing.height005(context),
+          // Row(
+          //   children: [
+          //     Text('Income: ', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+          //     Text('৳${order.freelancerEarning ?? 0}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+          //   ],
+          // ),
           SizedboxSpaccing.height01(context),
           _buildOrderDateTime(context, order.createdAt, order.estimatedDeliveryTime),
           SizedboxSpaccing.height02(context),
@@ -796,18 +1000,18 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     child: ClipOval(
                       child: freelancer?.profilePicture?.url != null && freelancer!.profilePicture!.url!.isNotEmpty
                           ? Image.network(
-                        freelancer.profilePicture!.url!,
-                        width: 34,
-                        height: 34,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.person, color: Colors.white, size: 20);
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)));
-                        },
-                      )
+                              freelancer.profilePicture!.url!,
+                              width: 34,
+                              height: 34,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.person, color: Colors.white, size: 20);
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)));
+                              },
+                            )
                           : Icon(Icons.person, color: Colors.white, size: 20),
                     ),
                   ),
@@ -817,7 +1021,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     children: [
                       Text(
                         '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim().isEmpty ? 'N/A' : '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim(),
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500,color: AppColors.button(context)),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
                       ),
                       Text(freelancerPhone.isEmpty ? 'N/A' : freelancerPhone, style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
                     ],
@@ -842,7 +1046,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                       width: 34,
                       height: 34,
                       decoration: BoxDecoration(shape: BoxShape.circle, color: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? AppColors.containerBackground(context) : Colors.grey),
-                      child: Icon(Icons.call, color:AppColors.textPrimary(context), size: 18),
+                      child: Icon(Icons.call, color: AppColors.textPrimary(context), size: 18),
                     ),
                   ),
                 ],
@@ -1046,7 +1250,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                             style: AppTextStyles.textSize14(context, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline, decorationThickness: 1.0),
                           ),
                           Text(
-                            "Notes",
+                            (item.comment == null || item.comment!.isEmpty) ? 'N/A' : item.comment!,
                             style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                           ),
 
