@@ -556,13 +556,13 @@ class _OrderScreenState extends State<OrderScreen> {
           if (isPendingTab) {
             Navigator.pushNamed(
               context,
-              RoutesName.pendingOrdersViewDetailsSocketscreen,
+              RoutesName.trackOrderViewdetailsSocketScreen,
               arguments: {'orderId': order?.id ?? ''},
             );
           } else if (isRunningTab) {
             Navigator.pushNamed(
               context,
-              RoutesName.runningOrdersViewDetailsSocketscreen,
+              RoutesName.trackOrderViewdetailsSocketScreen,
               arguments: {'orderId': order?.id ?? ''},
             );
           } else {

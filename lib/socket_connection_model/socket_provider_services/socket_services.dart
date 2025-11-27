@@ -29,17 +29,28 @@ class SocketService {
 
       // Create socket connection
       _socket = IO.io(
-        // 'https://api-staging.dinmajur.com',
-        'https://api.dinmajur.com',
-        IO.OptionBuilder().setTransports(['websocket'])
+        'https://api-staging.dinmajur.com',
+        // 'https://api.dinmajur.com',
+      //   IO.OptionBuilder().setTransports(['websocket'])
+      //       .enableAutoConnect()
+      //       .enableForceNew()
+      //       .setReconnectionAttempts(10)
+      //       .setReconnectionDelay(5000)
+      //       .setReconnectionDelayMax(10000)
+      //       .setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
+      // );
+        IO.OptionBuilder()
+            .setTransports(['websocket'])
             .enableAutoConnect()
-            .enableForceNew()
+            .disableForceNew()
             .setReconnectionAttempts(10)
-            .setReconnectionDelay(5000)
-            .setReconnectionDelayMax(10000)
+            .setReconnectionDelay(1000)
+            .setReconnectionDelayMax(5000)
+            .enableReconnection()
+            .setTimeout(20000)
             .setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
-      );
 
+      );
       _setupSocketListeners();
 
       // Connect to socket

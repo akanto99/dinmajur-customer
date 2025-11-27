@@ -272,8 +272,8 @@ class ReceiptPdfGenerator {
               children: [
                 _buildTableHeader('Item'),
                 _buildTableHeader('Quantity'),
-                _buildTableHeader('Unit Price'),
                 _buildTableHeader('Total'),
+                _buildTableHeader('Comment'),
               ],
             ),
             // Items
@@ -283,8 +283,8 @@ class ReceiptPdfGenerator {
                   _buildTableCell(item.name ?? 'N/A'),
                   _buildTableCell(
                       '${item.quantity?.toStringAsFixed(2) ?? '0'} ${item.unit ?? ''}'),
-                  _buildTableCell('tk ${item.unitPrice ?? 0}'),
                   _buildTableCell('tk ${item.totalPrice ?? 0}'),
+                  _buildTableCell('${item.comment ?? "N/A"}'),
                 ],
               );
             }).toList(),
