@@ -51,7 +51,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       print("   - userId: $userId");
 
       // ✅ CHECK ROLE FIRST - Before saving anything
-      if (userRole != 'CUSTOMER') {
+      if (userRole.toUpperCase() != 'CUSTOMER') {
         setLoading(false);
         print("❌ Login Failed: User role is '$userRole', not 'CUSTOMER'");
         Utils.flushBarErrorMessage("এই অ্যাকাউন্টটি কাস্টমার অ্যাকাউন্ট নয়", context);
@@ -70,12 +70,44 @@ class LoginLogoutViewModel with ChangeNotifier {
       final userPreference = Provider.of<UserViewModel>(context, listen: false);
       await userPreference.saveUser(user);
 
-      // Save additional preferences (already saved in UserViewModel, but keeping for backward compatibility)
+      // Save additional preferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('accessToken', user.data?.accessToken ?? '');
       await prefs.setBool('isPhoneVerified', isPhoneVerified);
       await prefs.setBool('isRegistered', isRegistered);
-      await prefs.setString('role', userRole); // Ensure role is saved
+      await prefs.setString('role', userRole);
+      await prefs.setString('userId', userId);
+
+      // ✅ CONNECT SOCKET AFTER SUCCESSFUL LOGIN
+      if (userId.isNotEmpty) {
+        try {
+          final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+
+          print("🔌 Login: Connecting socket for user: $userId");
+
+          // Connect socket with user credentials
+          await socketProvider.connectWithUser(userId: userId);
+
+          // Wait to ensure connection is established
+          await Future.delayed(Duration(seconds: 1));
+
+          if (socketProvider.isConnected) {
+            print("🔌 Login: ✅ Socket connected successfully");
+          } else {
+            print("🔌 Login: ⚠️ Socket not connected, attempting retry");
+            await socketProvider.autoReconnect(
+              maxRetries: 3,
+              delay: Duration(seconds: 2),
+            );
+          }
+        } catch (socketError) {
+          print("🔌 Login: Socket connection error - $socketError");
+          // Don't fail login if socket connection fails
+          // Socket will be reconnected by app lifecycle management
+        }
+      } else {
+        print("⚠️ Login: userId is empty, skipping socket connection");
+      }
 
       setLoading(false);
 
@@ -84,13 +116,12 @@ class LoginLogoutViewModel with ChangeNotifier {
       Utils.flushBarSuccessMessage('Login Successfully', context);
 
       print("✅ Login Success: Customer verified - Navigating to home");
-      print("🔌 Login: Socket connection will be handled by NavigationScreen");
 
       // Navigate to home
       Navigator.pushNamedAndRemoveUntil(
-          context,
-          RoutesName.navigationBar,
-              (route) => false
+        context,
+        RoutesName.navigationBar,
+            (route) => false,
       );
 
       if (kDebugMode) print("Login Response: ${response.toString()}");
@@ -101,7 +132,7 @@ class LoginLogoutViewModel with ChangeNotifier {
     }
   }
 
-  // Logout function with socket disconnection
+  /// ✅ SIMPLIFIED: Logout - just disconnect socket and clear data
   Future<void> logoutUser(BuildContext context) async {
     setLoggingOut(true);
 
@@ -109,40 +140,49 @@ class LoginLogoutViewModel with ChangeNotifier {
       final userPreference = Provider.of<UserViewModel>(context, listen: false);
       final socketProvider = Provider.of<SocketProvider>(context, listen: false);
 
-      // Get user data before clearing
+      // ✅ Get userId BEFORE clearing data
       final currentUser = userPreference.currentUser;
       final userId = currentUser?.data?.user?.userId ?? '';
-      final userRole = currentUser?.data?.user?.role ?? '';
 
-      print("🔓 Logout: Starting logout process for user: $userId");
+      print("🔓 Logout: Starting logout for user: $userId");
 
-      // Disconnect socket with unregister-user event
-      if (userId.isNotEmpty && userRole.isNotEmpty) {
+      // ✅ Disconnect socket and unregister user
+      if (userId.isNotEmpty) {
         try {
+          print("🔌 Logout: Disconnecting socket for user: $userId");
+
           await socketProvider.unregisterAndDisconnect(userId: userId);
-          print("🔌 Socket disconnected and user unregistered successfully");
+
+          print("🔌 Logout: ✅ Socket disconnected and user unregistered");
         } catch (e) {
-          print("🔌 Socket disconnect error: $e");
-          // Continue with logout even if socket disconnect fails
+          print("🔌 Logout: ⚠️ Socket disconnect error - $e");
+          // Continue logout even if socket fails
         }
+      } else {
+        print("⚠️ Logout: No userId found, skipping socket disconnect");
       }
 
-      // Clear user data from preferences and view model
-      await userPreference.remove();
+      // ✅ Clear all user data
+      try {
+        await userPreference.remove();
+        print("🔓 Logout: ✅ User data cleared");
+      } catch (e) {
+        print("🔓 Logout: ⚠️ Error clearing data - $e");
+      }
 
       setLoggingOut(false);
 
-      // Show success message
+      // ✅ Show success message
       Utils.flushBarSuccessMessage('Logged out successfully', context);
 
-      // Navigate to login screen
+      // ✅ Navigate to login (this will dispose all screens)
       Navigator.pushNamedAndRemoveUntil(
-          context,
-          RoutesName.welcomeLoginSignup,
-              (route) => false
+        context,
+        RoutesName.welcomeLoginSignup,
+            (route) => false,
       );
 
-      print("🔓 Logout: Process completed successfully");
+      print("🔓 Logout: ✅ Completed successfully");
     } catch (error) {
       print("🔥 Logout Error: $error");
       setLoggingOut(false);

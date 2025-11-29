@@ -264,10 +264,19 @@ class OrderDetailsSocketProvider with ChangeNotifier {
   }
 
   void reset() {
-    _fullReset();
-    _socketProvider = null;
+    _cleanupSocketListeners();
+    _orderDetailsModel = null;
+    _isLoadingOrderDetails = false;
+    _orderDetailsError = null;
+    _currentOrderId = null;
+    _orderDetailsListener = null;
+    _orderDetailsErrorListener = null;
+    _listenersInitialized = false;
     _lastSocketId = null;
+    _socketProvider = null;
     notifyListeners();
+
+    print('🔄 OrderDetailsSocketProvider fully reset');
   }
 
   @override

@@ -23,6 +23,7 @@ class TrackOrderViewdetailsSocketScreen extends StatefulWidget {
   State<TrackOrderViewdetailsSocketScreen> createState() => _TrackOrderViewdetailsSocketScreenState();
 }
 
+
 class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetailsSocketScreen> with WidgetsBindingObserver {
   int _currentStep = 0;
 
@@ -36,20 +37,370 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   bool _isDisposed = false;
   bool _hasRequestedOrder = false;
 
-  // ✅ Track reconnection attempts
-  bool _isReconnecting = false;
-  int _reconnectionAttempts = 0;
-  static const int MAX_RECONNECTION_ATTEMPTS = 3;
-
   bool _isProcessing = false;
 
+  String? _previousDeliveryStatus;
+  bool _hasNavigatedToDelivered = false;
 
-  // ✅ NEW: Flag to track if we're currently handling app resume
-  bool _isHandlingResume = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
-  // ✅ NEW: Track if we're waiting for socket to be ready
-  bool _isWaitingForSocket = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isDisposed && mounted) {
+        _initializeAndFetch();
+      }
+    });
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
 
+    if (state == AppLifecycleState.resumed) {
+      print('📱 App resumed - re-initializing socket listeners');
+
+      // Longer delay to ensure main.dart completes reconnection
+      Future.delayed(Duration(milliseconds: 2000), () {
+        if (!_isDisposed && mounted) {
+          _handleAppResumed();
+        }
+      });
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      print('📱 App paused/inactive/hidden - marking for re-initialization');
+      // Mark that we need to re-initialize on resume
+      _orderDetailsSocketInitialized = false;
+    }
+  }
+
+  Future<void> _handleAppResumed() async {
+    if (_isDisposed || !mounted) return;
+
+    print('📱 Handling app resume with full re-initialization');
+
+    try {
+      setState(() {
+        _isProcessing = true;
+        _orderDetailsError = null;
+      });
+
+      // Re-get providers
+      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
+
+      // ✅ Wait for socket to reconnect
+      print('⏳ Waiting for socket reconnection...');
+      int waitAttempts = 0;
+      const maxWaitAttempts = 20; // Wait up to 10 seconds
+
+      while (_socketProvider?.isConnected != true && waitAttempts < maxWaitAttempts) {
+        if (_isDisposed || !mounted) return;
+
+        await Future.delayed(Duration(milliseconds: 500));
+        _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+        waitAttempts++;
+        print('⏳ Attempt ${waitAttempts}/$maxWaitAttempts - Connected: ${_socketProvider?.isConnected}');
+      }
+
+      if (_socketProvider?.isConnected != true) {
+        throw Exception('Socket reconnection timeout');
+      }
+
+      print('✅ Socket reconnected');
+
+      // ✅ CRITICAL: Wait for user registration to complete
+      await Future.delayed(Duration(milliseconds: 1500));
+
+      // ✅ CRITICAL: Clear ALL old listeners completely
+      _orderDetailsSocketProvider!.clearOrderDetailsListeners();
+
+      // ✅ Force reset the socket provider completely
+      _orderDetailsSocketProvider!.reset();
+
+      await Future.delayed(Duration(milliseconds: 300));
+
+      // ✅ Re-initialize with the NEW socket instance
+      _orderDetailsSocketProvider!.initializeWithSocketProvider(_socketProvider!);
+
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // ✅ Reset flags
+      _orderDetailsSocketInitialized = true;
+      _hasRequestedOrder = false;
+
+      print('✅ Socket providers re-initialized, fetching data...');
+
+      // ✅ Re-fetch with fresh listeners on NEW socket
+      await _fetchOrderDetailsFromSocket();
+
+    } catch (e) {
+      print('❌ Resume handling failed: $e');
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _isProcessing = false;
+          _orderDetailsError = 'Failed to reconnect. Pull to refresh.';
+        });
+      }
+    }
+  }
+
+  Future<void> _initializeAndFetch() async {
+    if (_isDisposed || !mounted) return;
+
+    try {
+      setState(() {
+        _isLoadingOrderDetails = true;
+        _orderDetailsError = null;
+      });
+
+      // Get providers
+      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
+
+      // ✅ NEW: Wait for socket connection with timeout
+      print('🔌 Checking socket connection...');
+
+      int waitAttempts = 0;
+      const maxWaitAttempts = 20; // Wait up to 10 seconds (20 x 500ms)
+
+      while (!_socketProvider!.isConnected && waitAttempts < maxWaitAttempts) {
+        if (_isDisposed || !mounted) return;
+
+        print('⏳ Socket not connected yet, waiting... (attempt ${waitAttempts + 1}/$maxWaitAttempts)');
+        await Future.delayed(Duration(milliseconds: 500));
+
+        // Re-get provider in case it updated
+        _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+        waitAttempts++;
+      }
+
+      // Check if socket is now connected
+      if (!_socketProvider!.isConnected) {
+        throw Exception('Could not connect to server. Please check your connection and try again.');
+      }
+
+      print('✅ Socket connected successfully');
+
+      // Initialize socket provider (setup listeners)
+      _orderDetailsSocketProvider!.initializeWithSocketProvider(_socketProvider!);
+      await Future.delayed(Duration(milliseconds: 300));
+
+      setState(() {
+        _orderDetailsSocketInitialized = true;
+      });
+
+      // Fetch order details
+      await _fetchOrderDetailsFromSocket();
+
+    } catch (e) {
+      print('❌ Initialization failed: $e');
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _orderDetailsError = e.toString().replaceAll('Exception: ', '');
+          _isLoadingOrderDetails = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    if (_isDisposed || !mounted || _isProcessing) return;
+
+    print('🔄 Refresh triggered - full re-initialization');
+
+    setState(() {
+      _isProcessing = true;
+      _orderDetailsError = null;
+    });
+
+    try {
+      // Re-get providers
+      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
+
+      // Check socket connection
+      if (_socketProvider?.isConnected != true) {
+        throw Exception('Socket not connected. Please try again.');
+      }
+
+      // ✅ CRITICAL: Full reset and re-initialization
+      print('🔄 Clearing old listeners and resetting...');
+
+      _orderDetailsSocketProvider!.clearOrderDetailsListeners();
+      _orderDetailsSocketProvider!.reset();
+
+      await Future.delayed(Duration(milliseconds: 300));
+
+      // ✅ Re-initialize with current socket
+      print('🔄 Re-initializing socket providers...');
+      _orderDetailsSocketProvider!.initializeWithSocketProvider(_socketProvider!);
+
+      await Future.delayed(Duration(milliseconds: 500));
+
+      _orderDetailsSocketInitialized = true;
+      _hasRequestedOrder = false;
+
+      // ✅ Fetch with fresh listeners
+      await _fetchOrderDetailsFromSocket();
+
+    } catch (e) {
+      print('❌ Refresh failed: $e');
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _isProcessing = false;
+          _orderDetailsError = 'Refresh failed: ${e.toString()}';
+        });
+      }
+    }
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isDisposed) {
+      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
+    }
+  }
+
+  // ✅ MAIN FETCH FUNCTION - Just emit and listen
+  Future<void> _fetchOrderDetailsFromSocket() async {
+    if (!_orderDetailsSocketInitialized || _isDisposed || _hasRequestedOrder || !mounted) {
+      print('⚠️ Cannot fetch: initialized=$_orderDetailsSocketInitialized, disposed=$_isDisposed, requested=$_hasRequestedOrder, mounted=$mounted');
+      return;
+    }
+
+    try {
+      _hasRequestedOrder = true;
+
+      setState(() {
+        _isProcessing = true;
+        _orderDetailsError = null;
+      });
+
+      String orderId = widget.orderId.trim();
+      if (orderId.isEmpty || orderId == 'N/A') {
+        throw Exception('Invalid order ID: $orderId');
+      }
+
+      // ✅ Verify socket is still connected
+      if (!_socketProvider!.isConnected) {
+        throw Exception('Socket disconnected during fetch');
+      }
+
+      print('📤 Emitting request-order-details for: $orderId');
+
+      // ✅ Setup FRESH listeners (these will be on the new socket instance)
+      _orderDetailsSocketProvider!.setOrderDetailsListener((OrderDetailsModel model) {
+        print('✅ Received order details via listener');
+        if (mounted && !_isDisposed) {
+          try {
+            _checkDeliveryStatusForNavigation(model.delivery?.status);
+
+            setState(() {
+              _orderDetailsModel = model;
+              _isProcessing = false;
+              _isLoadingOrderDetails = false;
+              _orderDetailsError = null;
+            });
+
+            print('✅ State updated with new order details');
+          } catch (e) {
+            print('❌ Error updating state: $e');
+          }
+        }
+      });
+
+      _orderDetailsSocketProvider!.setOrderDetailsErrorListener((error) {
+        print('❌ Received error via listener: $error');
+        if (mounted && !_isDisposed) {
+          setState(() {
+            _isProcessing = false;
+            _isLoadingOrderDetails = false;
+            _orderDetailsError = error;
+          });
+        }
+      });
+
+      // ✅ Small delay to ensure listeners are registered
+      await Future.delayed(Duration(milliseconds: 200));
+
+      // ✅ Emit request on the NEW socket
+      await _orderDetailsSocketProvider!.viewOrderDetails(orderId);
+
+      print('📤 Request emitted successfully');
+
+      // Timeout handler
+      Future.delayed(Duration(seconds: 20), () {
+        if (mounted && !_isDisposed && _isProcessing) {
+          print('⏱️ Request timeout');
+          setState(() {
+            _isProcessing = false;
+            _isLoadingOrderDetails = false;
+            _orderDetailsError = 'Request timeout - please try again';
+          });
+          _hasRequestedOrder = false;
+        }
+      });
+    } catch (e) {
+      print('❌ Fetch error: $e');
+      _hasRequestedOrder = false;
+      if (mounted && !_isDisposed) {
+        setState(() {
+          _isProcessing = false;
+          _isLoadingOrderDetails = false;
+          _orderDetailsError = 'Failed to fetch: $e';
+        });
+      }
+    }
+  }
+
+  void _checkDeliveryStatusForNavigation(String? currentStatus) {
+    if (_hasNavigatedToDelivered || !mounted || _isDisposed) return;
+
+    bool shouldNavigate = false;
+
+    if (currentStatus?.toUpperCase() == 'DELIVERED' &&
+        _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
+      print('Status changed to DELIVERED - will navigate in 2 seconds');
+      shouldNavigate = true;
+    }
+
+    if (shouldNavigate) {
+      _hasNavigatedToDelivered = true;
+
+      Future.delayed(Duration(milliseconds: 2000), () {
+        if (mounted && !_isDisposed) {
+          Navigator.pushNamed(
+              context,
+              RoutesName.deliverdScreen,
+              arguments: {'orderId': widget.orderId}
+          );
+        }
+      });
+    }
+
+    _previousDeliveryStatus = currentStatus;
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    WidgetsBinding.instance.removeObserver(this);
+
+    try {
+      if (_orderDetailsSocketProvider != null) {
+        _orderDetailsSocketProvider!.clearOrderDetailsListeners();
+      }
+    } catch (e) {
+      print('Error clearing listeners: $e');
+    }
+
+    _socketProvider = null;
+    _orderDetailsSocketProvider = null;
+    super.dispose();
+  }
   int _getCurrentStepFromStatus(String? deliveryStatus) {
     if (deliveryStatus == null) return 0;
 
@@ -68,434 +419,6 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
         return 0;
     }
   }
-
-  String? _previousDeliveryStatus;
-  bool _hasNavigatedToDelivered = false;
-  bool _isRefreshing = false;
-
-  Future<void> _handleRefresh() async {
-    if (_isDisposed || !mounted || _isProcessing) return;
-
-    try {
-      setState(() {
-        _isProcessing = true;
-        _orderDetailsError = null;
-      });
-
-      print('🔄 Refresh triggered');
-      await _ensureSocketIsReady();
-
-      _hasRequestedOrder = false;
-      await _fetchOrderDetailsFromSocket();
-
-      print('✅ Refresh completed');
-    } catch (e) {
-      print('❌ Refresh failed: $e');
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _isProcessing = false;
-          _orderDetailsError = 'Refresh failed: $e';
-        });
-      }
-    }
-  }
-
-
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addObserver(this);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_isDisposed && mounted) {
-        _initializeProvidersWithSocketReady();
-      }
-    });
-  }
-
-  // ✅ IMPROVED: Handle app lifecycle changes with better timing
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    print('📱 PendingOrderDetails: App lifecycle state changed to: $state');
-
-    switch (state) {
-      case AppLifecycleState.resumed:
-        print('📱 PendingOrderDetails: App resumed - scheduling socket check');
-        // ✅ Use a short delay to allow NavigationScreen to reconnect first
-        Future.delayed(Duration(milliseconds: 1500), () {
-          if (!_isDisposed && mounted && !_isHandlingResume) {
-            _handleAppResumed();
-          }
-        });
-        break;
-
-      case AppLifecycleState.paused:
-        print('📱 PendingOrderDetails: App paused');
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  // ✅ NEW: Enhanced app resume handler that waits for socket
-  Future<void> _handleAppResumed() async {
-    if (_isDisposed || !mounted || _isHandlingResume) {
-      return;
-    }
-
-    try {
-      _isHandlingResume = true;
-      print('📱 Starting app resume handling');
-
-      // ✅ Single state update
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _isProcessing = true;  // One flag for everything
-          _orderDetailsError = null;
-        });
-      }
-
-      // Do all the work without state updates
-      await _ensureSocketIsReady();
-
-      _hasRequestedOrder = false;
-      _orderDetailsSocketInitialized = false;
-
-      await _reinitializeProvidersAfterReconnection();
-      await Future.delayed(Duration(milliseconds: 300));
-      await _fetchOrderDetailsFromSocket();
-
-      print('📱 Resume completed successfully');
-    } catch (e) {
-      print('📱 Resume error: $e');
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _isProcessing = false;
-          _orderDetailsError = 'Connection lost. Pull down to refresh.';
-        });
-      }
-    } finally {
-      _isHandlingResume = false;
-    }
-  }
-
-
-  // ✅ NEW: Wait for socket to be ready with timeout
-  Future<void> _ensureSocketIsReady() async {
-    if (_isDisposed || !mounted) return;
-
-    print('🔌 Ensuring socket is ready...');
-    _socketProvider = Provider.of<SocketProvider>(context, listen: false);
-
-    if (_socketProvider!.isConnected) {
-      print('🔌 Socket already connected');
-      return;
-    }
-
-    print('🔌 Waiting for connection...');
-
-    // ✅ No state updates - just wait
-    int waitAttempts = 0;
-    const maxWaitAttempts = 20;
-    const waitInterval = Duration(milliseconds: 500);
-
-    while (waitAttempts < maxWaitAttempts &&
-        !_socketProvider!.isConnected &&
-        !_isDisposed &&
-        mounted) {
-      await Future.delayed(waitInterval);
-      waitAttempts++;
-      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
-    }
-
-    if (!_socketProvider!.isConnected) {
-      await _manualSocketReconnection();
-    }
-
-    print('🔌 Socket ready');
-  }
-
-
-  // ✅ NEW: Manual socket reconnection as fallback
-  Future<void> _manualSocketReconnection() async {
-    if (_isDisposed || !mounted) return;
-
-    try {
-      print('🔌 Manual reconnection starting...');
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? userId = prefs.getString('userId');
-
-      if (userId == null || userId.isEmpty) {
-        throw Exception('No userId found for reconnection');
-      }
-
-      // Disconnect first
-      await _socketProvider!.disconnect();
-      await Future.delayed(Duration(milliseconds: 500));
-
-      // Reconnect
-      await _socketProvider!.connectWithUser(userId: userId);
-      await Future.delayed(Duration(milliseconds: 1500));
-
-      if (_socketProvider!.isConnected) {
-        print('🔌 Manual reconnection successful');
-      } else {
-        throw Exception('Failed to reconnect manually');
-      }
-    } catch (e) {
-      print('🔌 Manual reconnection failed: $e');
-      rethrow;
-    }
-  }
-
-  // ✅ IMPROVED: Initialize with proper socket ready check
-  Future<void> _initializeProvidersWithSocketReady() async {
-    if (_isDisposed || !mounted) return;
-
-    try {
-      if (widget.orderId.isEmpty || widget.orderId == 'N/A') {
-        throw Exception('Invalid order ID: ${widget.orderId}');
-      }
-
-      // Show loading
-      setState(() {
-        _isLoadingOrderDetails = true;
-        _orderDetailsError = null;
-      });
-
-      // ✅ CRITICAL: Wait for socket to be ready first
-      await _ensureSocketIsReady();
-
-      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
-      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
-
-      if (_socketProvider == null || _orderDetailsSocketProvider == null) {
-        throw Exception('Providers not available');
-      }
-
-      if (!_socketProvider!.isConnected) {
-        throw Exception('Socket not connected after waiting');
-      }
-
-      _orderDetailsSocketProvider!.initializeWithSocketProvider(_socketProvider!);
-      await Future.delayed(Duration(milliseconds: 500));
-
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _orderDetailsSocketInitialized = true;
-        });
-        await _fetchOrderDetailsFromSocket();
-      }
-    } catch (e) {
-      print('❌ Initialization failed: $e');
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _orderDetailsError = 'Failed to connect. Pull down to refresh.';
-          _isLoadingOrderDetails = false;
-        });
-      }
-    }
-  }
-
-  // ✅ IMPROVED: Reinitialize with proper error handling
-  Future<void> _reinitializeProvidersAfterReconnection() async {
-    if (_isDisposed || !mounted) return;
-
-    try {
-      print('🔌 Reinitializing providers after reconnection...');
-
-      // ✅ Clear old listeners first
-      if (_orderDetailsSocketProvider != null) {
-        _orderDetailsSocketProvider!.clearOrderDetailsListeners();
-      }
-
-      // Get fresh provider instance
-      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
-
-      if (_socketProvider == null || _orderDetailsSocketProvider == null) {
-        throw Exception('Providers not available after reconnection');
-      }
-
-      // Reinitialize order details socket provider
-      _orderDetailsSocketProvider!.initializeWithSocketProvider(_socketProvider!);
-      await Future.delayed(Duration(milliseconds: 500));
-
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _orderDetailsSocketInitialized = true;
-        });
-      }
-
-      print('🔌 Providers reinitialized successfully');
-    } catch (e) {
-      print('🔌 Failed to reinitialize providers: $e');
-      rethrow;
-    }
-  }
-
-  void _checkDeliveryStatusForNavigation(String? currentStatus) {
-    if (_hasNavigatedToDelivered || !mounted || _isDisposed) return;
-
-    print('Checking delivery status for navigation:');
-    print('Current Status: $currentStatus');
-    print('Previous Status: $_previousDeliveryStatus');
-
-    bool shouldNavigate = false;
-
-    if (currentStatus?.toUpperCase() == 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'DELIVERED') {
-      print('Status changed to DELIVERED - will navigate in 2 seconds');
-      shouldNavigate = true;
-    }
-
-    if (shouldNavigate) {
-      _hasNavigatedToDelivered = true;
-
-      Future.delayed(Duration(milliseconds: 2000), () {
-        if (mounted && !_isDisposed) {
-          print('Navigating to delivered screen...');
-          Navigator.pushNamed(context, RoutesName.deliverdScreen, arguments: {'orderId': widget.orderId});
-        }
-      });
-    }
-
-    _previousDeliveryStatus = currentStatus;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isDisposed) {
-      _socketProvider = Provider.of<SocketProvider>(context, listen: false);
-      _orderDetailsSocketProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
-    }
-  }
-
-  Future<void> _fetchOrderDetailsFromSocket() async {
-    if (!_orderDetailsSocketInitialized || _isDisposed || _hasRequestedOrder || !mounted) {
-      return;
-    }
-
-    try {
-      _hasRequestedOrder = true;
-
-      // ✅ Keep _isProcessing true (already set by parent caller)
-      // Don't set state here
-
-      String orderId = widget.orderId.trim();
-      if (orderId.isEmpty || orderId == 'N/A') {
-        throw Exception('Invalid order ID: $orderId');
-      }
-
-      _orderDetailsSocketProvider!.setOrderDetailsListener((OrderDetailsModel model) {
-        if (mounted && !_isDisposed) {
-          try {
-            _checkDeliveryStatusForNavigation(model.delivery?.status);
-
-            setState(() {
-              _orderDetailsModel = model;
-              _isProcessing = false;  // ✅ Turn off here when data arrives
-              _orderDetailsError = null;
-            });
-          } catch (e) {
-            print('Error updating state: $e');
-          }
-        }
-      });
-
-      _orderDetailsSocketProvider!.setOrderDetailsErrorListener((error) {
-        if (mounted && !_isDisposed) {
-          setState(() {
-            _isProcessing = false;
-            _orderDetailsError = error;
-          });
-        }
-      });
-
-      await _orderDetailsSocketProvider!.viewOrderDetails(orderId);
-
-      // Timeout handler
-      Future.delayed(Duration(seconds: 20), () {
-        if (mounted && !_isDisposed && _isProcessing) {
-          setState(() {
-            _isProcessing = false;
-            _orderDetailsError = 'Request timeout - please try again';
-          });
-          _hasRequestedOrder = false;
-        }
-      });
-    } catch (e) {
-      _hasRequestedOrder = false;
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _isProcessing = false;
-          _orderDetailsError = 'Failed to fetch: $e';
-        });
-      }
-    }
-  }
-
-  // ✅ IMPROVED: Enhanced retry with socket ready check
-  Future<void> _retryOrderDetails() async {
-    if (_isDisposed || !mounted) return;
-
-    // Reset states
-    _hasRequestedOrder = false;
-    _orderDetailsSocketInitialized = false;
-
-    if (mounted) {
-      setState(() {
-        _orderDetailsError = null;
-        _isLoadingOrderDetails = true;
-      });
-    }
-
-    try {
-      // ✅ CRITICAL: Ensure socket is ready before retrying
-      await _ensureSocketIsReady();
-
-      await Future.delayed(Duration(milliseconds: 500));
-
-      // Reinitialize providers
-      await _reinitializeProvidersAfterReconnection();
-
-      // Fetch order details
-      await _fetchOrderDetailsFromSocket();
-    } catch (e) {
-      print('🔄 Retry failed: $e');
-      if (mounted && !_isDisposed) {
-        setState(() {
-          _isLoadingOrderDetails = false;
-          _orderDetailsError = 'Retry failed. Please check your connection.';
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _isDisposed = true;
-
-    // Remove lifecycle observer
-    WidgetsBinding.instance.removeObserver(this);
-
-    try {
-      if (_orderDetailsSocketProvider != null) {
-        _orderDetailsSocketProvider!.clearOrderDetailsListeners();
-      }
-    } catch (e) {
-      print('Error clearing listeners: $e');
-    }
-
-    _socketProvider = null;
-    _orderDetailsSocketProvider = null;
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -548,46 +471,55 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
 
   Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.cloud_off_outlined, size: 50, color: Colors.red),
-            SizedboxSpaccing.height02(context),
-            Text(
-              'Connection Issue',
-              style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-              textAlign: TextAlign.center,
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: AppColors.button(context),
+      backgroundColor: AppColors.containerBackground(context),
+      displacement: 40,
+      strokeWidth: 2.0,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(), // ✅ Required for RefreshIndicator
+        child: Container(
+          height: MediaQuery.of(context).size.height - 200, // ✅ Minimum height for scrolling
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(  FontAwesomeIcons.boxOpen, size: 50, color: Colors.red),
+                  SizedboxSpaccing.height02(context),
+                  Text(
+                    'Unable to Load Order',
+                    style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedboxSpaccing.height01(context),
+                  Text(
+                    'We couldn\'t fetch the order details. Pull to refresh and try again.',
+                    style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedboxSpaccing.height03(context),
+                  ElevatedButton.icon(
+                    onPressed: _handleRefresh,
+                    icon: Icon(Icons.refresh),
+                    label: Text('Refresh'),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.button(context),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12)
+                    ),
+                  ),
+                ],
+              ),
             ),
-            // SizedboxSpaccing.height01(context),
-            // Text(
-            //   _orderDetailsError ?? 'Failed to load order details',
-            //   style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-            //   textAlign: TextAlign.center,
-            // ),
-            // SizedboxSpaccing.height005(context),
-            // Text(
-            //   'Order ID: ${widget.orderId.substring(widget.orderId.length - 6)}',
-            //   style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
-            //   textAlign: TextAlign.center,
-            // ),
-            SizedboxSpaccing.height03(context),
-            ElevatedButton.icon(
-              // onPressed: _retryOrderDetails,
-              onPressed: (){
-                Navigator.pushNamed(context, RoutesName.splash);
-              },
-              icon: Icon(Icons.refresh),
-              label: Text('Retry Connection'),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context), foregroundColor: Colors.white, padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+
 
   Widget _buildOrderDetailsContent() {
     final screenHeight = MediaQuery.of(context).size.height;
