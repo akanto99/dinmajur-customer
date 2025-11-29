@@ -18,7 +18,7 @@ class SocketProvider with ChangeNotifier {
   String? get lastActivity => _lastActivity;
   SocketService get socketService => _socketService;
 
-  // ✅ NEW: Callback for when socket is fully ready (connected + user registered)
+  // ✅ Callback for when socket is fully ready (connected + user registered)
   List<Function()> _onReadyCallbacks = [];
 
   /// ✅ Register callback to be called when socket is ready
@@ -140,62 +140,121 @@ class SocketProvider with ChangeNotifier {
     required String userId,
   }) async {
     try {
-      if (_socketService.socket != null && _isConnected) {
-        // Emit unregister-user event
-        _socketService.socket!.emit('unregister-user', {
-          'userId': userId,
-        });
-
-        if (kDebugMode) {
-          print('🔌 Socket Provider: Unregistering user $userId');
-        }
-
-        // Wait for server to process
-        await Future.delayed(Duration(milliseconds: 500));
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Starting unregister and disconnect for user $userId');
+        print('🔌 Socket Provider: Current state - isConnected: $_isConnected, socket: ${_socketService.socket != null ? 'exists' : 'null'}');
       }
 
-      // Disconnect socket
+      // Check if socket exists and is connected
+      if (_socketService.socket != null) {
+        if (_isConnected) {
+          if (kDebugMode) {
+            print('🔌 Socket Provider: Socket is connected, emitting unregister-user event');
+          }
+
+          try {
+            // Emit unregister-user event
+            _socketService.socket!.emit('unregister-user', {
+              'userId': userId,
+            });
+
+            if (kDebugMode) {
+              print('🔌 Socket Provider: Unregister event emitted for user $userId');
+            }
+
+            // Wait for server to process the unregister event
+            await Future.delayed(Duration(milliseconds: 800));
+          } catch (emitError) {
+            if (kDebugMode) {
+              print('🔌 Socket Provider: ⚠️ Error emitting unregister event: $emitError');
+            }
+            // Continue with disconnect even if emit fails
+          }
+        } else {
+          if (kDebugMode) {
+            print('🔌 Socket Provider: Socket exists but not connected, skipping unregister event');
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print('🔌 Socket Provider: No socket exists, skipping unregister event');
+        }
+      }
+
+      // Disconnect socket (whether connected or not)
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Disconnecting socket...');
+      }
+
       await _socketService.disconnect();
 
+      // Update state
       _isConnected = false;
       _connectionError = null;
       _lastActivity = DateTime.now().toString();
+
+      // Clear callbacks on disconnect
+      _onReadyCallbacks.clear();
+
       notifyListeners();
 
       if (kDebugMode) {
-        print('🔌 Socket Provider: User unregistered and disconnected');
+        print('🔌 Socket Provider: ✅ User unregistered and socket disconnected successfully');
       }
 
     } catch (e) {
+      if (kDebugMode) {
+        print('🔌 Socket Provider: ⚠️ Unregister/disconnect error - $e');
+      }
+
+      // Force cleanup even on error
+      try {
+        await _socketService.disconnect();
+      } catch (disconnectError) {
+        if (kDebugMode) {
+          print('🔌 Socket Provider: ⚠️ Force disconnect also failed - $disconnectError');
+        }
+      }
+
+      _isConnected = false;
       _connectionError = e.toString();
+      _onReadyCallbacks.clear();
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Unregister/disconnect failed - $e');
-      }
+      // Don't rethrow - we want logout to succeed even if socket disconnect fails
     }
   }
 
   /// Force disconnect socket
   Future<void> disconnect() async {
     try {
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Force disconnect called');
+      }
+
       await _socketService.disconnect();
+
       _isConnected = false;
       _connectionError = null;
       _lastActivity = DateTime.now().toString();
+      _onReadyCallbacks.clear();
+
       notifyListeners();
 
       if (kDebugMode) {
-        print('🔌 Socket Provider: Force disconnected');
+        print('🔌 Socket Provider: Force disconnected successfully');
       }
 
     } catch (e) {
-      _connectionError = e.toString();
-      notifyListeners();
-
       if (kDebugMode) {
-        print('🔌 Socket Provider: Force disconnect failed - $e');
+        print('🔌 Socket Provider: Force disconnect error - $e');
       }
+
+      // Update state even on error
+      _isConnected = false;
+      _connectionError = e.toString();
+      _onReadyCallbacks.clear();
+      notifyListeners();
     }
   }
 
@@ -205,6 +264,14 @@ class SocketProvider with ChangeNotifier {
       _socketService.socket!.emit(event, data);
       _lastActivity = DateTime.now().toString();
       notifyListeners();
+
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Emitted event: $event');
+      }
+    } else {
+      if (kDebugMode) {
+        print('🔌 Socket Provider: Cannot emit $event - socket not connected');
+      }
     }
   }
 
@@ -316,6 +383,9 @@ class SocketProvider with ChangeNotifier {
 
   @override
   void dispose() {
+    if (kDebugMode) {
+      print('🔌 Socket Provider: Disposing...');
+    }
     _onReadyCallbacks.clear();
     super.dispose();
   }

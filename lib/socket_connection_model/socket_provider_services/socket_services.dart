@@ -1,6 +1,5 @@
 ///Customer
 
-
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart';
 
@@ -31,14 +30,6 @@ class SocketService {
       _socket = IO.io(
         'https://api-staging.dinmajur.com',
         // 'https://api.dinmajur.com',
-      //   IO.OptionBuilder().setTransports(['websocket'])
-      //       .enableAutoConnect()
-      //       .enableForceNew()
-      //       .setReconnectionAttempts(10)
-      //       .setReconnectionDelay(5000)
-      //       .setReconnectionDelayMax(10000)
-      //       .setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
-      // );
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .enableAutoConnect()
@@ -49,8 +40,8 @@ class SocketService {
             .enableReconnection()
             .setTimeout(20000)
             .setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
-
       );
+
       _setupSocketListeners();
 
       // Connect to socket
@@ -151,26 +142,69 @@ class SocketService {
     }
   }
 
-  // Disconnect socket
+  // Disconnect socket - DETAILED VERSION
   Future<void> disconnect() async {
     try {
+      if (kDebugMode) {
+        print('🔌 SocketService: disconnect() called');
+        print('🔌 SocketService: _socket is ${_socket == null ? 'NULL' : 'NOT NULL'}');
+        print('🔌 SocketService: _isConnected = $_isConnected');
+        print('🔌 SocketService: _userId = ${_userId ?? 'NULL'}');
+      }
+
       if (_socket != null) {
+        if (kDebugMode) {
+          print('🔌 SocketService: Calling socket.disconnect()...');
+        }
+
+        // Disconnect the socket
         _socket!.disconnect();
-        _socket!.dispose();
-        _socket = null;
-        _isConnected = false;
 
         if (kDebugMode) {
-          print('🔌 Socket disconnected');
+          print('🔌 SocketService: ✅ socket.disconnect() called successfully');
+          print('🔌 SocketService: Calling socket.dispose()...');
+        }
+
+        // Dispose the socket
+        _socket!.dispose();
+
+        if (kDebugMode) {
+          print('🔌 SocketService: ✅ socket.dispose() called successfully');
+        }
+
+        // Clear socket reference
+        _socket = null;
+
+        if (kDebugMode) {
+          print('🔌 SocketService: ✅ Socket reference set to null');
+        }
+      } else {
+        if (kDebugMode) {
+          print('🔌 SocketService: Socket was already null, nothing to disconnect');
         }
       }
+
+      // Update connection state
+      _isConnected = false;
+
+      if (kDebugMode) {
+        print('🔌 SocketService: Connection state set to false');
+        print('🔌 SocketService: ✅✅✅ Socket disconnected successfully');
+      }
+
     } catch (e) {
       if (kDebugMode) {
-        print('🔌 Error during disconnect: $e');
+        print('🔌 SocketService: ⚠️ Error during disconnect: $e');
       }
     } finally {
+      // Ensure state is cleared even if error occurs
       _isConnected = false;
       _userId = null;
+
+      if (kDebugMode) {
+        print('🔌 SocketService: Cleanup completed in finally block');
+        print('🔌 SocketService: Final state - _socket: ${_socket == null ? 'NULL' : 'NOT NULL'}, _isConnected: $_isConnected, _userId: ${_userId ?? 'NULL'}');
+      }
     }
   }
 
