@@ -28,8 +28,8 @@ class SocketService {
 
       // Create socket connection
       _socket = IO.io(
-        'https://api-staging.dinmajur.com',
-        // 'https://api.dinmajur.com',
+        // 'https://api-staging.dinmajur.com',
+        'https://api.dinmajur.com',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .enableAutoConnect()

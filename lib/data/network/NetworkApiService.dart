@@ -70,6 +70,21 @@ class NetworkApiService extends BaseApiServices {
   }
 
   @override
+  Future getPostApiWithOutBodyresponse(String url, {Map<String, String>? headers}) async {
+    try {
+      final authHeaders = await _getAuthHeaders(headers);
+
+      final response = await https.post(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
+
+      return await _handleResponse(response, url, () => getPostApiWithOutBodyresponse(url, headers: headers));
+    } on SocketException {
+      throw FetchDataException('No Internet Connection');
+    } on TimeoutException {
+      throw FetchDataException('Request timeout. Please try again');
+    }
+  }
+
+  @override
   Future gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers}) async {
     try {
       final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 120));
