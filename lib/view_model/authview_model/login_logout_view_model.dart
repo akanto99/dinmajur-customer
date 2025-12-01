@@ -149,6 +149,17 @@ class LoginLogoutViewModel with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken') ?? '';
 
+      // ✅ FIX: Get userId from SharedPreferences FIRST (more reliable)
+      String userId = prefs.getString('userId') ?? '';
+
+      // Fallback: try to get from userPreference if not in SharedPreferences
+      if (userId.isEmpty) {
+        final currentUser = userPreference.currentUser;
+        userId = currentUser?.data?.user?.userId ?? '';
+      }
+
+      print("🔓 Logout: userId = '$userId', token exists = ${token.isNotEmpty}");
+
       if (token.isEmpty) {
         print("❌ Logout: No accessToken found");
         setLoggingOut(false);
@@ -156,40 +167,44 @@ class LoginLogoutViewModel with ChangeNotifier {
         return;
       }
 
-      print("🔓 Logout: Sending logout request with token");
-
-      // Get user info BEFORE clearing
-      final currentUser = userPreference.currentUser;
-      final userId = currentUser?.data?.user?.userId ?? '';
-
       // ✅ STEP 1: Disconnect socket FIRST (with better error handling)
       bool socketDisconnected = false;
-      if (userId.isNotEmpty) {
-        try {
-          print("🔌 Attempting to disconnect socket for user: $userId");
 
+      // Always attempt to disconnect socket, even if userId is empty
+      try {
+        print("🔌 Attempting to disconnect socket (userId: '$userId')");
+
+        if (userId.isNotEmpty) {
+          // If we have userId, do proper unregister
           await socketProvider.unregisterAndDisconnect(userId: userId)
-              .timeout(Duration(seconds: 5)); // Add timeout
+              .timeout(Duration(seconds: 5));
+        } else {
+          // If no userId, just force disconnect
+          print("⚠️ No userId found, forcing socket disconnect");
+          await socketProvider.disconnect().timeout(Duration(seconds: 2));
+        }
 
+        socketDisconnected = true;
+        print("🔌 ✅ Socket disconnected successfully");
+
+      } catch (e) {
+        print("⚠️ Socket disconnect failed: $e");
+
+        // Try force disconnect as fallback
+        try {
+          print("🔌 Attempting force disconnect...");
+          await socketProvider.disconnect().timeout(Duration(seconds: 2));
           socketDisconnected = true;
-          print("🔌 ✅ Socket disconnected successfully");
-
-        } catch (e) {
-          print("⚠️ Socket disconnect failed: $e");
-
-          // Try force disconnect as fallback
-          try {
-            await socketProvider.disconnect().timeout(Duration(seconds: 2));
-            socketDisconnected = true;
-            print("🔌 ✅ Force disconnect successful");
-          } catch (forceError) {
-            print("⚠️ Force disconnect also failed: $forceError");
-          }
+          print("🔌 ✅ Force disconnect successful");
+        } catch (forceError) {
+          print("⚠️ Force disconnect also failed: $forceError");
+          // Continue anyway - don't block logout
         }
       }
 
       // ✅ STEP 2: Call logout API
       try {
+        print("🔓 Calling logout API...");
         await _myRepo.logoutApi(token).timeout(Duration(seconds: 10));
         print("🔓 ✅ Logout API call successful");
       } catch (apiError) {
@@ -198,13 +213,14 @@ class LoginLogoutViewModel with ChangeNotifier {
       }
 
       // ✅ STEP 3: Clear local data
+      print("🗑️ Clearing local data...");
       await userPreference.remove();
 
       setLoggingOut(false);
 
       // ✅ STEP 4: Show success message
       if (!socketDisconnected) {
-        Utils.flushBarErrorMessage("Logged out (socket disconnect failed)", context);
+        Utils.flushBarErrorMessage("Logged out (socket may still be connected)", context);
       } else {
         Utils.flushBarSuccessMessage("Logged out successfully", context);
       }
