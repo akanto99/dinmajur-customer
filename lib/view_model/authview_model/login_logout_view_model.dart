@@ -134,57 +134,89 @@ class LoginLogoutViewModel with ChangeNotifier {
 
   /// ✅ SIMPLIFIED: Logout - just disconnect socket and clear data
   Future<void> logoutUser(BuildContext context) async {
+    if (_loggingOut) {
+      print("⚠️ Logout already in progress");
+      return;
+    }
+
     setLoggingOut(true);
 
     try {
       final userPreference = Provider.of<UserViewModel>(context, listen: false);
       final socketProvider = Provider.of<SocketProvider>(context, listen: false);
 
-      // ✅ Get userId BEFORE clearing data
+      // Get accessToken from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken') ?? '';
+
+      if (token.isEmpty) {
+        print("❌ Logout: No accessToken found");
+        setLoggingOut(false);
+        Utils.flushBarErrorMessage("Invalid session. Please login again.", context);
+        return;
+      }
+
+      print("🔓 Logout: Sending logout request with token");
+
+      // Get user info BEFORE clearing
       final currentUser = userPreference.currentUser;
       final userId = currentUser?.data?.user?.userId ?? '';
 
-      print("🔓 Logout: Starting logout for user: $userId");
-
-      // ✅ Disconnect socket and unregister user
+      // ✅ STEP 1: Disconnect socket FIRST (with better error handling)
+      bool socketDisconnected = false;
       if (userId.isNotEmpty) {
         try {
-          print("🔌 Logout: Disconnecting socket for user: $userId");
+          print("🔌 Attempting to disconnect socket for user: $userId");
 
-          await socketProvider.unregisterAndDisconnect(userId: userId);
+          await socketProvider.unregisterAndDisconnect(userId: userId)
+              .timeout(Duration(seconds: 5)); // Add timeout
 
-          print("🔌 Logout: ✅ Socket disconnected and user unregistered");
+          socketDisconnected = true;
+          print("🔌 ✅ Socket disconnected successfully");
+
         } catch (e) {
-          print("🔌 Logout: ⚠️ Socket disconnect error - $e");
-          // Continue logout even if socket fails
+          print("⚠️ Socket disconnect failed: $e");
+
+          // Try force disconnect as fallback
+          try {
+            await socketProvider.disconnect().timeout(Duration(seconds: 2));
+            socketDisconnected = true;
+            print("🔌 ✅ Force disconnect successful");
+          } catch (forceError) {
+            print("⚠️ Force disconnect also failed: $forceError");
+          }
         }
-      } else {
-        print("⚠️ Logout: No userId found, skipping socket disconnect");
       }
 
-      // ✅ Clear all user data
+      // ✅ STEP 2: Call logout API
       try {
-        await userPreference.remove();
-        print("🔓 Logout: ✅ User data cleared");
-      } catch (e) {
-        print("🔓 Logout: ⚠️ Error clearing data - $e");
+        await _myRepo.logoutApi(token).timeout(Duration(seconds: 10));
+        print("🔓 ✅ Logout API call successful");
+      } catch (apiError) {
+        print("⚠️ Logout API failed: $apiError");
+        // Continue with local cleanup even if API fails
       }
+
+      // ✅ STEP 3: Clear local data
+      await userPreference.remove();
 
       setLoggingOut(false);
 
-      // ✅ Show success message
-      Utils.flushBarSuccessMessage('Logged out successfully', context);
+      // ✅ STEP 4: Show success message
+      if (!socketDisconnected) {
+        Utils.flushBarErrorMessage("Logged out (socket disconnect failed)", context);
+      } else {
+        Utils.flushBarSuccessMessage("Logged out successfully", context);
+      }
 
-      // ✅ Navigate to login (this will dispose all screens)
+      // ✅ STEP 5: Navigate to login (this will close the dialog automatically)
       Navigator.pushNamedAndRemoveUntil(
-        context,
-        RoutesName.welcomeLoginSignup,
-            (route) => false,
-      );
+          context, RoutesName.welcomeLoginSignup, (route) => false);
 
-      print("🔓 Logout: ✅ Completed successfully");
+      print("🔓 ✅ Logout Completed Successfully");
+
     } catch (error) {
-      print("🔥 Logout Error: $error");
+      print("❌ Logout Error: $error");
       setLoggingOut(false);
       _handleError(error, context);
     }

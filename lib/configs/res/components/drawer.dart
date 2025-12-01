@@ -514,57 +514,29 @@ class _CustomDrawerState extends State<CustomDrawer> {
     try {
       print("🔓 CustomDrawer: Starting logout process...");
 
-      // Close the dialog first
-      Navigator.of(context).pop();
+      // ✅ Don't close dialog here - let it stay open to show loading
+      // The dialog will be removed when we navigate to login screen
 
-      // Use the LoginLogoutViewModel's logout method which handles socket disconnection
+      // Use the LoginLogoutViewModel's logout method
       final loginLogoutViewModel = Provider.of<LoginLogoutViewModel>(context, listen: false);
       await loginLogoutViewModel.logoutUser(context);
 
-      // Additional cleanup if needed
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove("isDeliveryPerson");
-
-      print("🔓 CustomDrawer: Logout completed successfully");
+      // ✅ Navigation in logoutUser() will automatically remove the dialog
+      // because pushNamedAndRemoveUntil removes all previous routes
 
     } catch (e) {
       print("🔥 CustomDrawer: Logout error - $e");
 
-      // Show error message if needed
+      // Only close dialog on error
       if (mounted) {
+        // Try to close dialog if it's still open
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+
         Utils.flushBarErrorMessage("Logout failed. Please try again.", context);
       }
-
-      // Fallback: manual cleanup if socket logout fails
-      try {
-        final userViewModel = Provider.of<UserViewModel>(context, listen: false);
-        final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-
-        // Get user data before clearing
-        final currentUser = userViewModel.currentUser;
-        final userId = currentUser?.data?.user?.userId ?? '';
-        final userRole = currentUser?.data?.user?.role ?? '';
-
-        // Disconnect socket manually
-        if (userId.isNotEmpty && userRole.isNotEmpty) {
-          await socketProvider.unregisterAndDisconnect(
-            userId: userId,
-          );
-        }
-
-        // Clear user data
-        await userViewModel.remove();
-
-        // Navigate to login
-        if (mounted) {
-          Navigator.pushNamedAndRemoveUntil(context, RoutesName.welcomeLoginSignup, (route) => false);
-        }
-
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.remove("isDeliveryPerson");
-
-      } catch (fallbackError) {
-        print("🔥 CustomDrawer: Fallback logout also failed - $fallbackError");
-      }
     }
-}}
+  }
+
+}
