@@ -1,5 +1,6 @@
 ///Customer
 
+import 'package:dinmajur_customer/configs/res/app_url.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart';
 
@@ -28,8 +29,7 @@ class SocketService {
 
       // Create socket connection
       _socket = IO.io(
-        // 'https://api-staging.dinmajur.com',
-        'https://api.dinmajur.com',
+        "${AppUrl.socketUrl}",
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .enableAutoConnect()
