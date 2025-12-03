@@ -39,14 +39,16 @@ class AppUrl {
   static var accountUpdatePatchAPI = baseUrl + '/payment-methods';
   static var paymentMethodPostAPI = baseUrl + '/payment-methods';
 
-
-  //order Now
+  ///Home Screen DropDown
+  //========>order Now
   static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
   static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";
   static var orderDetailsGetAPI = baseUrl + '/orders';
   //Freelancer Rating
   static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
-
+  //========>Premium house Keeper
+  static var getAllPremiumHouseKeeperGetAPI = baseUrl + '/house-keeper-tasks';
+  static var getAllShiftTimeGetAPI = baseUrl + '/shifts/get-all';
 
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';

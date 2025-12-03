@@ -77,8 +77,8 @@ class PremiumHouseKeeperSection extends StatelessWidget {
               RoundButton(
                 title: "Book Now",
                 onPress: () {
-                  Utils.snackBar("This feature is coming soon!", context);
-                  // Navigator.pushNamed(context, RoutesName.bookNowPremiumHouseKeeper);
+                  // Utils.snackBar("This feature is coming soon!", context);
+                  Navigator.pushNamed(context, RoutesName.bookNowPremiumHouseKeeper);
                 },
                 iconData: Icons.arrow_forward_ios_rounded,
               ),
