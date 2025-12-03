@@ -523,25 +523,48 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   }
 
   Widget _buildServiceCard(Datum service, double screenWidth, double screenHeight) {
+
+    ///Checked unchecked value will be reduce
+    // int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
+    //
+    // // Get all selected task items for this service (default to all if none selected)
+    // Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ??
+    //     (service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {});
+    //
+    // // Calculate original price from selected task items only
+    // double originalPrice = 0;
+    // if (service.houseKeeperTaskItems?.isNotEmpty == true) {
+    //   for (var item in service.houseKeeperTaskItems!) {
+    //     if (selectedItems.contains(item.id ?? '')) {
+    //       originalPrice += item.price?.toDouble() ?? 0;
+    //     }
+    //   }
+    // }
+    //
+    // double discountedPrice = originalPrice;
+    //
+    // // Calculate discounted price
+    // if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
+    //   if (service.discountType == 'PERCENTAGE') {
+    //     discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
+    //   } else if (service.discountType == 'FIXED') {
+    //     discountedPrice = originalPrice - service.discountValue!.toDouble();
+    //   }
+    // }
+
     int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
 
-    // Get all selected task items for this service (default to all if none selected)
-    Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ??
-        (service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {});
-
-    // Calculate original price from selected task items only
+    // Calculate original price from ALL task items (not just selected ones)
     double originalPrice = 0;
     if (service.houseKeeperTaskItems?.isNotEmpty == true) {
       for (var item in service.houseKeeperTaskItems!) {
-        if (selectedItems.contains(item.id ?? '')) {
-          originalPrice += item.price?.toDouble() ?? 0;
-        }
+        originalPrice += item.price?.toDouble() ?? 0;
       }
     }
 
     double discountedPrice = originalPrice;
 
-    // Calculate discounted price
+    // Calculate discounted price based on ALL items
     if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
       if (service.discountType == 'PERCENTAGE') {
         discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
@@ -748,81 +771,339 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
+  ///4
   void _showTaskDetailsDialog(Datum service) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    // Initialize selected items if not exists (default to all items selected)
-    if (!_selectedTaskItems.containsKey(service.id ?? '')) {
+
+    // Store original quantity
+    int originalQuantity = _serviceQuantities[service.id ?? ''] ?? 0;
+
+    // Get current selected items
+    Set<String> currentSelectedItems = _selectedTaskItems[service.id ?? ''] ?? {};
+
+    // If quantity is 0 OR no items are selected, reset to all items (default state)
+    if (originalQuantity == 0 || currentSelectedItems.isEmpty) {
       _selectedTaskItems[service.id ?? ''] =
           service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
+    } else {
+      // Initialize selected items if not exists (default to all items selected)
+      if (!_selectedTaskItems.containsKey(service.id ?? '')) {
+        _selectedTaskItems[service.id ?? ''] =
+            service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
+      }
+    }
+
+    // Create a temporary copy of selected items for this dialog session
+    Set<String> tempSelectedItems = Set<String>.from(_selectedTaskItems[service.id ?? ''] ?? {});
+
+    // Create temporary quantity variable (only for dialog) - minimum 1
+    int tempQuantity = originalQuantity > 0 ? originalQuantity : 1;
+
+    // Calculate prices
+    double calculateOriginalPrice(Set<String> items) {
+      double price = 0;
+      for (var item in service.houseKeeperTaskItems ?? []) {
+        if (items.contains(item.id ?? '')) {
+          price += item.price?.toDouble() ?? 0;
+        }
+      }
+      return price;
+    }
+
+    double calculateDiscountedPrice(double original) {
+      if (service.discountType != null && service.discountValue != null && original > 0) {
+        if (service.discountType == 'PERCENTAGE') {
+          return original - (original * service.discountValue! / 100);
+        } else if (service.discountType == 'FIXED') {
+          return original - service.discountValue!.toDouble();
+        }
+      }
+      return original;
     }
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
-          Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ?? {};
+          // Use tempQuantity instead of reading from global state
+          double originalPricePerUnit = calculateOriginalPrice(tempSelectedItems);
+          double discountedPricePerUnit = calculateDiscountedPrice(originalPricePerUnit);
 
-          return AlertDialog(
-            backgroundColor: AppColors.appBackground(context),
+          // Calculate total prices (multiplied by tempQuantity)
+          double totalOriginalPrice = originalPricePerUnit * (tempQuantity > 0 ? tempQuantity : 1);
+          double totalDiscountedPrice = discountedPricePerUnit * (tempQuantity > 0 ? tempQuantity : 1);
 
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            insetPadding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.05,
-              vertical: screenHeight * 0.02,
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.05,
-              vertical: screenWidth * 0.05,
-            ),
-            title: Text(service.name ?? ''),
-            content: service.houseKeeperTaskItems?.isEmpty == true
-                ? Text('No task details available')
-                : SingleChildScrollView(
+          bool allSelected = tempSelectedItems.length == (service.houseKeeperTaskItems?.length ?? 0);
+
+          return WillPopScope(
+            onWillPop: () async {
+              // Revert changes if dialog is closed without clicking "Update Items"
+              return true;
+            },
+            child: Dialog(
+              backgroundColor: AppColors.containerBackground(context),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: Container(
-                width: screenWidth*0.9,
+                width: screenWidth,
+                constraints: BoxConstraints(maxHeight: screenHeight * 0.8),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: service.houseKeeperTaskItems!.map((task) {
-                    bool isSelected = selectedItems.contains(task.id ?? '');
+                  children: [
+                    // Header with close button
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: AppColors.border(context), width: 1),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  service.name ?? '',
+                                  style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                ),
+                                SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '৳${totalDiscountedPrice.toStringAsFixed(2)}',
+                                      style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.button(context)),
+                                    ),
+                                    if (service.discountValue != null && totalOriginalPrice > 0) ...[
+                                      SizedBox(width: 8),
+                                      Text(
+                                        '৳${totalOriginalPrice.toStringAsFixed(2)}',
+                                        style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))
+                                            .copyWith(decoration: TextDecoration.lineThrough),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(Icons.close, color: AppColors.textPrimary(context)),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                    return CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        task.name ?? '',
-                        style: AppTextStyles.textSize14(context),
+                    // Room Number Section
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: AppColors.border(context), width: 1),
+                        ),
                       ),
-                      subtitle: Text(
-                        '৳${task.price ?? 0}',
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Room Number',
+                              style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (tempQuantity > 1) { // Changed from > 0 to > 1
+                                    setDialogState(() {
+                                      tempQuantity--;
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppColors.border(context)),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Icon(Icons.remove, size: 18),
+                                ),
+                              ),
+                              Container(
+                                width: 40,
+                                child: Center(
+                                  child: Text(
+                                    tempQuantity.toString(),
+                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setDialogState(() {
+                                    tempQuantity++;
+                                  });
+                                },
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppColors.border(context)),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Icon(Icons.add, size: 18),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      value: isSelected,
-                      activeColor: AppColors.button(context),
-                      onChanged: (bool? value) {
-                        setDialogState(() {
-                          if (value == true) {
-                            selectedItems.add(task.id ?? '');
-                          } else {
-                            selectedItems.remove(task.id ?? '');
+                    ),
+
+                    // Select All Checkbox
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.textFieldFill(context).withOpacity(0.3),
+                      ),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: allSelected,
+                            activeColor: AppColors.button(context),
+                            onChanged: (bool? value) {
+                              setDialogState(() {
+                                if (value == true) {
+                                  tempSelectedItems = service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
+                                } else {
+                                  tempSelectedItems.clear();
+                                }
+                              });
+                            },
+                          ),
+                          Text(
+                            'Select All',
+                            style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Task Items List
+                    Flexible(
+                      child: service.houseKeeperTaskItems?.isEmpty == true
+                          ? Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text(
+                          'No task details available',
+                          style: AppTextStyles.textSize14(context),
+                        ),
+                      )
+                          : ListView.separated(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        itemCount: service.houseKeeperTaskItems?.length ?? 0,
+                        separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.border(context)),
+                        itemBuilder: (context, index) {
+                          final task = service.houseKeeperTaskItems![index];
+                          bool isSelected = tempSelectedItems.contains(task.id ?? '');
+
+                          return Container(
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: Row(
+                              children: [
+                                Checkbox(
+                                  value: isSelected,
+                                  activeColor: AppColors.button(context),
+                                  onChanged: (bool? value) {
+                                    setDialogState(() {
+                                      if (value == true) {
+                                        tempSelectedItems.add(task.id ?? '');
+                                      } else {
+                                        tempSelectedItems.remove(task.id ?? '');
+                                      }
+                                    });
+                                  },
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    task.name ?? '',
+                                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  '${task.price ?? 0} Taka',
+                                  style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // Update Items Button
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      child: GestureDetector(
+                        onTap: () {
+                          // If no items are selected, remove the service completely
+                          if (tempSelectedItems.isEmpty) {
+                            setState(() {
+                              // Set quantity to 0 (will show "ADD" button)
+                              _serviceQuantities[service.id ?? ''] = 0;
+                              // Clear selected items
+                              _selectedTaskItems.remove(service.id ?? '');
+                            });
+                            Navigator.pop(context);
+                            return;
                           }
-                          _selectedTaskItems[service.id ?? ''] = selectedItems;
-                        });
 
-                        // Update the main screen to reflect price changes
-                        setState(() {});
-                      },
-                    );
-                  }).toList(),
+                          // Only apply changes when "Update Items" is clicked AND items are selected
+                          setState(() {
+                            _selectedTaskItems[service.id ?? ''] = Set<String>.from(tempSelectedItems);
+                            _serviceQuantities[service.id ?? ''] = tempQuantity;
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.button(context),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Update Items',
+                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Close'),
-              ),
-            ],
           );
         },
       ),
