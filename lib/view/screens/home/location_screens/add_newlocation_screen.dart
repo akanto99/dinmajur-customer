@@ -44,11 +44,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: _buildBody(),
-          desktop: _buildBody(),
-          tablet: _buildBody(),
-        ),
+        child: ResPonsiveUi(mobile: _buildBody(), desktop: _buildBody(), tablet: _buildBody()),
       ),
     );
   }
@@ -64,11 +60,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
             // App Bar Header
             GestureDetector(
               onTap: _controller.navigateBack,
-              child: Container(
-                height: 60,
-                color: AppColors.containerBackground(context),
-                child: AppBarHeader("Your Location"),
-              ),
+              child: Container(height: 60, color: AppColors.containerBackground(context), child: AppBarHeader("Your Location")),
             ),
 
             // Main Content
@@ -84,9 +76,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                     _buildCurrentLocationButton(screenWidth),
                     SizedboxSpaccing.height02(context),
                     _buildLocationListSection(screenWidth, screenHeight),
-                    SizedBox(
-                      height: _controller.selectedLocationId != null ? 100 : 25,
-                    ),
+                    SizedBox(height: _controller.selectedLocationId != null ? 100 : 25),
                   ],
                 ),
               ),
@@ -95,8 +85,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         ),
 
         // Update/Delete Buttons (Fixed at bottom)
-        if (_controller.selectedLocationId != null)
-          _buildBottomActionButtons(screenWidth),
+        if (_controller.selectedLocationId != null) _buildBottomActionButtons(screenWidth),
       ],
     );
   }
@@ -110,34 +99,17 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         decoration: BoxDecoration(
           color: AppColors.button(context).withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.whiteColor
-                : AppColors.button(context),
-            width: 1,
-          ),
+          border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? AppColors.whiteColor : AppColors.button(context), width: 1),
         ),
         child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                FontAwesomeIcons.mapLocation,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.whiteColor
-                    : AppColors.button(context),
-                size: 20,
-              ),
+              Icon(FontAwesomeIcons.mapLocation, color: Theme.of(context).brightness == Brightness.dark ? AppColors.whiteColor : AppColors.button(context), size: 20),
               SizedboxSpaccing.width03(context),
               Text(
                 "Set Your Location",
-                style: AppTextStyles.textSize16(
-                  context,
-                  weight: FontWeight.w600,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.whiteColor
-                      : AppColors.button(context),
-                ),
+                style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Theme.of(context).brightness == Brightness.dark ? AppColors.whiteColor : AppColors.button(context)),
               ),
             ],
           ),
@@ -155,29 +127,17 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
           Container(
             height: 20,
             child: Center(
-              child: Container(
-                height: 1,
-                width: screenWidth * 0.41,
-                color: AppColors.border(context),
-              ),
+              child: Container(height: 1, width: screenWidth * 0.41, color: AppColors.border(context)),
             ),
           ),
           Text(
             "or",
-            style: AppTextStyles.textSize14(
-              context,
-              weight: FontWeight.w500,
-              color: AppColors.subtitle(context),
-            ),
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.subtitle(context)),
           ),
           Container(
             height: 20,
             child: Center(
-              child: Container(
-                height: 1,
-                width: screenWidth * 0.41,
-                color: AppColors.border(context),
-              ),
+              child: Container(height: 1, width: screenWidth * 0.41, color: AppColors.border(context)),
             ),
           ),
         ],
@@ -188,47 +148,28 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
   Widget _buildCurrentLocationButton(double screenWidth) {
     return Consumer<AddLocationViewModel>(
       builder: (context, addLocationProvider, child) {
-        final isLoading = _controller.isLoadingLocation ||
-            addLocationProvider.createAddLocationLoading;
+        final isLoading = _controller.isLoadingLocation || addLocationProvider.createAddLocationLoading;
 
         return GestureDetector(
           onTap: isLoading ? null : _controller.getLocationWithAddress,
           child: Container(
             width: screenWidth * 0.8,
             height: 50,
-            decoration: BoxDecoration(
-              color: AppColors.button(context),
-              borderRadius: BorderRadius.circular(8),
-            ),
+            decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
             child: Center(
               child: isLoading
-                  ? Container(
-                height: 15,
-                width: 50,
-                child: LoadingAnimationWidget.progressiveDots(
-                  color: AppColors.whiteColor,
-                  size: 45,
-                ),
-              )
+                  ? Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 45))
                   : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    FontAwesomeIcons.locationArrow,
-                    color: AppColors.whiteColor,
-                    size: 20,
-                  ),
-                  SizedboxSpaccing.width03(context),
-                  Text(
-                    "Use Current Location",
-                    style: AppTextStyles.textSize16(
-                      context,
-                      weight: FontWeight.w600,
-                      color: AppColors.whiteColor,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(FontAwesomeIcons.locationArrow, color: AppColors.whiteColor, size: 20),
+                        SizedboxSpaccing.width03(context),
+                        Text(
+                          "Use Current Location",
+                          style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
         );
@@ -246,13 +187,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Saved Addresses",
-                    style: AppTextStyles.textSize18(
-                      context,
-                      weight: FontWeight.w500,
-                    ),
-                  ),
+                  Text("Saved Addresses", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                   SizedBox(),
                 ],
               ),
@@ -269,11 +204,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
               child: switch (locationViewModel.locationListData.status) {
                 Status.LOADING => _buildLoadingState(),
                 Status.ERROR => _buildErrorState(),
-                Status.COMPLETED => _buildLocationList(
-                  locationViewModel,
-                  screenWidth,
-                  screenHeight,
-                ),
+                Status.COMPLETED => _buildLocationList(locationViewModel, screenWidth, screenHeight),
                 _ => Container(),
               },
             );
@@ -291,14 +222,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         border: Border.all(width: 1, color: AppColors.border(context)),
       ),
       child: Center(
-        child: Container(
-          height: 15,
-          width: 50,
-          child: LoadingAnimationWidget.progressiveDots(
-            color: AppColors.button(context),
-            size: 45,
-          ),
-        ),
+        child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45)),
       ),
     );
   }
@@ -316,21 +240,14 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
           children: [
             Icon(Icons.error_outline, color: Colors.red, size: 24),
             SizedBox(height: 8),
-            Text(
-              'Failed to load locations',
-              style: AppTextStyles.textSize14(context, color: Colors.red),
-            ),
+            Text('Failed to load locations', style: AppTextStyles.textSize14(context, color: Colors.red)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLocationList(
-      GetLocationListViewModel locationViewModel,
-      double screenWidth,
-      double screenHeight,
-      ) {
+  Widget _buildLocationList(GetLocationListViewModel locationViewModel, double screenWidth, double screenHeight) {
     final locationList = locationViewModel.locationListData.data?.data ?? [];
 
     if (locationList.isEmpty) {
@@ -345,11 +262,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         child: Center(
           child: Text(
             "No Saved Locations",
-            style: AppTextStyles.textSize18(
-              context,
-              weight: FontWeight.w500,
-              color: AppColors.form_hover(context),
-            ),
+            style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.form_hover(context)),
           ),
         ),
       );
@@ -361,24 +274,14 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
       itemCount: locationList.length,
       itemBuilder: (context, index) {
         return Container(
-          margin: EdgeInsets.only(
-            bottom: index < locationList.length - 1 ? screenHeight * 0.015 : 0,
-          ),
-          child: _buildLocationItemCard(
-            locationList[index],
-            screenWidth,
-            screenHeight,
-          ),
+          margin: EdgeInsets.only(bottom: index < locationList.length - 1 ? screenHeight * 0.015 : 0),
+          child: _buildLocationItemCard(locationList[index], screenWidth, screenHeight),
         );
       },
     );
   }
 
-  Widget _buildLocationItemCard(
-      dynamic locationData,
-      double screenWidth,
-      double screenHeight,
-      ) {
+  Widget _buildLocationItemCard(dynamic locationData, double screenWidth, double screenHeight) {
     final fullAddress = locationData.fullAddress ?? 'Unknown Address';
     final coordinates = locationData.geoLocation?.coordinates ?? [];
     final createdAt = locationData.createdAt;
@@ -393,16 +296,9 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         duration: Duration(milliseconds: 300),
         padding: EdgeInsets.all(screenHeight * 0.015),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.button(context).withOpacity(0.05)
-              : AppColors.containerBackground(context),
+          color: isSelected ? AppColors.button(context).withOpacity(0.05) : AppColors.containerBackground(context),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            width: 1,
-            color: isSelected
-                ? AppColors.button(context)
-                : AppColors.border(context),
-          ),
+          border: Border.all(width: 1, color: isSelected ? AppColors.button(context) : AppColors.border(context)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,19 +309,8 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                 Container(
                   height: 40,
                   width: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: isSelected
-                        ? AppColors.button(context).withOpacity(0.1)
-                        : AppColors.textFieldFill(context),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      FontAwesomeIcons.mapLocationDot,
-                      size: 20,
-                      color: AppColors.darkRedColor.withOpacity(0.7),
-                    ),
-                  ),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: isSelected ? AppColors.button(context).withOpacity(0.1) : AppColors.textFieldFill(context)),
+                  child: Center(child: Icon(FontAwesomeIcons.mapLocationDot, size: 20, color: AppColors.darkRedColor.withOpacity(0.7))),
                 ),
                 SizedboxSpaccing.width03(context),
                 Expanded(
@@ -434,19 +319,11 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                     children: [
                       Text(
                         locationType.replaceAll('_', ' '),
-                        style: AppTextStyles.textSize14(
-                          context,
-                          weight: FontWeight.w500,
-                          color: AppColors.textPrimary(context),
-                        ),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                       ),
                       Text(
                         fullAddress,
-                        style: AppTextStyles.textSize12(
-                          context,
-                          weight: FontWeight.w400,
-                          color: AppColors.form_hover(context),
-                        ),
+                        style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.form_hover(context)),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -456,15 +333,8 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                 if (isSelected)
                   Container(
                     padding: EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: AppColors.button(context),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.check,
-                      color: AppColors.whiteColor,
-                      size: 16,
-                    ),
+                    decoration: BoxDecoration(color: AppColors.button(context), shape: BoxShape.circle),
+                    child: Icon(Icons.check, color: AppColors.whiteColor, size: 16),
                   ),
               ],
             ),
@@ -476,11 +346,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
                 if (createdAt != null)
                   Text(
                     _controller.formatDateTime(createdAt),
-                    style: AppTextStyles.textSize12(
-                      context,
-                      weight: FontWeight.w400,
-                      color: AppColors.subtitle(context),
-                    ),
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                   ),
               ],
             ),
@@ -499,81 +365,43 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.containerBackground(context),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: Offset(0, -5),
-            ),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: Offset(0, -5))],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             // Delete Button
             GestureDetector(
-              onTap: _controller.isDeleting
-                  ? null
-                  : _controller.deleteSelectedLocation,
+              onTap: _controller.isDeleting ? null : _controller.deleteSelectedLocation,
               child: Container(
                 width: screenWidth * 0.4,
                 height: 42,
-                decoration: BoxDecoration(
-                  color: AppColors.darkRedColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: BoxDecoration(color: AppColors.darkRedColor, borderRadius: BorderRadius.circular(12)),
                 child: Center(
                   child: _controller.isDeleting
-                      ? Container(
-                    height: 15,
-                    width: 50,
-                    child: LoadingAnimationWidget.progressiveDots(
-                      color: AppColors.whiteColor,
-                      size: 45,
-                    ),
-                  )
+                      ? Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 45))
                       : Text(
-                    "Delete",
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w600,
-                      color: AppColors.whiteColor,
-                    ),
-                  ),
+                          "Delete",
+                          style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                        ),
                 ),
               ),
             ),
 
             // Update Button
             GestureDetector(
-              onTap: _controller.isUpdating
-                  ? null
-                  : _controller.updateSelectedLocation,
+              onTap: _controller.isUpdating ? null : _controller.updateSelectedLocation,
               child: Container(
                 width: screenWidth * 0.4,
                 height: 42,
-                decoration: BoxDecoration(
-                  color: AppColors.button(context),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(12)),
                 child: Center(
                   child: _controller.isUpdating
-                      ? Container(
-                    height: 15,
-                    width: 50,
-                    child: LoadingAnimationWidget.progressiveDots(
-                      color: AppColors.whiteColor,
-                      size: 45,
-                    ),
-                  )
+                      ? Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 45))
                       : Text(
-                    "Update Address",
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w600,
-                      color: AppColors.whiteColor,
-                    ),
-                  ),
+                          "Update Address",
+                          style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                        ),
                 ),
               ),
             ),

@@ -2,6 +2,7 @@
 import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/delete_location_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:flutter/material.dart';
@@ -274,19 +275,19 @@ class AddNewLocationController {
     });
 
     try {
-      // TODO: Implement delete API call
-      await Future.delayed(Duration(seconds: 1)); // Simulate API call
+      final String locationId = selectedLocationData.id ?? '';
 
+      final deleteLocationViewModel = context.read<DeleteLocationViewModel>();
+      await deleteLocationViewModel.deleteLocationDeleteApi(
+        context,
+        locationId,
+      );
       setState(() {
         selectedLocationId = null;
         selectedLocationData = null;
         isDeleting = false;
       });
 
-      // Refresh location list
-      await _fetchLocationList();
-
-      Utils.flushBarSuccessMessage('Location deleted successfully', context);
     } catch (e) {
       debugPrint('Error deleting location: $e');
 
