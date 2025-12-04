@@ -18,7 +18,7 @@ class RoutesName {
   ///home
   static const String home = 'home_view';
   static const String orderDetailsSocketScreen = 'orderDetailsSocketScreen_view';
-  //-----------location
+  //-----------location_screens
   static const String addlocation = 'addLocation_view';
   static const String mapLocationScreen = 'mapLocationScreen_view';
 ///order in Home screen

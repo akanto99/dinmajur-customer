@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Map<String, String> storeTypes;
 
-  // Key for SharedPreferences to track if location has been posted
+  // Key for SharedPreferences to track if location_screens has been posted
   static const String _locationPostedKey = 'location_posted_once';
 
   @override
@@ -62,16 +62,64 @@ class _HomeScreenState extends State<HomeScreen> {
       // 'clothing': AppLocalizations.of(context)!.storeType_clothing,
     };
   }
+  // Future<void> _handleRefresh() async {
+  //   try {
+  //     debugPrint('🔄 HomeScreen: Pull to refresh triggered');
+  //
+  //     // 1. Refresh profile data
+  //     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+  //     await profileViewModel.fetchProfileViewUserDataApi();
+  //     debugPrint('🔄 HomeScreen: Profile data refreshed');
+  //
+  //     // 3. If a store type is selected and it's Retail, refresh nearby retailers
+  //     if (selectedStoreType == 'Retail') {
+  //       debugPrint('🔄 HomeScreen: Refreshing nearby retailers');
+  //       await _fetchNearbyRetailers(selectedStoreType!);
+  //     }
+  //
+  //     debugPrint('🔄 HomeScreen: Refresh completed successfully');
+  //
+  //   } catch (e) {
+  //     debugPrint('🔄 HomeScreen: Refresh failed - $e');
+  //     if (mounted) {
+  //       Utils.flushBarErrorMessage("Refresh failed", context);
+  //     }
+  //   }
+  // }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+  //     profileViewModel.fetchProfileViewUserDataApi();
+  //   });
+  //
+  //   _checkAndGetLocation();
+  // }
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+
+      // Only fetch if not already initialized (first load only)
+      profileViewModel.fetchProfileViewUserDataApi();
+
+      debugPrint('HomeScreen initialized');
+    });
+
+    _checkAndGetLocation();
+  }
   Future<void> _handleRefresh() async {
     try {
       debugPrint('🔄 HomeScreen: Pull to refresh triggered');
 
-      // 1. Refresh profile data
+      // 1. Force refresh profile data
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-      await profileViewModel.fetchProfileViewUserDataApi();
+      await profileViewModel.refreshProfileData(); // Use refreshProfileData instead
       debugPrint('🔄 HomeScreen: Profile data refreshed');
 
-      // 3. If a store type is selected and it's Retail, refresh nearby retailers
+      // 2. If a store type is selected and it's Retail, refresh nearby retailers
       if (selectedStoreType == 'Retail') {
         debugPrint('🔄 HomeScreen: Refreshing nearby retailers');
         await _fetchNearbyRetailers(selectedStoreType!);
@@ -86,18 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-      profileViewModel.fetchProfileViewUserDataApi();
-    });
 
-    _checkAndGetLocation();
-  }
 
-  // Check if location has already been posted, if not, get and post it
+  // Check if location_screens has already been posted, if not, get and post it
   Future<void> _checkAndGetLocation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool locationAlreadyPosted = prefs.getBool(_locationPostedKey) ?? false;
@@ -105,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!locationAlreadyPosted) {
       await _getLocationWithAddress();
     } else {
-      debugPrint('Location already posted. Skipping location fetch.');
+      debugPrint('Location already posted. Skipping location_screens fetch.');
     }
   }
 
@@ -142,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
         await profileViewModel.fetchProfileViewUserDataApi();
       }
     } catch (e) {
-      debugPrint('Error getting location with address: $e');
+      debugPrint('Error getting location_screens with address: $e');
       if (mounted) {
         setState(() {
           _isLoadingLocation = false;
@@ -173,9 +212,9 @@ class _HomeScreenState extends State<HomeScreen> {
       await addLocationViewModel.addLocationPostApi(context, locationData);
       debugPrint('Location posted successfully to API');
     } catch (e) {
-      debugPrint('Error posting location to API: $e');
+      debugPrint('Error posting location_screens to API: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save location: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save location_screens: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
       }
     }
   }
@@ -215,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (mounted) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(const SnackBar(content: Text('Location not available. Please enable location services.'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+            ).showSnackBar(const SnackBar(content: Text('Location not available. Please enable location_screens services.'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
           }
           setState(() => isLoadingStores = false);
           return;
@@ -357,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
         String displayAddress;
 
         if (_isLoadingLocation) {
-          displayAddress = "Getting location...";
+          displayAddress = "Getting location_screens...";
         } else if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
           final responseData = profileViewModel.profileviewUserData.data;
 
@@ -371,17 +410,17 @@ class _HomeScreenState extends State<HomeScreen> {
             } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
               displayAddress = _currentAddress!;
             } else {
-              displayAddress = "Tap to set location";
+              displayAddress = "Tap to set location_screens";
             }
           } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
             displayAddress = _currentAddress!;
           } else {
-            displayAddress = "Tap to set location";
+            displayAddress = "Tap to set location_screens";
           }
         } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
           displayAddress = _currentAddress!;
         } else {
-          displayAddress = "Tap to set location";
+          displayAddress = "Tap to set location_screens";
         }
 
         switch (profileViewModel.profileviewUserData.status) {

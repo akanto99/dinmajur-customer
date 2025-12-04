@@ -33,7 +33,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
   double? storeLongitude;
   String? store_logoUrl;
 
-  // Customer location data
+  // Customer location_screens data
   String? customerFullAddress;
   double? customerLongitude;
   double? customerLatitude;
@@ -143,7 +143,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
       storeLongitude = arguments['storeLongitude'];
       store_logoUrl = arguments['logoUrl'];
 
-      // Customer location
+      // Customer location_screens
       customerFullAddress = arguments['customerFullAddress'];
       customerLongitude = arguments['customerLongitude'];
       customerLatitude = arguments['customerLatitude'];

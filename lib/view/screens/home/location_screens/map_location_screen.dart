@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -116,7 +117,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
     _setMapStyle();
   }
 
-  // Get current location
+  // Get current location_screens
   // Future<void> _getCurrentLocation() async {
   //   setState(() {
   //     _isLoadingCurrentLocation = true;
@@ -145,7 +146,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
   //
   //     await _updateSelectedLocation(currentLocation);
   //
-  //     // Move camera to current location
+  //     // Move camera to current location_screens
   //     final GoogleMapController controller = await _controller.future;
   //     controller.animateCamera(
   //       CameraUpdate.newCameraPosition(
@@ -156,11 +157,11 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
   //       ),
   //     );
   //   } catch (e) {
-  //     debugPrint('Error getting current location: $e');
+  //     debugPrint('Error getting current location_screens: $e');
   //     if (mounted) {
   //       ScaffoldMessenger.of(context).showSnackBar(
   //         SnackBar(
-  //           content: Text('Error getting current location: ${e.toString()}'),
+  //           content: Text('Error getting current location_screens: ${e.toString()}'),
   //           backgroundColor: Colors.red,
   //         ),
   //       );
@@ -171,7 +172,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
   //     });
   //   }
   // }
-// Replace the existing _getCurrentLocation method with this updated version
+  // Replace the existing _getCurrentLocation method with this updated version
 
   Future<void> _getCurrentLocation() async {
     setState(() {
@@ -179,7 +180,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
     });
 
     try {
-      // Check if location services are enabled
+      // Check if location_screens services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (mounted) {
@@ -187,13 +188,13 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
             _isLoadingCurrentLocation = false;
           });
 
-          // Show dialog for location services
+          // Show dialog for location_screens services
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
                 title: Text('Location Services Disabled'),
-                content: Text('Please enable location services to use this feature.'),
+                content: Text('Please enable location_screens services to use this feature.'),
                 actions: [
                   TextButton(
                     onPressed: () {
@@ -216,7 +217,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
         return;
       }
 
-      // Check location permission
+      // Check location_screens permission
       LocationPermission permission = await Geolocator.checkPermission();
 
       if (permission == LocationPermission.denied) {
@@ -246,35 +247,23 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
         return;
       }
 
-      // If we reach here, we have permission - get current location
+      // If we reach here, we have permission - get current location_screens
       Position position = await Geolocator.getCurrentPosition();
       LatLng currentLocation = LatLng(position.latitude, position.longitude);
 
       await _updateSelectedLocation(currentLocation);
 
-      // Move camera to current location
+      // Move camera to current location_screens
       final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: currentLocation,
-            zoom: 16.0,
-          ),
-        ),
-      );
+      controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: currentLocation, zoom: 16.0)));
     } catch (e) {
-      debugPrint('Error getting current location: $e');
+      debugPrint('Error getting current location_screens: $e');
       if (mounted) {
         setState(() {
           _isLoadingCurrentLocation = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error getting current location: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error getting current location_screens: ${e.toString()}'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) {
@@ -284,32 +273,27 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
       }
     }
   }
-  // Update selected location and get address
+
+  // Update selected location_screens and get address
   Future<void> _updateSelectedLocation(LatLng location) async {
     setState(() {
       _selectedLocation = location;
       _isLoadingAddress = true;
       _markers = {
         Marker(
-          markerId: const MarkerId('selected-location'),
+          markerId: const MarkerId('selected-location_screens'),
           position: location,
           draggable: true,
           onDragEnd: (LatLng newPosition) {
             _updateSelectedLocation(newPosition);
           },
-          infoWindow: InfoWindow(
-            title: 'Selected Location',
-            snippet: 'Tap to get address',
-          ),
+          infoWindow: InfoWindow(title: 'Selected Location', snippet: 'Tap to get address'),
         ),
       };
     });
 
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        location.latitude,
-        location.longitude,
-      );
+      List<Placemark> placemarks = await placemarkFromCoordinates(location.latitude, location.longitude);
 
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
@@ -343,39 +327,57 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
     try {
       List<Location> locations = await locationFromAddress(prediction.description!);
       if (locations.isNotEmpty) {
-        LatLng selectedLocation = LatLng(
-          locations.first.latitude,
-          locations.first.longitude,
-        );
+        LatLng selectedLocation = LatLng(locations.first.latitude, locations.first.longitude);
 
         await _updateSelectedLocation(selectedLocation);
 
-        // Move camera to selected location
+        // Move camera to selected location_screens
         final GoogleMapController controller = await _controller.future;
-        controller.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: selectedLocation,
-              zoom: 16.0,
-            ),
-          ),
-        );
+        controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: selectedLocation, zoom: 16.0)));
 
         // Unfocus the text field
         _addressFocusNode.unfocus();
       }
     } catch (e) {
       debugPrint('Error selecting place: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error selecting place: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error selecting place: ${e.toString()}'), backgroundColor: Colors.red));
     }
   }
 
-  // Confirm location selection
+  // Confirm location_screens selection
+  // void _confirmLocation() async {
+  //   if (_selectedLocation != null && _selectedAddress.isNotEmpty) {
+  //     try {
+  //       final locationData = {
+  //         "geoLocation": {
+  //           "type": "Point",
+  //           "coordinates": [_selectedLocation!.longitude, _selectedLocation!.latitude],
+  //         },
+  //         "fullAddress": _selectedAddress,
+  //         "type": "DELIVERY_ADDRESS",
+  //       };
+  //
+  //       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
+  //       await addLocationViewModel.addLocationPostApi(context, locationData);
+  //
+  //       if (mounted) {
+  //         Utils.flushBarSuccessMessage('Location saved successfully', context);
+  //         Future.delayed(const Duration(milliseconds: 1000), () {
+  //           Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));
+  //         });
+  //       }
+  //     } catch (e) {
+  //       debugPrint('Error saving location_screens: $e');
+  //       if (mounted) {
+  //         Utils.flushBarErrorMessage('Failed to save location_screens', context);
+  //       }
+  //     }
+  //   } else {
+  //     Utils.flushBarErrorMessage('Please select a location_screens', context);
+  //   }
+  // }
+// Replace your _confirmLocation method with this updated version:
+
   void _confirmLocation() async {
     if (_selectedLocation != null && _selectedAddress.isNotEmpty) {
       try {
@@ -391,38 +393,23 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
         final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
         await addLocationViewModel.addLocationPostApi(context, locationData);
 
-        if (mounted) {
-          Utils.flushBarSuccessMessage('Location saved successfully', context);
-          Future.delayed(const Duration(milliseconds: 1000), () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NavigationScreen(),
-              ),
-            );
-          });
-        }
+
       } catch (e) {
-        debugPrint('Error saving location: $e');
+        debugPrint('Error saving location_screens: $e');
         if (mounted) {
-          Utils.flushBarErrorMessage('Failed to save location', context);
+          Utils.flushBarErrorMessage('Failed to save location_screens', context);
         }
       }
     } else {
-      Utils.flushBarErrorMessage('Please select a location', context);
+      Utils.flushBarErrorMessage('Please select a location_screens', context);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: body(),
-          desktop: body(),
-          tablet: body(),
-        ),
+        child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
       ),
     );
   }
@@ -443,11 +430,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Container(
-                    height: 20,
-                    width: 24,
-                    alignment: Alignment.centerLeft,
-                    child: SvgPicture.asset("assets/images/header_arrow.svg")),
+                child: Container(height: 20, width: 24, alignment: Alignment.centerLeft, child: SvgPicture.asset("assets/images/header_arrow.svg")),
               ),
               Container(
                 width: screenWidth * 0.7,
@@ -457,7 +440,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                   googleAPIKey: _googlePlacesApiKey,
                   isCrossBtnShown: false, // This removes the built-in cancel button
                   inputDecoration: InputDecoration(
-                    hintText: 'Search for a location...',
+                    hintText: 'Search for a location_screens...',
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -469,10 +452,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                     filled: true,
                   ),
                   boxDecoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.border(context),
-                      width: 1,
-                    ),
+                    border: Border.all(color: AppColors.border(context), width: 1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   debounceTime: 400,
@@ -485,10 +465,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                     _addressController.text = prediction.description!;
                     _onPlaceSelected(prediction);
                   },
-                  seperatedBuilder: Divider(
-                    color: AppColors.border(context),
-                    height: 1,
-                  ),
+                  seperatedBuilder: Divider(color: AppColors.border(context), height: 1),
                   containerHorizontalPadding: 5,
                   itemBuilder: (context, index, Prediction prediction) {
                     return Container(
@@ -496,11 +473,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                       color: AppColors.textFieldFill(context),
                       child: Row(
                         children: [
-                          Icon(
-                            FontAwesomeIcons.locationDot,
-                            color: AppColors.button(context),
-                            size: 16,
-                          ),
+                          Icon(FontAwesomeIcons.locationDot, color: AppColors.button(context), size: 16),
                           SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -508,22 +481,14 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                               children: [
                                 Text(
                                   prediction.structuredFormatting?.mainText ?? prediction.description!,
-                                  style: AppTextStyles.textSize14(
-                                    context,
-                                    weight: FontWeight.w500,
-                                    color: AppColors.textPrimary(context),
-                                  ),
+                                  style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 if (prediction.structuredFormatting?.secondaryText != null)
                                   Text(
                                     prediction.structuredFormatting!.secondaryText!,
-                                    style: AppTextStyles.textSize12(
-                                      context,
-                                      weight: FontWeight.w400,
-                                      color: AppColors.subtitle(context),
-                                    ),
+                                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -550,11 +515,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                   //   controller.animateCamera(CameraUpdate.newCameraPosition(_kGooglePlex));
                   // });
                 },
-                child: Container(
-                    height: 20,
-                    width: 24,
-                    alignment: Alignment.centerLeft,
-                    child: Icon(FontAwesomeIcons.x, size: 18)),
+                child: Container(height: 20, width: 24, alignment: Alignment.centerLeft, child: Icon(FontAwesomeIcons.x, size: 18)),
               ),
             ],
           ),
@@ -586,16 +547,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                   mini: true,
                   backgroundColor: AppColors.button(context),
                   onPressed: _isLoadingCurrentLocation ? null : _getCurrentLocation,
-                  child: _isLoadingCurrentLocation
-                      ? LoadingAnimationWidget.staggeredDotsWave(
-                    color: Colors.white,
-                    size: 20,
-                  )
-                      : Icon(
-                    FontAwesomeIcons.locationCrosshairs,
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                  child: _isLoadingCurrentLocation ? LoadingAnimationWidget.staggeredDotsWave(color: Colors.white, size: 20) : Icon(FontAwesomeIcons.locationCrosshairs, color: Colors.white, size: 18),
                 ),
               ),
 
@@ -609,51 +561,32 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                     elevation: 4,
                     child: Container(
                       padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.containerBackground(context),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(8)),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                FontAwesomeIcons.locationDot,
-                                color: AppColors.button(context),
-                                size: 16,
-                              ),
+                              Icon(FontAwesomeIcons.locationDot, color: AppColors.button(context), size: 16),
                               SizedBox(width: 8),
                               Text(
                                 "Selected Location",
-                                style: AppTextStyles.textSize16(
-                                  context,
-                                  weight: FontWeight.w600,
-                                  color: AppColors.whiteColor,
-                                ),
+                                style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
                               ),
                             ],
                           ),
                           SizedBox(height: 8),
                           Text(
                             _selectedAddress.isNotEmpty ? _selectedAddress : 'Getting address...',
-                            style: AppTextStyles.textSize14(
-                              context,
-                              weight: FontWeight.w400,
-                              color: AppColors.subtitle(context),
-                            ),
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                           SizedBox(height: 4),
                           Text(
                             'Lat: ${_selectedLocation!.latitude.toStringAsFixed(6)}, Lng: ${_selectedLocation!.longitude.toStringAsFixed(6)}',
-                            style: AppTextStyles.textSize12(
-                              context,
-                              weight: FontWeight.w400,
-                              color: AppColors.subtitle(context).withOpacity(0.7),
-                            ),
+                            style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context).withOpacity(0.7)),
                           ),
                           SizedBox(height: 12),
                           Consumer<AddLocationViewModel>(
@@ -662,28 +595,17 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                                 width: double.infinity,
                                 height: 45,
                                 child: ElevatedButton(
-                                  onPressed: (addLocationProvider.createAddLocationLoading || _isLoadingAddress)
-                                      ? null
-                                      : _confirmLocation,
+                                  onPressed: (addLocationProvider.createAddLocationLoading || _isLoadingAddress) ? null : _confirmLocation,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.button(context),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
                                   child: addLocationProvider.createAddLocationLoading
-                                      ? LoadingAnimationWidget.staggeredDotsWave(
-                                    color: Colors.white,
-                                    size: 20,
-                                  )
+                                      ? LoadingAnimationWidget.staggeredDotsWave(color: Colors.white, size: 20)
                                       : Text(
-                                    'Confirm Location',
-                                    style: AppTextStyles.textSize16(
-                                      context,
-                                      weight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                                          'Confirm Location',
+                                          style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                                        ),
                                 ),
                               );
                             },

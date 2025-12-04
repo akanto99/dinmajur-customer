@@ -88,7 +88,7 @@ class LocationService {
     }
   }
 
-  // Method to get current location with address
+  // Method to get current location_screens with address
   Future<Map<String, dynamic>> getCurrentLocationWithAddress({bool forceRefresh = false}) async {
     try {
       Position position = await getCurrentLocation(forceRefresh: forceRefresh);

@@ -48,7 +48,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
 
   String _locationMessage = "Location not fetched yet.";
 
-  // Method to handle location selection
+  // Method to handle location_screens selection
   void _selectLocation(String locationId, dynamic locationData) {
     setState(() {
       if (_selectedLocationId == locationId) {
@@ -56,14 +56,14 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         _selectedLocationId = null;
         _selectedLocationData = null;
       } else {
-        // Select new location
+        // Select new location_screens
         _selectedLocationId = locationId;
         _selectedLocationData = locationData;
       }
     });
   }
 
-  // Method to update selected location
+  // Method to update selected location_screens
   Future<void> _updateSelectedLocation() async {
     if (_selectedLocationData == null) return;
 
@@ -77,7 +77,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         throw Exception('Invalid coordinates');
       }
 
-      // Get the location ID from selected location data
+      // Get the location_screens ID from selected location_screens data
       final String locationId = _selectedLocationData.id ?? '';
 
       if (locationId.isEmpty) {
@@ -99,33 +99,33 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
       // Pass locationId as the userId parameter
       await addLocationViewModel.updateAddressPatchApi(context, locationData, locationId);
 
-      debugPrint('Updated location data: $locationData');
+      debugPrint('Updated location_screens data: $locationData');
       debugPrint('Location ID: $locationId');
 
-      if (mounted) {
-        // Refresh the location list
-        Provider.of<GetLocationListViewModel>(context, listen: false).fetchLocationListApi();
-
-        Utils.flushBarSuccessMessage('Location updated successfully', context);
-
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));
-        });
-        setState(() {
-          _selectedLocationId = null;
-          _selectedLocationData = null;
-          _isUpdating = false;
-        });
-      }
+      // if (mounted) {
+      //   // Refresh the location_screens list
+      //   Provider.of<GetLocationListViewModel>(context, listen: false).fetchLocationListApi();
+      //
+      //   Utils.flushBarSuccessMessage('Location updated successfully', context);
+      //
+      //   Future.delayed(const Duration(milliseconds: 1000), () {
+      //     Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));
+      //   });
+      //   setState(() {
+      //     _selectedLocationId = null;
+      //     _selectedLocationData = null;
+      //     _isUpdating = false;
+      //   });
+      // }
     } catch (e) {
-      debugPrint('Error updating location: $e');
+      debugPrint('Error updating location_screens: $e');
 
       if (mounted) {
         setState(() {
           _isUpdating = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update location: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update location_screens: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
       }
     }
   }
@@ -162,10 +162,10 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
   //       await _postLocationToApi(position.longitude, position.latitude, fullAddress);
   //     }
   //   } catch (e) {
-  //     debugPrint('Error getting location with address: $e');
+  //     debugPrint('Error getting location_screens with address: $e');
   //     if (mounted) {
   //       setState(() {
-  //         _locationMessage = "Please enable location to use this app.";
+  //         _locationMessage = "Please enable location_screens to use this app.";
   //         _isLoadingLocation = false;
   //       });
   //
@@ -183,7 +183,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
     });
 
     try {
-      // Check if location services are enabled
+      // Check if location_screens services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (mounted) {
@@ -192,13 +192,13 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
             _locationMessage = "Location services are disabled.";
           });
 
-          // Show dialog for location services
+          // Show dialog for location_screens services
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
                 title: Text('Location Services Disabled'),
-                content: Text('Please enable location services to use this feature.'),
+                content: Text('Please enable location_screens services to use this feature.'),
                 actions: [
                   TextButton(
                     onPressed: () {
@@ -221,7 +221,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         return;
       }
 
-      // Check location permission
+      // Check location_screens permission
       LocationPermission permission = await Geolocator.checkPermission();
 
       if (permission == LocationPermission.denied) {
@@ -253,7 +253,7 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         return;
       }
 
-      // If we reach here, we have permission - proceed with getting location
+      // If we reach here, we have permission - proceed with getting location_screens
       Map<String, dynamic> locationData = await _locationService.getCurrentLocationWithAddress();
       Position position = locationData['position'];
       String fullAddress = locationData['address'];
@@ -278,10 +278,10 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
         await _postLocationToApi(position.longitude, position.latitude, fullAddress);
       }
     } catch (e) {
-      debugPrint('Error getting location with address: $e');
+      debugPrint('Error getting location_screens with address: $e');
       if (mounted) {
         setState(() {
-          _locationMessage = "Please enable location to use this app.";
+          _locationMessage = "Please enable location_screens to use this app.";
           _isLoadingLocation = false;
         });
 
@@ -311,18 +311,18 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
 
       debugPrint('Location data to post: $locationData');
 
-      if (mounted) {
-        Provider.of<GetLocationListViewModel>(context, listen: false).fetchLocationListApi();
-        Utils.flushBarSuccessMessage('Location saved successfully', context);
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));
-        });
-      }
+      // if (mounted) {
+      //   Provider.of<GetLocationListViewModel>(context, listen: false).fetchLocationListApi();
+      //   Utils.flushBarSuccessMessage('Location saved successfully', context);
+      //   Future.delayed(const Duration(milliseconds: 1000), () {
+      //     Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));
+      //   });
+      // }
     } catch (e) {
-      debugPrint('Error posting location to API: $e');
+      debugPrint('Error posting location_screens to API: $e');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save location: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save location_screens: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
       }
     }
   }
