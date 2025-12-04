@@ -13,6 +13,7 @@ import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgot_
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotresetpassword_view_model.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotverifyotp_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/delete_location_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/nearby_retailers_view_model.dart';
@@ -86,6 +87,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProfileViewViewModel()),
         ChangeNotifierProvider(create: (_) => AddLocationViewModel()),
         ChangeNotifierProvider(create: (_) => GetLocationListViewModel()),
+        ChangeNotifierProvider(create: (_) => DeleteLocationViewModel()),
         ///DropDown List
         //==============>Order Now
         ChangeNotifierProvider(create: (_) => PostNearbyRetailersViewModel()),

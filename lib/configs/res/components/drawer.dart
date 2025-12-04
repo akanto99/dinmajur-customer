@@ -205,7 +205,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             GestureDetector(
               onTap: () {
-                Navigator.pushNamed(context, RoutesName.saveAddress);
+                Navigator.pushNamed(context, RoutesName.addlocation);
               },
               child: _buildDrawerItem(Icons.maps_home_work_outlined, AppLocalizations.of(context)!.save_address),
             ),

@@ -62,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // 'clothing': AppLocalizations.of(context)!.storeType_clothing,
     };
   }
+
   // Future<void> _handleRefresh() async {
   //   try {
   //     debugPrint('🔄 HomeScreen: Pull to refresh triggered');
@@ -110,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _checkAndGetLocation();
   }
+
   Future<void> _handleRefresh() async {
     try {
       debugPrint('🔄 HomeScreen: Pull to refresh triggered');
@@ -126,7 +128,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       debugPrint('🔄 HomeScreen: Refresh completed successfully');
-
     } catch (e) {
       debugPrint('🔄 HomeScreen: Refresh failed - $e');
       if (mounted) {
@@ -134,7 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-
 
   // Check if location_screens has already been posted, if not, get and post it
   Future<void> _checkAndGetLocation() async {
@@ -275,7 +275,6 @@ class _HomeScreenState extends State<HomeScreen> {
       };
 
       List<dynamic>? stores = await viewModel.nearbyRetailersPostApi(context, requestData);
-
       if (mounted) {
         if (stores != null && stores.isNotEmpty) {
           setState(() => nearbyStores = stores);
@@ -384,8 +383,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-
 
   Widget _customAppBar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -509,32 +506,42 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.pushNamed(context, RoutesName.addlocation);
                         },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              userName,
-                              style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Row(
-                              children: [
-                                Icon(Icons.location_on, size: 16, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
-                                Expanded(
-                                  child: Text(
-                                    displayAddress,
-                                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                            Flexible(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userName,
+                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
                                     overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
-                                ),
-                              ],
+                                  Row(
+                                    children: [
+                                      Icon(Icons.location_on, size: 16, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                                      SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          displayAddress,
+                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
+
+                            Container(width: 25, height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
                           ],
                         ),
                       ),
                     ),
-                    Container(height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
                   ],
                 ),
               ),
