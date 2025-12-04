@@ -20,8 +20,8 @@ import 'package:dinmajur_customer/view/screens/home/drawer/save_address/save_add
 import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/terms_conditions/terms_conditions_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/view_edit_profile/view_profile.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/add_newlocation_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/map_location_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/location_screens/add_newlocation_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/location_screens/map_location_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_new.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/deliverd_screen.dart';
@@ -30,7 +30,6 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
-import 'package:dinmajur_customer/view/screens/order/order_details_old.dart';
 import 'package:dinmajur_customer/view/screens/order/pending_orders/pending_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
@@ -79,7 +78,7 @@ class Routes {
           );
         }
         return _errorRoute();
-      //-----------location
+      //-----------location_screens
       case RoutesName.addlocation:
         return MaterialPageRoute(builder: (BuildContext context) => const AddNewlocationScreen());
       case RoutesName.mapLocationScreen:

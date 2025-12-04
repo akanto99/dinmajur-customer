@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/respository/home_repositories/drawer_repository/profile_update_repository/profile_image_update_repository.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PatchprofileImageUpdateViewModel with ChangeNotifier {
@@ -39,6 +41,8 @@ class PatchprofileImageUpdateViewModel with ChangeNotifier {
 
       if (value['success'] == true) {
         Utils.flushBarSuccessMessage('Profile picture uploaded successfully', context);
+        final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+        profileViewModel.clearCache(); // Clear the cache to force refresh
 
         if (routeCount == 1) {
           await Future.delayed(Duration(milliseconds: 1000));

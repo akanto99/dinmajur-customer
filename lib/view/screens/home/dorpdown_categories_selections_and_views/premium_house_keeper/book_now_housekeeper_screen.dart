@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
@@ -70,12 +71,23 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       }
     });
   }
+  ///Checkout Info Data
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _specialRequestController = TextEditingController();
+  String? _selectedHouseSize;
 
+// Don't forget to dispose them
   @override
   void dispose() {
     _dateController.dispose();
     _pageController.dispose();
     _autoScrollTimer?.cancel();
+    _fullNameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _specialRequestController.dispose();
     super.dispose();
   }
 
@@ -570,7 +582,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
       if (service.discountType == 'PERCENTAGE') {
         discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
-      } else if (service.discountType == 'FIXED') {
+      } else if (service.discountType == 'FLAT') {
         discountedPrice = originalPrice - service.discountValue!.toDouble();
       }
     }
@@ -652,13 +664,13 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
             GestureDetector(
               onTap: () => _updateQuantity(service.id ?? '', 1),
               child: Container(
-                width: 80,
-                height: 28,
+                width: 70,
+                height: 25,
                 decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
                 child: Center(
                   child: Text(
                     'ADD +',
-                    style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: Colors.white),
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: Colors.white),
                   ),
                 ),
               ),
@@ -669,15 +681,15 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Room Number', style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context))),
-                    SizedBox(height: 4),
+                    Text('Room Number', style: AppTextStyles.textSize10(context, color: AppColors.button(context))),
+                    SizedboxSpaccing.height005(context),
                     Row(
                       children: [
                         GestureDetector(
                           onTap: () => _updateQuantity(service.id ?? '', -1),
                           child: Container(
-                            width: 28,
-                            height: 28,
+                            width: 25,
+                            height: 25,
                             decoration: BoxDecoration(
                               border: Border.all(color: AppColors.border(context)),
                               borderRadius: BorderRadius.circular(4),
@@ -686,7 +698,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                           ),
                         ),
                         Container(
-                          width: 35,
+                          width: 30,
                           child: Center(
                             child: Text(quantity.toString(), style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                           ),
@@ -694,8 +706,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                         GestureDetector(
                           onTap: () => _updateQuantity(service.id ?? '', 1),
                           child: Container(
-                            width: 28,
-                            height: 28,
+                            width: 25,
+                            height: 25,
                             decoration: BoxDecoration(
                               border: Border.all(color: AppColors.border(context)),
                               borderRadius: BorderRadius.circular(4),
@@ -714,12 +726,17 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
+
   Widget _buildBottomCartBar(double screenWidth) {
-    int totalItems = _getTotalItems();
+    // Get the count of unique services (not total quantities)
+    int totalServices = _serviceQuantities.entries
+        .where((entry) => entry.value > 0)
+        .length;
+
     double totalPrice = _calculateTotal();
     double savedAmount = _calculateSaved();
 
-    if (totalItems == 0) return SizedBox();
+    if (totalServices == 0) return SizedBox();
 
     return Container(
       width: screenWidth,
@@ -735,7 +752,10 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Total Services ($totalItems item${totalItems > 1 ? 's' : ''})', style: AppTextStyles.textSize12(context, color: Colors.white.withOpacity(0.9))),
+              Text(
+                'Total Services ($totalServices service${totalServices > 1 ? 's' : ''})',
+                style: AppTextStyles.textSize14(context, color: AppColors.containerBackground(context)),
+              ),
               SizedBox(height: 4),
               Row(
                 children: [
@@ -743,14 +763,19 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     '৳${totalPrice.toStringAsFixed(2)}',
                     style: AppTextStyles.textSize20(context, weight: FontWeight.w700, color: Colors.white),
                   ),
-                  if (savedAmount > 0) ...[SizedBox(width: 8), Text('Saved ৳${savedAmount.toStringAsFixed(2)}', style: AppTextStyles.textSize12(context, color: Colors.white.withOpacity(0.9)))],
+                  if (savedAmount > 0) ...[
+                    SizedBox(width: 8),
+                    Text(
+                      'Saved ৳${savedAmount.toStringAsFixed(2)}',
+                      style: AppTextStyles.textSize12(context, color: AppColors.containerBackground(context), weight: FontWeight.w600),
+                    ),
+                  ],
                 ],
               ),
             ],
           ),
           GestureDetector(
             onTap: () {
-              // Navigate to cart or checkout
               _proceedToCart();
             },
             child: Container(
@@ -772,6 +797,64 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       ),
     );
   }
+  // Widget _buildBottomCartBar(double screenWidth) {
+  //   int totalItems = _getTotalItems();
+  //   double totalPrice = _calculateTotal();
+  //   double savedAmount = _calculateSaved();
+  //
+  //   if (totalItems == 0) return SizedBox();
+  //
+  //   return Container(
+  //     width: screenWidth,
+  //     padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: 16),
+  //     decoration: BoxDecoration(
+  //       color: AppColors.button(context),
+  //       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: Offset(0, -5))],
+  //     ),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //       children: [
+  //         Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Text('Total Services ($totalItems item${totalItems > 1 ? 's' : ''})', style: AppTextStyles.textSize12(context, color: Colors.white.withOpacity(0.9))),
+  //             SizedBox(height: 4),
+  //             Row(
+  //               children: [
+  //                 Text(
+  //                   '৳${totalPrice.toStringAsFixed(2)}',
+  //                   style: AppTextStyles.textSize20(context, weight: FontWeight.w700, color: Colors.white),
+  //                 ),
+  //                 if (savedAmount > 0) ...[SizedBox(width: 8), Text('Saved ৳${savedAmount.toStringAsFixed(2)}', style: AppTextStyles.textSize12(context, color: Colors.white.withOpacity(0.9)))],
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //         GestureDetector(
+  //           onTap: () {
+  //             // Navigate to cart or checkout
+  //             _proceedToCart();
+  //           },
+  //           child: Container(
+  //             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+  //             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+  //             child: Row(
+  //               children: [
+  //                 Text(
+  //                   'Cart',
+  //                   style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.button(context)),
+  //                 ),
+  //                 SizedBox(width: 8),
+  //                 Icon(Icons.arrow_forward, color: AppColors.button(context), size: 20),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
 
   void _showTaskDetailsDialog(Datum service) {
@@ -817,7 +900,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       if (service.discountType != null && service.discountValue != null && original > 0) {
         if (service.discountType == 'PERCENTAGE') {
           return original - (original * service.discountValue! / 100);
-        } else if (service.discountType == 'FIXED') {
+        } else if (service.discountType == 'FLAT') {
           return original - service.discountValue!.toDouble();
         }
       }
@@ -1113,25 +1196,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   }
 
   void _proceedToCart() {
-    // // Prepare cart data
-    // List<Map<String, dynamic>> cartItems = [];
-    //
-    // final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
-    // final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
-    //
-    // data.forEach((service) {
-    //   int qty = _serviceQuantities[service.id ?? ''] ?? 0;
-    //   if (qty > 0) {
-    //     cartItems.add({'service': service, 'quantity': qty, 'frequency': _selectedFrequency, 'date': _dateController.text, 'time': _selectedTime});
-    //   }
-    // });
-    //
-    // // Navigate to cart/checkout screen
-    // // Navigator.pushNamed(context, '/checkout', arguments: cartItems);
-    //
-    // // For now, show success message
-    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${cartItems.length} service(s) added to cart!'), backgroundColor: Colors.green));
-    _showCartDialog();
+   _showCartDialog();
 
   }
 
@@ -1174,7 +1239,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           if (service.discountType != null && service.discountValue != null && price > 0) {
             if (service.discountType == 'PERCENTAGE') {
               price = price - (price * service.discountValue! / 100);
-            } else if (service.discountType == 'FIXED') {
+            } else if (service.discountType == 'FLAT') {
               price = price - service.discountValue!.toDouble();
             }
           }
@@ -1316,7 +1381,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                         if (service.discountType != null && service.discountValue != null && price > 0) {
                           if (service.discountType == 'PERCENTAGE') {
                             price = price - (price * service.discountValue! / 100);
-                          } else if (service.discountType == 'FIXED') {
+                          } else if (service.discountType == 'FLAT') {
                             price = price - service.discountValue!.toDouble();
                           }
                         }
@@ -1482,14 +1547,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     child: GestureDetector(
                       onTap: () {
                         Navigator.pop(context);
-
-                        // Show success message or navigate to checkout
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Proceeding to checkout...'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                        _showCheckoutDialog();
                       },
                       child: Container(
                         width: double.infinity,
@@ -1555,4 +1613,456 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       ),
     );
   }
+
+  ///Checkout Info SHowDialouge
+  void _showCheckoutDialog() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Calculate totals
+    double subtotal = _calculateTotal();
+    double transport = 80.0;
+    double total = subtotal + transport;
+    double saved = _calculateSaved();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: EdgeInsets.all(16),
+            child: Container(
+              width: screenWidth,
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.9),
+              decoration: BoxDecoration(
+                color: AppColors.containerBackground(context),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header with close button
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: AppColors.border(context), width: 1),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Checkout',
+                          style: AppTextStyles.textSize20(context, weight: FontWeight.w700),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: AppColors.textFieldFill(context),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.close, size: 20),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Scrollable Form Content
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Full Name Field
+                          Text(
+                            'Full Name',
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                          ),
+                          SizedBox(height: 8),
+                          TextField(
+                            controller: _fullNameController,
+                            decoration: InputDecoration(
+                              hintText: 'Enter your name',
+                              hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+                              filled: true,
+                              fillColor: AppColors.textFieldFill(context),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.border(context)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.border(context)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.button(context)),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 14, color: AppColors.subtitle(context)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Enter your full legal name',
+                                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+
+                          // Phone Number Field
+                          Row(
+                            children: [
+                              Text(
+                                'Phone Number',
+                                style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                              ),
+                              Text(
+                                ' *',
+                                style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: Colors.red),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          TextField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              hintText: 'Enter your number',
+                              hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+                              prefixIcon: Icon(Icons.phone_outlined, color: AppColors.subtitle(context), size: 20),
+                              filled: true,
+                              fillColor: AppColors.textFieldFill(context),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.border(context)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.border(context)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.button(context)),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 14, color: AppColors.subtitle(context)),
+                              SizedBox(width: 4),
+                              Text(
+                                'We\'ll use this to confirm your appointment',
+                                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+
+                          // Service Address Field
+                          Row(
+                            children: [
+                              Text(
+                                'Service Address',
+                                style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                              ),
+                              Text(
+                                ' *',
+                                style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: Colors.red),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          TextField(
+                            controller: _addressController,
+                            maxLines: 2,
+                            decoration: InputDecoration(
+                              hintText: 'Enter your address',
+                              hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+                              prefixIcon: Padding(
+                                padding: EdgeInsets.only(bottom: 24),
+                                child: Icon(Icons.home_outlined, color: AppColors.subtitle(context), size: 20),
+                              ),
+                              filled: true,
+                              fillColor: AppColors.textFieldFill(context),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.border(context)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.border(context)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.button(context)),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 14, color: AppColors.subtitle(context)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Include apartment/unit number',
+                                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+
+                          // Select House Size
+                          Text(
+                            'Select house size',
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Select 1 out of 5 options',
+                            style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                          ),
+                          SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _houseSizeButton('500-1000 sq ft', setDialogState),
+                              _houseSizeButton('1000-1700 sq ft', setDialogState),
+                              _houseSizeButton('1700-3000 sq ft', setDialogState),
+                              _houseSizeButton('Above 3000 sq ft', setDialogState),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+
+                          // Special Requests Field
+                          Text(
+                            'Special Requests or Instructions (Optional)',
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                          ),
+                          SizedBox(height: 8),
+                          TextField(
+                            controller: _specialRequestController,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: 'Write any request or instruction or suggestion.',
+                              hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+                              filled: true,
+                              fillColor: AppColors.textFieldFill(context),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.border(context)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.border(context)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: AppColors.button(context)),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            ),
+                          ),
+                          SizedBox(height: 16),
+
+                          // Important Notes Section
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.textFieldFill(context).withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.border(context)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.description_outlined, size: 20, color: AppColors.textPrimary(context)),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Important Notes',
+                                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'আমরা হাউসকিপিং এর প্রয়োজনীয় উপকরণ সরবরাহ করব। তবে, কিছু বিষয় আমাদের কাস্টম সেবা দ্বারা পরিচালিত হবে:',
+                                  style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context)),
+                                ),
+                                SizedBox(height: 8),
+                                _buildBulletPoint('ঝাড়ু এবং ফ্যান মুছার সিঁড়ি ব্যবস্থা ক্লায়েন্টদের নিজেই করতে হবে।'),
+                                _buildBulletPoint('আমরা ভারী জিনিসপত্র স্থানান্তর করতে পারব না এবং শোকেসের জিনিসপত্রও সরাতে পারব না।'),
+                                _buildBulletPoint('সকল প্রয়োজনীয় জিনিসপত্র ক্লায়েন্টদের নিজেরাই সরিয়ে রাখতে হবে।'),
+                                _buildBulletPoint('আমরা শুধুমাত্র ক্লায়েন্টদের নির্বাচিত আইটেম এবং কাজ অনুযায়ী সেবা প্রদান করব।'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Bottom Confirm Button
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.containerBackground(context),
+                      border: Border(
+                        top: BorderSide(color: AppColors.border(context), width: 1),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Total Services (${_getTotalItems()} item${_getTotalItems() > 1 ? 's' : ''})',
+                                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                              ),
+                              SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    '৳${total.toStringAsFixed(2)}',
+                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w700),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Saved ৳${saved.toStringAsFixed(2)}',
+                                    style: AppTextStyles.textSize12(context, color: Colors.green, weight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            // Validate required fields
+                            if (_phoneController.text.isEmpty) {
+                             Utils.flushBarErrorMessage("Phone number is required", context);
+                              return;
+                            }
+                            if (_addressController.text.isEmpty) {
+                              Utils.flushBarErrorMessage("Service address is required", context);
+                              return;
+                            }
+
+                            // Process booking
+                            Navigator.pop(context); // Close checkout dialog
+
+                            // Show success message
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Booking confirmed successfully!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+
+                            // Clear cart and reset
+                            setState(() {
+                              _serviceQuantities.clear();
+                              _selectedTaskItems.clear();
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.button(context),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Confirm',
+                                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                                ),
+                                SizedBox(width: 8),
+                                Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+// Helper method for house size buttons
+  Widget _houseSizeButton(String size, StateSetter setDialogState) {
+    bool isSelected = _selectedHouseSize == size;
+    return GestureDetector(
+      onTap: () {
+        setDialogState(() {
+          _selectedHouseSize = size;
+        });
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.button(context).withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.button(context) : AppColors.border(context),
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          size,
+          style: AppTextStyles.textSize14(
+            context,
+            weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+// Helper method for bullet points
+  Widget _buildBulletPoint(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4, left: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('• ', style: AppTextStyles.textSize12(context)),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

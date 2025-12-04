@@ -37,7 +37,7 @@ class _OrderNowState extends State<OrderNow> {
   double? storeLatitude;
   double? storeLongitude;
 
-  // Customer location
+  // Customer location_screens
   String? customerFullAddress;
   double? customerLongitude;
   double? customerLatitude;
@@ -77,7 +77,7 @@ class _OrderNowState extends State<OrderNow> {
       storeLongitude = arguments['storeLongitude'];
       store_logoUrl = arguments['logoUrl'];
 
-      // Customer/User location data
+      // Customer/User location_screens data
       customerFullAddress = arguments['customerFullAddress'];
       customerLongitude = arguments['customerLongitude'];
       customerLatitude = arguments['customerLatitude'];

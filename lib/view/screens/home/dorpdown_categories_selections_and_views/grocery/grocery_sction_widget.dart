@@ -265,7 +265,7 @@ class GroceryStoresSection extends StatelessWidget {
     double? customerLatitude;
     String? customerFullAddress;
 
-    // Extract customer location from profile
+    // Extract customer location_screens from profile
     if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
       final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
 
