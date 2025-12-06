@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
@@ -56,8 +57,10 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
       viewModel.fetchGetAllPermiumHouseKeeperTaskGetDataApi();
 
+      // Fetch shift times for today's date
       final getShiftTimeviewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
-      getShiftTimeviewModel.fetchGetAllsetgetAllShiftTimeGetDataApi();
+      String todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      getShiftTimeviewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(todayDate);
 
       // Initialize keys for each service
       final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
@@ -65,11 +68,46 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         _serviceKeys[i] = GlobalKey();
       }
 
-      // Start auto-scroll after data is loaded
       _startAutoScroll();
     });
   }
 
+  // void _onDateChanged(String newDate) {
+  //   // Convert from "MMMM dd, yyyy" to "yyyy-MM-dd" format
+  //   try {
+  //     DateTime parsedDate = DateFormat('MMMM dd, yyyy').parse(newDate);
+  //     String formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
+  //
+  //     // Fetch shift times for the new date
+  //     final getShiftTimeviewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
+  //     getShiftTimeviewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(formattedDate);
+  //
+  //     // Reset selected time since shifts changed
+  //     setState(() {
+  //       _selectedTime = null;
+  //     });
+  //   } catch (e) {
+  //     print('Error parsing date: $e');
+  //   }
+  // }
+  void _onDateChanged(String newDate) {
+    // Convert from "MMMM dd, yyyy" to "yyyy-MM-dd" format
+    try {
+      DateTime parsedDate = DateFormat('MMMM dd, yyyy').parse(newDate);
+      String formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
+
+      // Fetch shift times for the new date WITHOUT listen: false to prevent full rebuild
+      final getShiftTimeviewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
+      getShiftTimeviewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(formattedDate);
+
+      // Reset selected time since shifts changed
+      setState(() {
+        _selectedTime = null;
+      });
+    } catch (e) {
+      print('Error parsing date: $e');
+    }
+  }
   void _startAutoScroll() {
     _autoScrollTimer = Timer.periodic(Duration(seconds: 3), (timer) {
       if (_pageController.hasClients) {
@@ -103,6 +141,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     _mainScrollController.dispose(); // ADD THIS
     super.dispose();
   }
+
   // ADD THIS NEW METHOD:
   void _scrollToCategory(int index) {
     if (_serviceKeys.containsKey(index)) {
@@ -118,7 +157,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       }
     }
   }
-
 
   void _updateQuantity(String serviceId, int change) {
     setState(() {
@@ -211,6 +249,109 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
+  // Widget _body() {
+  //   final screenWidth = MediaQuery.of(context).size.width;
+  //   final screenHeight = MediaQuery.of(context).size.height;
+  //
+  //   return Column(
+  //     children: [
+  //       GestureDetector(
+  //         onTap: () => Navigator.pop(context),
+  //         child: Container(height: 60, child: AppBarHeader("Premium House Keeper")),
+  //       ),
+  //       Expanded(
+  //         child: Consumer2<GetallPremiumHouseKeeperTaskViewModel, GetallShifttimeViewModel>(
+  //           builder: (context, housekeeperViewModel, shiftTimeViewModel, _) {
+  //             // Check loading states
+  //             final isHousekeeperLoading = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.LOADING;
+  //             final isShiftTimeLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
+  //
+  //             // Check error states
+  //             final hasHousekeeperError = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.ERROR;
+  //             final hasShiftTimeError = shiftTimeViewModel.getAllShiftTimeData.status == Status.ERROR;
+  //
+  //             // Show loading indicator if any data is loading
+  //             if (isHousekeeperLoading || isShiftTimeLoading) {
+  //               return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
+  //             }
+  //
+  //             // Show error if any data failed to load
+  //             if (hasHousekeeperError || hasShiftTimeError) {
+  //               return Center(
+  //                 child: Column(
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                     Icon(Icons.error_outline, size: 48, color: Colors.red),
+  //                     SizedBox(height: 16),
+  //                     Text('Failed to load data', style: AppTextStyles.textSize16(context, color: Colors.red)),
+  //                     SizedBox(height: 16),
+  //                     ElevatedButton(
+  //                       onPressed: () {
+  //                         housekeeperViewModel.fetchGetAllPermiumHouseKeeperTaskGetDataApi();
+  //
+  //                         // Fetch shift times with the current selected date
+  //                         String currentDate = DateFormat('yyyy-MM-dd').format(_dateController.text.isNotEmpty ? DateFormat('MMMM dd, yyyy').parse(_dateController.text) : DateTime.now());
+  //                         shiftTimeViewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(currentDate);
+  //                       },
+  //                       child: Text('Retry'),
+  //                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               );
+  //             }
+  //
+  //             return SingleChildScrollView(
+  //               controller: _mainScrollController, // ADD THIS
+  //               child: Column(
+  //                 children: [
+  //                   SizedboxSpaccing.height015(context),
+  //                   Container(
+  //                     width: screenWidth * 0.9,
+  //                     child: Text(
+  //                       "Two highly-trained housekeepers will work together",
+  //                       style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.subtitle(context)),
+  //                       textAlign: TextAlign.center,
+  //                     ),
+  //                   ),
+  //                   SizedboxSpaccing.height02(context),
+  //
+  //                   // Frequency Selection
+  //                   _buildFrequencySelection(screenWidth),
+  //
+  //                   SizedboxSpaccing.height02(context),
+  //
+  //                   // Date Selection
+  //                   _buildDateSelection(screenWidth),
+  //
+  //                   SizedboxSpaccing.height02(context),
+  //
+  //                   // Time Selection
+  //                   _buildTimeSelection(screenWidth, shiftTimeViewModel),
+  //
+  //                   SizedboxSpaccing.height02(context),
+  //
+  //                   // Category Tabs
+  //                   _buildCategoryTabs(housekeeperViewModel),
+  //
+  //                   SizedboxSpaccing.height02(context),
+  //
+  //                   // Services List
+  //                   _buildServicesList(screenWidth, screenHeight, housekeeperViewModel),
+  //
+  //                   SizedboxSpaccing.height045(context),
+  //                 ],
+  //               ),
+  //             );
+  //           },
+  //         ),
+  //       ),
+  //
+  //       // Bottom Cart Bar
+  //       _buildBottomCartBar(screenWidth),
+  //     ],
+  //   );
+  // }
   Widget _body() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -222,35 +363,43 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           child: Container(height: 60, child: AppBarHeader("Premium House Keeper")),
         ),
         Expanded(
-          child: Consumer2<GetallPremiumHouseKeeperTaskViewModel, GetallShifttimeViewModel>(
-            builder: (context, housekeeperViewModel, shiftTimeViewModel, _) {
-              // Check loading states
+          // CHANGED: Only consume GetallPremiumHouseKeeperTaskViewModel here
+          // Remove GetallShifttimeViewModel from Consumer2
+          child: Consumer<GetallPremiumHouseKeeperTaskViewModel>(
+            builder: (context, housekeeperViewModel, _) {
+              // Check only housekeeper loading state
               final isHousekeeperLoading = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.LOADING;
-              final isShiftTimeLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
 
-              // Check error states
+              // Check only housekeeper error state
               final hasHousekeeperError = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.ERROR;
-              final hasShiftTimeError = shiftTimeViewModel.getAllShiftTimeData.status == Status.ERROR;
 
-              // Show loading indicator if any data is loading
-              if (isHousekeeperLoading || isShiftTimeLoading) {
+              // Show loading indicator only for housekeeper data
+              if (isHousekeeperLoading) {
                 return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
               }
 
-              // Show error if any data failed to load
-              if (hasHousekeeperError || hasShiftTimeError) {
+              // Show error only for housekeeper data
+              if (hasHousekeeperError) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.error_outline, size: 48, color: Colors.red),
                       SizedBox(height: 16),
-                      Text('Failed to load data', style: AppTextStyles.textSize16(context, color: Colors.red)),
+                      Text('Failed to load services', style: AppTextStyles.textSize16(context, color: Colors.red)),
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
                           housekeeperViewModel.fetchGetAllPermiumHouseKeeperTaskGetDataApi();
-                          shiftTimeViewModel.fetchGetAllsetgetAllShiftTimeGetDataApi();
+
+                          // Also retry shift times
+                          String currentDate = DateFormat('yyyy-MM-dd').format(
+                              _dateController.text.isNotEmpty
+                                  ? DateFormat('MMMM dd, yyyy').parse(_dateController.text)
+                                  : DateTime.now()
+                          );
+                          final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
+                          shiftTimeViewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(currentDate);
                         },
                         child: Text('Retry'),
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
@@ -261,7 +410,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
               }
 
               return SingleChildScrollView(
-                controller: _mainScrollController, // ADD THIS
+                controller: _mainScrollController,
                 child: Column(
                   children: [
                     SizedboxSpaccing.height015(context),
@@ -285,8 +434,9 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
                     SizedboxSpaccing.height02(context),
 
-                    // Time Selection
-                    _buildTimeSelection(screenWidth, shiftTimeViewModel),
+                    // Time Selection - HAS ITS OWN CONSUMER FOR GetallShifttimeViewModel
+                    // This widget will rebuild independently when shift times change
+                    _buildTimeSelection(screenWidth),
 
                     SizedboxSpaccing.height02(context),
 
@@ -311,7 +461,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       ],
     );
   }
-
   Widget _buildFrequencySelection(double screenWidth) {
     return Container(
       width: screenWidth * 0.9,
@@ -325,7 +474,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           SizedboxSpaccing.height01(context),
           Container(
             width: screenWidth * 0.9,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.textFieldFill(context)),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.border(context).withOpacity(0.5)),
             padding: EdgeInsets.all(6),
             child: Row(
               children: [
@@ -346,10 +495,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         // Check if Monthly is clicked
         if (frequency == 'Monthly') {
           // Show error message
-          Utils.flushBarErrorMessage(
-            "Sorry! This service is currently unavailable",
-            context,
-          );
+          Utils.flushBarErrorMessage("Sorry! This service is currently unavailable", context);
           return; // Don't update the selected frequency
         }
 
@@ -361,70 +507,270 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.button(context) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? AppColors.button(context) : Colors.transparent,
-            width: 1,
-          ),
+          border: Border.all(color: isSelected ? AppColors.button(context) : Colors.transparent, width: 1),
         ),
         child: Center(
           child: Text(
             frequency,
-            style: AppTextStyles.textSize16(
-              context,
-              weight: FontWeight.w600,
-              color: isSelected
-                  ? Colors.white
-                  : AppColors.textPrimary(context),
-            ),
+            style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: isSelected ? Colors.white : AppColors.textPrimary(context)),
           ),
         ),
       ),
     );
   }
+
   Widget _buildDateSelection(double screenWidth) {
     return Container(
       width: screenWidth * 0.9,
-      child: CustomDatePickerFormField(title: 'Choose Date', controller: _dateController),
+      child: CustomDatePickerFormField(
+        title: 'Choose Date',
+        controller: _dateController,
+        onDateSelected: (DateTime selectedDate) {
+          // Format and set the date
+          String formattedDate = DateFormat('MMMM dd, yyyy').format(selectedDate);
+          _dateController.text = formattedDate;
+
+          // Fetch shifts for the new date
+          _onDateChanged(formattedDate);
+        },
+      ),
     );
   }
 
-  Widget _buildTimeSelection(double screenWidth, GetallShifttimeViewModel shiftTimeViewModel) {
-    // Get shift times from the view model
-    final shiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
+  // Widget _buildTimeSelection(double screenWidth, GetallShifttimeViewModel shiftTimeViewModel) {
+  //   // Get all shift times from the view model (don't filter by booking status)
+  //   final allShiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
+  //
+  //   // Filter available shifts for default selection
+  //   final availableShiftTimes = allShiftTimes.where((shift) => shift.isBooked == false).toList();
+  //
+  //   // Check if we're still loading
+  //   final isLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
+  //
+  //   // Set default selected time if not already set and available data exists
+  //   if (availableShiftTimes.isNotEmpty && _selectedTime == null) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       if (mounted && _selectedTime == null) {
+  //         setState(() {
+  //           final firstShift = availableShiftTimes.first;
+  //           _selectedTime = '${firstShift.type ?? ''} (${firstShift.startTime ?? ''}-${firstShift.endTime ?? ''})';
+  //         });
+  //       }
+  //     });
+  //   }
+  //
+  //   return Container(
+  //     width: screenWidth * 0.9,
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text('Choose Time', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+  //         SizedboxSpaccing.height01(context),
+  //
+  //         // Show loading indicator while fetching
+  //         if (isLoading)
+  //           Container(
+  //             height: 42,
+  //             padding: EdgeInsets.symmetric(horizontal: 10),
+  //             decoration: BoxDecoration(
+  //               color: AppColors.textFieldFill(context),
+  //               borderRadius: BorderRadius.circular(12),
+  //               border: Border.all(color: AppColors.border(context)),
+  //             ),
+  //             child: Center(
+  //               child: SizedBox(
+  //                 width: 20,
+  //                 height: 20,
+  //                 child: CircularProgressIndicator(
+  //                   strokeWidth: 2,
+  //                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.button(context)),
+  //                 ),
+  //               ),
+  //             ),
+  //           )
+  //         // Show dropdown with all shifts (both available and booked)
+  //         else if (allShiftTimes.isNotEmpty)
+  //           Container(
+  //             height: 42,
+  //             padding: EdgeInsets.symmetric(horizontal: 10),
+  //             decoration: BoxDecoration(
+  //               color: AppColors.textFieldFill(context),
+  //               borderRadius: BorderRadius.circular(12),
+  //               border: Border.all(color: AppColors.border(context)),
+  //             ),
+  //             child: DropdownButtonHideUnderline(
+  //               child: DropdownButton<String>(
+  //                 value: _selectedTime,
+  //                 isExpanded: true,
+  //                 icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
+  //                 dropdownColor: AppColors.containerBackground(context),
+  //                 menuMaxHeight: 300,
+  //                 borderRadius: BorderRadius.circular(8),
+  //                 hint: availableShiftTimes.isEmpty
+  //                     ? Row(
+  //                   children: [
+  //                     Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
+  //                     SizedBox(width: 8),
+  //                     Expanded(
+  //                       child: Text(
+  //                         'All time slots are booked',
+  //                         style: AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 )
+  //                     : null,
+  //                 items: allShiftTimes.map((shift) {
+  //                   String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
+  //                   bool isBooked = shift.isBooked ?? false;
+  //
+  //                   return DropdownMenuItem<String>(
+  //                     value: displayText,
+  //                     enabled: !isBooked, // Disable if booked
+  //                     child: Container(
+  //                       padding: EdgeInsets.symmetric(vertical: 8),
+  //                       decoration: BoxDecoration(
+  //                         border: Border(
+  //                           bottom: BorderSide(
+  //                             color: AppColors.border(context).withOpacity(0.3),
+  //                             width: 0.5,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                       child: Row(
+  //                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                         children: [
+  //                           Expanded(
+  //                             child: Text(
+  //                               displayText,
+  //                               style: AppTextStyles.textSize16(
+  //                                 context,
+  //                                 weight: FontWeight.w500,
+  //                                 color: isBooked
+  //                                     ? AppColors.subtitle(context).withOpacity(0.5)
+  //                                     : AppColors.textPrimary(context),
+  //                               ),
+  //                             ),
+  //                           ),
+  //                           if (isBooked)
+  //                             Container(
+  //                               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+  //                               decoration: BoxDecoration(
+  //                                 color: Colors.red.withOpacity(0.1),
+  //                                 borderRadius: BorderRadius.circular(4),
+  //                                 border: Border.all(color: Colors.red.withOpacity(0.3)),
+  //                               ),
+  //                               child: Text(
+  //                                 'Booked',
+  //                                 style: AppTextStyles.textSize10(
+  //                                   context,
+  //                                   color: Colors.red,
+  //                                   weight: FontWeight.w600,
+  //                                 ),
+  //                               ),
+  //                             ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   );
+  //                 }).toList(),
+  //                 onChanged: (String? newValue) {
+  //                   if (newValue != null) {
+  //                     // Find the shift to check if it's booked
+  //                     final selectedShift = allShiftTimes.firstWhere(
+  //                           (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue,
+  //                     );
+  //
+  //                     // Only update if not booked
+  //                     if (selectedShift.isBooked != true) {
+  //                       setState(() => _selectedTime = newValue);
+  //                     }
+  //                   }
+  //                 },
+  //               ),
+  //             ),
+  //           )
+  //         else
+  //           Container(
+  //             height: 42,
+  //             padding: EdgeInsets.symmetric(horizontal: 10),
+  //             decoration: BoxDecoration(
+  //               color: AppColors.textFieldFill(context),
+  //               borderRadius: BorderRadius.circular(12),
+  //               border: Border.all(color: AppColors.border(context)),
+  //             ),
+  //             child: Center(
+  //               child: Text(
+  //                 'No shift times available',
+  //                 style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+  //               ),
+  //             ),
+  //           ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  Widget _buildTimeSelection(double screenWidth) {
+    return Consumer<GetallShifttimeViewModel>(
+      builder: (context, shiftTimeViewModel, child) {
+        // Get all shift times from the view model
+        final allShiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
 
-    // Set default selected time if not already set and data is available
-    if (shiftTimes.isNotEmpty && _selectedTime == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _selectedTime == null) {
-          setState(() {
-            final firstShift = shiftTimes.first;
-            _selectedTime = '${firstShift.type ?? ''} (${firstShift.startTime ?? ''}-${firstShift.endTime ?? ''})';
+        // Filter available shifts for default selection
+        final availableShiftTimes = allShiftTimes.where((shift) => shift.isBooked == false).toList();
+
+        // Check if we're still loading
+        final isLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
+
+        // Set default selected time if not already set and available data exists
+        if (availableShiftTimes.isNotEmpty && _selectedTime == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _selectedTime == null) {
+              setState(() {
+                final firstShift = availableShiftTimes.first;
+                _selectedTime = '${firstShift.type ?? ''} (${firstShift.startTime ?? ''}-${firstShift.endTime ?? ''})';
+              });
+            }
           });
         }
-      });
-    }
 
-    return Container(
-      width: screenWidth * 0.9,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Choose Time', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-          SizedboxSpaccing.height01(context),
-          Container(
-            height: 42,
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: AppColors.textFieldFill(context),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border(context)),
-            ),
-            child: shiftTimes.isEmpty
-                ? Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('No shift times available', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
-                  )
-                : DropdownButtonHideUnderline(
+        return Container(
+          width: screenWidth * 0.9,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Choose Time', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+              SizedboxSpaccing.height01(context),
+
+              // Show loading indicator while fetching
+              if (isLoading)
+                Container(
+                  height: 42,
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.textFieldFill(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border(context)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Updating...', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                      Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
+                    ],
+                  ),
+                )
+              // Show dropdown with all shifts (both available and booked)
+              else if (allShiftTimes.isNotEmpty)
+                Container(
+                  height: 42,
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.textFieldFill(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border(context)),
+                  ),
+                  child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: _selectedTime,
                       isExpanded: true,
@@ -432,34 +778,111 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                       dropdownColor: AppColors.containerBackground(context),
                       menuMaxHeight: 300,
                       borderRadius: BorderRadius.circular(8),
-                      items: shiftTimes.map((shift) {
+                      hint: availableShiftTimes.isEmpty
+                          ? Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'All time slots are booked',
+                              style: AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      )
+                          : null,
+                      items: allShiftTimes.map((shift) {
                         String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
+                        bool isBooked = shift.isBooked ?? false;
+
                         return DropdownMenuItem<String>(
                           value: displayText,
+                          enabled: !isBooked,
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: AppColors.border(context).withOpacity(0.3), width: 0.5)),
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: AppColors.border(context).withOpacity(0.3),
+                                  width: 0.5,
+                                ),
+                              ),
                             ),
-                            child: Text(displayText, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    displayText,
+                                    style: AppTextStyles.textSize16(
+                                      context,
+                                      weight: FontWeight.w500,
+                                      color: isBooked
+                                          ? AppColors.subtitle(context).withOpacity(0.5)
+                                          : AppColors.textPrimary(context),
+                                    ),
+                                  ),
+                                ),
+                                if (isBooked)
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                    ),
+                                    child: Text(
+                                      'Booked',
+                                      style: AppTextStyles.textSize10(
+                                        context,
+                                        color: Colors.red,
+                                        weight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          setState(() => _selectedTime = newValue);
+                          final selectedShift = allShiftTimes.firstWhere(
+                                (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue,
+                          );
+
+                          if (selectedShift.isBooked != true) {
+                            setState(() => _selectedTime = newValue);
+                          }
                         }
                       },
                     ),
                   ),
+                )
+              else
+                Container(
+                  height: 42,
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.textFieldFill(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border(context)),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No shift times available',
+                      style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-
-// UPDATE THE _buildCategoryTabs METHOD:
   Widget _buildCategoryTabs(GetallPremiumHouseKeeperTaskViewModel viewModel) {
     final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
     if (data.isEmpty) return SizedBox();
@@ -497,20 +920,20 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     ),
                     child: service.icon?.url != null
                         ? ClipOval(
-                      child: isSvg
-                          ? Padding(
-                        padding: EdgeInsets.all(12),
-                        child: SvgPicture.network(
-                          service.icon!.url!,
-                          colorFilter: ColorFilter.mode(isSelected ? AppColors.button(context) : AppColors.textPrimary(context), BlendMode.srcIn),
-                        ),
-                      )
-                          : Image.network(
-                        service.icon!.url!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Icon(Icons.cleaning_services, color: AppColors.button(context)),
-                      ),
-                    )
+                            child: isSvg
+                                ? Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: SvgPicture.network(
+                                      service.icon!.url!,
+                                      colorFilter: ColorFilter.mode(isSelected ? AppColors.button(context) : AppColors.textPrimary(context), BlendMode.srcIn),
+                                    ),
+                                  )
+                                : Image.network(
+                                    service.icon!.url!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Icon(Icons.cleaning_services, color: AppColors.button(context)),
+                                  ),
+                          )
                         : Icon(Icons.cleaning_services, color: AppColors.button(context)),
                   ),
                   SizedBox(height: 8),
@@ -533,7 +956,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
-
   // UPDATE THE _buildServicesList METHOD:
   Widget _buildServicesList(double screenWidth, double screenHeight, GetallPremiumHouseKeeperTaskViewModel viewModel) {
     final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
@@ -554,15 +976,11 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           }
 
           // Wrap the service card with a Container that has the key
-          return Container(
-            key: _serviceKeys[index],
-            child: _buildServiceCard(data[index], screenWidth, screenHeight),
-          );
+          return Container(key: _serviceKeys[index], child: _buildServiceCard(data[index], screenWidth, screenHeight));
         },
       ),
     );
   }
-
 
   Widget _buildServiceCard(Datum service, double screenWidth, double screenHeight) {
     ///Checked unchecked value will be reduce
@@ -1134,6 +1552,20 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   }
 
   void _proceedToCart() {
+    // Check if time slot is available
+    final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
+    final availableShifts = shiftTimeViewModel.getAllShiftTimeData.data?.data?.where((shift) => shift.isBooked == false).toList() ?? [];
+
+    if (availableShifts.isEmpty) {
+      Utils.flushBarErrorMessage("No time slots available for the selected date. Please choose another date.", context);
+      return;
+    }
+
+    if (_selectedTime == null) {
+      Utils.flushBarErrorMessage("Please select a time slot", context);
+      return;
+    }
+
     _showCartDialog();
   }
 
@@ -1737,6 +2169,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                           ),
                         ),
 
+                        // Replace the entire GestureDetector for the Confirm button with this:
+
                         GestureDetector(
                           onTap: () async {
                             // Validate required fields
@@ -1759,6 +2193,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
                             SharedPreferences prefs = await SharedPreferences.getInstance();
                             String? userId = prefs.getString('userId');
+
                             // Prepare tasks data
                             List<Map<String, dynamic>> tasks = [];
                             final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
@@ -1767,10 +2202,15 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             data.forEach((service) {
                               int qty = _serviceQuantities[service.id ?? ''] ?? 0;
                               if (qty > 0) {
-                                Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ?? service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
+                                Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ??
+                                    service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
 
                                 if (selectedItems.isNotEmpty) {
-                                  tasks.add({"houseKeeperTaskId": service.id, "totalRooms": qty, "houseKeeperTaskItemIds": selectedItems.toList()});
+                                  tasks.add({
+                                    "houseKeeperTaskId": service.id,
+                                    "totalRooms": qty,
+                                    "houseKeeperTaskItemIds": selectedItems.toList()
+                                  });
                                 }
                               }
                             });
@@ -1783,7 +2223,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             for (var shift in shiftTimes) {
                               String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
                               if (displayText == _selectedTime) {
-                                shiftId = shift.id;
+                                shiftId = shift.shiftId;
                                 break;
                               }
                             }
@@ -1803,53 +2243,90 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                               "phone": _phoneController.text.trim(),
                               "fullAddress": _addressController.text.trim(),
                               "houseSize": _selectedHouseSize,
-                              "notes": _specialRequestController.text.trim().isEmpty ? null : _specialRequestController.text.trim(),
+                              "notes": _specialRequestController.text.trim().isEmpty
+                                  ? null
+                                  : _specialRequestController.text.trim(),
                               "tasks": tasks,
                               "couponCode": null,
                               "shiftId": shiftId,
-                              "date": formattedDate, // Already in "MMMM dd, yyyy" format
+                              "date": formattedDate,
                             };
-                            print(bookingData);
-                            // Call the booking API
+
+                            print('Booking Data: $bookingData');
+
+                            // Call the booking API with success callback
                             final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
 
-                            Navigator.pop(context); // Close checkout dialog
+                            // CHANGED: Pass callback that receives trackingId
+                            await bookingViewModel.bookPremiumHouseKeeperLoadingPostApi(
+                              context,
+                              bookingData,
+                                  (String trackingId) {
+                                // This callback only runs on SUCCESS and receives trackingId
+                                print('Success! TrackingId: $trackingId');
 
-                            try {
-                              await bookingViewModel.bookPremiumHouseKeeperLoadingPostApi(context, bookingData);
+                                // Close checkout dialog
+                                Navigator.pop(context);
 
-                              setState(() {
-                                _serviceQuantities.clear();
-                                _selectedTaskItems.clear();
-                                _fullNameController.clear();
-                                _phoneController.clear();
-                                _addressController.clear();
-                                _specialRequestController.clear();
-                                _selectedHouseSize = null;
-                              });
-                            } catch (error) {
-                              // Error is handled in the ViewModel
-                              print('Booking error: $error');
-                            }
+                                // Clear all data
+                                setState(() {
+                                  _serviceQuantities.clear();
+                                  _selectedTaskItems.clear();
+                                  _fullNameController.clear();
+                                  _phoneController.clear();
+                                  _addressController.clear();
+                                  _specialRequestController.clear();
+                                  _selectedHouseSize = null;
+                                });
+
+                                Navigator.pushNamed(
+                                  context,
+                                  RoutesName.confirmedScreen,
+                                  arguments: {
+                                    'trackingId':trackingId,
+                                  },
+                                );
+                              },
+                            );
+                            // If API fails, callback won't run, dialog stays open
                           },
                           child: Consumer<PostBookPremiumHouseKeeperViewModel>(
                             builder: (context, bookingViewModel, _) {
                               return Container(
-                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
+                                height: 40,
+                                width: 120,
+                                decoration: BoxDecoration(
+                                    color: AppColors.button(context),
+                                    borderRadius: BorderRadius.circular(8)
+                                ),
                                 child: bookingViewModel.createBookPremiumHouseKeeperLoading
-                                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
-                                    : Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'Confirm',
-                                            style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                                        ],
+                                    ? Container(
+                                    width: 120,
+                                    height: 40,
+                                    child: Center(
+                                        child: LoadingAnimationWidget.progressiveDots(
+                                            color: AppColors.whiteColor,
+                                            size: 50
+                                        )
+                                    )
+                                )
+                                    : Center(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Confirm',
+                                        style: AppTextStyles.textSize16(
+                                            context,
+                                            weight: FontWeight.w600,
+                                            color: Colors.white
+                                        ),
                                       ),
+                                      SizedBox(width: 8),
+                                      Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                                    ],
+                                  ),
+                                ),
                               );
                             },
                           ),

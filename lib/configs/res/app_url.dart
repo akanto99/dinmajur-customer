@@ -51,6 +51,7 @@ class AppUrl {
   static var checkCoverageGetAPI = baseUrl + '/customers/check-coverage';
   static var getAllPremiumHouseKeeperGetAPI = baseUrl + '/house-keeper-tasks';
   static var getAllShiftTimeGetAPI = baseUrl + '/shifts/get-all';
+  static var getAllShiftTimeByDateGetAPI = baseUrl + '/shifts';
   static var bookPremiumHouseKeeperPostAPI = baseUrl + '/house-keeper-bookings/create';
 
   ///Forgot Password

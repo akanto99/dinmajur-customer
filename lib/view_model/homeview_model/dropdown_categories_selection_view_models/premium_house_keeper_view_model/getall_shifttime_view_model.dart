@@ -20,11 +20,11 @@ class GetallShifttimeViewModel with ChangeNotifier {
   }
 
 
-  Future<void> fetchGetAllsetgetAllShiftTimeGetDataApi ()async{
+  Future<void> fetchGetAllsetgetAllShiftTimeGetDataApi (String byDate)async{
 
     setgetAllShiftTimeData(ApiResponse.loading());
 
-    _myRepo.fetchGetAllShiftTimeGetApi().then((value){
+    _myRepo.fetchGetAllShiftTimeGetApi(byDate).then((value){
       print(value);
       setgetAllShiftTimeData(ApiResponse.completed(value));
 

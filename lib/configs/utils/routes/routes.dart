@@ -9,6 +9,7 @@ import 'package:dinmajur_customer/view/login/login_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/password/password_change.dart';
@@ -124,6 +125,15 @@ class Routes {
     ///In HOME SCreen- DropDown 2 Premium House Keeper
       case RoutesName.bookNowPremiumHouseKeeper:
         return MaterialPageRoute(builder: (BuildContext context) => const BookNowHousekeeperScreen());
+      case RoutesName.confirmedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => ConfirmedScreen(trackingId: args['trackingId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
 
 
     //drawer===========>

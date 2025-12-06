@@ -17,24 +17,44 @@ class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> bookPremiumHouseKeeperLoadingPostApi(BuildContext context, dynamic fields,) async {
+  // CHANGED: Return the API response and accept a callback that receives trackingId
+  Future<void> bookPremiumHouseKeeperLoadingPostApi(
+      BuildContext context,
+      dynamic fields,
+      Function(String trackingId) onSuccess // CHANGED: Now receives trackingId
+      ) async {
     setBookPremiumHouseKeeperLoading(true);
     try {
-      dynamic value = await _myRepo.bookPremiumHouseKeeperPostApi(fields);
+      // CHANGED: Store the response
+      dynamic response = await _myRepo.bookPremiumHouseKeeperPostApi(fields);
       setBookPremiumHouseKeeperLoading(false);
-      Utils.flushBarSuccessMessage('Book Premium house keeper successfully changed', context);
+
+      Utils.flushBarSuccessMessage('Book Premium house keeper successfully', context);
       await Future.delayed(Duration(milliseconds: 1000));
 
-      if (kDebugMode) print(value.toString());
+      if (kDebugMode) print('API Response: ${response.toString()}');
+
+      // CHANGED: Extract trackingId from response and pass it to callback
+      String trackingId = '';
+      if (response != null && response['data'] != null && response['data']['trackingId'] != null) {
+        trackingId = response['data']['trackingId'].toString();
+        if (kDebugMode) print('Tracking ID: $trackingId');
+
+        // Call the success callback with trackingId
+        onSuccess(trackingId);
+      } else {
+        if (kDebugMode) print('Warning: trackingId not found in response');
+        // Still call success but with empty trackingId
+        onSuccess('');
+      }
+
     } catch (error) {
       setBookPremiumHouseKeeperLoading(false);
       _handleError(error, context);
       if (kDebugMode) print('Error: $error');
+      // Don't call onSuccess on error - dialog will stay open
     }
   }
-
-
-
 
   void _handleError(dynamic error, BuildContext context) {
     String errorMessage = '$error';
