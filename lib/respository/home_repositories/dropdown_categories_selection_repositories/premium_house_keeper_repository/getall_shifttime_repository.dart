@@ -9,10 +9,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class GetallShifttimeRepository {
   BaseApiServices _apiServices = NetworkApiService();
 
-  Future<GetAllShiftTimeModel> fetchGetAllShiftTimeGetApi() async {
+  Future<GetAllShiftTimeModel> fetchGetAllShiftTimeGetApi(String bydate) async {
     try {
       dynamic response = await _apiServices.getGetApiResponse(
-        AppUrl.getAllShiftTimeGetAPI,
+        // AppUrl.getAllShiftTimeGetAPI,
+        "${AppUrl.getAllShiftTimeByDateGetAPI}/by-date?date=$bydate",
         // headers: {
         //   'Content-Type': 'application/json',
         //   'Authorization': '$accessToken',

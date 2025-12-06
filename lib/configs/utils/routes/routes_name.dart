@@ -54,6 +54,7 @@ class RoutesName {
 
   ///In HOME SCreen- DropDown 2 Premium House Keeper
   static const String bookNowPremiumHouseKeeper = 'bookNowPremiumHouseKeeper_view';
+  static const String confirmedScreen = 'confirmedScreen_view';
 
 
 

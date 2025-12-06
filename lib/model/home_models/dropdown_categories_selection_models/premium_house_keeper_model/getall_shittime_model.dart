@@ -33,69 +33,33 @@ class GetAllShiftTimeModel {
 }
 
 class Datum {
-  String? id;
+  String? shiftId;
   String? type;
   String? startTime;
   String? endTime;
-  int? price;
-  List<Task>? tasks;
-  DateTime? createdAt;
-  DateTime? updatedAt;
-  int? v;
+  bool? isBooked;
 
   Datum({
-    this.id,
+    this.shiftId,
     this.type,
     this.startTime,
     this.endTime,
-    this.price,
-    this.tasks,
-    this.createdAt,
-    this.updatedAt,
-    this.v,
+    this.isBooked,
   });
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
-    id: json["_id"],
+    shiftId: json["shiftId"],
     type: json["type"],
     startTime: json["startTime"],
     endTime: json["endTime"],
-    price: json["price"],
-    tasks: json["tasks"] == null ? [] : List<Task>.from(json["tasks"]!.map((x) => Task.fromJson(x))),
-    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
-    v: json["__v"],
+    isBooked: json["isBooked"],
   );
 
   Map<String, dynamic> toJson() => {
-    "_id": id,
+    "shiftId": shiftId,
     "type": type,
     "startTime": startTime,
     "endTime": endTime,
-    "price": price,
-    "tasks": tasks == null ? [] : List<dynamic>.from(tasks!.map((x) => x.toJson())),
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "__v": v,
-  };
-}
-
-class Task {
-  String? name;
-  List<String>? items;
-
-  Task({
-    this.name,
-    this.items,
-  });
-
-  factory Task.fromJson(Map<String, dynamic> json) => Task(
-    name: json["name"],
-    items: json["items"] == null ? [] : List<String>.from(json["items"]!.map((x) => x)),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "name": name,
-    "items": items == null ? [] : List<dynamic>.from(items!.map((x) => x)),
+    "isBooked": isBooked,
   };
 }
