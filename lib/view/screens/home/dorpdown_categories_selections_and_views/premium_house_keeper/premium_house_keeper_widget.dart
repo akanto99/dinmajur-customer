@@ -3,19 +3,85 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
-import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class PremiumHouseKeeperSection extends StatelessWidget {
-  const PremiumHouseKeeperSection({Key? key}) : super(key: key);
+/// Dynamic widget to display coverage check status for Premium House Keeper
+/// Shows loading, success (Premium House Keeper content), or error states
+class PremiumHouseKeeperCoverageWidget extends StatelessWidget {
+  final bool isCheckingCoverage;
+  final bool? isInsideServiceArea;
+
+  const PremiumHouseKeeperCoverageWidget({Key? key, required this.isCheckingCoverage, required this.isInsideServiceArea}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    if (isCheckingCoverage) {
+      return _buildLoadingState(context, screenWidth);
+    } else if (isInsideServiceArea == true) {
+      return _buildPremiumHouseKeeperSection(context, screenWidth, screenHeight);
+    } else if (isInsideServiceArea == false) {
+      return _buildErrorState(context, screenWidth);
+    } else {
+      return const SizedBox.shrink();
+    }
+  }
+
+  /// Loading state UI - Checking service availability
+  Widget _buildLoadingState(BuildContext context, double screenWidth) {
+    return Container(
+      width: screenWidth * 0.9,
+      height: 120,
+      child: Center(
+        child: Text(
+          'Checking service availability...',
+          style: AppTextStyles.textSize16(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  /// Error state UI - Service not available
+  Widget _buildErrorState(BuildContext context, double screenWidth) {
+    return Container(
+      width: screenWidth * 0.9,
+      height: 190,
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          width: 1,
+          color: AppColors.border(context)
+        )
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.location_off, size: 50, color: AppColors.subtitle(context)),
+          const SizedBox(height: 10),
+          Text(
+            'Service Not Available',
+            style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Premium House Keeper service is not available in your location.',
+            style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Premium House Keeper Section - Main content when service is available
+  Widget _buildPremiumHouseKeeperSection(BuildContext context, double screenWidth, double screenHeight) {
     return Column(
       children: [
         // House Keeper Service Card
@@ -77,7 +143,6 @@ class PremiumHouseKeeperSection extends StatelessWidget {
               RoundButton(
                 title: "Book Now",
                 onPress: () {
-                  // Utils.snackBar("This feature is coming soon!", context);
                   Navigator.pushNamed(context, RoutesName.bookNowPremiumHouseKeeper);
                 },
                 iconData: Icons.arrow_forward_ios_rounded,

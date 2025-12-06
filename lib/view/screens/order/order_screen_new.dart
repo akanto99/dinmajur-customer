@@ -31,7 +31,7 @@ class _OrderScreenState extends State<OrderScreen> {
     // Fetch running orders data when widget initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final runningOrderViewModel = Provider.of<RunningOrdersViewModel>(context, listen: false);
-      runningOrderViewModel.fetchRunningOrdersGetDataApi();
+      // runningOrderViewModel.fetchRunningOrdersGetDataApi();
       runningOrderViewModel.fetchPendingOrdersGetDataApi();
     });
   }
