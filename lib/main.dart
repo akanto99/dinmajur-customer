@@ -12,6 +12,7 @@ import 'package:dinmajur_customer/view_model/authview_model/otp_verify_view_mode
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgot_otpsend_view_model.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotresetpassword_view_model.dart';
 import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotverifyotp_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/delete_location_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
@@ -43,6 +44,7 @@ import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/ge
 import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/payment_method_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/support_view_model/support_view_model.dart';
+import 'view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/freelancer_rating_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/order_confirmed_getorderdetails_view_model.dart';
@@ -96,8 +98,10 @@ void main() async {
         ChangeNotifierProvider<OrderDetailsSocketProvider>(create: (context) => OrderDetailsSocketProvider()),
         ChangeNotifierProvider(create: (_) => PatchFreelancerRatingViewModel()),
         //==============>Premium House Keeper
+        ChangeNotifierProvider(create: (_) => CheckCoverageViewModel()),
         ChangeNotifierProvider(create: (_) => GetallPremiumHouseKeeperTaskViewModel()),
         ChangeNotifierProvider(create: (_) => GetallShifttimeViewModel()),
+        ChangeNotifierProvider(create: (_) => PostBookPremiumHouseKeeperViewModel()),
 
 
 

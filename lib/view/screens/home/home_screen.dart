@@ -12,6 +12,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/nearby_retailers_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
@@ -48,6 +49,10 @@ class _HomeScreenState extends State<HomeScreen> {
   // Key for SharedPreferences to track if location_screens has been posted
   static const String _locationPostedKey = 'location_posted_once';
 
+  ///Check Coverage
+  bool isCheckingCoverage = false;
+  bool? isInsideServiceArea;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -63,40 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
-  // Future<void> _handleRefresh() async {
-  //   try {
-  //     debugPrint('🔄 HomeScreen: Pull to refresh triggered');
-  //
-  //     // 1. Refresh profile data
-  //     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-  //     await profileViewModel.fetchProfileViewUserDataApi();
-  //     debugPrint('🔄 HomeScreen: Profile data refreshed');
-  //
-  //     // 3. If a store type is selected and it's Retail, refresh nearby retailers
-  //     if (selectedStoreType == 'Retail') {
-  //       debugPrint('🔄 HomeScreen: Refreshing nearby retailers');
-  //       await _fetchNearbyRetailers(selectedStoreType!);
-  //     }
-  //
-  //     debugPrint('🔄 HomeScreen: Refresh completed successfully');
-  //
-  //   } catch (e) {
-  //     debugPrint('🔄 HomeScreen: Refresh failed - $e');
-  //     if (mounted) {
-  //       Utils.flushBarErrorMessage("Refresh failed", context);
-  //     }
-  //   }
-  // }
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-  //     profileViewModel.fetchProfileViewUserDataApi();
-  //   });
-  //
-  //   _checkAndGetLocation();
-  // }
   @override
   void initState() {
     super.initState();
@@ -105,8 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Only fetch if not already initialized (first load only)
       profileViewModel.fetchProfileViewUserDataApi();
-
-      debugPrint('HomeScreen initialized');
     });
 
     _checkAndGetLocation();
@@ -119,17 +88,13 @@ class _HomeScreenState extends State<HomeScreen> {
       // 1. Force refresh profile data
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       await profileViewModel.refreshProfileData(); // Use refreshProfileData instead
-      debugPrint('🔄 HomeScreen: Profile data refreshed');
 
       // 2. If a store type is selected and it's Retail, refresh nearby retailers
       if (selectedStoreType == 'Retail') {
-        debugPrint('🔄 HomeScreen: Refreshing nearby retailers');
         await _fetchNearbyRetailers(selectedStoreType!);
       }
 
-      debugPrint('🔄 HomeScreen: Refresh completed successfully');
     } catch (e) {
-      debugPrint('🔄 HomeScreen: Refresh failed - $e');
       if (mounted) {
         Utils.flushBarErrorMessage("Refresh failed", context);
       }
@@ -279,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (stores != null && stores.isNotEmpty) {
           setState(() => nearbyStores = stores);
         } else {
-          Utils.snackBar("No nearby stores found for this business type.", context);
+          // Utils.snackBar("No nearby stores found for this business type.", context);
         }
       }
     } catch (e) {
@@ -292,6 +257,64 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
+  Future<void> _checkCoverage() async {
+    if (!mounted) return;
+
+    // Set loading state FIRST
+    setState(() {
+      isCheckingCoverage = true;
+      isInsideServiceArea = null;
+    });
+
+    try {
+      final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(context, listen: false);
+
+      // Call the API
+      await checkCoverageViewModel.fetchCheckCoverageDataApi();
+      if (!mounted) return;
+
+      // Check the status
+      if (checkCoverageViewModel.checkCoverageData.status == Status.COMPLETED) {
+        final responseData = checkCoverageViewModel.checkCoverageData.data;
+        if (responseData?.data?.insideServiceArea == true) {
+          setState(() {
+            isInsideServiceArea = true;
+            isCheckingCoverage = false;
+          });
+        } else {
+          setState(() {
+            isInsideServiceArea = false;
+            isCheckingCoverage = false;
+          });
+          // Utils.flushBarErrorMessage(
+          //   responseData?.message ?? "Service is not available in your location.",
+          //   context,
+          // );
+        }
+      } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
+        setState(() {
+          isInsideServiceArea = false;
+          isCheckingCoverage = false;
+        });
+        Utils.flushBarErrorMessage("Failed to check service coverage", context);
+      } else {
+        await Future.delayed(Duration(milliseconds: 500));
+        if (mounted) {
+          _checkCoverage(); // Retry
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isInsideServiceArea = false;
+          isCheckingCoverage = false;
+        });
+        Utils.flushBarErrorMessage("Failed to check service coverage", context);
+      }
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -346,17 +369,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 onChanged: (String? newValue) {
                   setState(() {
                     selectedStoreType = newValue;
-                    nearbyStores = []; // Clear previous stores
+                    nearbyStores = [];
+                    isInsideServiceArea = null;
+                    isCheckingCoverage = false;
                   });
 
                   if (newValue != null) {
-                    debugPrint('Selected store type: $newValue');
+                    debugPrint('🔄 Selected store type: $newValue');
 
-                    // Only fetch nearby retailers for "Retail" type
                     if (newValue == 'Retail') {
                       _fetchNearbyRetailers(newValue);
+                    } else if (newValue == 'Premium House Keeper') {
+                      _checkCoverage();
                     }
-                    // For Premium House Keeper, we don't fetch retailers
                   }
                 },
                 valueToBengaliMap: storeTypes,
@@ -364,7 +389,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedboxSpaccing.height02(context),
 
-            // Conditionally show either Grocery Stores or Premium House Keeper
+            // Conditionally show content based on selection and coverage
             if (selectedStoreType == 'Retail')
               GroceryStoresSection(
                 isLoading: isLoadingStores,
@@ -375,7 +400,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 currentAddress: _currentAddress,
               )
             else if (selectedStoreType == 'Premium House Keeper')
-              PremiumHouseKeeperSection(),
+                PremiumHouseKeeperCoverageWidget(
+                  isCheckingCoverage: isCheckingCoverage,
+                  isInsideServiceArea: isInsideServiceArea,
+                ),
 
             SizedboxSpaccing.height02(context),
           ],
