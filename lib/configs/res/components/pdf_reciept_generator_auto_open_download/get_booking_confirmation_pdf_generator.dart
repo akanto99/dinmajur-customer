@@ -520,29 +520,60 @@ class BookingReceiptPdfGenerator {
     );
   }
 
-  static pw.Widget _buildPaymentRow(String label, num amount) {
-    return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
-        pw.Text(
-          label,
-          style: pw.TextStyle(fontSize: 12),
-        ),
-        pw.Text(
-          'BDT ${amount.toStringAsFixed(1)}',
-          style: pw.TextStyle(fontSize: 12),
-        ),
-      ],
-    );
-  }
 
   /// Save PDF to device storage
+  // static Future<File> _savePdf(pw.Document pdf, String trackingId) async {
+  //   try {
+  //     // Get the downloads directory
+  //     final Directory? directory = Platform.isAndroid
+  //         ? await getExternalStorageDirectory()
+  //         : await getApplicationDocumentsDirectory();
+  //
+  //     if (directory == null) {
+  //       throw Exception('Could not access storage directory');
+  //     }
+  //
+  //     // Create Dinmajur folder if it doesn't exist
+  //     final String dinmajurPath = '${directory.path}/Dinmajur_Bookings';
+  //     final Directory dinmajurDir = Directory(dinmajurPath);
+  //     if (!await dinmajurDir.exists()) {
+  //       await dinmajurDir.create(recursive: true);
+  //     }
+  //
+  //     // Create file name with timestamp
+  //     final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+  //     final String fileName = 'Booking_Receipt_${trackingId}_$timestamp.pdf';
+  //     final String filePath = '$dinmajurPath/$fileName';
+  //
+  //     // Save PDF
+  //     final File file = File(filePath);
+  //     await file.writeAsBytes(await pdf.save());
+  //
+  //     print('✅ PDF saved to: $filePath');
+  //     return file;
+  //   } catch (e) {
+  //     print('❌ Error saving PDF: $e');
+  //     rethrow;
+  //   }
+  // }
+  /// Save PDF to device storage (Downloads folder for easy access)
   static Future<File> _savePdf(pw.Document pdf, String trackingId) async {
     try {
-      // Get the downloads directory
-      final Directory? directory = Platform.isAndroid
-          ? await getExternalStorageDirectory()
-          : await getApplicationDocumentsDirectory();
+      Directory? directory;
+
+      if (Platform.isAndroid) {
+        // For Android 10 and above, use the Downloads directory
+        // Note: This requires additional permissions for Android 10+
+        directory = Directory('/storage/emulated/0/Download');
+
+        // If Downloads doesn't exist, fall back to external storage
+        if (!await directory.exists()) {
+          directory = await getExternalStorageDirectory();
+        }
+      } else if (Platform.isIOS) {
+        // For iOS, use the app's documents directory
+        directory = await getApplicationDocumentsDirectory();
+      }
 
       if (directory == null) {
         throw Exception('Could not access storage directory');
@@ -557,7 +588,7 @@ class BookingReceiptPdfGenerator {
 
       // Create file name with timestamp
       final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final String fileName = 'Booking_Receipt_${trackingId}_$timestamp.pdf';
+      final String fileName = 'Receipt_${trackingId}_$timestamp.pdf';
       final String filePath = '$dinmajurPath/$fileName';
 
       // Save PDF
