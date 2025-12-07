@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/get_booking_confirmation_pdf_generator.dart';
@@ -326,13 +327,93 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                     SizedboxSpaccing.height02(context),
 
                     // Download Receipt Button (Optional)
+                    // GestureDetector(
+                    //   onTap: () async {
+                    //     final bookingData = Provider.of<GetConfirmedbookingViewModel>(context, listen: false)
+                    //         .getConfirmBookingData.data?.data;
+                    //
+                    //     if (bookingData == null) {
+                    //    Utils.flushBarErrorMessage("No booking data available to download", context);
+                    //       return;
+                    //     }
+                    //
+                    //     setState(() {
+                    //       _isDownloading = true;
+                    //     });
+                    //
+                    //     try {
+                    //       // Request storage permission
+                    //       if (Platform.isAndroid) {
+                    //         final status = await Permission.storage.request();
+                    //         if (!status.isGranted) {
+                    //           Utils.flushBarErrorMessage("Storage permission is required to download receipt", context);
+                    //           setState(() {
+                    //             _isDownloading = false;
+                    //           });
+                    //           return;
+                    //         }
+                    //       }
+                    //
+                    //       // Generate and download PDF
+                    //       final file = await BookingReceiptPdfGenerator.generateAndDownloadReceipt(bookingData);
+                    //
+                    //       setState(() {
+                    //         _isDownloading = false;
+                    //       });
+                    //
+                    //       if (file != null) {
+                    //         Utils.flushBarSuccessMessage("Receipt downloaded successfully!", context);
+                    //         await OpenFile.open(file.path);
+                    //       } else {
+                    //         Utils.flushBarErrorMessage("Failed to generate receipt", context);
+                    //       }
+                    //     } catch (e) {
+                    //       setState(() {
+                    //         _isDownloading = false;
+                    //       });
+                    //
+                    //       ScaffoldMessenger.of(context).showSnackBar(
+                    //         SnackBar(
+                    //           content: Text('Error: ${e.toString()}'),
+                    //           backgroundColor: Colors.red,
+                    //         ),
+                    //       );
+                    //     }
+                    //   },
+                    //   child: Container(
+                    //     width: screenWidth * 0.9,
+                    //     height: 50,
+                    //     decoration: BoxDecoration(
+                    //       color: Colors.transparent,
+                    //       borderRadius: BorderRadius.circular(12),
+                    //       border: Border.all(color: AppColors.button(context), width: 1),
+                    //     ),
+                    //     child: _isDownloading
+                    //         ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50))
+                    //         : Row(
+                    //       mainAxisAlignment: MainAxisAlignment.center,
+                    //       children: [
+                    //         Icon(Icons.download, color: AppColors.button(context), size: 20),
+                    //         SizedBox(width: 8),
+                    //         Text(
+                    //           'Download Receipt',
+                    //           style: AppTextStyles.textSize16(
+                    //             context,
+                    //             weight: FontWeight.w600,
+                    //             color: AppColors.button(context),
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                     GestureDetector(
                       onTap: () async {
                         final bookingData = Provider.of<GetConfirmedbookingViewModel>(context, listen: false)
                             .getConfirmBookingData.data?.data;
 
                         if (bookingData == null) {
-                       Utils.flushBarErrorMessage("No booking data available to download", context);
+                          Utils.flushBarErrorMessage("No booking data available to download", context);
                           return;
                         }
 
@@ -341,10 +422,62 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                         });
 
                         try {
-                          // Request storage permission
+                          // Request storage permission for Android
                           if (Platform.isAndroid) {
-                            final status = await Permission.storage.request();
-                            if (!status.isGranted) {
+                            // For Android 13+ (API 33+), no storage permission needed for Downloads
+                            // For Android 11-12 (API 30-32), use manageExternalStorage
+                            // For Android 10 and below, use storage permission
+
+                            bool hasPermission = false;
+
+                            // Try to check Android version
+                            try {
+                              final androidInfo = await DeviceInfoPlugin().androidInfo;
+                              final sdkInt = androidInfo.version.sdkInt;
+
+                              if (sdkInt >= 33) {
+                                // Android 13+: No permission needed
+                                hasPermission = true;
+                              } else if (sdkInt >= 30) {
+                                // Android 11-12: Request MANAGE_EXTERNAL_STORAGE
+                                final status = await Permission.manageExternalStorage.request();
+                                hasPermission = status.isGranted;
+
+                                if (!status.isGranted) {
+                                  // Show settings dialog
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('Storage Permission Required'),
+                                      content: Text('Please grant storage permission in settings to save receipts.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: Text('Cancel'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () async {
+                                            Navigator.pop(context);
+                                            await openAppSettings();
+                                          },
+                                          child: Text('Open Settings'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              } else {
+                                // Android 10 and below: Use regular storage permission
+                                final status = await Permission.storage.request();
+                                hasPermission = status.isGranted;
+                              }
+                            } catch (e) {
+                              // Fallback: just try storage permission
+                              final status = await Permission.storage.request();
+                              hasPermission = status.isGranted;
+                            }
+
+                            if (!hasPermission) {
                               Utils.flushBarErrorMessage("Storage permission is required to download receipt", context);
                               setState(() {
                                 _isDownloading = false;
@@ -353,7 +486,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                             }
                           }
 
-                          // Generate and download PDF
+                          // Generate and save PDF
                           final file = await BookingReceiptPdfGenerator.generateAndDownloadReceipt(bookingData);
 
                           setState(() {
@@ -361,8 +494,91 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                           });
 
                           if (file != null) {
-                            Utils.flushBarSuccessMessage("Receipt downloaded successfully!", context);
-                            await OpenFile.open(file.path);
+                            // Extract filename
+                            final fileName = file.path.split('/').last;
+
+                            // Show success message
+                            Utils.flushBarSuccessMessage("Receipt saved successfully!", context);
+
+                            // Show dialog with option to open
+                            showDialog(
+                              context: context,
+                              barrierColor: AppColors.showDialougeBackground(context),
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  backgroundColor: AppColors.containerBackground(context),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  title: Text(
+                                    'Download Complete',
+                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                  ),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Receipt saved successfully!',
+                                        style: AppTextStyles.textSize14(context),
+                                      ),
+                                      SizedBox(height: 12),
+                                      Container(
+                                        width: screenWidth,
+                                        padding: EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.button(context).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '📁 Location:',
+                                              style: AppTextStyles.textSize12(
+                                                context,
+                                                weight: FontWeight.w600,
+                                                color: AppColors.button(context),
+                                              ),
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              'Downloads/Dinmajur_Bookings',
+                                              style: AppTextStyles.textSize12(context),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(height: 12),
+                                      Text(
+                                        'Would you like to open it now?',
+                                        style: AppTextStyles.textSize14(context),
+                                      ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: Text(
+                                        'Later',
+                                        style: TextStyle(color: Colors.grey[600]),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        Navigator.of(context).pop();
+                                        await OpenFile.open(file.path);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.button(context),
+                                      ),
+                                      child: Text(
+                                        'Open Now',
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           } else {
                             Utils.flushBarErrorMessage("Failed to generate receipt", context);
                           }
@@ -371,12 +587,9 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                             _isDownloading = false;
                           });
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error: ${e.toString()}'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+                          print('❌ PDF Generation Error: $e');
+
+                          Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
                         }
                       },
                       child: Container(
@@ -388,7 +601,10 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                           border: Border.all(color: AppColors.button(context), width: 1),
                         ),
                         child: _isDownloading
-                            ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50))
+                            ? Center(child: LoadingAnimationWidget.progressiveDots(
+                            color: AppColors.button(context),
+                            size: 50
+                        ))
                             : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -406,7 +622,6 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                         ),
                       ),
                     ),
-
                     SizedboxSpaccing.height02(context),
 
                     // Customer Care Section
