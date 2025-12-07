@@ -53,6 +53,7 @@ class AppUrl {
   static var getAllShiftTimeGetAPI = baseUrl + '/shifts/get-all';
   static var getAllShiftTimeByDateGetAPI = baseUrl + '/shifts';
   static var bookPremiumHouseKeeperPostAPI = baseUrl + '/house-keeper-bookings/create';
+  static var getBookingByTrackingIdGetAPI = baseUrl + '/house-keeper-bookings/tracking';
 
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';
