@@ -124,7 +124,18 @@ class Routes {
 
     ///In HOME SCreen- DropDown 2 Premium House Keeper
       case RoutesName.bookNowPremiumHouseKeeper:
-        return MaterialPageRoute(builder: (BuildContext context) => const BookNowHousekeeperScreen());
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => BookNowHousekeeperScreen(
+                customerName: args['customerName'],
+                customerPhone: args['customerPhone'],
+                customerAddress: args['customerAddress'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
       case RoutesName.confirmedScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {

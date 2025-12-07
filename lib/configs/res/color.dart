@@ -52,6 +52,10 @@ class AppColors {
       Theme.of(context).brightness == Brightness.dark
           ? Colors.black
           : Colors.white;
+  static Color showDialougeBackground(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white.withOpacity(0.1)
+          : Colors.black.withOpacity(0.5);
 
 ///button bg /Branding
   static Color button(BuildContext context) => const Color(0xff00424D);

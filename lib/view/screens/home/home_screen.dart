@@ -399,11 +399,44 @@ class _HomeScreenState extends State<HomeScreen> {
                 currentPosition: _currentPosition,
                 currentAddress: _currentAddress,
               )
+            // In HomeScreen body() method, update the PremiumHouseKeeperCoverageWidget call:
+
             else if (selectedStoreType == 'Premium House Keeper')
-                PremiumHouseKeeperCoverageWidget(
-                  isCheckingCoverage: isCheckingCoverage,
-                  isInsideServiceArea: isInsideServiceArea,
-                ),
+              Consumer<ProfileViewViewModel>(
+                builder: (context, profileViewModel, _) {
+                  // Extract customer data from profile
+                  String customerName = '';
+                  String customerPhone = '';
+                  String customerAddress = '';
+
+                  if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                    final userData = profileViewModel.profileviewUserData.data?.data;
+
+                    // Get name
+                    if (userData?.user?.fullName != null) {
+                      customerName = userData!.user!.fullName!;
+                    }
+
+                    // Get phone
+                    if (userData?.user?.phone != null) {
+                      customerPhone = userData!.user!.phone!;
+                    }
+
+                    // Get address
+                    if (userData?.addresses?.fullAddress != null) {
+                      customerAddress = userData!.addresses!.fullAddress!;
+                    }
+                  }
+
+                  return PremiumHouseKeeperCoverageWidget(
+                    isCheckingCoverage: isCheckingCoverage,
+                    isInsideServiceArea: isInsideServiceArea,
+                    customerName: customerName,
+                    customerPhone: customerPhone,
+                    customerAddress: customerAddress,
+                  );
+                },
+              ),
 
             SizedboxSpaccing.height02(context),
           ],
