@@ -48,12 +48,12 @@ class Data {
   List<dynamic>? images;
   ShiftId? shiftId;
   String? discountType;
-  int? discountValue;
-  int? total;
-  int? subTotal;
-  int? grandTotal;
-  int? vat;
-  int? fare;
+  num? discountValue; // Changed from int? to num?
+  num? total; // Changed from int? to num?
+  num? subTotal; // Changed from int? to num?
+  num? grandTotal; // Changed from int? to num?
+  num? vat; // Changed from int? to num?
+  num? fare; // Changed from int? to num?
   String? status;
   List<HouseKeeperBookingItem>? houseKeeperBookingItems;
   DateTime? createdAt;
@@ -215,7 +215,7 @@ class HouseKeeperTaskId {
 class HouseKeeperTaskItemId {
   String? id;
   String? name;
-  int? price;
+  num? price; // Changed from int? to num?
 
   HouseKeeperTaskItemId({
     this.id,

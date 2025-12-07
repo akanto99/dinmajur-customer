@@ -2022,7 +2022,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             isReadOnly: true,
                             titleTextStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                             inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                            hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                            hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                           ),
                           SizedBox(height: 4),
                           Row(
@@ -2043,7 +2043,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             isReadOnly: true,
                             titleTextStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                             inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                            hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                            hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.subtitle(context)),
                           ),
                           SizedBox(height: 4),
                           Row(
@@ -2073,11 +2073,11 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             ),
                             child: TextField(
                               controller: _addressController,
-                              maxLines: 2,
+                              maxLines: 3,
                               style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                             decoration: InputDecoration(
                                 hintText: 'Enter your address',
-                                hintStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                                hintStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.subtitle(context)),
                                 border: OutlineInputBorder(borderSide: BorderSide.none),
                                 contentPadding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
                               ),
@@ -2121,11 +2121,11 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             ),
                             child: TextField(
                               controller: _specialRequestController,
-                              maxLines: 2,
+                              maxLines: 3,
                               style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                               decoration: InputDecoration(
                                 hintText: 'Write any request or instruction or suggestion.',
-                                hintStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                                hintStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.subtitle(context)),
                                 border: OutlineInputBorder(borderSide: BorderSide.none),
                                 contentPadding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
                               ),
