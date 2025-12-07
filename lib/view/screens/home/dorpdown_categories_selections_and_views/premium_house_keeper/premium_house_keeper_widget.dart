@@ -12,8 +12,18 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class PremiumHouseKeeperCoverageWidget extends StatelessWidget {
   final bool isCheckingCoverage;
   final bool? isInsideServiceArea;
+  final String customerName;
+  final String customerPhone;
+  final String customerAddress;
 
-  const PremiumHouseKeeperCoverageWidget({Key? key, required this.isCheckingCoverage, required this.isInsideServiceArea}) : super(key: key);
+  const PremiumHouseKeeperCoverageWidget({
+    Key? key,
+    required this.isCheckingCoverage,
+    required this.isInsideServiceArea,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +153,13 @@ class PremiumHouseKeeperCoverageWidget extends StatelessWidget {
               RoundButton(
                 title: "Book Now",
                 onPress: () {
-                  Navigator.pushNamed(context, RoutesName.bookNowPremiumHouseKeeper);
+                  Navigator.pushNamed(context, RoutesName.bookNowPremiumHouseKeeper, arguments: {
+                    'customerName': customerName,
+                    'customerPhone': customerPhone,
+                    'customerAddress': customerAddress,
+                  });
+
+
                 },
                 iconData: Icons.arrow_forward_ios_rounded,
               ),

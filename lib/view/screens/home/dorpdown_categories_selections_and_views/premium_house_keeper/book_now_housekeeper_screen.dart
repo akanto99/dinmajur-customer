@@ -22,7 +22,14 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BookNowHousekeeperScreen extends StatefulWidget {
-  const BookNowHousekeeperScreen({super.key});
+  final String customerName;
+  final String customerPhone;
+  final String customerAddress;
+  const BookNowHousekeeperScreen({Key? key,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+  }) : super(key: key);
 
   @override
   State<BookNowHousekeeperScreen> createState() => _BookNowHousekeeperScreenState();
@@ -108,6 +115,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       print('Error parsing date: $e');
     }
   }
+
   void _startAutoScroll() {
     _autoScrollTimer = Timer.periodic(Duration(seconds: 3), (timer) {
       if (_pageController.hasClients) {
@@ -393,11 +401,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                           housekeeperViewModel.fetchGetAllPermiumHouseKeeperTaskGetDataApi();
 
                           // Also retry shift times
-                          String currentDate = DateFormat('yyyy-MM-dd').format(
-                              _dateController.text.isNotEmpty
-                                  ? DateFormat('MMMM dd, yyyy').parse(_dateController.text)
-                                  : DateTime.now()
-                          );
+                          String currentDate = DateFormat('yyyy-MM-dd').format(_dateController.text.isNotEmpty ? DateFormat('MMMM dd, yyyy').parse(_dateController.text) : DateTime.now());
                           final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
                           shiftTimeViewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(currentDate);
                         },
@@ -457,10 +461,11 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         ),
 
         // Bottom Cart Bar
-        _buildBottomCartBar(screenWidth),
+        _buildBottomCartBar(screenWidth,screenHeight),
       ],
     );
   }
+
   Widget _buildFrequencySelection(double screenWidth) {
     return Container(
       width: screenWidth * 0.9,
@@ -780,17 +785,17 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                       borderRadius: BorderRadius.circular(8),
                       hint: availableShiftTimes.isEmpty
                           ? Row(
-                        children: [
-                          Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'All time slots are booked',
-                              style: AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
-                            ),
-                          ),
-                        ],
-                      )
+                              children: [
+                                Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'All time slots are booked',
+                                    style: AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
+                                  ),
+                                ),
+                              ],
+                            )
                           : null,
                       items: allShiftTimes.map((shift) {
                         String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
@@ -802,12 +807,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: AppColors.border(context).withOpacity(0.3),
-                                  width: 0.5,
-                                ),
-                              ),
+                              border: Border(bottom: BorderSide(color: AppColors.border(context).withOpacity(0.3), width: 0.5)),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -815,13 +815,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                                 Expanded(
                                   child: Text(
                                     displayText,
-                                    style: AppTextStyles.textSize16(
-                                      context,
-                                      weight: FontWeight.w500,
-                                      color: isBooked
-                                          ? AppColors.subtitle(context).withOpacity(0.5)
-                                          : AppColors.textPrimary(context),
-                                    ),
+                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: isBooked ? AppColors.subtitle(context).withOpacity(0.5) : AppColors.textPrimary(context)),
                                   ),
                                 ),
                                 if (isBooked)
@@ -834,11 +828,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                                     ),
                                     child: Text(
                                       'Booked',
-                                      style: AppTextStyles.textSize10(
-                                        context,
-                                        color: Colors.red,
-                                        weight: FontWeight.w600,
-                                      ),
+                                      style: AppTextStyles.textSize10(context, color: Colors.red, weight: FontWeight.w600),
                                     ),
                                   ),
                               ],
@@ -848,9 +838,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                       }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          final selectedShift = allShiftTimes.firstWhere(
-                                (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue,
-                          );
+                          final selectedShift = allShiftTimes.firstWhere((shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue);
 
                           if (selectedShift.isBooked != true) {
                             setState(() => _selectedTime = newValue);
@@ -870,10 +858,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     border: Border.all(color: AppColors.border(context)),
                   ),
                   child: Center(
-                    child: Text(
-                      'No shift times available',
-                      style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-                    ),
+                    child: Text('No shift times available', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
                   ),
                 ),
             ],
@@ -1106,8 +1091,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
               ],
             ),
           ),
-
-          // Quantity Controls or Add Button
+// Quantity Controls or Add Button
+// Quantity Controls or Add Button
           if (quantity == 0)
             GestureDetector(
               onTap: () => _updateQuantity(service.id ?? '', 1),
@@ -1152,7 +1137,18 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => _updateQuantity(service.id ?? '', 1),
+                          onTap: () {
+                            // Check if hasRoom is false
+                            if (service.hasRoom == false) {
+                              Utils.flushBarExclamatoryMessage(
+                                title: "Can't Add More",
+                                subtitle: "Additional quantity isn't available for this service.",
+                                context: context,
+                              );
+                            } else {
+                              _updateQuantity(service.id ?? '', 1);
+                            }
+                          },
                           child: Container(
                             width: 25,
                             height: 25,
@@ -1174,7 +1170,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
-  Widget _buildBottomCartBar(double screenWidth) {
+  Widget _buildBottomCartBar(double screenWidth,double screenHeight) {
     // Get the count of unique services (not total quantities)
     int totalServices = _serviceQuantities.entries.where((entry) => entry.value > 0).length;
 
@@ -1185,7 +1181,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
     return Container(
       width: screenWidth,
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.button(context),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: Offset(0, -5))],
@@ -1197,7 +1193,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Total Services ($totalServices service${totalServices > 1 ? 's' : ''})', style: AppTextStyles.textSize14(context, color: AppColors.containerBackground(context))),
+              Text('Total Services ($totalServices service${totalServices > 1 ? 's' : ''})', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
               SizedBox(height: 4),
               Row(
                 children: [
@@ -1209,7 +1205,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     SizedBox(width: 8),
                     Text(
                       'Saved ৳${savedAmount.toStringAsFixed(2)}',
-                      style: AppTextStyles.textSize12(context, color: AppColors.containerBackground(context), weight: FontWeight.w600),
+                      style: AppTextStyles.textSize12(context, color:AppColors.whiteColor, weight: FontWeight.w600),
                     ),
                   ],
                 ],
@@ -1221,16 +1217,18 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
               _proceedToCart();
             },
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+              width: 110,
+              height: 40,
+              decoration: BoxDecoration(color: AppColors.blackColor, borderRadius: BorderRadius.circular(8), border: Border.all(width: 1,color: AppColors.whiteColor)),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Cart',
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.button(context)),
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
                   ),
                   SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, color: AppColors.button(context), size: 20),
+                  Icon(Icons.arrow_forward, color: AppColors.whiteColor, size: 20),
                 ],
               ),
             ),
@@ -1290,6 +1288,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
     showDialog(
       context: context,
+      barrierColor: AppColors.showDialougeBackground(context),
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           // Use tempQuantity instead of reading from global state
@@ -1308,7 +1307,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
               return true;
             },
             child: Dialog(
-              backgroundColor: AppColors.appBackground(context),
+            backgroundColor: AppColors.containerBackground(context),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.01),
               child: Container(
@@ -1411,9 +1410,17 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  setDialogState(() {
-                                    tempQuantity++;
-                                  });
+                                  if (service.hasRoom == false) {
+                                    Utils.flushBarExclamatoryMessage(
+                                      title: "Can't Add More",
+                                      subtitle: "Additional quantity isn't available for this service.",
+                                      context: context,
+                                    );
+                                  } else {
+                                    setDialogState(() {
+                                      tempQuantity++;
+                                    });
+                                  }
                                 },
                                 child: Container(
                                   width: 25,
@@ -1634,6 +1641,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
     showDialog(
       context: context,
+      barrierColor: AppColors.showDialougeBackground(context),
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           double subtotal = calculateSubtotal(_serviceQuantities);
@@ -1643,14 +1651,13 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           double saved = originalTotal - total;
 
           return Dialog(
-            backgroundColor: AppColors.appBackground(context),
+            backgroundColor: AppColors.containerBackground(context),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.01),
 
             child: Container(
               width: screenWidth,
               constraints: BoxConstraints(maxHeight: screenHeight * 0.8),
-              decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(16)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1807,10 +1814,18 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                                       ),
                                       GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            _serviceQuantities[service.id ?? ''] = qty + 1;
-                                          });
-                                          setDialogState(() {}); // Refresh dialog
+                                          if (service.hasRoom == false) {
+                                            Utils.flushBarExclamatoryMessage(
+                                              title: "Can't Add More",
+                                              subtitle: "Additional quantity isn't available for this service.",
+                                              context: context,
+                                            );
+                                          } else {
+                                            setState(() {
+                                              _serviceQuantities[service.id ?? ''] = qty + 1;
+                                            });
+                                            setDialogState(() {}); // Refresh dialog
+                                          }
                                         },
                                         child: Container(
                                           width: 25,
@@ -1883,6 +1898,10 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     padding: EdgeInsets.all(15),
                     child: GestureDetector(
                       onTap: () {
+                        if (total < 600) {
+                          Utils.flushBarExclamatoryMessage(title: "Warning", subtitle: " Minimum order amount is BDT 600 to proceed!", context: context);
+                          return; // Don't proceed to checkout
+                        }
                         Navigator.pop(context);
                         _showCheckoutDialog();
                       },
@@ -1941,18 +1960,27 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     double transport = 80.0;
     double total = subtotal + transport;
     double saved = _calculateSaved();
-
+    if (_fullNameController.text.isEmpty) {
+      _fullNameController.text = widget.customerName;
+    }
+    if (_phoneController.text.isEmpty) {
+      _phoneController.text = widget.customerPhone;
+    }
+    if (_addressController.text.isEmpty) {
+      _addressController.text = widget.customerAddress;
+    }
     showDialog(
       context: context,
+      barrierColor: AppColors.showDialougeBackground(context),
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           return Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.containerBackground(context),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             insetPadding: EdgeInsets.all(15),
             child: Container(
               width: screenWidth,
               constraints: BoxConstraints(maxHeight: screenHeight * 0.7),
-              decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(16)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1991,6 +2019,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             placeholder: 'Enter your name',
                             controller: _fullNameController,
                             keyboardType: TextInputType.name,
+                            isReadOnly: true,
                             titleTextStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                             inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                             hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
@@ -2011,6 +2040,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             placeholder: 'Enter your number',
                             controller: _phoneController,
                             keyboardType: TextInputType.number,
+                            isReadOnly: true,
                             titleTextStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                             inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                             hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
@@ -2044,8 +2074,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             child: TextField(
                               controller: _addressController,
                               maxLines: 2,
-                              style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-                              decoration: InputDecoration(
+                              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                            decoration: InputDecoration(
                                 hintText: 'Enter your address',
                                 hintStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                                 border: OutlineInputBorder(borderSide: BorderSide.none),
@@ -2092,7 +2122,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             child: TextField(
                               controller: _specialRequestController,
                               maxLines: 2,
-                              style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                               decoration: InputDecoration(
                                 hintText: 'Write any request or instruction or suggestion.',
                                 hintStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
@@ -2142,9 +2172,9 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                   Container(
                     padding: EdgeInsets.all(15),
                     decoration: BoxDecoration(
-                      color: AppColors.containerBackground(context),
+                      color: AppColors.button(context),
                       border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
-                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15), bottomRight: Radius.circular(15)),
+                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
                     ),
                     child: Row(
                       children: [
@@ -2153,11 +2183,11 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('Total Services (${_getTotalItems()} item${_getTotalItems() > 1 ? 's' : ''})', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+                              Text('Total Services (${_getTotalItems()} item${_getTotalItems() > 1 ? 's' : ''})', style: AppTextStyles.textSize12(context, color: AppColors.whiteColor)),
                               SizedBox(height: 4),
                               Row(
                                 children: [
-                                  Text('৳${total.toStringAsFixed(2)}', style: AppTextStyles.textSize18(context, weight: FontWeight.w700)),
+                                  Text('৳${total.toStringAsFixed(2)}', style: AppTextStyles.textSize18(context, weight: FontWeight.w600,color: AppColors.whiteColor)),
                                   SizedBox(width: 8),
                                   Text(
                                     'Saved ৳${saved.toStringAsFixed(2)}',
@@ -2170,7 +2200,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                         ),
 
                         // Replace the entire GestureDetector for the Confirm button with this:
-
                         GestureDetector(
                           onTap: () async {
                             // Validate required fields
@@ -2202,15 +2231,10 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             data.forEach((service) {
                               int qty = _serviceQuantities[service.id ?? ''] ?? 0;
                               if (qty > 0) {
-                                Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ??
-                                    service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
+                                Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ?? service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
 
                                 if (selectedItems.isNotEmpty) {
-                                  tasks.add({
-                                    "houseKeeperTaskId": service.id,
-                                    "totalRooms": qty,
-                                    "houseKeeperTaskItemIds": selectedItems.toList()
-                                  });
+                                  tasks.add({"houseKeeperTaskId": service.id, "totalRooms": qty, "houseKeeperTaskItemIds": selectedItems.toList()});
                                 }
                               }
                             });
@@ -2243,9 +2267,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                               "phone": _phoneController.text.trim(),
                               "fullAddress": _addressController.text.trim(),
                               "houseSize": _selectedHouseSize,
-                              "notes": _specialRequestController.text.trim().isEmpty
-                                  ? null
-                                  : _specialRequestController.text.trim(),
+                              "notes": _specialRequestController.text.trim().isEmpty ? null : _specialRequestController.text.trim(),
                               "tasks": tasks,
                               "couponCode": null,
                               "shiftId": shiftId,
@@ -2258,36 +2280,26 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
 
                             // CHANGED: Pass callback that receives trackingId
-                            await bookingViewModel.bookPremiumHouseKeeperLoadingPostApi(
-                              context,
-                              bookingData,
-                                  (String trackingId) {
-                                // This callback only runs on SUCCESS and receives trackingId
-                                print('Success! TrackingId: $trackingId');
+                            await bookingViewModel.bookPremiumHouseKeeperLoadingPostApi(context, bookingData, (String trackingId) {
+                              // This callback only runs on SUCCESS and receives trackingId
+                              print('Success! TrackingId: $trackingId');
 
-                                // Close checkout dialog
-                                Navigator.pop(context);
+                              // Close checkout dialog
+                              Navigator.pop(context);
 
-                                // Clear all data
-                                setState(() {
-                                  _serviceQuantities.clear();
-                                  _selectedTaskItems.clear();
-                                  _fullNameController.clear();
-                                  _phoneController.clear();
-                                  _addressController.clear();
-                                  _specialRequestController.clear();
-                                  _selectedHouseSize = null;
-                                });
+                              // Clear all data
+                              setState(() {
+                                _serviceQuantities.clear();
+                                _selectedTaskItems.clear();
+                                _fullNameController.clear();
+                                _phoneController.clear();
+                                _addressController.clear();
+                                _specialRequestController.clear();
+                                _selectedHouseSize = null;
+                              });
 
-                                Navigator.pushNamed(
-                                  context,
-                                  RoutesName.confirmedScreen,
-                                  arguments: {
-                                    'trackingId':trackingId,
-                                  },
-                                );
-                              },
-                            );
+                              Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId});
+                            });
                             // If API fails, callback won't run, dialog stays open
                           },
                           child: Consumer<PostBookPremiumHouseKeeperViewModel>(
@@ -2295,38 +2307,26 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                               return Container(
                                 height: 40,
                                 width: 120,
-                                decoration: BoxDecoration(
-                                    color: AppColors.button(context),
-                                    borderRadius: BorderRadius.circular(8)
-                                ),
+                                decoration: BoxDecoration(color: AppColors.blackColor, borderRadius: BorderRadius.circular(8), border: Border.all(width: 1,color: AppColors.whiteColor)),
                                 child: bookingViewModel.createBookPremiumHouseKeeperLoading
                                     ? Container(
-                                    width: 120,
-                                    height: 40,
-                                    child: Center(
-                                        child: LoadingAnimationWidget.progressiveDots(
-                                            color: AppColors.whiteColor,
-                                            size: 50
-                                        )
-                                    )
-                                )
+                                        width: 120,
+                                        height: 40,
+                                        child: Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 50)),
+                                      )
                                     : Center(
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Confirm',
-                                        style: AppTextStyles.textSize16(
-                                            context,
-                                            weight: FontWeight.w600,
-                                            color: Colors.white
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Confirm',
+                                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                                          ],
                                         ),
                                       ),
-                                      SizedBox(width: 8),
-                                      Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                                    ],
-                                  ),
-                                ),
                               );
                             },
                           ),
