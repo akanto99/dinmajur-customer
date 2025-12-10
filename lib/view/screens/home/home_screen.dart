@@ -5,6 +5,10 @@ import 'package:dinmajur_customer/configs/res/components/notifications/resuable_
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_count/notification_count_view_model.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification/sse_notification_view_model.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
@@ -14,10 +18,14 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
 import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
-import 'home_notifier.dart'; // Import the notifier
+import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/nearby_retailers_view_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -28,52 +36,310 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Map<String, String> storeTypes;
-  bool _isInitialized = false; // Prevent multiple initializations
+  String? selectedStoreType;
+  List<dynamic> nearbyStores = [];
+  bool isLoadingStores = false;
 
+  // Location related variables
+  final LocationService _locationService = LocationService();
+  Position? _currentPosition;
+  String? _currentAddress;
+  bool _isLoadingLocation = false;
+
+  late Map<String, String> storeTypes;
+
+  // Key for SharedPreferences to track if location_screens has been posted
+  static const String _locationPostedKey = 'location_posted_once';
+
+  ///Check Coverage
+  bool isCheckingCoverage = false;
+  bool? isInsideServiceArea;
+
+
+  // ✅ Add SSE listener flag
+  bool _sseListenerInitialized = false;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Initialize localized store types
     storeTypes = {
+      // 'Retail': AppLocalizations.of(context)!.storeType_retail,
       'Retail': AppLocalizations.of(context)!.storeType_grocery,
       'Premium House Keeper': AppLocalizations.of(context)!.storeType_housekeeper,
+      // 'restaurant': AppLocalizations.of(context)!.storeType_restaurant,
+      // 'pharmacy': AppLocalizations.of(context)!.storeType_pharmacy,
+      // 'electronics': AppLocalizations.of(context)!.storeType_electronics,
+      // 'clothing': AppLocalizations.of(context)!.storeType_clothing,
     };
+    // ✅ Initialize ONLY count listener in home screen
+    if (!_sseListenerInitialized) {
+      _initializeSSECountListener();
+      _sseListenerInitialized = true;
+    }
+  }
 
-    // Initialize notifier only once after dependencies are ready
-    if (!_isInitialized) {
-      _isInitialized = true;
+  void _initializeSSECountListener() {
+    try {
+      final sseService = Provider.of<SSENotificationService>(context, listen: false);
+      final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _initializeScreen();
-      });
+      // Connect only count stream
+      countViewModel.initializeCountListener(sseService.notificationCountStream);
+
+      debugPrint('✅ HomeScreen: notificationCount listener initialized');
+    } catch (e) {
+      debugPrint('❌ HomeScreen: Error initializing count listener: $e');
     }
   }
 
   @override
   void initState() {
     super.initState();
-    // Don't call notifier methods here that need context
-    // Use didChangeDependencies or addPostFrameCallback instead
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+
+      // Only fetch if not already initialized (first load only)
+      profileViewModel.fetchProfileViewUserDataApi();
+    });
+
+    _checkAndGetLocation();
   }
 
-  /// Initialize screen data
-  void _initializeScreen() {
-    // Initialize HomeNotifier
-    final homeNotifier = Provider.of<HomeNotifier>(context, listen: false);
-    homeNotifier.initialize(context);
+  Future<void> _handleRefresh() async {
+    try {
+      debugPrint('🔄 HomeScreen: Pull to refresh triggered');
 
-    // Fetch profile data
-    final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-    profileViewModel.fetchProfileViewUserDataApi();
+      // 1. Force refresh profile data
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+      await profileViewModel.refreshProfileData(); // Use refreshProfileData instead
+
+      // 2. If a store type is selected and it's Retail, refresh nearby retailers
+      if (selectedStoreType == 'Retail') {
+        await _fetchNearbyRetailers(selectedStoreType!);
+      }
+
+    } catch (e) {
+      if (mounted) {
+        Utils.flushBarErrorMessage("Refresh failed", context);
+      }
+    }
   }
 
-  @override
-  void dispose() {
-    // Clean up if needed
-    super.dispose();
+  // Check if location_screens has already been posted, if not, get and post it
+  Future<void> _checkAndGetLocation() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool locationAlreadyPosted = prefs.getBool(_locationPostedKey) ?? false;
+
+    if (!locationAlreadyPosted) {
+      await _getLocationWithAddress();
+    } else {
+      debugPrint('Location already posted. Skipping location_screens fetch.');
+    }
   }
+
+  Future<void> _getLocationWithAddress() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    try {
+      Map<String, dynamic> locationData = await _locationService.getCurrentLocationWithAddress();
+      Position position = locationData['position'];
+      String fullAddress = locationData['address'];
+      String shortAddr = await _locationService.getShortAddress(position.latitude, position.longitude);
+
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+          _currentAddress = fullAddress;
+          _isLoadingLocation = false;
+        });
+
+        debugPrint('========== CURRENT LOCATION WITH ADDRESS ==========');
+        debugPrint('Latitude: ${position.latitude}');
+        debugPrint('Longitude: ${position.longitude}');
+        debugPrint('Full Address: $fullAddress');
+        debugPrint('Short Address: $shortAddr');
+        debugPrint('==================================================');
+
+        await _postLocationToApi(position.longitude, position.latitude, fullAddress);
+        await _markLocationAsPosted();
+
+        final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+        await profileViewModel.fetchProfileViewUserDataApi();
+      }
+    } catch (e) {
+      debugPrint('Error getting location_screens with address: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Location error: ${e.toString()}'), backgroundColor: Colors.red, duration: Duration(seconds: 3)));
+      }
+    }
+  }
+
+  Future<void> _markLocationAsPosted() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_locationPostedKey, true);
+    debugPrint('Location marked as posted.');
+  }
+
+  Future<void> _postLocationToApi(double longitude, double latitude, String fullAddress) async {
+    try {
+      final locationData = {
+        "geoLocation": {
+          "type": "Point",
+          "coordinates": [longitude, latitude],
+        },
+        "fullAddress": fullAddress,
+        "type": "DELIVERY_ADDRESS",
+      };
+      final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
+      await addLocationViewModel.addLocationPostApi(context, locationData);
+      debugPrint('Location posted successfully to API');
+    } catch (e) {
+      debugPrint('Error posting location_screens to API: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save location_screens: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+      }
+    }
+  }
+
+  /// Method to fetch nearby retailers
+  Future<void> _fetchNearbyRetailers(String businessType) async {
+    if (!mounted) return;
+
+    setState(() {
+      isLoadingStores = true;
+      nearbyStores = [];
+    });
+
+    try {
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+
+      double? customerLng;
+      double? customerLat;
+      String? fullAddress;
+
+      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+        final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
+
+        if (addressData?.geoLocation?.coordinates != null && addressData!.geoLocation!.coordinates!.length >= 2) {
+          customerLng = addressData.geoLocation!.coordinates![0];
+          customerLat = addressData.geoLocation!.coordinates![1];
+          fullAddress = addressData.fullAddress;
+        }
+      }
+
+      if (customerLng == null || customerLat == null) {
+        if (_currentPosition != null) {
+          customerLng = _currentPosition!.longitude;
+          customerLat = _currentPosition!.latitude;
+          fullAddress ??= "Current Location";
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Location not available. Please enable location_screens services.'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+          }
+          setState(() => isLoadingStores = false);
+          return;
+        }
+      }
+
+      final viewModel = Provider.of<PostNearbyRetailersViewModel>(context, listen: false);
+
+      final requestData = {
+        "deliveryAddress": {
+          "geoLocation": {
+            "type": "Point",
+            "coordinates": [customerLng, customerLat],
+          },
+          "fullAddress": fullAddress ?? "",
+        },
+        "businessType": businessType,
+      };
+
+      List<dynamic>? stores = await viewModel.nearbyRetailersPostApi(context, requestData);
+      if (mounted) {
+        if (stores != null && stores.isNotEmpty) {
+          setState(() => nearbyStores = stores);
+        } else {
+          // Utils.snackBar("No nearby stores found for this business type.", context);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Utils.flushBarErrorMessage("Failed to fetch nearby stores", context);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoadingStores = false);
+      }
+    }
+  }
+  /// Method to fetch Premium House keeper Check Coverage
+  Future<void> _checkCoverage() async {
+    if (!mounted) return;
+
+    // Set loading state FIRST
+    setState(() {
+      isCheckingCoverage = true;
+      isInsideServiceArea = null;
+    });
+
+    try {
+      final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(context, listen: false);
+
+      // Call the API
+      await checkCoverageViewModel.fetchCheckCoverageDataApi();
+      if (!mounted) return;
+
+      // Check the status
+      if (checkCoverageViewModel.checkCoverageData.status == Status.COMPLETED) {
+        final responseData = checkCoverageViewModel.checkCoverageData.data;
+        if (responseData?.data?.insideServiceArea == true) {
+          setState(() {
+            isInsideServiceArea = true;
+            isCheckingCoverage = false;
+          });
+        } else {
+          setState(() {
+            isInsideServiceArea = false;
+            isCheckingCoverage = false;
+          });
+          // Utils.flushBarErrorMessage(
+          //   responseData?.message ?? "Service is not available in your location.",
+          //   context,
+          // );
+        }
+      } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
+        setState(() {
+          isInsideServiceArea = false;
+          isCheckingCoverage = false;
+        });
+        Utils.flushBarErrorMessage("Failed to check service coverage", context);
+      } else {
+        await Future.delayed(Duration(milliseconds: 500));
+        if (mounted) {
+          _checkCoverage(); // Retry
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isInsideServiceArea = false;
+          isCheckingCoverage = false;
+        });
+        Utils.flushBarErrorMessage("Failed to check service coverage", context);
+      }
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -92,126 +358,115 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: _body(context),
-          desktop: _body(context),
-          tablet: _body(context),
-        ),
+        child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
       ),
     );
   }
 
-  Widget _body(BuildContext context) {
+  Widget body(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Consumer2<HomeNotifier, ProfileViewViewModel>(
-      builder: (context, homeNotifier, profileViewModel, _) {
-        return RefreshIndicator(
-          onRefresh: () => homeNotifier.handleRefresh(context, profileViewModel),
-          color: AppColors.textPrimary(context),
-          backgroundColor: AppColors.containerBackground(context),
-          displacement: 40,
-          strokeWidth: 2.0,
-          child: SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
-            child: Column(
-              children: [
-                Center(child: SizedboxSpaccing.height02(context)),
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: AppColors.textPrimary(context),
+      backgroundColor: AppColors.containerBackground(context),
+      displacement: 40,
+      strokeWidth: 2.0,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            Center(child: SizedboxSpaccing.height02(context)),
+            Container(
+              width: screenWidth * 0.9,
+              padding: EdgeInsets.all(screenHeight * 0.02),
+              decoration: BoxDecoration(
+                color: AppColors.containerBackground(context),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(width: 1, color: AppColors.border(context)),
+              ),
+              child: CustomDropdown(
+                titleText: AppLocalizations.of(context)!.select_store_type,
+                items: storeTypes.keys.toList(),
+                selectedItem: selectedStoreType,
+                hintText: AppLocalizations.of(context)!.select_store_type_hint,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedStoreType = newValue;
+                    nearbyStores = [];
+                    isInsideServiceArea = null;
+                    isCheckingCoverage = false;
+                  });
 
-                // Dropdown Container
-                Container(
-                  width: screenWidth * 0.9,
-                  padding: EdgeInsets.all(screenHeight * 0.02),
-                  decoration: BoxDecoration(
-                    color: AppColors.containerBackground(context),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(width: 1, color: AppColors.border(context)),
-                  ),
-                  child: CustomDropdown(
-                    titleText: AppLocalizations.of(context)!.select_store_type,
-                    items: storeTypes.keys.toList(),
-                    selectedItem: homeNotifier.selectedStoreType,
-                    hintText: AppLocalizations.of(context)!.select_store_type_hint,
-                    onChanged: (String? newValue) {
-                      homeNotifier.setSelectedStoreType(newValue);
+                  if (newValue != null) {
+                    debugPrint('🔄 Selected store type: $newValue');
 
-                      if (newValue != null) {
-                        debugPrint('🔄 Selected store type: $newValue');
-
-                        if (newValue == 'Retail') {
-                          homeNotifier.fetchNearbyRetailers(
-                            context,
-                            newValue,
-                            profileViewModel,
-                          );
-                        } else if (newValue == 'Premium House Keeper') {
-                          final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(
-                            context,
-                            listen: false,
-                          );
-                          homeNotifier.checkCoverage(context, checkCoverageViewModel);
-                        }
-                      }
-                    },
-                    valueToBengaliMap: storeTypes,
-                  ),
-                ),
-
-                SizedboxSpaccing.height02(context),
-
-                // Conditional Content
-                if (homeNotifier.selectedStoreType == 'Retail')
-                  GroceryStoresSection(
-                    isLoading: homeNotifier.isLoadingStores,
-                    stores: homeNotifier.nearbyStores,
-                    storeTypes: storeTypes,
-                    selectedStoreType: homeNotifier.selectedStoreType,
-                    currentPosition: homeNotifier.currentPosition,
-                    currentAddress: homeNotifier.currentAddress,
-                  )
-                else if (homeNotifier.selectedStoreType == 'Premium House Keeper')
-                  _buildPremiumHouseKeeperSection(profileViewModel, homeNotifier),
-
-                SizedboxSpaccing.height02(context),
-              ],
+                    if (newValue == 'Retail') {
+                      _fetchNearbyRetailers(newValue);
+                    } else if (newValue == 'Premium House Keeper') {
+                      _checkCoverage();
+                    }
+                  }
+                },
+                valueToBengaliMap: storeTypes,
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
+            SizedboxSpaccing.height02(context),
 
-  Widget _buildPremiumHouseKeeperSection(
-      ProfileViewViewModel profileViewModel,
-      HomeNotifier homeNotifier,
-      ) {
-    String customerName = '';
-    String customerPhone = '';
-    String customerAddress = '';
+            // Conditionally show content based on selection and coverage
+            if (selectedStoreType == 'Retail')
+              GroceryStoresSection(
+                isLoading: isLoadingStores,
+                stores: nearbyStores,
+                storeTypes: storeTypes,
+                selectedStoreType: selectedStoreType,
+                currentPosition: _currentPosition,
+                currentAddress: _currentAddress,
+              )
+            // In HomeScreen body() method, update the PremiumHouseKeeperCoverageWidget call:
 
-    if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-      final userData = profileViewModel.profileviewUserData.data?.data;
+            else if (selectedStoreType == 'Premium House Keeper')
+              Consumer<ProfileViewViewModel>(
+                builder: (context, profileViewModel, _) {
+                  // Extract customer data from profile
+                  String customerName = '';
+                  String customerPhone = '';
+                  String customerAddress = '';
 
-      if (userData?.user?.fullName != null) {
-        customerName = userData!.user!.fullName!;
-      }
+                  if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                    final userData = profileViewModel.profileviewUserData.data?.data;
 
-      if (userData?.user?.phone != null) {
-        customerPhone = userData!.user!.phone!;
-      }
+                    // Get name
+                    if (userData?.user?.fullName != null) {
+                      customerName = userData!.user!.fullName!;
+                    }
 
-      if (userData?.addresses?.fullAddress != null) {
-        customerAddress = userData!.addresses!.fullAddress!;
-      }
-    }
+                    // Get phone
+                    if (userData?.user?.phone != null) {
+                      customerPhone = userData!.user!.phone!;
+                    }
 
-    return PremiumHouseKeeperCoverageWidget(
-      isCheckingCoverage: homeNotifier.isCheckingCoverage,
-      isInsideServiceArea: homeNotifier.isInsideServiceArea,
-      customerName: customerName,
-      customerPhone: customerPhone,
-      customerAddress: customerAddress,
+                    // Get address
+                    if (userData?.addresses?.fullAddress != null) {
+                      customerAddress = userData!.addresses!.fullAddress!;
+                    }
+                  }
+
+                  return PremiumHouseKeeperCoverageWidget(
+                    isCheckingCoverage: isCheckingCoverage,
+                    isInsideServiceArea: isInsideServiceArea,
+                    customerName: customerName,
+                    customerPhone: customerPhone,
+                    customerAddress: customerAddress,
+                  );
+                },
+              ),
+
+            SizedboxSpaccing.height02(context),
+          ],
+        ),
+      ),
     );
   }
 
@@ -219,59 +474,48 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Consumer2<ProfileViewViewModel, HomeNotifier>(
-      builder: (context, profileViewModel, homeNotifier, _) {
+    return Consumer<ProfileViewViewModel>(
+      builder: (context, profileViewModel, _) {
         String displayAddress;
 
-        if (homeNotifier.isLoadingLocation) {
-          displayAddress = "Getting location...";
+        if (_isLoadingLocation) {
+          displayAddress = "Getting location_screens...";
         } else if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
           final responseData = profileViewModel.profileviewUserData.data;
 
           if (responseData?.data?.addresses != null) {
             final addressData = responseData!.data!.addresses!;
 
-            if (addressData.type == 'DELIVERY_ADDRESS' &&
-                addressData.fullAddress != null &&
-                addressData.fullAddress!.isNotEmpty) {
+            if (addressData.type == 'DELIVERY_ADDRESS' && addressData.fullAddress != null && addressData.fullAddress!.isNotEmpty) {
               displayAddress = addressData.fullAddress!;
             } else if (addressData.fullAddress != null && addressData.fullAddress!.isNotEmpty) {
               displayAddress = addressData.fullAddress!;
-            } else if (homeNotifier.currentAddress != null &&
-                homeNotifier.currentAddress!.isNotEmpty) {
-              displayAddress = homeNotifier.currentAddress!;
+            } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
+              displayAddress = _currentAddress!;
             } else {
-              displayAddress = "Tap to set location";
+              displayAddress = "Tap to set location_screens";
             }
-          } else if (homeNotifier.currentAddress != null &&
-              homeNotifier.currentAddress!.isNotEmpty) {
-            displayAddress = homeNotifier.currentAddress!;
+          } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
+            displayAddress = _currentAddress!;
           } else {
-            displayAddress = "Tap to set location";
+            displayAddress = "Tap to set location_screens";
           }
-        } else if (homeNotifier.currentAddress != null &&
-            homeNotifier.currentAddress!.isNotEmpty) {
-          displayAddress = homeNotifier.currentAddress!;
+        } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
+          displayAddress = _currentAddress!;
         } else {
-          displayAddress = "Tap to set location";
+          displayAddress = "Tap to set location_screens";
         }
 
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
-            return _buildAppBarContent(
-              screenWidth: screenWidth,
-              screenHeight: screenHeight,
-              userName: "Loading...",
-              displayAddress: displayAddress,
-              profileImageUrl: null,
-              isLoadingLocation: homeNotifier.isLoadingLocation,
-            );
+            return _buildAppBarContent(screenWidth: screenWidth, screenHeight: screenHeight, userName: "Loading...", displayAddress: displayAddress, profileImageUrl: null);
 
           case Status.ERROR:
             return ErrorStateEmptyHeaderWidget(
               errorMessage: profileViewModel.profileviewUserData.message.toString(),
               onRetry: () {
-                profileViewModel.fetchProfileViewUserDataApi();
+                final profileCompletionModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+                profileCompletionModel.fetchProfileViewUserDataApi();
               },
             );
 
@@ -287,25 +531,16 @@ class _HomeScreenState extends State<HomeScreen> {
               final fullName = userData.fullName?.trim();
 
               if (fullName != null && fullName.isNotEmpty) {
-                userName = fullName;
+                userName = '$fullName';
               }
             }
 
-            return _buildAppBarContent(
-              screenWidth: screenWidth,
-              screenHeight: screenHeight,
-              userName: userName,
-              displayAddress: displayAddress,
-              profileImageUrl: profileImageUrl,
-              isLoadingLocation: homeNotifier.isLoadingLocation,
-            );
+            return _buildAppBarContent(screenWidth: screenWidth, screenHeight: screenHeight, userName: userName, displayAddress: displayAddress, profileImageUrl: profileImageUrl);
 
           default:
             return Container(
               decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppColors.border(context), width: 1.0),
-                ),
+                border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
               ),
               height: 80,
             );
@@ -320,7 +555,6 @@ class _HomeScreenState extends State<HomeScreen> {
     required String userName,
     required String displayAddress,
     String? profileImageUrl,
-    required bool isLoadingLocation,
   }) {
     return Container(
       height: 60,
@@ -340,7 +574,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left Side - User Profile
+              // Left Side - User Profile (your existing code)
               Expanded(
                 flex: 3,
                 child: Row(
@@ -404,7 +638,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Icon(
                                         Icons.location_on,
                                         size: 16,
-                                        color: isLoadingLocation
+                                        color: _isLoadingLocation
                                             ? AppColors.subtitle(context)
                                             : AppColors.textPrimary(context),
                                       ),
@@ -415,7 +649,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: AppTextStyles.textSize14(
                                             context,
                                             weight: FontWeight.w400,
-                                            color: isLoadingLocation
+                                            color: _isLoadingLocation
                                                 ? AppColors.subtitle(context)
                                                 : AppColors.textPrimary(context),
                                           ),
@@ -432,7 +666,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 25,
                               height: 45,
                               alignment: Alignment.bottomCenter,
-                              child: Icon(Icons.arrow_drop_down_sharp, size: 25),
+                              child: Icon(
+                                Icons.arrow_drop_down_sharp,
+                                size: 25,
+                              ),
                             ),
                           ],
                         ),
@@ -447,6 +684,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedboxSpaccing.width03(context),
+
+                  // Email Icon
                   _buildIconButton(
                     onTap: () {
                       NotificationDialog.show(
@@ -456,23 +695,74 @@ class _HomeScreenState extends State<HomeScreen> {
                         iconColor: AppColors.textPrimary(context),
                         iconBackgroundColor: AppColors.appBackground(context),
                       );
+
                     },
                     svgAsset: 'assets/images/home/email.svg',
                     context: context,
                   ),
+
                   SizedboxSpaccing.width02(context),
-                  _buildIconButton(
-                    onTap: () {
-                      NotificationDialog.show(
-                        context,
-                        message: AppLocalizations.of(context)!.no_notification,
-                        icon: Icons.notifications_outlined,
-                        iconColor: AppColors.textPrimary(context),
-                        iconBackgroundColor: AppColors.appBackground(context),
+
+                  // ✅ Notification Icon - Shows count from notificationCount event
+                  Consumer<NotificationCountViewModel>(
+                    builder: (context, countViewModel, _) {
+                      return Stack(
+                        children: [
+                          _buildIconButton(
+                            onTap: () {
+                              debugPrint('🔔 Notification tapped');
+                              debugPrint('Count: ${countViewModel.notificationCount}');
+
+                              // TODO: Navigate to your notifications list screen
+                              // Navigator.pushNamed(context, RoutesName.notificationsList);
+                              Navigator.pushNamed(context, RoutesName.notificationsListScreen);
+                              // NotificationDialog.show(
+                              //   context,
+                              //   message: countViewModel.hasNotifications
+                              //       ? 'You have ${countViewModel.notificationCount} notifications'
+                              //       : AppLocalizations.of(context)!.no_notification,
+                              //   icon: Icons.notifications_outlined,
+                              //   iconColor: AppColors.textPrimary(context),
+                              //   iconBackgroundColor: AppColors.appBackground(context),
+                              // );
+                            },
+                            svgAsset: 'assets/images/home/notification.svg',
+                            context: context,
+                          ),
+
+                          // Badge showing count from notificationCount event
+                          if (countViewModel.hasNotifications)
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.containerBackground(context),
+                                    width: 1,
+                                  ),
+                                ),
+                                constraints: BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Text(
+                                  '${countViewModel.notificationCount > 9 ? '9+' : countViewModel.notificationCount}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
                       );
                     },
-                    svgAsset: 'assets/images/home/notification.svg',
-                    context: context,
                   ),
                 ],
               ),
@@ -483,22 +773,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildIconButton({
-    required VoidCallback onTap,
-    required String svgAsset,
-    required BuildContext context,
-  }) {
+  Widget _buildIconButton({required VoidCallback onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 30,
         width: 30,
         padding: const EdgeInsets.all(2),
-        child: SvgPicture.asset(
-          svgAsset,
-          color: AppColors.textPrimary(context),
-          fit: BoxFit.contain,
-        ),
+        child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
       ),
     );
   }

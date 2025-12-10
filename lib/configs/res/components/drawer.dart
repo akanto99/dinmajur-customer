@@ -512,18 +512,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
   // Perform the actual logout
   Future<void> _performLogout() async {
     try {
-      print("🔓 CustomDrawer: Starting logout process...");
-
-      // ✅ Don't close dialog here - let it stay open to show loading
-      // The dialog will be removed when we navigate to login screen
-
-      // Use the LoginLogoutViewModel's logout method
       final loginLogoutViewModel = Provider.of<LoginLogoutViewModel>(context, listen: false);
       await loginLogoutViewModel.logoutUser(context);
-
-      // ✅ Navigation in logoutUser() will automatically remove the dialog
-      // because pushNamedAndRemoveUntil removes all previous routes
-
     } catch (e) {
       print("🔥 CustomDrawer: Logout error - $e");
 
