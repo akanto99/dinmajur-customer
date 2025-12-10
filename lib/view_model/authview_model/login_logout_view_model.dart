@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:dinmajur_customer/respository/auth_repository/login_logout_repository.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -144,6 +145,7 @@ class LoginLogoutViewModel with ChangeNotifier {
     try {
       final userPreference = Provider.of<UserViewModel>(context, listen: false);
       final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false); // Add this
 
       // Get accessToken from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
@@ -215,6 +217,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       // ✅ STEP 3: Clear local data
       print("🗑️ Clearing local data...");
       await userPreference.remove();
+      profileViewModel.clearCache();
 
       setLoggingOut(false);
 

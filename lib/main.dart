@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification/sse_notification_view_model.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
@@ -37,6 +39,7 @@ import 'package:upgrader/upgrader.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
+import 'configs/services/sse_notification_services/sse_notification_count/notification_count_view_model.dart';
 import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
 import 'l10n/app_localizations.dart';
@@ -62,16 +65,23 @@ void main() async {
 
   await Upgrader.clearSavedSettings();
 
-  // ✅ Initialize socket provider early
+  ///SOCKET.IO
   final socketProvider = SocketProvider();
+  ///SSE
+  final sseService = SSENotificationService();
 
   // ✅ Auto-connect if user is already logged in
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? userId = prefs.getString('userId');
 
   if (userId != null && userId.isNotEmpty) {
+    ///SOCKET.IO
     print("🔌 Main: Auto-connecting socket for logged-in user: $userId");
     await socketProvider.connectWithUser(userId: userId);
+
+    ///SSE
+    print("🔔 Main: Starting SSE connection for logged-in user");
+    await sseService.startListening();
   }
 
   runApp(
@@ -95,7 +105,13 @@ void main() async {
 
         ///Home DropDown List
         // HomeNotifier
-        ChangeNotifierProvider(create: (_) => HomeNotifier()),
+        // ChangeNotifierProvider(create: (_) => HomeNotifier()),
+        Provider<SSENotificationService>.value(value: sseService),
+
+        // ✅ ViewModels as ChangeNotifierProvider
+        ChangeNotifierProvider(create: (_) => NotificationCountViewModel()),
+        ChangeNotifierProvider(create: (_) => NotificationViewModel()),
+
 
         //==============>Order Now
         ChangeNotifierProvider(create: (_) => PostNearbyRetailersViewModel()),
