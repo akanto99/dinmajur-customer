@@ -7,6 +7,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:upgrader/upgrader.dart';
 
 
 class WelcomeLoginSignup extends StatefulWidget {
@@ -19,10 +20,20 @@ class WelcomeLoginSignup extends StatefulWidget {
 class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(
-        child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
+    return UpgradeAlert(
+      barrierDismissible: false,
+      showLater: false,
+      showIgnore: false,
+      showReleaseNotes: false,
+      upgrader: Upgrader(
+        // debugDisplayAlways: true,
+        // debugLogging: true,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.containerBackground(context),
+        body: SafeArea(
+          child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
+        ),
       ),
     );
   }
