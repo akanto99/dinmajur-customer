@@ -198,7 +198,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ HANDLE APP RESUME
+  /// HANDLE APP RESUME
   Future<void> _handleAppResumed() async {
     if (_isReconnecting) {
       print("🔌 MyApp: Reconnection already in progress, skipping");
@@ -263,7 +263,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ INITIALIZE NETWORK MONITORING
+  /// INITIALIZE NETWORK MONITORING
   void _initializeNetworkMonitoring() {
     print("🔌 MyApp: Initializing network monitoring...");
 
@@ -395,13 +395,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _isReconnecting = false;
     }
   }
-//
-// ✅ UPDATE RECONNECT SOCKET METHOD (keep for app resume)
+
+// UPDATE RECONNECT SOCKET METHOD (keep for app resume)
   Future<void> _reconnectSocket() async {
     // Just call the new method
     await _reconnectSocketWithUser();
   }
-  // ✅ SHOW NO CONNECTION DIALOG
+  /// SHOW NO CONNECTION DIALOG
   void _showNoConnectionDialog() {
     if (!mounted) return;
 
