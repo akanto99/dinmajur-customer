@@ -45,7 +45,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get password => 'পাসওয়ার্ড';
 
   @override
-  String get password_hint => '৮ অক্ষর বা তার বেশি লিখুন';
+  String get password_hint => '৬ অক্ষর বা তার বেশি লিখুন';
 
   @override
   String get forgot_password => 'পাসওয়ার্ড ভুলে গেছেন?';
@@ -73,7 +73,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get mobile_number_required => 'মোবাইল নম্বর *';
 
   @override
-  String get password_required => 'পাসওয়ার্ড প্রয়োজন';
+  String get new_password => 'পাসওয়ার্ড *';
 
   @override
   String get reenter_password => 'পুনরায় পাসওয়ার্ড লিখুন*';
@@ -182,7 +182,16 @@ class AppLocalizationsBn extends AppLocalizations {
   String get new_password_title => 'নতুন পাসওয়ার্ড';
 
   @override
+  String get password_required => 'পাসওয়ার্ড প্রয়োজন';
+
+  @override
   String get reenter_password_required => 'পুনরায় পাসওয়ার্ড লিখুন *';
+
+  @override
+  String get password_matched => 'পাসওয়ার্ড ম্যাচ হয়েছে';
+
+  @override
+  String get password_notmatched => 'পাসওয়ার্ড ম্যাচ হয়নি';
 
   @override
   String get confirm => 'নিশ্চিত করুন';
@@ -223,11 +232,11 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get password_min_characters =>
-      'অনুগ্রহ করে আপনার পাসওয়ার্ড দিন এবং কমপক্ষে ৮ অক্ষর';
+      'অনুগ্রহ করে আপনার পাসওয়ার্ড দিন এবং কমপক্ষে ৬ অক্ষর';
 
   @override
   String get reenter_password_min_characters =>
-      'অনুগ্রহ করে পুনরায় পাসওয়ার্ড দিন এবং কমপক্ষে ৮ অক্ষর';
+      'অনুগ্রহ করে পুনরায় পাসওয়ার্ড দিন এবং কমপক্ষে ৬ অক্ষর';
 
   @override
   String get passwords_do_not_match => 'পাসওয়ার্ড মিলছে না';
@@ -237,7 +246,7 @@ class AppLocalizationsBn extends AppLocalizations {
       'পাসওয়ার্ড খুব দুর্বল। কমপক্ষে ৩টি শর্ত পূরণ করুন।';
 
   @override
-  String get password_must_be_8 => 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে';
+  String get password_must_be_6 => 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
 
   @override
   String get please_confirm_password => 'অনুগ্রহ করে পাসওয়ার্ড নিশ্চিত করুন';
@@ -383,5 +392,5 @@ class AppLocalizationsBn extends AppLocalizations {
   String get terms_conditions => 'শর্তাবলী';
 
   @override
-  String get privacy_ploicy => 'Privacy Policy';
+  String get privacy_policy => 'গোপনীয়তা নীতি';
 }

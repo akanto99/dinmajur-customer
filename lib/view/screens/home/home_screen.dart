@@ -72,25 +72,25 @@ class _HomeScreenState extends State<HomeScreen> {
       // 'clothing': AppLocalizations.of(context)!.storeType_clothing,
     };
     // ✅ Initialize ONLY count listener in home screen
-    if (!_sseListenerInitialized) {
-      _initializeSSECountListener();
-      _sseListenerInitialized = true;
-    }
+    // if (!_sseListenerInitialized) {
+    //   _initializeSSECountListener();
+    //   _sseListenerInitialized = true;
+    // }
   }
 
-  void _initializeSSECountListener() {
-    try {
-      final sseService = Provider.of<SSENotificationService>(context, listen: false);
-      final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
-
-      // Connect only count stream
-      countViewModel.initializeCountListener(sseService.notificationCountStream);
-
-      debugPrint('✅ HomeScreen: notificationCount listener initialized');
-    } catch (e) {
-      debugPrint('❌ HomeScreen: Error initializing count listener: $e');
-    }
-  }
+  // void _initializeSSECountListener() {
+  //   try {
+  //     final sseService = Provider.of<SSENotificationService>(context, listen: false);
+  //     final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
+  //
+  //     // Connect only count stream
+  //     countViewModel.initializeCountListener(sseService.notificationCountStream);
+  //
+  //     debugPrint('✅ HomeScreen: notificationCount listener initialized');
+  //   } catch (e) {
+  //     debugPrint('❌ HomeScreen: Error initializing count listener: $e');
+  //   }
+  // }
 
   @override
   void initState() {

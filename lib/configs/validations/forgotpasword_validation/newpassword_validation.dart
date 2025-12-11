@@ -101,11 +101,11 @@ class NewPasswordValidation {
   }
 
   String? _validatePasswords(String password, String confirmPassword, BuildContext context) {
-    if (password.isEmpty || password.length < 8) {
+    if (password.isEmpty || password.length < 6) {
       return AppLocalizations.of(context)!.password_min_characters;
     }
 
-    if (confirmPassword.isEmpty || confirmPassword.length < 8) {
+    if (confirmPassword.isEmpty || confirmPassword.length < 6) {
       return AppLocalizations.of(context)!.reenter_password_min_characters;
     }
 
@@ -113,9 +113,9 @@ class NewPasswordValidation {
       return AppLocalizations.of(context)!.passwords_do_not_match;
     }
 
-    if (!isPasswordValid()) {
-      return AppLocalizations.of(context)!.password_too_weak_requirements;
-    }
+    // if (!isPasswordValid()) {
+    //   return AppLocalizations.of(context)!.password_too_weak_requirements;
+    // }
 
     return null;
   }
@@ -125,8 +125,8 @@ class NewPasswordValidation {
       return AppLocalizations.of(context)!.password_required;
     }
 
-    if (password.length < 8) {
-      return AppLocalizations.of(context)!.password_must_be_8;
+    if (password.length < 6) {
+      return AppLocalizations.of(context)!.password_must_be_6;
     }
 
     if (!isPasswordValid()) {

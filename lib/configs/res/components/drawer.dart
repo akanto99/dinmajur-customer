@@ -253,9 +253,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             GestureDetector(
               onTap: () {
+
                 Navigator.pushNamed(context, RoutesName.privacyPolicy);
               },
-              child: _buildDrawerItem(FontAwesomeIcons.shieldHalved, AppLocalizations.of(context)!.privacy_ploicy),
+              child: _buildDrawerItem(FontAwesomeIcons.shieldHalved, AppLocalizations.of(context)!.privacy_policy),
             ),
 
             SizedboxSpaccing.height025(context),

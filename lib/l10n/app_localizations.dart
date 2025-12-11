@@ -173,7 +173,7 @@ abstract class AppLocalizations {
   /// No description provided for @password_hint.
   ///
   /// In en, this message translates to:
-  /// **'Enter 8 characters or more'**
+  /// **'Enter 6 characters or more'**
   String get password_hint;
 
   /// No description provided for @forgot_password.
@@ -224,11 +224,11 @@ abstract class AppLocalizations {
   /// **'Mobile Number *'**
   String get mobile_number_required;
 
-  /// No description provided for @password_required.
+  /// No description provided for @new_password.
   ///
   /// In en, this message translates to:
-  /// **'Password is required'**
-  String get password_required;
+  /// **'Password*'**
+  String get new_password;
 
   /// No description provided for @reenter_password.
   ///
@@ -428,11 +428,29 @@ abstract class AppLocalizations {
   /// **'New password'**
   String get new_password_title;
 
+  /// No description provided for @password_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get password_required;
+
   /// No description provided for @reenter_password_required.
   ///
   /// In en, this message translates to:
   /// **'Re-enter password *'**
   String get reenter_password_required;
+
+  /// No description provided for @password_matched.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords matched'**
+  String get password_matched;
+
+  /// No description provided for @password_notmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords not matched'**
+  String get password_notmatched;
 
   /// No description provided for @confirm.
   ///
@@ -509,13 +527,13 @@ abstract class AppLocalizations {
   /// No description provided for @password_min_characters.
   ///
   /// In en, this message translates to:
-  /// **'Please enter your password & at least 8 characters'**
+  /// **'Please enter your password & at least 6 characters'**
   String get password_min_characters;
 
   /// No description provided for @reenter_password_min_characters.
   ///
   /// In en, this message translates to:
-  /// **'Please re-enter your password & at least 8 characters'**
+  /// **'Please re-enter your password & at least 6 characters'**
   String get reenter_password_min_characters;
 
   /// No description provided for @passwords_do_not_match.
@@ -530,11 +548,11 @@ abstract class AppLocalizations {
   /// **'Password is too weak. Please meet at least 3 requirements.'**
   String get password_too_weak_requirements;
 
-  /// No description provided for @password_must_be_8.
+  /// No description provided for @password_must_be_6.
   ///
   /// In en, this message translates to:
-  /// **'Password must be at least 8 characters'**
-  String get password_must_be_8;
+  /// **'Password must be at least 6 characters'**
+  String get password_must_be_6;
 
   /// No description provided for @please_confirm_password.
   ///
@@ -806,11 +824,11 @@ abstract class AppLocalizations {
   /// **'Terms & Condition'**
   String get terms_conditions;
 
-  /// No description provided for @privacy_ploicy.
+  /// No description provided for @privacy_policy.
   ///
   /// In en, this message translates to:
   /// **'Privacy Policy'**
-  String get privacy_ploicy;
+  String get privacy_policy;
 }
 
 class _AppLocalizationsDelegate
