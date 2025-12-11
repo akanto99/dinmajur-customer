@@ -30,7 +30,8 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_conf
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
-import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/sse_notification_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/notification_screen.dart';
+// import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/sse_notification_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/pending_orders/pending_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
@@ -73,6 +74,8 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
         case RoutesName.notificationsListScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
+        //  case RoutesName.notificationsListScreen:
+        // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
       case RoutesName.orderDetailsSocketScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {

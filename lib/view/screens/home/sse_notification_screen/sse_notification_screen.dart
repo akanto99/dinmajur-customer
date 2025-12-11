@@ -4,14 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification/sse_notification_view_model.dart';
 
-class NotificationsListScreen extends StatefulWidget {
-  const NotificationsListScreen({Key? key}) : super(key: key);
+class NotificationsListScreenOld extends StatefulWidget {
+  const NotificationsListScreenOld({Key? key}) : super(key: key);
 
   @override
-  State<NotificationsListScreen> createState() => _NotificationsListScreenState();
+  State<NotificationsListScreenOld> createState() => _NotificationsListScreenOldState();
 }
 
-class _NotificationsListScreenState extends State<NotificationsListScreen> {
+class _NotificationsListScreenOldState extends State<NotificationsListScreenOld> {
   bool _listenerInitialized = false;
 
   @override

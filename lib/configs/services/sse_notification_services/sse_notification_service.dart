@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_count/get_notificationCount_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as https;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -121,7 +122,7 @@ class SSENotificationService {
       debugPrint('🔍 Processing event: $_currentEventType');
       debugPrint('📄 Raw data: $jsonData');
 
-      // ✅ Handle "notificationCount" event FIRST (before JSON parsing)
+      // Handle "notificationCount" event
       if (_currentEventType == 'notificationCount') {
         try {
           // Try parsing as plain integer first (e.g., "5")
@@ -130,12 +131,12 @@ class SSENotificationService {
           _countStreamController?.add(count);
           return;
         } catch (e) {
-          // If plain int fails, try JSON object with "total" field
+          // If plain int fails, try JSON object with model
           try {
-            final data = json.decode(jsonData) as Map<String, dynamic>;
-            if (data.containsKey('total')) {
-              final count = data['total'] as int;
-              debugPrint('🔢 notificationCount (JSON): total = $count');
+            final countModel = getSseNotificationCountModelFromJson(jsonData);
+            if (countModel.total != null) {
+              final count = countModel.total!;
+              debugPrint('🔢 notificationCount (Model): total = $count');
               _countStreamController?.add(count);
               return;
             } else {
@@ -149,28 +150,28 @@ class SSENotificationService {
         return;
       }
 
-      // ✅ Handle "ping" event (heartbeat - no data needed)
-      if (_currentEventType == 'ping') {
-        debugPrint('💓 Ping/heartbeat received');
-        return;
-      }
-
-      // ✅ For all other events, parse as JSON
-      final data = json.decode(jsonData) as Map<String, dynamic>;
-
-      // Handle "notification" event
-      if (_currentEventType == 'notification') {
-        if (data.containsKey('ssePayload')) {
-          debugPrint('📬 Notification event received');
-          debugPrint('📋 Notification type: ${data['ssePayload']['type']}');
-          debugPrint('💬 Message: ${data['ssePayload']['message']}');
-          _notificationStreamController?.add(data);
-        } else {
-          debugPrint('⚠️ Notification event missing "ssePayload"');
-        }
-      } else {
-        debugPrint('⚠️ Unknown event type: $_currentEventType');
-      }
+      // // Handle "ping" event (heartbeat - no data needed)
+      // if (_currentEventType == 'ping') {
+      //   debugPrint('💓 Ping/heartbeat received');
+      //   return;
+      // }
+      //
+      // // For all other events, parse as JSON
+      // final data = json.decode(jsonData) as Map<String, dynamic>;
+      //
+      // // Handle "notification" event
+      // if (_currentEventType == 'notification') {
+      //   if (data.containsKey('ssePayload')) {
+      //     debugPrint('📬 Notification event received');
+      //     debugPrint('📋 Notification type: ${data['ssePayload']['type']}');
+      //     debugPrint('💬 Message: ${data['ssePayload']['message']}');
+      //     _notificationStreamController?.add(data);
+      //   } else {
+      //     debugPrint('⚠️ Notification event missing "ssePayload"');
+      //   }
+      // } else {
+      //   debugPrint('⚠️ Unknown event type: $_currentEventType');
+      // }
 
     } catch (e, stackTrace) {
       debugPrint('❌ Error parsing SSE data: $e');

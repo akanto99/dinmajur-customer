@@ -28,6 +28,8 @@ class AppUrl {
   static var updateAddressPatchAPI = baseUrl + '/customers/update-address-by-id';
   static var locationListGetAPI = baseUrl + '/customers/get-delivery-address';
   static var deleteAddressDeleteAPI = baseUrl + '/customers/delete-address';
+  //Notification
+  static var notificationGetAPI = baseUrl +'/notifications/get-all';
 
   ///=========>
   static var profileHeaderUpdatePatchAPI = baseUrl + '/users/update-me';
