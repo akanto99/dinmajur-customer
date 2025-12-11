@@ -1,7 +1,7 @@
 class AppUrl {
 
-  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
-  // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
   static var loginEndPint = baseUrl + '/auth/login';
