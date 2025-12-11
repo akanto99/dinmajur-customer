@@ -23,6 +23,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/nearby_retailers_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/checkout_order_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/notification_view_model/notification_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/post_change_passwordview_model/post_change_passwordview_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/order_view_models/complete_orders_view_model.dart';
@@ -110,7 +111,8 @@ void main() async {
 
         // ✅ ViewModels as ChangeNotifierProvider
         ChangeNotifierProvider(create: (_) => NotificationCountViewModel()),
-        ChangeNotifierProvider(create: (_) => NotificationViewModel()),
+        ChangeNotifierProvider(create: (_) => GetNotificationViewModel()),//notification screen
+        // ChangeNotifierProvider(create: (_) => NotificationViewModel()),
 
 
         //==============>Order Now

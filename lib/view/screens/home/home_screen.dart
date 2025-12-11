@@ -706,61 +706,50 @@ class _HomeScreenState extends State<HomeScreen> {
                   // ✅ Notification Icon - Shows count from notificationCount event
                   Consumer<NotificationCountViewModel>(
                     builder: (context, countViewModel, _) {
-                      return Stack(
-                        children: [
-                          _buildIconButton(
-                            onTap: () {
-                              debugPrint('🔔 Notification tapped');
-                              debugPrint('Count: ${countViewModel.notificationCount}');
+                      return GestureDetector(
+                        onTap: () {
+                          debugPrint('🔔 Notification tapped');
+                          debugPrint('Count: ${countViewModel.notificationCount}');
+                          Navigator.pushNamed(context, RoutesName.notificationsListScreen);
+                        },
+                        child: Stack(
+                          children: [
+                            _buildIconButton(
+                              svgAsset: 'assets/images/home/notification.svg',
+                              context: context,
+                            ),
 
-                              // TODO: Navigate to your notifications list screen
-                              // Navigator.pushNamed(context, RoutesName.notificationsList);
-                              Navigator.pushNamed(context, RoutesName.notificationsListScreen);
-                              // NotificationDialog.show(
-                              //   context,
-                              //   message: countViewModel.hasNotifications
-                              //       ? 'You have ${countViewModel.notificationCount} notifications'
-                              //       : AppLocalizations.of(context)!.no_notification,
-                              //   icon: Icons.notifications_outlined,
-                              //   iconColor: AppColors.textPrimary(context),
-                              //   iconBackgroundColor: AppColors.appBackground(context),
-                              // );
-                            },
-                            svgAsset: 'assets/images/home/notification.svg',
-                            context: context,
-                          ),
-
-                          // Badge showing count from notificationCount event
-                          if (countViewModel.hasNotifications)
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: Container(
-                                padding: EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: AppColors.containerBackground(context),
-                                    width: 1,
+                            // Badge showing count from notificationCount event
+                            if (countViewModel.hasNotifications)
+                              Positioned(
+                                right: 0,
+                                top: 2,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppColors.containerBackground(context),
+                                      width: 1,
+                                    ),
                                   ),
-                                ),
-                                constraints: BoxConstraints(
-                                  minWidth: 16,
-                                  minHeight: 16,
-                                ),
-                                child: Text(
-                                  '${countViewModel.notificationCount > 9 ? '9+' : countViewModel.notificationCount}',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
+                                  constraints: BoxConstraints(
+                                    minWidth: 14,
+                                    minHeight: 14,
                                   ),
-                                  textAlign: TextAlign.center,
+                                  child: Text(
+                                    '${countViewModel.notificationCount > 9 ? '9+' : countViewModel.notificationCount}',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -773,13 +762,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildIconButton({required VoidCallback onTap, required String svgAsset, required BuildContext context}) {
+  Widget _buildIconButton({ VoidCallback ?onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 30,
         width: 30,
         padding: const EdgeInsets.all(2),
+        color: Colors.transparent,
         child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
       ),
     );

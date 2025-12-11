@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getSseNotificationCountModel = getSseNotificationCountModelFromJson(jsonString);
-
 import 'dart:convert';
 
 GetSseNotificationCountModel getSseNotificationCountModelFromJson(String str) => GetSseNotificationCountModel.fromJson(json.decode(str));
