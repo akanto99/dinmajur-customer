@@ -45,7 +45,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get password => 'Password';
 
   @override
-  String get password_hint => 'Enter 8 characters or more';
+  String get password_hint => 'Enter 6 characters or more';
 
   @override
   String get forgot_password => 'Forgot Password';
@@ -73,7 +73,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mobile_number_required => 'Mobile Number *';
 
   @override
-  String get password_required => 'Password is required';
+  String get new_password => 'Password*';
 
   @override
   String get reenter_password => 'Re-enter Password*';
@@ -182,7 +182,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get new_password_title => 'New password';
 
   @override
+  String get password_required => 'Password is required';
+
+  @override
   String get reenter_password_required => 'Re-enter password *';
+
+  @override
+  String get password_matched => 'Passwords matched';
+
+  @override
+  String get password_notmatched => 'Passwords not matched';
 
   @override
   String get confirm => 'Confirm';
@@ -224,11 +233,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get password_min_characters =>
-      'Please enter your password & at least 8 characters';
+      'Please enter your password & at least 6 characters';
 
   @override
   String get reenter_password_min_characters =>
-      'Please re-enter your password & at least 8 characters';
+      'Please re-enter your password & at least 6 characters';
 
   @override
   String get passwords_do_not_match => 'Passwords do not match';
@@ -238,7 +247,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Password is too weak. Please meet at least 3 requirements.';
 
   @override
-  String get password_must_be_8 => 'Password must be at least 8 characters';
+  String get password_must_be_6 => 'Password must be at least 6 characters';
 
   @override
   String get please_confirm_password => 'Please confirm your password';
@@ -384,5 +393,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get terms_conditions => 'Terms & Condition';
 
   @override
-  String get privacy_ploicy => 'Privacy Policy';
+  String get privacy_policy => 'Privacy Policy';
 }

@@ -2,6 +2,7 @@ import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
+import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/validations/forgotpasword_validation/newpassword_validation.dart';
@@ -12,6 +13,7 @@ import 'package:dinmajur_customer/view_model/forgot_password_models/post_forgotr
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class NewPassword extends StatefulWidget {
   const NewPassword({super.key});
@@ -38,12 +40,19 @@ class _NewPasswordState extends State<NewPassword> {
     super.initState();
     _newPasswordValidation = NewPasswordValidation();
     _passwordController.addListener(_onPasswordChanged);
+    _reenterPasswordController.addListener(_onPasswordChanged);
   }
 
   void _onPasswordChanged() {
     setState(() {
-      _newPasswordValidation.checkPasswordStrength(_passwordController.text);
+      // _newPasswordValidation.checkPasswordStrength(_passwordController.text);
     });
+  }
+
+  // Check if passwords match
+  bool get passwordsMatch {
+    if (_reenterPasswordController.text.isEmpty) return true;
+    return _passwordController.text == _reenterPasswordController.text;
   }
 
   @override
@@ -106,16 +115,16 @@ class _NewPasswordState extends State<NewPassword> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomPasswordFieldPoppins(
-                        titleText: AppLocalizations.of(context)!.password_required,
+                        titleText: AppLocalizations.of(context)!.new_password,
                         controller: _passwordController,
                         focusNode: _passwordFocus,
                         obsecurePassword: _obsecurePassword,
                       ),
                       // Password strength indicator
-                      if (_passwordController.text.isNotEmpty) ...[
-                        SizedboxSpaccing.height025(context),
-                        _newPasswordValidation.buildProgressBar(),
-                      ],
+                      // if (_passwordController.text.isNotEmpty) ...[
+                      //   SizedboxSpaccing.height025(context),
+                      //   _newPasswordValidation.buildProgressBar(),
+                      // ],
                       SizedboxSpaccing.height025(context),
                       CustomPasswordFieldPoppins(
                         titleText:AppLocalizations.of(context)!.reenter_password,
@@ -123,12 +132,27 @@ class _NewPasswordState extends State<NewPassword> {
                         focusNode: _rePasswordFocus,
                         obsecurePassword: _reObsecurePassword,
                       ),
-                      // Password requirements
-                      SizedboxSpaccing.height025(context),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15.0),
-                        child: _newPasswordValidation.buildRequirementsList(context),
-                      ),
+                      // Password match indicator
+                      SizedboxSpaccing.height01(context),
+                      if (_reenterPasswordController.text.isNotEmpty) ...[
+                        Container(
+                          // width: screenWidth*0.9,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            passwordsMatch
+                                ? AppLocalizations.of(context)!.password_matched
+                                : AppLocalizations.of(context)!.password_notmatched,
+                            style:AppTextStyles.textSize12(context, color: passwordsMatch ? Colors.green : Colors.red, )
+                          ),
+                        ),
+                        // SizedboxSpaccing.height025(context),
+                      ],
+
+                      // Padding(
+                      //   padding: const EdgeInsets.only(left: 15.0),
+                      //   child: _newPasswordValidation.buildRequirementsList(context),
+                      // ),
+
                     ],
                   ),
                 ),
@@ -142,11 +166,12 @@ class _NewPasswordState extends State<NewPassword> {
                         iconData: Icons.arrow_forward_ios_rounded,
                         loading: forgotNewPasswordMode.newPasswordLoading,
                         onPress: () async {
+                          // Validation using NewPasswordValidation
                           String? validationMessage = _newPasswordValidation
                               .getValidationMessageWithoutPhone(
-                            _passwordController.text,
-                            _reenterPasswordController.text,
-                            context
+                              _passwordController.text,
+                              _reenterPasswordController.text,
+                              context
                           );
 
                           if (validationMessage != null) {
