@@ -257,6 +257,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Passwords & Re-enter Passwords do not match';
 
   @override
+  String get password_cannot_contain_spaces => 'Password cannot contain spaces';
+
+  @override
+  String get reenter_password_cannot_contain_spaces =>
+      'Re-enter password cannot contain spaces';
+
+  @override
+  String get enter_old_password => 'Please enter your old password';
+
+  @override
+  String get old_password_min_characters =>
+      'Old password must be at least 6 characters';
+
+  @override
   String get navigation_bar =>
       '--------------------navigation_bar------------------------';
 

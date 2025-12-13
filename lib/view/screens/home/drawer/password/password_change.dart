@@ -2,10 +2,12 @@ import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
+import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/validations/change_password_validation/change_password_validation.dart';
 import 'package:dinmajur_customer/configs/widgets/reusable_passwordfield.dart';
+import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/post_change_passwordview_model/post_change_passwordview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,19 +35,26 @@ class _PasswordChangeState extends State<PasswordChange> {
 
   // Create an instance of ChangePasswordValidation
   final ChangePasswordValidation _newPasswordValidation = ChangePasswordValidation();
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_onPasswordChanged);
+    _reenterPasswordController.addListener(_onPasswordChanged); // Added listener for re-enter password
+    _isInitialized = true;
   }
-
   void _onPasswordChanged() {
-    setState(() {
-      _newPasswordValidation.checkPasswordStrength(_passwordController.text);
-    });
+    if (_isInitialized && mounted) {
+      setState(() {
+        // _newPasswordValidation.checkPasswordStrength(_passwordController.text);
+      });
+    }
   }
-
+  bool get passwordsMatch {
+    if (_reenterPasswordController.text.isEmpty) return true;
+    return _passwordController.text == _reenterPasswordController.text;
+  }
   @override
   void dispose() {
     _oldPassController.dispose();
@@ -123,10 +132,10 @@ class _PasswordChangeState extends State<PasswordChange> {
                         obsecurePassword: _obsecurePassword,
                       ),
 
-                      if (_passwordController.text.isNotEmpty) ...[
-                        SizedboxSpaccing.height01(context),
-                        _newPasswordValidation.buildProgressBar(),
-                      ],
+                      // if (_passwordController.text.isNotEmpty) ...[
+                      //   SizedboxSpaccing.height01(context),
+                      //   _newPasswordValidation.buildProgressBar(),
+                      // ],
                       SizedboxSpaccing.height025(context),
                       CustomPasswordFieldPoppins(
                         titleText: "Re-enter Password *",
@@ -134,15 +143,29 @@ class _PasswordChangeState extends State<PasswordChange> {
                         focusNode: _rePasswordFocus,
                         obsecurePassword: _reObsecurePassword,
                       ),
-                      SizedboxSpaccing.height025(context),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 15,
+                      if (_reenterPasswordController.text.isNotEmpty) ...[
+                        SizedboxSpaccing.height005(context),
+                        Container(
+                          // width: screenWidth*0.9,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                              passwordsMatch
+                                  ? AppLocalizations.of(context)!.password_matched
+                                  : AppLocalizations.of(context)!.password_notmatched,
+                              style:AppTextStyles.textSize12(context, color: passwordsMatch ? Colors.green : Colors.red, )
                           ),
-                          _newPasswordValidation.buildRequirementsList(context),
-                        ],
-                      ),
+                        ),
+                        // SizedboxSpaccing.height025(context),
+                      ],
+                      // SizedboxSpaccing.height025(context),
+                      // Row(
+                      //   children: [
+                      //     SizedBox(
+                      //       width: 15,
+                      //     ),
+                      //     _newPasswordValidation.buildRequirementsList(context),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),
@@ -164,9 +187,9 @@ class _PasswordChangeState extends State<PasswordChange> {
                           );
 
                           // Check old password
-                          if (_oldPassController.text.isEmpty || _oldPassController.text.length < 8) {
+                          if (_oldPassController.text.isEmpty || _oldPassController.text.length < 6) {
                             Utils.flushBarErrorMessage(
-                              'Please enter your old password & at least 8 characters',
+                              'Please enter your old password & at least 6 characters',
                               context,
                             );
                             return;

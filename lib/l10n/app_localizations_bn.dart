@@ -256,6 +256,21 @@ class AppLocalizationsBn extends AppLocalizations {
       'পাসওয়ার্ড এবং পুনরায় পাসওয়ার্ড মিলছে না';
 
   @override
+  String get password_cannot_contain_spaces =>
+      'পাসওয়ার্ডে স্পেস ব্যবহার করা যাবে না';
+
+  @override
+  String get reenter_password_cannot_contain_spaces =>
+      'পুনরায় দেওয়া পাসওয়ার্ডে স্পেস ব্যবহার করা যাবে না';
+
+  @override
+  String get enter_old_password => 'অনুগ্রহ করে আপনার পুরোনো পাসওয়ার্ড দিন';
+
+  @override
+  String get old_password_min_characters =>
+      'পুরোনো পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
+
+  @override
   String get navigation_bar =>
       '--------------------Navigation Bar------------------------';
 

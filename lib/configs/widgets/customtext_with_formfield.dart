@@ -252,7 +252,11 @@ class _CustomTextFieldWithFormFieldPoppinsState extends State<CustomTextFieldWit
                   decoration: BoxDecoration(
                     color: AppColors.textFieldFill(context),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(width: 1, color: fieldState.hasError ? Colors.red : (_isFocused ? AppColors.button(context) : AppColors.border(context))),
+                    border:Border.all(
+                      width: 1,
+                      color: AppColors.border(context),
+                    ),
+                    // border: Border.all(width: 1, color: fieldState.hasError ? Colors.red : (_isFocused ? AppColors.button(context) : AppColors.border(context))),
                   ),
                   child: TextFormField(
                     controller: widget.controller,

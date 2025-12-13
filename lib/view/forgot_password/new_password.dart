@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/unifiedpassword_validation/unifiedpassword_validation.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/validations/forgotpasword_validation/newpassword_validation.dart';
 import 'package:dinmajur_customer/configs/widgets/reusable_passwordfield.dart';
@@ -33,12 +34,12 @@ class _NewPasswordState extends State<NewPassword> {
   final FocusNode _rePasswordFocus = FocusNode();
 
   // Password validation instance
-  late NewPasswordValidation _newPasswordValidation;
+  late UnifiedPasswordValidation _passwordValidation;
 
   @override
   void initState() {
     super.initState();
-    _newPasswordValidation = NewPasswordValidation();
+    _passwordValidation = UnifiedPasswordValidation();
     _passwordController.addListener(_onPasswordChanged);
     _reenterPasswordController.addListener(_onPasswordChanged);
   }
@@ -133,8 +134,8 @@ class _NewPasswordState extends State<NewPassword> {
                         obsecurePassword: _reObsecurePassword,
                       ),
                       // Password match indicator
-                      SizedboxSpaccing.height01(context),
                       if (_reenterPasswordController.text.isNotEmpty) ...[
+                        SizedboxSpaccing.height005(context),
                         Container(
                           // width: screenWidth*0.9,
                           alignment: Alignment.centerRight,
@@ -167,11 +168,11 @@ class _NewPasswordState extends State<NewPassword> {
                         loading: forgotNewPasswordMode.newPasswordLoading,
                         onPress: () async {
                           // Validation using NewPasswordValidation
-                          String? validationMessage = _newPasswordValidation
-                              .getValidationMessageWithoutPhone(
-                              _passwordController.text,
-                              _reenterPasswordController.text,
-                              context
+                          String? validationMessage =
+                          UnifiedPasswordValidation.validateForgotPassword(
+                            password: _passwordController.text,
+                            reenterPassword: _reenterPasswordController.text,
+                            context: context,
                           );
 
                           if (validationMessage != null) {
