@@ -566,6 +566,30 @@ abstract class AppLocalizations {
   /// **'Passwords & Re-enter Passwords do not match'**
   String get passwords_reenter_do_not_match;
 
+  /// No description provided for @password_cannot_contain_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Password cannot contain spaces'**
+  String get password_cannot_contain_spaces;
+
+  /// No description provided for @reenter_password_cannot_contain_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter password cannot contain spaces'**
+  String get reenter_password_cannot_contain_spaces;
+
+  /// No description provided for @enter_old_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your old password'**
+  String get enter_old_password;
+
+  /// No description provided for @old_password_min_characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Old password must be at least 6 characters'**
+  String get old_password_min_characters;
+
   /// No description provided for @navigation_bar.
   ///
   /// In en, this message translates to:
