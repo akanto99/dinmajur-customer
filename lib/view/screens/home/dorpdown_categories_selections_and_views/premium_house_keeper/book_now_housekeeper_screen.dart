@@ -11,6 +11,9 @@ import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
@@ -69,34 +72,35 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       String todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
       getShiftTimeviewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(todayDate);
 
-      // Initialize keys for each service
-      final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
-      for (int i = 0; i < data.length; i++) {
-        _serviceKeys[i] = GlobalKey();
-      }
-
       _startAutoScroll();
     });
   }
 
-  // void _onDateChanged(String newDate) {
-  //   // Convert from "MMMM dd, yyyy" to "yyyy-MM-dd" format
-  //   try {
-  //     DateTime parsedDate = DateFormat('MMMM dd, yyyy').parse(newDate);
-  //     String formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
-  //
-  //     // Fetch shift times for the new date
-  //     final getShiftTimeviewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
-  //     getShiftTimeviewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(formattedDate);
-  //
-  //     // Reset selected time since shifts changed
-  //     setState(() {
-  //       _selectedTime = null;
-  //     });
-  //   } catch (e) {
-  //     print('Error parsing date: $e');
-  //   }
-  // }
+// ADD THIS NEW METHOD:
+  void _initializeServiceKeys(List<Datum> data) {
+    if (_serviceKeys.isEmpty && data.isNotEmpty) {
+      for (int i = 0; i < data.length; i++) {
+        _serviceKeys[i] = GlobalKey();
+      }
+    }
+  }
+
+// UPDATE THIS METHOD:
+  void _scrollToCategory(int index) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_serviceKeys.containsKey(index)) {
+        final keyContext = _serviceKeys[index]?.currentContext;
+        if (keyContext != null) {
+          Scrollable.ensureVisible(
+            keyContext,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            alignment: 0.1,
+          );
+        }
+      }
+    });
+  }
   void _onDateChanged(String newDate) {
     // Convert from "MMMM dd, yyyy" to "yyyy-MM-dd" format
     try {
@@ -148,22 +152,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     _specialRequestController.dispose();
     _mainScrollController.dispose(); // ADD THIS
     super.dispose();
-  }
-
-  // ADD THIS NEW METHOD:
-  void _scrollToCategory(int index) {
-    if (_serviceKeys.containsKey(index)) {
-      final keyContext = _serviceKeys[index]?.currentContext;
-      if (keyContext != null) {
-        // Use Scrollable.ensureVisible for smooth scrolling
-        Scrollable.ensureVisible(
-          keyContext,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          alignment: 0.1, // Position at 10% from top of viewport
-        );
-      }
-    }
   }
 
   void _updateQuantity(String serviceId, int change) {
@@ -257,109 +245,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
-  // Widget _body() {
-  //   final screenWidth = MediaQuery.of(context).size.width;
-  //   final screenHeight = MediaQuery.of(context).size.height;
-  //
-  //   return Column(
-  //     children: [
-  //       GestureDetector(
-  //         onTap: () => Navigator.pop(context),
-  //         child: Container(height: 60, child: AppBarHeader("Premium House Keeper")),
-  //       ),
-  //       Expanded(
-  //         child: Consumer2<GetallPremiumHouseKeeperTaskViewModel, GetallShifttimeViewModel>(
-  //           builder: (context, housekeeperViewModel, shiftTimeViewModel, _) {
-  //             // Check loading states
-  //             final isHousekeeperLoading = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.LOADING;
-  //             final isShiftTimeLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
-  //
-  //             // Check error states
-  //             final hasHousekeeperError = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.ERROR;
-  //             final hasShiftTimeError = shiftTimeViewModel.getAllShiftTimeData.status == Status.ERROR;
-  //
-  //             // Show loading indicator if any data is loading
-  //             if (isHousekeeperLoading || isShiftTimeLoading) {
-  //               return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
-  //             }
-  //
-  //             // Show error if any data failed to load
-  //             if (hasHousekeeperError || hasShiftTimeError) {
-  //               return Center(
-  //                 child: Column(
-  //                   mainAxisAlignment: MainAxisAlignment.center,
-  //                   children: [
-  //                     Icon(Icons.error_outline, size: 48, color: Colors.red),
-  //                     SizedBox(height: 16),
-  //                     Text('Failed to load data', style: AppTextStyles.textSize16(context, color: Colors.red)),
-  //                     SizedBox(height: 16),
-  //                     ElevatedButton(
-  //                       onPressed: () {
-  //                         housekeeperViewModel.fetchGetAllPermiumHouseKeeperTaskGetDataApi();
-  //
-  //                         // Fetch shift times with the current selected date
-  //                         String currentDate = DateFormat('yyyy-MM-dd').format(_dateController.text.isNotEmpty ? DateFormat('MMMM dd, yyyy').parse(_dateController.text) : DateTime.now());
-  //                         shiftTimeViewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(currentDate);
-  //                       },
-  //                       child: Text('Retry'),
-  //                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               );
-  //             }
-  //
-  //             return SingleChildScrollView(
-  //               controller: _mainScrollController, // ADD THIS
-  //               child: Column(
-  //                 children: [
-  //                   SizedboxSpaccing.height015(context),
-  //                   Container(
-  //                     width: screenWidth * 0.9,
-  //                     child: Text(
-  //                       "Two highly-trained housekeepers will work together",
-  //                       style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.subtitle(context)),
-  //                       textAlign: TextAlign.center,
-  //                     ),
-  //                   ),
-  //                   SizedboxSpaccing.height02(context),
-  //
-  //                   // Frequency Selection
-  //                   _buildFrequencySelection(screenWidth),
-  //
-  //                   SizedboxSpaccing.height02(context),
-  //
-  //                   // Date Selection
-  //                   _buildDateSelection(screenWidth),
-  //
-  //                   SizedboxSpaccing.height02(context),
-  //
-  //                   // Time Selection
-  //                   _buildTimeSelection(screenWidth, shiftTimeViewModel),
-  //
-  //                   SizedboxSpaccing.height02(context),
-  //
-  //                   // Category Tabs
-  //                   _buildCategoryTabs(housekeeperViewModel),
-  //
-  //                   SizedboxSpaccing.height02(context),
-  //
-  //                   // Services List
-  //                   _buildServicesList(screenWidth, screenHeight, housekeeperViewModel),
-  //
-  //                   SizedboxSpaccing.height045(context),
-  //                 ],
-  //               ),
-  //             );
-  //           },
-  //         ),
-  //       ),
-  //
-  //       // Bottom Cart Bar
-  //       _buildBottomCartBar(screenWidth),
-  //     ],
-  //   );
-  // }
   Widget _body() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -375,10 +260,14 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           // Remove GetallShifttimeViewModel from Consumer2
           child: Consumer<GetallPremiumHouseKeeperTaskViewModel>(
             builder: (context, housekeeperViewModel, _) {
-              // Check only housekeeper loading state
-              final isHousekeeperLoading = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.LOADING;
+              final data = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
 
-              // Check only housekeeper error state
+              // Initialize service keys when data is available
+              if (data.isNotEmpty) {
+                _initializeServiceKeys(data);
+              }
+
+              final isHousekeeperLoading = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.LOADING;
               final hasHousekeeperError = housekeeperViewModel.getAllPremiumHouseKeeperTaskData.status == Status.ERROR;
 
               // Show loading indicator only for housekeeper data
@@ -445,7 +334,27 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     SizedboxSpaccing.height02(context),
 
                     // Category Tabs
-                    _buildCategoryTabs(housekeeperViewModel),
+                    DynamicCategoryTabs(
+                      categories: data,
+                      selectedIndex: _selectedTabIndex,
+                      onCategoryTap: (index) {
+                        setState(() => _selectedTabIndex = index);
+                        _scrollToCategory(index);
+                      },
+                      getName: (service) => service.name ?? '',
+                      getImageUrl: (service) => service.icon?.url,
+                      getButtonColor: (context) => AppColors.button(context),
+                      getBackgroundColor: (context) => AppColors.containerBackground(context),
+                      getBorderColor: (context) => AppColors.border(context),
+                      getTextColor: (context) => AppColors.textPrimary(context),
+                      getTextStyle: (context, isSelected) => AppTextStyles.textSize12(
+                        context,
+                        weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
+                      ),
+                      defaultIcon: Icons.cleaning_services,
+                      supportSvg: true,
+                    ),
 
                     SizedboxSpaccing.height02(context),
 
@@ -868,373 +777,104 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
-  Widget _buildCategoryTabs(GetallPremiumHouseKeeperTaskViewModel viewModel) {
-    final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
-    if (data.isEmpty) return SizedBox();
-
-    return Container(
-      height: 110,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.05),
-        itemCount: data.length,
-        itemBuilder: (context, index) {
-          final service = data[index];
-          bool isSelected = _selectedTabIndex == index;
-
-          // Check if the icon URL is an SVG
-          bool isSvg = service.icon?.url?.toLowerCase().endsWith('.svg') ?? false;
-
-          return GestureDetector(
-            onTap: () {
-              setState(() => _selectedTabIndex = index);
-              // ADD THIS LINE TO SCROLL TO THE CATEGORY
-              _scrollToCategory(index);
-            },
-            child: Container(
-              margin: EdgeInsets.only(right: 16),
-              child: Column(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.button(context).withOpacity(0.1) : AppColors.containerBackground(context),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
-                    ),
-                    child: service.icon?.url != null
-                        ? ClipOval(
-                            child: isSvg
-                                ? Padding(
-                                    padding: EdgeInsets.all(12),
-                                    child: SvgPicture.network(
-                                      service.icon!.url!,
-                                      colorFilter: ColorFilter.mode(isSelected ? AppColors.button(context) : AppColors.textPrimary(context), BlendMode.srcIn),
-                                    ),
-                                  )
-                                : Image.network(
-                                    service.icon!.url!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Icon(Icons.cleaning_services, color: AppColors.button(context)),
-                                  ),
-                          )
-                        : Icon(Icons.cleaning_services, color: AppColors.button(context)),
-                  ),
-                  SizedBox(height: 8),
-                  SizedBox(
-                    width: 80,
-                    child: Text(
-                      service.name ?? '',
-                      style: AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   // UPDATE THE _buildServicesList METHOD:
   Widget _buildServicesList(double screenWidth, double screenHeight, GetallPremiumHouseKeeperTaskViewModel viewModel) {
     final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
-    if (data.isEmpty) {
-      return Center(child: Text('No services available', style: AppTextStyles.textSize16(context)));
-    }
 
-    return Container(
-      width: screenWidth * 0.9,
-      child: ListView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        itemCount: data.length,
-        itemBuilder: (context, index) {
-          // Initialize key if it doesn't exist
-          if (!_serviceKeys.containsKey(index)) {
-            _serviceKeys[index] = GlobalKey();
+    return DynamicServiceList<Datum, Datum>(
+      categories: data,
+      categoryKeys: _serviceKeys,
+      screenWidth: screenWidth,
+      screenHeight: screenHeight,
+      isSimpleList: true, // House Keeper uses simple list
+      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
+      emptyStateStyle: (context) => AppTextStyles.textSize16(context),
+      emptyStateSpacing: (context) => SizedboxSpaccing.height02(context),
+      buildServiceCard: (service, width, height) {
+        int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
+
+        // Calculate prices
+        double originalPrice = 0;
+        if (service.houseKeeperTaskItems?.isNotEmpty == true) {
+          for (var item in service.houseKeeperTaskItems!) {
+            originalPrice += item.price?.toDouble() ?? 0;
           }
+        }
 
-          // Wrap the service card with a Container that has the key
-          return Container(key: _serviceKeys[index], child: _buildServiceCard(data[index], screenWidth, screenHeight));
-        },
-      ),
+        double discountedPrice = originalPrice;
+        if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
+          if (service.discountType == 'PERCENTAGE') {
+            discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
+          } else if (service.discountType == 'FLAT') {
+            discountedPrice = originalPrice - service.discountValue!.toDouble();
+          }
+        }
+
+        return DynamicServiceCard(
+          imageUrl: service.image?.url,
+          defaultIcon: Icons.cleaning_services,
+          serviceName: service.name ?? '',
+          viewDetailsText: 'View Task Details',
+          onViewDetails: () => _showTaskDetailsDialog(service),
+          discountedPrice: discountedPrice,
+          originalPrice: originalPrice,
+          showDiscount: service.discountValue != null && originalPrice > 0,
+          quantity: quantity,
+          onAdd: () => _updateQuantity(service.id ?? '', 1),
+          onRemove: () => _updateQuantity(service.id ?? '', -1),
+          onIncrease: () {
+            if (service.hasRoom == false) {
+              Utils.flushBarExclamatoryMessage(
+                title: "Can't Add More",
+                subtitle: "Additional quantity isn't available for this service.",
+                context: context,
+              );
+            } else {
+              _updateQuantity(service.id ?? '', 1);
+            }
+          },
+          showRoomNumber: quantity > 0,
+          roomNumberLabel: 'Room Number',
+          getButtonColor: (context) => AppColors.button(context),
+          getBackgroundColor: (context) => AppColors.containerBackground(context),
+          getBorderColor: (context) => AppColors.border(context),
+          getSubtitleColor: (context) => AppColors.subtitle(context),
+          getTextColor: (context) => AppColors.textPrimary(context),
+          getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(
+            context,
+            weight: weight ?? FontWeight.normal,
+            color: color ?? AppColors.textPrimary(context),
+          ),
+          getSpacing: (context) => SizedboxSpaccing.width03(context),
+        );
+      },
     );
   }
 
-  Widget _buildServiceCard(Datum service, double screenWidth, double screenHeight) {
-    ///Checked unchecked value will be reduce
-    // int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
-    //
-    // // Get all selected task items for this service (default to all if none selected)
-    // Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ??
-    //     (service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {});
-    //
-    // // Calculate original price from selected task items only
-    // double originalPrice = 0;
-    // if (service.houseKeeperTaskItems?.isNotEmpty == true) {
-    //   for (var item in service.houseKeeperTaskItems!) {
-    //     if (selectedItems.contains(item.id ?? '')) {
-    //       originalPrice += item.price?.toDouble() ?? 0;
-    //     }
-    //   }
-    // }
-    //
-    // double discountedPrice = originalPrice;
-    //
-    // // Calculate discounted price
-    // if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
-    //   if (service.discountType == 'PERCENTAGE') {
-    //     discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
-    //   } else if (service.discountType == 'FIXED') {
-    //     discountedPrice = originalPrice - service.discountValue!.toDouble();
-    //   }
-    // }
 
-    int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
-
-    // Calculate original price from ALL task items (not just selected ones)
-    double originalPrice = 0;
-    if (service.houseKeeperTaskItems?.isNotEmpty == true) {
-      for (var item in service.houseKeeperTaskItems!) {
-        originalPrice += item.price?.toDouble() ?? 0;
-      }
-    }
-
-    double discountedPrice = originalPrice;
-
-    // Calculate discounted price based on ALL items
-    if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
-      if (service.discountType == 'PERCENTAGE') {
-        discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
-      } else if (service.discountType == 'FLAT') {
-        discountedPrice = originalPrice - service.discountValue!.toDouble();
-      }
-    }
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.grey[200]),
-            child: service.image?.url != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      service.image!.url!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Icon(Icons.image, size: 40, color: Colors.grey),
-                    ),
-                  )
-                : Icon(Icons.cleaning_services, size: 40, color: Colors.grey),
-          ),
-          SizedboxSpaccing.width03(context),
-
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  service.name ?? '',
-                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedboxSpaccing.height005(context),
-                GestureDetector(
-                  onTap: () {
-                    _showTaskDetailsDialog(service);
-                  },
-                  child: Row(
-                    children: [
-                      Text(
-                        'View Task Details',
-                        style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
-                      ),
-                      Icon(Icons.chevron_right, size: 16, color: AppColors.button(context)),
-                    ],
-                  ),
-                ),
-                SizedboxSpaccing.height01(context),
-                Row(
-                  children: [
-                    Text(
-                      '৳${discountedPrice.toStringAsFixed(2)}',
-                      style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.button(context)),
-                    ),
-                    if (service.discountValue != null && originalPrice > 0) ...[
-                      SizedBox(width: 8),
-                      Text(
-                        '৳${originalPrice.toStringAsFixed(2)}',
-                        style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-// Quantity Controls or Add Button
-// Quantity Controls or Add Button
-          if (quantity == 0)
-            GestureDetector(
-              onTap: () => _updateQuantity(service.id ?? '', 1),
-              child: Container(
-                width: 70,
-                height: 25,
-                decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-                child: Center(
-                  child: Text(
-                    'ADD +',
-                    style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: Colors.white),
-                  ),
-                ),
-              ),
-            )
-          else
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('Room Number', style: AppTextStyles.textSize10(context, color: AppColors.button(context))),
-                    SizedboxSpaccing.height005(context),
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => _updateQuantity(service.id ?? '', -1),
-                          child: Container(
-                            width: 25,
-                            height: 25,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.border(context)),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Icon(Icons.remove, size: 16),
-                          ),
-                        ),
-                        Container(
-                          width: 30,
-                          child: Center(
-                            child: Text(quantity.toString(), style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            // Check if hasRoom is false
-                            if (service.hasRoom == false) {
-                              Utils.flushBarExclamatoryMessage(
-                                title: "Can't Add More",
-                                subtitle: "Additional quantity isn't available for this service.",
-                                context: context,
-                              );
-                            } else {
-                              _updateQuantity(service.id ?? '', 1);
-                            }
-                          },
-                          child: Container(
-                            width: 25,
-                            height: 25,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.border(context)),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Icon(Icons.add, size: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomCartBar(double screenWidth,double screenHeight) {
-    // Get the count of unique services (not total quantities)
-    int totalServices = _serviceQuantities.entries.where((entry) => entry.value > 0).length;
-
+  Widget _buildBottomCartBar(double screenWidth, double screenHeight) {
+    // Calculate values
+    int totalServices = _serviceQuantities.totalServices; // Using extension
     double totalPrice = _calculateTotal();
     double savedAmount = _calculateSaved();
 
-    if (totalServices == 0) return SizedBox();
-
-    return Container(
-      width: screenWidth,
-      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.button(context),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: Offset(0, -5))],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Total Services ($totalServices service${totalServices > 1 ? 's' : ''})', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
-              SizedBox(height: 4),
-              Row(
-                children: [
-                  Text(
-                    '৳${totalPrice.toStringAsFixed(2)}',
-                    style: AppTextStyles.textSize20(context, weight: FontWeight.w700, color: Colors.white),
-                  ),
-                  if (savedAmount > 0) ...[
-                    SizedBox(width: 8),
-                    Text(
-                      'Saved ৳${savedAmount.toStringAsFixed(2)}',
-                      style: AppTextStyles.textSize12(context, color:AppColors.whiteColor, weight: FontWeight.w600),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-          GestureDetector(
-            onTap: () {
-              _proceedToCart();
-            },
-            child: Container(
-              width: 110,
-              height: 40,
-              decoration: BoxDecoration(color: AppColors.blackColor, borderRadius: BorderRadius.circular(8), border: Border.all(width: 1,color: AppColors.whiteColor)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Cart',
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, color: AppColors.whiteColor, size: 20),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+    return DynamicBottomCartBar(
+      totalServices: totalServices,
+      totalPrice: totalPrice,
+      savedAmount: savedAmount,
+      onCartTap: _proceedToCart,
+      screenWidth: screenWidth,
+      screenHeight: screenHeight,
+      getButtonColor: (context) => AppColors.button(context),
+      getBlackColor: (context) => AppColors.blackColor,
+      getWhiteColor: (context) => AppColors.whiteColor,
+      getTextStyle: (context, {weight, color}) {
+        if (weight == FontWeight.w700) {
+          return AppTextStyles.textSize20(context, weight: weight, color: color ?? Colors.white);
+        }
+        return AppTextStyles.textSize14(context, color: color ?? AppColors.whiteColor);
+      },
     );
   }
 
@@ -2280,7 +1920,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                             final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
 
                             // CHANGED: Pass callback that receives trackingId
-                            await bookingViewModel.bookPremiumHouseKeeperLoadingPostApi(context, bookingData, (String trackingId) {
+                            await bookingViewModel.bookPremiumHouseKeeperPostApi(context, bookingData, (String trackingId) {
                               // This callback only runs on SUCCESS and receives trackingId
                               print('Success! TrackingId: $trackingId');
 

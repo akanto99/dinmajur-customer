@@ -312,6 +312,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get storeType_housekeeper => 'প্রিমিয়াম হাউস কিপার';
 
   @override
+  String get storeType_beauty_salon => 'প্রিমিয়াম হোম বিউটি ও সেলুন';
+
+  @override
   String get select_store_type => 'কি লাগবে?';
 
   @override

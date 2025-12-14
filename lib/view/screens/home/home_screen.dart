@@ -13,6 +13,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beauty_and_salon_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -55,7 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isCheckingCoverage = false;
   bool? isInsideServiceArea;
 
-
   // ✅ Add SSE listener flag
   bool _sseListenerInitialized = false;
   @override
@@ -66,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // 'Retail': AppLocalizations.of(context)!.storeType_retail,
       'Retail': AppLocalizations.of(context)!.storeType_grocery,
       'Premium House Keeper': AppLocalizations.of(context)!.storeType_housekeeper,
+      'Premium Home Beauty & Salon': AppLocalizations.of(context)!.storeType_beauty_salon,
       // 'restaurant': AppLocalizations.of(context)!.storeType_restaurant,
       // 'pharmacy': AppLocalizations.of(context)!.storeType_pharmacy,
       // 'electronics': AppLocalizations.of(context)!.storeType_electronics,
@@ -117,7 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (selectedStoreType == 'Retail') {
         await _fetchNearbyRetailers(selectedStoreType!);
       }
-
     } catch (e) {
       if (mounted) {
         Utils.flushBarErrorMessage("Refresh failed", context);
@@ -281,6 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
+
   /// Method to fetch Premium House keeper Check Coverage
   Future<void> _checkCoverage() async {
     if (!mounted) return;
@@ -338,8 +339,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -406,6 +405,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       _fetchNearbyRetailers(newValue);
                     } else if (newValue == 'Premium House Keeper') {
                       _checkCoverage();
+                    }else if (newValue == 'Premium Home Beauty & Salon') {
+                      _checkCoverage();
                     }
                   }
                 },
@@ -425,7 +426,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 currentAddress: _currentAddress,
               )
             // In HomeScreen body() method, update the PremiumHouseKeeperCoverageWidget call:
-
             else if (selectedStoreType == 'Premium House Keeper')
               Consumer<ProfileViewViewModel>(
                 builder: (context, profileViewModel, _) {
@@ -454,6 +454,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
 
                   return PremiumHouseKeeperCoverageWidget(
+                    isCheckingCoverage: isCheckingCoverage,
+                    isInsideServiceArea: isInsideServiceArea,
+                    customerName: customerName,
+                    customerPhone: customerPhone,
+                    customerAddress: customerAddress,
+                  );
+                },
+              )
+            else if (selectedStoreType == 'Premium Home Beauty & Salon')
+              Consumer<ProfileViewViewModel>(
+                builder: (context, profileViewModel, _) {
+                  // Extract customer data from profile
+                  String customerName = '';
+                  String customerPhone = '';
+                  String customerAddress = '';
+
+                  if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                    final userData = profileViewModel.profileviewUserData.data?.data;
+
+                    // Get name
+                    if (userData?.user?.fullName != null) {
+                      customerName = userData!.user!.fullName!;
+                    }
+
+                    // Get phone
+                    if (userData?.user?.phone != null) {
+                      customerPhone = userData!.user!.phone!;
+                    }
+
+                    // Get address
+                    if (userData?.addresses?.fullAddress != null) {
+                      customerAddress = userData!.addresses!.fullAddress!;
+                    }
+                  }
+
+                  return PremiumBeautyAndSalonCoverageWidget(
                     isCheckingCoverage: isCheckingCoverage,
                     isInsideServiceArea: isInsideServiceArea,
                     customerName: customerName,
@@ -549,24 +585,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAppBarContent({
-    required double screenWidth,
-    required double screenHeight,
-    required String userName,
-    required String displayAddress,
-    String? profileImageUrl,
-  }) {
+  Widget _buildAppBarContent({required double screenWidth, required double screenHeight, required String userName, required String displayAddress, String? profileImageUrl}) {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
         color: AppColors.containerBackground(context),
-        border: Border(
-          bottom: BorderSide(color: AppColors.border(context), width: 1.0),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
       ),
       child: Center(
         child: Container(
@@ -590,24 +615,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppColors.appBackground(context),
-                            border: Border.all(
-                              width: 1,
-                              color: AppColors.textPrimary(context),
-                            ),
-                            image: profileImageUrl != null
-                                ? DecorationImage(
-                              image: NetworkImage(profileImageUrl),
-                              fit: BoxFit.cover,
-                            )
-                                : null,
+                            border: Border.all(width: 1, color: AppColors.textPrimary(context)),
+                            image: profileImageUrl != null ? DecorationImage(image: NetworkImage(profileImageUrl), fit: BoxFit.cover) : null,
                           ),
-                          child: profileImageUrl == null
-                              ? Icon(
-                            Icons.person,
-                            color: AppColors.textPrimary(context),
-                            size: 20,
-                          )
-                              : null,
+                          child: profileImageUrl == null ? Icon(Icons.person, color: AppColors.textPrimary(context), size: 20) : null,
                         ),
                       ),
                     ),
@@ -626,33 +637,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                   Text(
                                     userName,
-                                    style: AppTextStyles.textSize18(
-                                      context,
-                                      weight: FontWeight.w600,
-                                    ),
+                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                   ),
                                   Row(
                                     children: [
-                                      Icon(
-                                        Icons.location_on,
-                                        size: 16,
-                                        color: _isLoadingLocation
-                                            ? AppColors.subtitle(context)
-                                            : AppColors.textPrimary(context),
-                                      ),
+                                      Icon(Icons.location_on, size: 16, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                       SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
                                           displayAddress,
-                                          style: AppTextStyles.textSize14(
-                                            context,
-                                            weight: FontWeight.w400,
-                                            color: _isLoadingLocation
-                                                ? AppColors.subtitle(context)
-                                                : AppColors.textPrimary(context),
-                                          ),
+                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
                                         ),
@@ -662,15 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                            Container(
-                              width: 25,
-                              height: 45,
-                              alignment: Alignment.bottomCenter,
-                              child: Icon(
-                                Icons.arrow_drop_down_sharp,
-                                size: 25,
-                              ),
-                            ),
+                            Container(width: 25, height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
                           ],
                         ),
                       ),
@@ -695,7 +683,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         iconColor: AppColors.textPrimary(context),
                         iconBackgroundColor: AppColors.appBackground(context),
                       );
-
                     },
                     svgAsset: 'assets/images/home/email.svg',
                     context: context,
@@ -714,10 +701,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                         child: Stack(
                           children: [
-                            _buildIconButton(
-                              svgAsset: 'assets/images/home/notification.svg',
-                              context: context,
-                            ),
+                            _buildIconButton(svgAsset: 'assets/images/home/notification.svg', context: context),
 
                             // Badge showing count from notificationCount event
                             if (countViewModel.hasNotifications)
@@ -728,22 +712,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.red,
                                     shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: AppColors.containerBackground(context),
-                                      width: 1,
-                                    ),
+                                    border: Border.all(color: AppColors.containerBackground(context), width: 1),
                                   ),
-                                  constraints: BoxConstraints(
-                                    minWidth: 14,
-                                    minHeight: 14,
-                                  ),
+                                  constraints: BoxConstraints(minWidth: 14, minHeight: 14),
                                   child: Text(
                                     '${countViewModel.notificationCount > 9 ? '9+' : countViewModel.notificationCount}',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -762,7 +736,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildIconButton({ VoidCallback ?onTap, required String svgAsset, required BuildContext context}) {
+  Widget _buildIconButton({VoidCallback? onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

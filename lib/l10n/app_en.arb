@@ -97,6 +97,7 @@
     "storeType_electronics": "Electronics",
     "storeType_clothing": "Clothing",
     "storeType_housekeeper": "Premium House Keeper",
+    "storeType_beauty_salon": "Premium Home Beauty & Salon",
     "select_store_type": "What do you need?",
     "select_store_type_hint": "Select",
     "nearby_stores": "Nearby Stores ({count})",

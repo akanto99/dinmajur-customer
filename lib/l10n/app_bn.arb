@@ -97,6 +97,7 @@
     "storeType_electronics": "ইলেকট্রনিক্স",
     "storeType_clothing": "পোশাক",
     "storeType_housekeeper": "প্রিমিয়াম হাউস কিপার",
+    "storeType_beauty_salon": "প্রিমিয়াম হোম বিউটি ও সেলুন",
     "select_store_type": "কি লাগবে?",
     "select_store_type_hint": "নির্বাচন করুন",
     "nearby_stores": "নিকটবর্তী দোকান ({count}টি)",

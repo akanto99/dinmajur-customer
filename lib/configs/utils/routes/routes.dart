@@ -8,6 +8,8 @@ import 'package:dinmajur_customer/view/forgot_password/otp_verify.dart';
 import 'package:dinmajur_customer/view/login/login_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/homebeauty_salon_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
@@ -147,6 +149,30 @@ class Routes {
         if (args != null) {
           return MaterialPageRoute(
             builder: (BuildContext context) => ConfirmedScreen(trackingId: args['trackingId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+    ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
+      case RoutesName.bookNowHomeBeautySalonScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => BookNowHomeBeautySalonScreen(
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.beautyConfirmedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => BeautyConfirmedScreen(trackingId: args['trackingId']),
             settings: settings,
           );
         }
