@@ -172,7 +172,6 @@ class DynamicServiceCard extends StatelessWidget {
           ),
 
           // Quantity Controls
-          _buildQuantityControls(context),
         ],
       ),
     );
@@ -202,7 +201,6 @@ class DynamicServiceCard extends StatelessWidget {
           : Icon(defaultIcon, size: 40, color: Colors.grey),
     );
   }
-
   Widget _buildDetails(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,48 +212,59 @@ class DynamicServiceCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
 
-        if (viewDetailsText != null && onViewDetails != null) ...[
-          SizedBox(height: 4),
-          GestureDetector(
-            onTap: onViewDetails,
-            child: Row(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  viewDetailsText!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: getButtonColor(context),
+                if (viewDetailsText != null && onViewDetails != null) ...[
+                  SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: onViewDetails,
+                    child: Row(
+                      children: [
+                        Text(
+                          viewDetailsText!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: getButtonColor(context),
+                          ),
+                        ),
+                        Icon(Icons.chevron_right, size: 16, color: getButtonColor(context)),
+                      ],
+                    ),
                   ),
+                ],
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      '৳${discountedPrice.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: getButtonColor(context),
+                      ),
+                    ),
+                    if (showDiscount && originalPrice > discountedPrice) ...[
+                      SizedBox(width: 8),
+                      Text(
+                        '৳${originalPrice.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: getSubtitleColor(context),
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                Icon(Icons.chevron_right, size: 16, color: getButtonColor(context)),
               ],
             ),
-          ),
-        ],
-
-        SizedBox(height: 8),
-        Row(
-          children: [
-            Text(
-              '৳${discountedPrice.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: getButtonColor(context),
-              ),
-            ),
-            if (showDiscount && originalPrice > discountedPrice) ...[
-              SizedBox(width: 8),
-              Text(
-                '৳${originalPrice.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: getSubtitleColor(context),
-                  decoration: TextDecoration.lineThrough,
-                ),
-              ),
-            ],
+            _buildQuantityControls(context),
           ],
         ),
       ],
