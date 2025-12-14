@@ -7,6 +7,7 @@ import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class CheckoutDialog extends StatefulWidget {
   final String customerName;
@@ -131,8 +132,25 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     // Call the callback with booking data
     widget.onConfirmBooking(bookingData);
   }
-
-
+  int _getTotalItems() {
+    return widget.serviceQuantities.entries.where((entry) => entry.value > 0).length;
+  }
+  // Calculate saved amount
+  double _calculateSaved() {
+    double saved = 0;
+    widget.categories.forEach((category) {
+      category.items?.forEach((service) {
+        int qty = widget.serviceQuantities[service.id ?? ''] ?? 0;
+        if (qty > 0 && service.discountValue != null) {
+          double originalPrice = service.originalPrice?.toDouble() ?? 0;
+          double salePrice = service.salePrice?.toDouble() ?? originalPrice;
+          double discount = originalPrice - salePrice;
+          saved += discount * qty;
+        }
+      });
+    });
+    return saved;
+  }
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -226,17 +244,16 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                     // Special Request
                     _buildSpecialRequestField(context),
 
-                    SizedboxSpaccing.height03(context),
+                    SizedboxSpaccing.height015(context),
 
-                    // Price Summary
-                    _buildPriceSummary(context, finalTotal),
+
                   ],
                 ),
               ),
             ),
 
             // Confirm Button
-            _buildConfirmButton(context, screenWidth),
+            _buildConfirmButton(context),
           ],
         ),
       ),
@@ -422,25 +439,104 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     );
   }
 
-  Widget _buildConfirmButton(BuildContext context, double screenWidth) {
-    return Padding(
+  Widget _buildConfirmButton(BuildContext context) {
+    final double total = widget.totalPrice + widget.transportFee;
+    final double saved = _calculateSaved();
+
+    return Container(
       padding: EdgeInsets.all(15),
-      child: GestureDetector(
-        onTap: widget.isLoading ? null : _handleConfirmBooking,
-        child: Container(
-          width: screenWidth,
-          height: 50,
-          decoration: BoxDecoration(color: widget.isLoading ? AppColors.button(context).withOpacity(0.6) : AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-          child: Center(
-            child: widget.isLoading
-                ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white), strokeWidth: 2))
-                : Text(
-                    'Confirm Booking',
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-                  ),
+      decoration: BoxDecoration(
+        color: AppColors.button(context),
+        border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Total Services (${_getTotalItems()} item${_getTotalItems() > 1 ? 's' : ''})',
+                  style: AppTextStyles.textSize12(context, color: AppColors.whiteColor),
+                ),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      '৳${total.toStringAsFixed(2)}',
+                      style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                    ),
+                    if (saved > 0) ...[
+                      SizedBox(width: 8),
+                      Text(
+                        'Saved ৳${saved.toStringAsFixed(2)}',
+                        style: AppTextStyles.textSize12(context, color: Colors.green, weight: FontWeight.w500),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
+          GestureDetector(
+            onTap: widget.isLoading ? null : _handleConfirmBooking,
+            child: Container(
+              height: 40,
+              width: 120,
+              decoration: BoxDecoration(
+                color: widget.isLoading ? AppColors.blackColor.withOpacity(0.6) : AppColors.blackColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(width: 1, color: AppColors.whiteColor),
+              ),
+              child: widget.isLoading
+                  ? Center(
+                child: LoadingAnimationWidget.progressiveDots(
+                  color: AppColors.whiteColor,
+                  size: 30,
+                ),
+              )
+                  : Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Confirm',
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                  ],
+                ),
+              ),
+            ),
+          )
+        ],
       ),
     );
   }
 }
+
+// Widget _buildConfirmButton(BuildContext context, double screenWidth) {
+  //   return Padding(
+  //     padding: EdgeInsets.all(15),
+  //     child: GestureDetector(
+  //       onTap: widget.isLoading ? null : _handleConfirmBooking,
+  //       child: Container(
+  //         width: screenWidth,
+  //         height: 50,
+  //         decoration: BoxDecoration(color: widget.isLoading ? AppColors.button(context).withOpacity(0.6) : AppColors.button(context), borderRadius: BorderRadius.circular(8)),
+  //         child: Center(
+  //           child: widget.isLoading
+  //               ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white), strokeWidth: 2))
+  //               : Text(
+  //                   'Confirm Booking',
+  //                   style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+  //                 ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+// }
