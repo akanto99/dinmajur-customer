@@ -158,15 +158,24 @@ class CustomDatePickerFormField extends StatelessWidget {
   final String title;
   final TextEditingController controller;
   final String? Function(String?)? validator;
-  final Function(DateTime)? onDateSelected; // ADD THIS LINE
+  final Function(DateTime)? onDateSelected;
+
+  // 🔥 NEW: dynamic text styles
+  final TextStyle? titleTextStyle;
+  final TextStyle? inputTextStyle;
+  final TextStyle? hintTextStyle;
 
   const CustomDatePickerFormField({
     Key? key,
     required this.title,
     required this.controller,
     this.validator,
-    this.onDateSelected, // ADD THIS LINE
+    this.onDateSelected,
+    this.titleTextStyle,
+    this.inputTextStyle,
+    this.hintTextStyle,
   }) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
@@ -179,8 +188,9 @@ class CustomDatePickerFormField extends StatelessWidget {
         Container(
           width: screenWidth * 0.9,
           child: Text(
-              title,
-              style: AppTextStyles.textSize18(context, weight: FontWeight.w500)
+            title,
+            style: titleTextStyle ??
+                AppTextStyles.textSize18(context, weight: FontWeight.w500),
           ),
         ),
         SizedBox(height: screenHeight * 0.01),
@@ -206,14 +216,16 @@ class CustomDatePickerFormField extends StatelessWidget {
                       controller: controller,
                       keyboardType: TextInputType.datetime,
                       readOnly: true,
-                      style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                      style: inputTextStyle ??
+                          AppTextStyles.textSize16(context, weight: FontWeight.w500),
                       decoration: InputDecoration(
                         hintText: "Select date",
-                        hintStyle: AppTextStyles.textSize16(
-                            context,
-                            color: AppColors.hintColor(context),
-                            weight: FontWeight.w400
-                        ),
+                        hintStyle: hintTextStyle ??
+                            AppTextStyles.textSize16(
+                              context,
+                              color: AppColors.hintColor(context),
+                              weight: FontWeight.w400,
+                            ),
                         suffixIcon: Icon(
                           Icons.calendar_today,
                           color: AppColors.textPrimary(context),

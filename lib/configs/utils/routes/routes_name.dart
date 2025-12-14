@@ -53,9 +53,12 @@ class RoutesName {
   //Complete Order Details API Get Data
   static const String completeOrdersDetailsScreen = 'completeOrdersDetailsScreen_view';
 
-  ///In HOME SCreen- DropDown 2 Premium House Keeper
+  ///In HOME Screen- DropDown 2 Premium House Keeper
   static const String bookNowPremiumHouseKeeper = 'bookNowPremiumHouseKeeper_view';
   static const String confirmedScreen = 'confirmedScreen_view';
+  ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
+  static const String bookNowHomeBeautySalonScreen = 'bookNowHomeBeautySalonScreen_view';
+  static const String beautyConfirmedScreen = 'beautyConfirmedScreen_view';
 
 
 

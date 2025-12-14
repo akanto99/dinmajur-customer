@@ -1,35 +1,35 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/respository/home_repositories/dropdown_categories_selection_repositories/beauty_and_salon_repository/book_premium_home_beauty_salon_repository.dart';
 import 'package:dinmajur_customer/respository/home_repositories/dropdown_categories_selection_repositories/premium_house_keeper_repository/book_premium_house_keeper_repository.dart';
 import 'package:dinmajur_customer/respository/home_repositories/post_change_password/post_change_password_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
-  final _myRepo = BookPremiumHouseKeeperRepository();
-  bool _createBookPremiumHouseKeeperLoading = false;
-  bool get createBookPremiumHouseKeeperLoading => _createBookPremiumHouseKeeperLoading;
+class PostBookPremiumHomeBeautySalonViewModel with ChangeNotifier {
+  final _myRepo = BookPremiumHomeBeautySalonRepository();
+  bool _createBookPremiumHomeBeautySalonLoading = false;
+  bool get createBookPremiumHomeBeautySalonLoading => _createBookPremiumHomeBeautySalonLoading;
 
-  setBookPremiumHouseKeeperLoading(bool value) {
-    _createBookPremiumHouseKeeperLoading = value;
+  setBookPremiumHomeBeautySalonLoading(bool value) {
+    _createBookPremiumHomeBeautySalonLoading = value;
     notifyListeners();
   }
 
-  // CHANGED: Return the API response and accept a callback that receives trackingId
-  Future<void> bookPremiumHouseKeeperPostApi(
+  Future<void> bookPremiumHomeBeautySalonPostApi(
       BuildContext context,
       dynamic fields,
       Function(String trackingId) onSuccess // CHANGED: Now receives trackingId
       ) async {
-    setBookPremiumHouseKeeperLoading(true);
+    setBookPremiumHomeBeautySalonLoading(true);
     try {
       // CHANGED: Store the response
-      dynamic response = await _myRepo.bookPremiumHouseKeeperPostApi(fields);
-      setBookPremiumHouseKeeperLoading(false);
+      dynamic response = await _myRepo.bookPremiumHomeBeautySalonPostApi(fields);
+      setBookPremiumHomeBeautySalonLoading(false);
 
-      Utils.flushBarSuccessMessage('Book Premium house keeper successfully', context);
+      Utils.flushBarSuccessMessage('Book Premium Home Beauty and Salon successfully', context);
       await Future.delayed(Duration(milliseconds: 1000));
 
       if (kDebugMode) print('API Response: ${response.toString()}');
@@ -49,7 +49,7 @@ class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
       }
 
     } catch (error) {
-      setBookPremiumHouseKeeperLoading(false);
+      setBookPremiumHomeBeautySalonLoading(false);
       _handleError(error, context);
       if (kDebugMode) print('Error: $error');
       // Don't call onSuccess on error - dialog will stay open

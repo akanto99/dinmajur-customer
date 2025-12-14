@@ -582,6 +582,8 @@ import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/ge
 import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/payment_method_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/support_view_model/support_view_model.dart';
+import 'view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/book_premium_home_beauty_salon_view_model.dart';
+import 'view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/freelancer_rating_view_model.dart';
@@ -662,6 +664,10 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GetallShifttimeViewModel()),
         ChangeNotifierProvider(create: (_) => PostBookPremiumHouseKeeperViewModel()),
         ChangeNotifierProvider(create: (_) => GetConfirmedbookingViewModel()),
+        //==============>Premium Home Beauty Salon
+        ChangeNotifierProvider(create: (_) => GetallPremiumHomeBeautySalonViewModel()),
+        ChangeNotifierProvider(create: (_) => PostBookPremiumHomeBeautySalonViewModel()),
+
 
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),
         ChangeNotifierProvider(create: (_) => PostChangePasswordViewModel()),

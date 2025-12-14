@@ -668,6 +668,12 @@ abstract class AppLocalizations {
   /// **'Premium House Keeper'**
   String get storeType_housekeeper;
 
+  /// No description provided for @storeType_beauty_salon.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Home Beauty & Salon'**
+  String get storeType_beauty_salon;
+
   /// No description provided for @select_store_type.
   ///
   /// In en, this message translates to:
