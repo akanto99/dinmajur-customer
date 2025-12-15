@@ -137,27 +137,31 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                   final meta = viewModel.notificationListData.data?.data?.meta;
 
                   if (notifications.isEmpty) {
-                    return Container(
-                      width: screenWidth * 0.9,
-                      height: 190,
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(width: 1, color: AppColors.border(context)),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.notifications_none, size: 80, color: Colors.grey.shade400),
-                          SizedboxSpaccing.height02(context),
-                          Text(
-                            'No Notifications',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary(context)),
+                    return Column(
+                      children: [
+                        SizedBox(height: 20,),
+                        Container(
+                          width: screenWidth * 0.9,
+                          height: 190,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(width: 1, color: AppColors.border(context)),
                           ),
-                          SizedboxSpaccing.width03(context),
-                          Text('You\'re all caught up!', style: TextStyle(fontSize: 14, color: AppColors.textPrimary(context))),
-                        ],
-                      ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.notifications_none, size: 50, color: Colors.grey.shade400),
+                              SizedboxSpaccing.height02(context),
+                              Text(
+                                'No Notifications',
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary(context)),
+                              ),
+                              SizedboxSpaccing.width03(context),
+                              Text('You\'re all caught up!', style: TextStyle(fontSize: 14, color: AppColors.textPrimary(context))),
+                            ],
+                          ),
+                        )
+                      ],
                     );
                   }
 
