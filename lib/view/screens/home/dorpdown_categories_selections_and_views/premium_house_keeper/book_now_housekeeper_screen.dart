@@ -1,38 +1,33 @@
 import 'dart:async';
-
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
-import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
-import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/cart_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/taskdetails_showdialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helper_widget/checkout_dialouge.dart';
 
 class BookNowHousekeeperScreen extends StatefulWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
-  const BookNowHousekeeperScreen({Key? key,
-    required this.customerName,
-    required this.customerPhone,
-    required this.customerAddress,
-  }) : super(key: key);
+  const BookNowHousekeeperScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress}) : super(key: key);
 
   @override
   State<BookNowHousekeeperScreen> createState() => _BookNowHousekeeperScreenState();
@@ -76,7 +71,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     });
   }
 
-// ADD THIS NEW METHOD:
+  // ADD THIS NEW METHOD:
   void _initializeServiceKeys(List<Datum> data) {
     if (_serviceKeys.isEmpty && data.isNotEmpty) {
       for (int i = 0; i < data.length; i++) {
@@ -85,22 +80,18 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     }
   }
 
-// UPDATE THIS METHOD:
+  // UPDATE THIS METHOD:
   void _scrollToCategory(int index) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_serviceKeys.containsKey(index)) {
         final keyContext = _serviceKeys[index]?.currentContext;
         if (keyContext != null) {
-          Scrollable.ensureVisible(
-            keyContext,
-            duration: Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            alignment: 0.1,
-          );
+          Scrollable.ensureVisible(keyContext, duration: Duration(milliseconds: 500), curve: Curves.easeInOut, alignment: 0.1);
         }
       }
     });
   }
+
   void _onDateChanged(String newDate) {
     // Convert from "MMMM dd, yyyy" to "yyyy-MM-dd" format
     try {
@@ -134,23 +125,12 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     });
   }
 
-  ///Checkout Info Data
-  final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _specialRequestController = TextEditingController();
-  String? _selectedHouseSize;
-
   @override
   void dispose() {
     _dateController.dispose();
     _pageController.dispose();
     _autoScrollTimer?.cancel();
-    _fullNameController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    _specialRequestController.dispose();
-    _mainScrollController.dispose(); // ADD THIS
+    _mainScrollController.dispose();
     super.dispose();
   }
 
@@ -198,7 +178,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     return total;
   }
 
-  // Updated _calculateSaved to use selected items
   double _calculateSaved() {
     final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
@@ -229,10 +208,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       }
     });
     return saved;
-  }
-
-  int _getTotalItems() {
-    return _serviceQuantities.values.fold(0, (sum, qty) => sum + qty);
   }
 
   @override
@@ -277,28 +252,14 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
               // Show error only for housekeeper data
               if (hasHousekeeperError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      SizedBox(height: 16),
-                      Text('Failed to load services', style: AppTextStyles.textSize16(context, color: Colors.red)),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          housekeeperViewModel.fetchGetAllPermiumHouseKeeperTaskGetDataApi();
-
-                          // Also retry shift times
-                          String currentDate = DateFormat('yyyy-MM-dd').format(_dateController.text.isNotEmpty ? DateFormat('MMMM dd, yyyy').parse(_dateController.text) : DateTime.now());
-                          final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
-                          shiftTimeViewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(currentDate);
-                        },
-                        child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
-                      ),
-                    ],
-                  ),
+                return ErrorStateEmptyHeaderWidget(
+                  errorMessage: housekeeperViewModel.getAllPremiumHouseKeeperTaskData.message.toString(),
+                  onRetry: () {
+                    housekeeperViewModel.fetchGetAllPermiumHouseKeeperTaskGetDataApi();
+                    String currentDate = DateFormat('yyyy-MM-dd').format(_dateController.text.isNotEmpty ? DateFormat('MMMM dd, yyyy').parse(_dateController.text) : DateTime.now());
+                    final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
+                    shiftTimeViewModel.fetchGetAllsetgetAllShiftTimeGetDataApi(currentDate);
+                  },
                 );
               }
 
@@ -318,17 +279,52 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     SizedboxSpaccing.height02(context),
 
                     // Frequency Selection
-                    _buildFrequencySelection(screenWidth),
+                    Container(
+                      width: screenWidth * 0.9,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Frequency',
+                            style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                          ),
+                          SizedboxSpaccing.height01(context),
+                          Container(
+                            width: screenWidth * 0.9,
+                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.border(context).withOpacity(0.5)),
+                            padding: EdgeInsets.all(6),
+                            child: Row(
+                              children: [
+                                Expanded(child: _frequencyButton('Daily', screenWidth)),
+                                Expanded(child: _frequencyButton('Monthly', screenWidth)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
                     SizedboxSpaccing.height02(context),
 
                     // Date Selection
-                    _buildDateSelection(screenWidth),
+                    Container(
+                      width: screenWidth * 0.9,
+                      child: CustomDatePickerFormField(
+                        title: 'Choose Date',
+                        controller: _dateController,
+                        onDateSelected: (DateTime selectedDate) {
+                          // Format and set the date
+                          String formattedDate = DateFormat('MMMM dd, yyyy').format(selectedDate);
+                          _dateController.text = formattedDate;
+
+                          // Fetch shifts for the new date
+                          _onDateChanged(formattedDate);
+                        },
+                      ),
+                    ),
 
                     SizedboxSpaccing.height02(context),
 
-                    // Time Selection - HAS ITS OWN CONSUMER FOR GetallShifttimeViewModel
-                    // This widget will rebuild independently when shift times change
                     _buildTimeSelection(screenWidth),
 
                     SizedboxSpaccing.height02(context),
@@ -347,11 +343,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                       getBackgroundColor: (context) => AppColors.containerBackground(context),
                       getBorderColor: (context) => AppColors.border(context),
                       getTextColor: (context) => AppColors.textPrimary(context),
-                      getTextStyle: (context, isSelected) => AppTextStyles.textSize12(
-                        context,
-                        weight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
-                      ),
+                      getTextStyle: (context, isSelected) =>
+                          AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
                       defaultIcon: Icons.cleaning_services,
                       supportSvg: true,
                     ),
@@ -359,7 +352,66 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     SizedboxSpaccing.height02(context),
 
                     // Services List
-                    _buildServicesList(screenWidth, screenHeight, housekeeperViewModel),
+                    DynamicServiceList<Datum, Datum>(
+                      categories: data,
+                      categoryKeys: _serviceKeys,
+                      screenWidth: screenWidth,
+                      screenHeight: screenHeight,
+                      isSimpleList: true, // House Keeper uses simple list
+                      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                      emptyStateStyle: (context) => AppTextStyles.textSize16(context),
+                      emptyStateSpacing: (context) => SizedboxSpaccing.height02(context),
+                      buildServiceCard: (service, width, height) {
+                        int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
+
+                        // Calculate prices
+                        double originalPrice = 0;
+                        if (service.houseKeeperTaskItems?.isNotEmpty == true) {
+                          for (var item in service.houseKeeperTaskItems!) {
+                            originalPrice += item.price?.toDouble() ?? 0;
+                          }
+                        }
+
+                        double discountedPrice = originalPrice;
+                        if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
+                          if (service.discountType == 'PERCENTAGE') {
+                            discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
+                          } else if (service.discountType == 'FLAT') {
+                            discountedPrice = originalPrice - service.discountValue!.toDouble();
+                          }
+                        }
+
+                        return DynamicServiceCard(
+                          imageUrl: service.image?.url,
+                          defaultIcon: Icons.cleaning_services,
+                          serviceName: service.name ?? '',
+                          viewDetailsText: 'View Task Details',
+                          onViewDetails: () => _showTaskDetailsDialog(service),
+                          discountedPrice: discountedPrice,
+                          originalPrice: originalPrice,
+                          showDiscount: service.discountValue != null && originalPrice > 0,
+                          quantity: quantity,
+                          onAdd: () => _updateQuantity(service.id ?? '', 1),
+                          onRemove: () => _updateQuantity(service.id ?? '', -1),
+                          onIncrease: () {
+                            if (service.hasRoom == false) {
+                              Utils.flushBarExclamatoryMessage(title: "Can't Add More", subtitle: "Additional quantity isn't available for this service.", context: context);
+                            } else {
+                              _updateQuantity(service.id ?? '', 1);
+                            }
+                          },
+                          showRoomNumber: quantity > 0,
+                          roomNumberLabel: 'Room Number',
+                          getButtonColor: (context) => AppColors.button(context),
+                          getBackgroundColor: (context) => AppColors.containerBackground(context),
+                          getBorderColor: (context) => AppColors.border(context),
+                          getSubtitleColor: (context) => AppColors.subtitle(context),
+                          getTextColor: (context) => AppColors.textPrimary(context),
+                          getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.normal, color: color ?? AppColors.textPrimary(context)),
+                          getSpacing: (context) => SizedboxSpaccing.width03(context),
+                        );
+                      },
+                    ),
 
                     SizedboxSpaccing.height045(context),
                   ],
@@ -370,35 +422,33 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         ),
 
         // Bottom Cart Bar
-        _buildBottomCartBar(screenWidth,screenHeight),
-      ],
-    );
-  }
+        Builder(
+          builder: (context) {
+            // Calculate values here
+            int totalServices = _serviceQuantities.totalServices;
+            double totalPrice = _calculateTotal();
+            double savedAmount = _calculateSaved();
 
-  Widget _buildFrequencySelection(double screenWidth) {
-    return Container(
-      width: screenWidth * 0.9,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Frequency',
-            style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
-          ),
-          SizedboxSpaccing.height01(context),
-          Container(
-            width: screenWidth * 0.9,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.border(context).withOpacity(0.5)),
-            padding: EdgeInsets.all(6),
-            child: Row(
-              children: [
-                Expanded(child: _frequencyButton('Daily', screenWidth)),
-                Expanded(child: _frequencyButton('Monthly', screenWidth)),
-              ],
-            ),
-          ),
-        ],
-      ),
+            return DynamicBottomCartBar(
+              totalServices: totalServices,
+              totalPrice: totalPrice,
+              savedAmount: savedAmount,
+              onCartTap: _proceedToCart,
+              screenWidth: screenWidth,
+              screenHeight: screenHeight,
+              getButtonColor: (context) => AppColors.button(context),
+              getBlackColor: (context) => AppColors.blackColor,
+              getWhiteColor: (context) => AppColors.whiteColor,
+              getTextStyle: (context, {weight, color}) {
+                if (weight == FontWeight.w700) {
+                  return AppTextStyles.textSize20(context, weight: weight, color: color ?? Colors.white);
+                }
+                return AppTextStyles.textSize14(context, color: color ?? AppColors.whiteColor);
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -433,197 +483,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
-  Widget _buildDateSelection(double screenWidth) {
-    return Container(
-      width: screenWidth * 0.9,
-      child: CustomDatePickerFormField(
-        title: 'Choose Date',
-        controller: _dateController,
-        onDateSelected: (DateTime selectedDate) {
-          // Format and set the date
-          String formattedDate = DateFormat('MMMM dd, yyyy').format(selectedDate);
-          _dateController.text = formattedDate;
-
-          // Fetch shifts for the new date
-          _onDateChanged(formattedDate);
-        },
-      ),
-    );
-  }
-
-  // Widget _buildTimeSelection(double screenWidth, GetallShifttimeViewModel shiftTimeViewModel) {
-  //   // Get all shift times from the view model (don't filter by booking status)
-  //   final allShiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
-  //
-  //   // Filter available shifts for default selection
-  //   final availableShiftTimes = allShiftTimes.where((shift) => shift.isBooked == false).toList();
-  //
-  //   // Check if we're still loading
-  //   final isLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
-  //
-  //   // Set default selected time if not already set and available data exists
-  //   if (availableShiftTimes.isNotEmpty && _selectedTime == null) {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       if (mounted && _selectedTime == null) {
-  //         setState(() {
-  //           final firstShift = availableShiftTimes.first;
-  //           _selectedTime = '${firstShift.type ?? ''} (${firstShift.startTime ?? ''}-${firstShift.endTime ?? ''})';
-  //         });
-  //       }
-  //     });
-  //   }
-  //
-  //   return Container(
-  //     width: screenWidth * 0.9,
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Text('Choose Time', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-  //         SizedboxSpaccing.height01(context),
-  //
-  //         // Show loading indicator while fetching
-  //         if (isLoading)
-  //           Container(
-  //             height: 42,
-  //             padding: EdgeInsets.symmetric(horizontal: 10),
-  //             decoration: BoxDecoration(
-  //               color: AppColors.textFieldFill(context),
-  //               borderRadius: BorderRadius.circular(12),
-  //               border: Border.all(color: AppColors.border(context)),
-  //             ),
-  //             child: Center(
-  //               child: SizedBox(
-  //                 width: 20,
-  //                 height: 20,
-  //                 child: CircularProgressIndicator(
-  //                   strokeWidth: 2,
-  //                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.button(context)),
-  //                 ),
-  //               ),
-  //             ),
-  //           )
-  //         // Show dropdown with all shifts (both available and booked)
-  //         else if (allShiftTimes.isNotEmpty)
-  //           Container(
-  //             height: 42,
-  //             padding: EdgeInsets.symmetric(horizontal: 10),
-  //             decoration: BoxDecoration(
-  //               color: AppColors.textFieldFill(context),
-  //               borderRadius: BorderRadius.circular(12),
-  //               border: Border.all(color: AppColors.border(context)),
-  //             ),
-  //             child: DropdownButtonHideUnderline(
-  //               child: DropdownButton<String>(
-  //                 value: _selectedTime,
-  //                 isExpanded: true,
-  //                 icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
-  //                 dropdownColor: AppColors.containerBackground(context),
-  //                 menuMaxHeight: 300,
-  //                 borderRadius: BorderRadius.circular(8),
-  //                 hint: availableShiftTimes.isEmpty
-  //                     ? Row(
-  //                   children: [
-  //                     Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
-  //                     SizedBox(width: 8),
-  //                     Expanded(
-  //                       child: Text(
-  //                         'All time slots are booked',
-  //                         style: AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 )
-  //                     : null,
-  //                 items: allShiftTimes.map((shift) {
-  //                   String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
-  //                   bool isBooked = shift.isBooked ?? false;
-  //
-  //                   return DropdownMenuItem<String>(
-  //                     value: displayText,
-  //                     enabled: !isBooked, // Disable if booked
-  //                     child: Container(
-  //                       padding: EdgeInsets.symmetric(vertical: 8),
-  //                       decoration: BoxDecoration(
-  //                         border: Border(
-  //                           bottom: BorderSide(
-  //                             color: AppColors.border(context).withOpacity(0.3),
-  //                             width: 0.5,
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       child: Row(
-  //                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                         children: [
-  //                           Expanded(
-  //                             child: Text(
-  //                               displayText,
-  //                               style: AppTextStyles.textSize16(
-  //                                 context,
-  //                                 weight: FontWeight.w500,
-  //                                 color: isBooked
-  //                                     ? AppColors.subtitle(context).withOpacity(0.5)
-  //                                     : AppColors.textPrimary(context),
-  //                               ),
-  //                             ),
-  //                           ),
-  //                           if (isBooked)
-  //                             Container(
-  //                               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-  //                               decoration: BoxDecoration(
-  //                                 color: Colors.red.withOpacity(0.1),
-  //                                 borderRadius: BorderRadius.circular(4),
-  //                                 border: Border.all(color: Colors.red.withOpacity(0.3)),
-  //                               ),
-  //                               child: Text(
-  //                                 'Booked',
-  //                                 style: AppTextStyles.textSize10(
-  //                                   context,
-  //                                   color: Colors.red,
-  //                                   weight: FontWeight.w600,
-  //                                 ),
-  //                               ),
-  //                             ),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                   );
-  //                 }).toList(),
-  //                 onChanged: (String? newValue) {
-  //                   if (newValue != null) {
-  //                     // Find the shift to check if it's booked
-  //                     final selectedShift = allShiftTimes.firstWhere(
-  //                           (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue,
-  //                     );
-  //
-  //                     // Only update if not booked
-  //                     if (selectedShift.isBooked != true) {
-  //                       setState(() => _selectedTime = newValue);
-  //                     }
-  //                   }
-  //                 },
-  //               ),
-  //             ),
-  //           )
-  //         else
-  //           Container(
-  //             height: 42,
-  //             padding: EdgeInsets.symmetric(horizontal: 10),
-  //             decoration: BoxDecoration(
-  //               color: AppColors.textFieldFill(context),
-  //               borderRadius: BorderRadius.circular(12),
-  //               border: Border.all(color: AppColors.border(context)),
-  //             ),
-  //             child: Center(
-  //               child: Text(
-  //                 'No shift times available',
-  //                 style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-  //               ),
-  //             ),
-  //           ),
-  //       ],
-  //     ),
-  //   );
-  // }
   Widget _buildTimeSelection(double screenWidth) {
     return Consumer<GetallShifttimeViewModel>(
       builder: (context, shiftTimeViewModel, child) {
@@ -777,427 +636,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
-
-  // UPDATE THE _buildServicesList METHOD:
-  Widget _buildServicesList(double screenWidth, double screenHeight, GetallPremiumHouseKeeperTaskViewModel viewModel) {
-    final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
-
-    return DynamicServiceList<Datum, Datum>(
-      categories: data,
-      categoryKeys: _serviceKeys,
-      screenWidth: screenWidth,
-      screenHeight: screenHeight,
-      isSimpleList: true, // House Keeper uses simple list
-      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
-      emptyStateStyle: (context) => AppTextStyles.textSize16(context),
-      emptyStateSpacing: (context) => SizedboxSpaccing.height02(context),
-      buildServiceCard: (service, width, height) {
-        int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
-
-        // Calculate prices
-        double originalPrice = 0;
-        if (service.houseKeeperTaskItems?.isNotEmpty == true) {
-          for (var item in service.houseKeeperTaskItems!) {
-            originalPrice += item.price?.toDouble() ?? 0;
-          }
-        }
-
-        double discountedPrice = originalPrice;
-        if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
-          if (service.discountType == 'PERCENTAGE') {
-            discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
-          } else if (service.discountType == 'FLAT') {
-            discountedPrice = originalPrice - service.discountValue!.toDouble();
-          }
-        }
-
-        return DynamicServiceCard(
-          imageUrl: service.image?.url,
-          defaultIcon: Icons.cleaning_services,
-          serviceName: service.name ?? '',
-          viewDetailsText: 'View Task Details',
-          onViewDetails: () => _showTaskDetailsDialog(service),
-          discountedPrice: discountedPrice,
-          originalPrice: originalPrice,
-          showDiscount: service.discountValue != null && originalPrice > 0,
-          quantity: quantity,
-          onAdd: () => _updateQuantity(service.id ?? '', 1),
-          onRemove: () => _updateQuantity(service.id ?? '', -1),
-          onIncrease: () {
-            if (service.hasRoom == false) {
-              Utils.flushBarExclamatoryMessage(
-                title: "Can't Add More",
-                subtitle: "Additional quantity isn't available for this service.",
-                context: context,
-              );
-            } else {
-              _updateQuantity(service.id ?? '', 1);
-            }
-          },
-          showRoomNumber: quantity > 0,
-          roomNumberLabel: 'Room Number',
-          getButtonColor: (context) => AppColors.button(context),
-          getBackgroundColor: (context) => AppColors.containerBackground(context),
-          getBorderColor: (context) => AppColors.border(context),
-          getSubtitleColor: (context) => AppColors.subtitle(context),
-          getTextColor: (context) => AppColors.textPrimary(context),
-          getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(
-            context,
-            weight: weight ?? FontWeight.normal,
-            color: color ?? AppColors.textPrimary(context),
-          ),
-          getSpacing: (context) => SizedboxSpaccing.width03(context),
-        );
-      },
-    );
-  }
-
-
-  Widget _buildBottomCartBar(double screenWidth, double screenHeight) {
-    // Calculate values
-    int totalServices = _serviceQuantities.totalServices; // Using extension
-    double totalPrice = _calculateTotal();
-    double savedAmount = _calculateSaved();
-
-    return DynamicBottomCartBar(
-      totalServices: totalServices,
-      totalPrice: totalPrice,
-      savedAmount: savedAmount,
-      onCartTap: _proceedToCart,
-      screenWidth: screenWidth,
-      screenHeight: screenHeight,
-      getButtonColor: (context) => AppColors.button(context),
-      getBlackColor: (context) => AppColors.blackColor,
-      getWhiteColor: (context) => AppColors.whiteColor,
-      getTextStyle: (context, {weight, color}) {
-        if (weight == FontWeight.w700) {
-          return AppTextStyles.textSize20(context, weight: weight, color: color ?? Colors.white);
-        }
-        return AppTextStyles.textSize14(context, color: color ?? AppColors.whiteColor);
-      },
-    );
-  }
-
-  void _showTaskDetailsDialog(Datum service) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Store original quantity
-    int originalQuantity = _serviceQuantities[service.id ?? ''] ?? 0;
-
-    // Get current selected items
-    Set<String> currentSelectedItems = _selectedTaskItems[service.id ?? ''] ?? {};
-
-    // If quantity is 0 OR no items are selected, reset to all items (default state)
-    if (originalQuantity == 0 || currentSelectedItems.isEmpty) {
-      _selectedTaskItems[service.id ?? ''] = service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
-    } else {
-      // Initialize selected items if not exists (default to all items selected)
-      if (!_selectedTaskItems.containsKey(service.id ?? '')) {
-        _selectedTaskItems[service.id ?? ''] = service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
-      }
-    }
-
-    // Create a temporary copy of selected items for this dialog session
-    Set<String> tempSelectedItems = Set<String>.from(_selectedTaskItems[service.id ?? ''] ?? {});
-
-    // Create temporary quantity variable (only for dialog) - minimum 1
-    int tempQuantity = originalQuantity > 0 ? originalQuantity : 1;
-
-    // Calculate prices
-    double calculateOriginalPrice(Set<String> items) {
-      double price = 0;
-      for (var item in service.houseKeeperTaskItems ?? []) {
-        if (items.contains(item.id ?? '')) {
-          price += item.price?.toDouble() ?? 0;
-        }
-      }
-      return price;
-    }
-
-    double calculateDiscountedPrice(double original) {
-      if (service.discountType != null && service.discountValue != null && original > 0) {
-        if (service.discountType == 'PERCENTAGE') {
-          return original - (original * service.discountValue! / 100);
-        } else if (service.discountType == 'FLAT') {
-          return original - service.discountValue!.toDouble();
-        }
-      }
-      return original;
-    }
-
-    showDialog(
-      context: context,
-      barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          // Use tempQuantity instead of reading from global state
-          double originalPricePerUnit = calculateOriginalPrice(tempSelectedItems);
-          double discountedPricePerUnit = calculateDiscountedPrice(originalPricePerUnit);
-
-          // Calculate total prices (multiplied by tempQuantity)
-          double totalOriginalPrice = originalPricePerUnit * (tempQuantity > 0 ? tempQuantity : 1);
-          double totalDiscountedPrice = discountedPricePerUnit * (tempQuantity > 0 ? tempQuantity : 1);
-
-          bool allSelected = tempSelectedItems.length == (service.houseKeeperTaskItems?.length ?? 0);
-
-          return WillPopScope(
-            onWillPop: () async {
-              // Revert changes if dialog is closed without clicking "Update Items"
-              return true;
-            },
-            child: Dialog(
-            backgroundColor: AppColors.containerBackground(context),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.01),
-              child: Container(
-                width: screenWidth,
-                constraints: BoxConstraints(maxHeight: screenHeight * 0.7),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header with close button
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(service.name ?? '', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-                                SizedboxSpaccing.height005(context),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '৳${totalDiscountedPrice.toStringAsFixed(2)}',
-                                      style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.button(context)),
-                                    ),
-                                    if (service.discountValue != null && totalOriginalPrice > 0) ...[
-                                      SizedboxSpaccing.width01(context),
-                                      Text(
-                                        '৳${totalOriginalPrice.toStringAsFixed(2)}',
-                                        style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: Container(
-                              height: 40,
-                              width: 40,
-                              decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context).withOpacity(0.2)),
-                              child: Icon(Icons.close, color: AppColors.textPrimary(context), size: 20),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Room Number Section
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.textPrimary(context)),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text('Room Number', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                          ),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  if (tempQuantity > 1) {
-                                    // Changed from > 0 to > 1
-                                    setDialogState(() {
-                                      tempQuantity--;
-                                    });
-                                  }
-                                },
-                                child: Container(
-                                  width: 25,
-                                  height: 25,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: AppColors.border(context)),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Icon(Icons.remove, size: 18),
-                                ),
-                              ),
-                              Container(
-                                width: 30,
-                                child: Center(
-                                  child: Text(tempQuantity.toString(), style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  if (service.hasRoom == false) {
-                                    Utils.flushBarExclamatoryMessage(
-                                      title: "Can't Add More",
-                                      subtitle: "Additional quantity isn't available for this service.",
-                                      context: context,
-                                    );
-                                  } else {
-                                    setDialogState(() {
-                                      tempQuantity++;
-                                    });
-                                  }
-                                },
-                                child: Container(
-                                  width: 25,
-                                  height: 25,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: AppColors.border(context)),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Icon(Icons.add, size: 18),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Select All Checkbox
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                      decoration: BoxDecoration(color: AppColors.textFieldFill(context).withOpacity(0.3)),
-                      child: Row(
-                        children: [
-                          Checkbox(
-                            value: allSelected,
-                            checkColor: AppColors.whiteColor,
-                            activeColor: AppColors.button(context),
-                            side: BorderSide(color: AppColors.textPrimary(context), width: 1.5),
-                            onChanged: (bool? value) {
-                              setDialogState(() {
-                                if (value == true) {
-                                  tempSelectedItems = service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
-                                } else {
-                                  tempSelectedItems.clear();
-                                }
-                              });
-                            },
-                          ),
-                          Text('Select All', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                        ],
-                      ),
-                    ),
-
-                    // Task Items List
-                    Flexible(
-                      child: service.houseKeeperTaskItems?.isEmpty == true
-                          ? Padding(
-                              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                              child: Text('No task details available', style: AppTextStyles.textSize14(context)),
-                            )
-                          : ListView.separated(
-                              shrinkWrap: true,
-                              padding: EdgeInsets.zero,
-                              itemCount: service.houseKeeperTaskItems?.length ?? 0,
-                              separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.border(context)),
-                              itemBuilder: (context, index) {
-                                final task = service.houseKeeperTaskItems![index];
-                                bool isSelected = tempSelectedItems.contains(task.id ?? '');
-
-                                return Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                                  child: Row(
-                                    children: [
-                                      Checkbox(
-                                        value: isSelected,
-                                        activeColor: AppColors.button(context),
-                                        checkColor: AppColors.whiteColor,
-                                        side: BorderSide(color: AppColors.textPrimary(context), width: 1.5),
-                                        onChanged: (bool? value) {
-                                          setDialogState(() {
-                                            if (value == true) {
-                                              tempSelectedItems.add(task.id ?? '');
-                                            } else {
-                                              tempSelectedItems.remove(task.id ?? '');
-                                            }
-                                          });
-                                        },
-                                      ),
-                                      Expanded(
-                                        child: Text(task.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text('${task.price ?? 0} Taka', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
-
-                    // Update Items Button
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      child: GestureDetector(
-                        onTap: () {
-                          // If no items are selected, remove the service completely
-                          if (tempSelectedItems.isEmpty) {
-                            setState(() {
-                              // Set quantity to 0 (will show "ADD" button)
-                              _serviceQuantities[service.id ?? ''] = 0;
-                              // Clear selected items
-                              _selectedTaskItems.remove(service.id ?? '');
-                            });
-                            Navigator.pop(context);
-                            return;
-                          }
-
-                          // Only apply changes when "Update Items" is clicked AND items are selected
-                          setState(() {
-                            _selectedTaskItems[service.id ?? ''] = Set<String>.from(tempSelectedItems);
-                            _serviceQuantities[service.id ?? ''] = tempQuantity;
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 48,
-                          decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-                          child: Center(
-                            child: Text(
-                              'Update Items',
-                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   void _proceedToCart() {
     // Check if time slot is available
     final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
@@ -1216,809 +654,105 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     _showCartDialog();
   }
 
+  ///1
+  void _showTaskDetailsDialog(Datum service) {
+    showDialog(
+      context: context,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (context) => TaskDetailsDialog(
+        service: service,
+        serviceQuantities: _serviceQuantities,
+        selectedTaskItems: _selectedTaskItems,
+        onUpdate: (String serviceId, int quantity, Set<String> selectedItems) {
+          setState(() {
+            if (quantity == 0) {
+              // Remove service completely if no items selected
+              _serviceQuantities[serviceId] = 0;
+              _selectedTaskItems.remove(serviceId);
+            } else {
+              // Update with new values
+              _serviceQuantities[serviceId] = quantity;
+              _selectedTaskItems[serviceId] = selectedItems;
+            }
+          });
+        },
+      ),
+    );
+  }
+
   ///2
   void _showCartDialog() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    // Check if time slot is available
+    final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
+    final availableShifts = shiftTimeViewModel.getAllShiftTimeData.data?.data?.where((shift) => shift.isBooked == false).toList() ?? [];
 
-    // Prepare cart data
-    List<Map<String, dynamic>> cartItems = [];
+    if (availableShifts.isEmpty) {
+      Utils.flushBarErrorMessage("No time slots available for the selected date. Please choose another date.", context);
+      return;
+    }
+
+    if (_selectedTime == null) {
+      Utils.flushBarErrorMessage("Please select a time slot", context);
+      return;
+    }
+
+    // Get services data
     final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
 
-    data.forEach((service) {
+    // Filter services with quantity > 0
+    final servicesWithQuantity = data.where((service) {
       int qty = _serviceQuantities[service.id ?? ''] ?? 0;
-      if (qty > 0) {
-        cartItems.add({'service': service, 'quantity': qty, 'selectedItems': _selectedTaskItems[service.id ?? ''] ?? service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {}});
-      }
-    });
-
-    // Calculate functions
-    double calculateSubtotal(Map<String, int> quantities) {
-      double subtotal = 0;
-      for (var item in cartItems) {
-        Datum service = item['service'];
-        int qty = quantities[service.id ?? ''] ?? 0;
-        if (qty > 0) {
-          Set<String> selectedItems = item['selectedItems'];
-          double price = 0;
-          for (var taskItem in service.houseKeeperTaskItems ?? []) {
-            if (selectedItems.contains(taskItem.id ?? '')) {
-              price += taskItem.price?.toDouble() ?? 0;
-            }
-          }
-          if (service.discountType != null && service.discountValue != null && price > 0) {
-            if (service.discountType == 'PERCENTAGE') {
-              price = price - (price * service.discountValue! / 100);
-            } else if (service.discountType == 'FLAT') {
-              price = price - service.discountValue!.toDouble();
-            }
-          }
-          subtotal += price * qty;
-        }
-      }
-      return subtotal;
-    }
-
-    double calculateOriginalTotal(Map<String, int> quantities) {
-      double originalTotal = 0;
-      for (var item in cartItems) {
-        Datum service = item['service'];
-        int qty = quantities[service.id ?? ''] ?? 0;
-        if (qty > 0) {
-          Set<String> selectedItems = item['selectedItems'];
-          double price = 0;
-          for (var taskItem in service.houseKeeperTaskItems ?? []) {
-            if (selectedItems.contains(taskItem.id ?? '')) {
-              price += taskItem.price?.toDouble() ?? 0;
-            }
-          }
-          originalTotal += price * qty;
-        }
-      }
-      return originalTotal;
-    }
+      return qty > 0;
+    }).toList();
 
     showDialog(
       context: context,
       barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          double subtotal = calculateSubtotal(_serviceQuantities);
-          double transport = 80.0;
-          double total = subtotal + transport;
-          double originalTotal = calculateOriginalTotal(_serviceQuantities) + transport;
-          double saved = originalTotal - total;
-
-          return Dialog(
-            backgroundColor: AppColors.containerBackground(context),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.01),
-
-            child: Container(
-              width: screenWidth,
-              constraints: BoxConstraints(maxHeight: screenHeight * 0.8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                    decoration: BoxDecoration(
-                      border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('CART', style: AppTextStyles.textSize20(context, weight: FontWeight.w700)),
-                            SizedboxSpaccing.height005(context),
-                            Text('${cartItems.length} service${cartItems.length > 1 ? 's' : ''}', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text('Total ৳${total.toStringAsFixed(2)}', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-                                SizedboxSpaccing.height005(context),
-                                if (saved > 0)
-                                  Text(
-                                    '৳${originalTotal.toStringAsFixed(2)}',
-                                    style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context)).copyWith(decoration: TextDecoration.lineThrough),
-                                  ),
-                              ],
-                            ),
-                            SizedboxSpaccing.width03(context),
-                            SizedboxSpaccing.width03(context),
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(color: AppColors.button(context).withOpacity(0.2), shape: BoxShape.circle),
-                                child: Icon(Icons.close, size: 20, color: AppColors.textPrimary(context)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Cart Items List
-                  Flexible(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                      itemCount: cartItems.length,
-                      separatorBuilder: (context, index) => SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final item = cartItems[index];
-                        Datum service = item['service'];
-                        int qty = _serviceQuantities[service.id ?? ''] ?? 0;
-
-                        // If quantity is 0, skip this item
-                        if (qty == 0) return SizedBox.shrink();
-
-                        Set<String> selectedItems = item['selectedItems'];
-
-                        // Calculate price for this service
-                        double price = 0;
-                        double originalPrice = 0;
-                        for (var taskItem in service.houseKeeperTaskItems ?? []) {
-                          if (selectedItems.contains(taskItem.id ?? '')) {
-                            originalPrice += taskItem.price?.toDouble() ?? 0;
-                          }
-                        }
-                        price = originalPrice;
-                        if (service.discountType != null && service.discountValue != null && price > 0) {
-                          if (service.discountType == 'PERCENTAGE') {
-                            price = price - (price * service.discountValue! / 100);
-                          } else if (service.discountType == 'FLAT') {
-                            price = price - service.discountValue!.toDouble();
-                          }
-                        }
-
-                        return Container(
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.border(context)),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(service.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-                                        SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            Text('৳${price.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-                                            if (service.discountValue != null && originalPrice > 0) ...[
-                                              SizedBox(width: 8),
-                                              Text(
-                                                '৳${originalPrice.toStringAsFixed(2)}',
-                                                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            if (qty > 1) {
-                                              _serviceQuantities[service.id ?? ''] = qty - 1;
-                                            } else {
-                                              // When quantity reaches 0, remove the item completely
-                                              _serviceQuantities[service.id ?? ''] = 0;
-                                              _selectedTaskItems.remove(service.id ?? '');
-                                            }
-                                          });
-                                          setDialogState(() {}); // Refresh dialog
-
-                                          // If all items are removed, close the dialog
-                                          if (_getTotalItems() == 0) {
-                                            Navigator.pop(context);
-                                          }
-                                        },
-                                        child: Container(
-                                          width: 25,
-                                          height: 25,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: AppColors.border(context)),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Icon(Icons.remove, size: 16),
-                                        ),
-                                      ),
-                                      Container(
-                                        width: 30,
-                                        child: Center(
-                                          child: Text(qty.toString(), style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                                        ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          if (service.hasRoom == false) {
-                                            Utils.flushBarExclamatoryMessage(
-                                              title: "Can't Add More",
-                                              subtitle: "Additional quantity isn't available for this service.",
-                                              context: context,
-                                            );
-                                          } else {
-                                            setState(() {
-                                              _serviceQuantities[service.id ?? ''] = qty + 1;
-                                            });
-                                            setDialogState(() {}); // Refresh dialog
-                                          }
-                                        },
-                                        child: Container(
-                                          width: 25,
-                                          height: 25,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: AppColors.border(context)),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Icon(Icons.add, size: 16),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  // Price Breakdown
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                    decoration: BoxDecoration(
-                      border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildPriceRow('Subtotal', subtotal, context),
-                        SizedBox(height: 8),
-                        _buildPriceRow('Transport', transport, context),
-                        SizedBox(height: 8),
-                        Divider(color: AppColors.border(context)),
-                        // SizedBox(height: 8),
-                        _buildPriceRow('Sub Total', total, context, isBold: true),
-                        if (saved > 0) ...[
-                          SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'You Saved BDT ${saved.toStringAsFixed(2)} in This Order!',
-                                style: AppTextStyles.textSize12(context, color: Colors.red, weight: FontWeight.w500),
-                              ),
-                              Text(
-                                '৳${originalTotal.toStringAsFixed(2)}',
-                                style: AppTextStyles.textSize12(context, color: Colors.red).copyWith(decoration: TextDecoration.lineThrough),
-                              ),
-                            ],
-                          ),
-                        ],
-                        SizedBox(height: 10),
-                        Divider(color: AppColors.border(context)),
-                        // SizedBox(height: 12),
-
-                        // Service Details
-                        _buildDetailRow('Service Type', _selectedFrequency, context),
-                        // _buildDetailRow('Place', 'Chittagong', context),
-                        // _buildDetailRow('Area', 'Chandgaong Residential Area', context),
-                        _buildDetailRow('Date', _dateController.text, context),
-                        _buildDetailRow('Morning', _selectedTime!, context),
-                      ],
-                    ),
-                  ),
-
-                  // Proceed Button
-                  Container(
-                    padding: EdgeInsets.all(15),
-                    child: GestureDetector(
-                      onTap: () {
-                        if (total < 600) {
-                          Utils.flushBarExclamatoryMessage(title: "Warning", subtitle: " Minimum order amount is BDT 600 to proceed!", context: context);
-                          return; // Don't proceed to checkout
-                        }
-                        Navigator.pop(context);
-                        _showCheckoutDialog();
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        height: 50,
-                        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-                        child: Center(
-                          child: Text(
-                            'Proceed to Checkout →',
-                            style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+      builder: (context) => CartDialog(
+        services: servicesWithQuantity,
+        serviceQuantities: _serviceQuantities,
+        selectedTaskItems: _selectedTaskItems,
+        selectedFrequency: _selectedFrequency,
+        selectedDate: _dateController.text,
+        selectedTime: _selectedTime!,
+        onQuantityChanged: (String serviceId, int newQuantity) {
+          setState(() {
+            if (newQuantity == 0) {
+              _serviceQuantities.remove(serviceId);
+              _selectedTaskItems.remove(serviceId);
+            } else {
+              _serviceQuantities[serviceId] = newQuantity;
+            }
+          });
+        },
+        onProceedToCheckout: () {
+          _showCheckoutDialog();
         },
       ),
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, BuildContext context, {bool isBold = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: AppTextStyles.textSize14(context, weight: isBold ? FontWeight.w600 : FontWeight.w400)),
-        Text('৳${amount.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: isBold ? FontWeight.w700 : FontWeight.w500)),
-      ],
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value, BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
-          Text(value, style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
-        ],
-      ),
-    );
-  }
-
-  ///Checkout Info SHowDialouge
+  ///3
   void _showCheckoutDialog() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    // Calculate totals
-    double subtotal = _calculateTotal();
-    double transport = 80.0;
-    double total = subtotal + transport;
-    double saved = _calculateSaved();
-    if (_fullNameController.text.isEmpty) {
-      _fullNameController.text = widget.customerName;
-    }
-    if (_phoneController.text.isEmpty) {
-      _phoneController.text = widget.customerPhone;
-    }
-    if (_addressController.text.isEmpty) {
-      _addressController.text = widget.customerAddress;
-    }
     showDialog(
       context: context,
       barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return Dialog(
-            backgroundColor: AppColors.containerBackground(context),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            insetPadding: EdgeInsets.all(15),
-            child: Container(
-              width: screenWidth,
-              constraints: BoxConstraints(maxHeight: screenHeight * 0.7),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header with close button
-                  Container(
-                    padding: EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Checkout', style: AppTextStyles.textSize20(context, weight: FontWeight.w600)),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(color: AppColors.button(context).withOpacity(0.2), shape: BoxShape.circle),
-                            child: Icon(Icons.close, size: 20),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Scrollable Form Content
-                  Flexible(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomTextFieldWithFormFieldPoppins(
-                            titleText: "Full Name",
-                            placeholder: 'Enter your name',
-                            controller: _fullNameController,
-                            keyboardType: TextInputType.name,
-                            isReadOnly: true,
-                            titleTextStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
-                            inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                            hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                          ),
-                          SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.info_outline, size: 14, color: AppColors.subtitle(context)),
-                              SizedBox(width: 4),
-                              Text('Enter your full legal name', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
-                            ],
-                          ),
-                          SizedboxSpaccing.height015(context),
-
-                          // Phone Number Field
-                          CustomTextFieldWithFormFieldPoppins(
-                            titleText: 'Phone Number',
-                            placeholder: 'Enter your number',
-                            controller: _phoneController,
-                            keyboardType: TextInputType.number,
-                            isReadOnly: true,
-                            titleTextStyle: AppTextStyles.textSize16(context, weight: FontWeight.w500),
-                            inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                            hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.subtitle(context)),
-                          ),
-                          SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.info_outline, size: 14, color: AppColors.subtitle(context)),
-                              SizedBox(width: 4),
-                              Text('We\'ll use this to confirm your appointment', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
-                            ],
-                          ),
-
-                          SizedboxSpaccing.height015(context),
-                          Row(
-                            children: [
-                              Text('Service Address', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                              Text(
-                                ' *',
-                                style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: Colors.red),
-                              ),
-                            ],
-                          ),
-                          SizedboxSpaccing.height01(context),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.textFieldFill(context),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(width: 1, color: AppColors.border(context)),
-                            ),
-                            child: TextField(
-                              controller: _addressController,
-                              maxLines: 3,
-                              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                            decoration: InputDecoration(
-                                hintText: 'Enter your address',
-                                hintStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.subtitle(context)),
-                                border: OutlineInputBorder(borderSide: BorderSide.none),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.info_outline, size: 14, color: AppColors.subtitle(context)),
-                              SizedBox(width: 4),
-                              Text('Include apartment/unit number', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
-                            ],
-                          ),
-                          SizedboxSpaccing.height015(context),
-
-                          // Select House Size
-                          Text('Select house size', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                          SizedBox(height: 4),
-                          Text('Select 1 out of 5 options', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
-                          SizedboxSpaccing.height01(context),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _houseSizeButton('500-1000 sq ft', setDialogState),
-                              _houseSizeButton('1000-1700 sq ft', setDialogState),
-                              _houseSizeButton('1700-3000 sq ft', setDialogState),
-                              _houseSizeButton('Above 3000 sq ft', setDialogState),
-                            ],
-                          ),
-                          SizedboxSpaccing.height015(context),
-
-                          // Special Requests Field
-                          Text('Special Requests or Instructions (Optional)', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                          SizedboxSpaccing.height01(context),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.textFieldFill(context),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(width: 1, color: AppColors.border(context)),
-                            ),
-                            child: TextField(
-                              controller: _specialRequestController,
-                              maxLines: 3,
-                              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                              decoration: InputDecoration(
-                                hintText: 'Write any request or instruction or suggestion.',
-                                hintStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.subtitle(context)),
-                                border: OutlineInputBorder(borderSide: BorderSide.none),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
-                              ),
-                            ),
-                          ),
-                          SizedboxSpaccing.height015(context),
-                          // Important Notes Section
-                          Container(
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.textFieldFill(context).withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.border(context)),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.description_outlined, size: 20, color: AppColors.textPrimary(context)),
-                                    SizedBox(width: 8),
-                                    Text('Important Notes', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                                  ],
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'আমরা হাউসকিপিং এর প্রয়োজনীয় উপকরণ সরবরাহ করব। তবে, কিছু বিষয় আমাদের কাস্টম সেবা দ্বারা পরিচালিত হবে:',
-                                  style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context)),
-                                ),
-                                SizedBox(height: 8),
-                                _buildBulletPoint('ঝাড়ু এবং ফ্যান মুছার সিঁড়ি ব্যবস্থা ক্লায়েন্টদের নিজেই করতে হবে।'),
-                                _buildBulletPoint('আমরা ভারী জিনিসপত্র স্থানান্তর করতে পারব না এবং শোকেসের জিনিসপত্রও সরাতে পারব না।'),
-                                _buildBulletPoint('সকল প্রয়োজনীয় জিনিসপত্র ক্লায়েন্টদের নিজেরাই সরিয়ে রাখতে হবে।'),
-                                _buildBulletPoint('আমরা শুধুমাত্র ক্লায়েন্টদের নির্বাচিত আইটেম এবং কাজ অনুযায়ী সেবা প্রদান করব।'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Bottom Confirm Button
-                  Container(
-                    padding: EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: AppColors.button(context),
-                      border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
-                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('Total Services (${_getTotalItems()} item${_getTotalItems() > 1 ? 's' : ''})', style: AppTextStyles.textSize12(context, color: AppColors.whiteColor)),
-                              SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Text('৳${total.toStringAsFixed(2)}', style: AppTextStyles.textSize18(context, weight: FontWeight.w600,color: AppColors.whiteColor)),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Saved ৳${saved.toStringAsFixed(2)}',
-                                    style: AppTextStyles.textSize12(context, color: Colors.green, weight: FontWeight.w500),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Replace the entire GestureDetector for the Confirm button with this:
-                        GestureDetector(
-                          onTap: () async {
-                            // Validate required fields
-                            if (_phoneController.text.isEmpty) {
-                              Utils.flushBarErrorMessage("Phone number is required", context);
-                              return;
-                            }
-                            if (_addressController.text.isEmpty) {
-                              Utils.flushBarErrorMessage("Service address is required", context);
-                              return;
-                            }
-                            if (_selectedHouseSize == null) {
-                              Utils.flushBarErrorMessage("Please select house size", context);
-                              return;
-                            }
-                            if (_selectedTime == null) {
-                              Utils.flushBarErrorMessage("Please select a time slot", context);
-                              return;
-                            }
-
-                            SharedPreferences prefs = await SharedPreferences.getInstance();
-                            String? userId = prefs.getString('userId');
-
-                            // Prepare tasks data
-                            List<Map<String, dynamic>> tasks = [];
-                            final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
-                            final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
-
-                            data.forEach((service) {
-                              int qty = _serviceQuantities[service.id ?? ''] ?? 0;
-                              if (qty > 0) {
-                                Set<String> selectedItems = _selectedTaskItems[service.id ?? ''] ?? service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
-
-                                if (selectedItems.isNotEmpty) {
-                                  tasks.add({"houseKeeperTaskId": service.id, "totalRooms": qty, "houseKeeperTaskItemIds": selectedItems.toList()});
-                                }
-                              }
-                            });
-
-                            // Get shift time ID from selected time
-                            final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
-                            final shiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
-                            String? shiftId;
-
-                            for (var shift in shiftTimes) {
-                              String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
-                              if (displayText == _selectedTime) {
-                                shiftId = shift.shiftId;
-                                break;
-                              }
-                            }
-
-                            if (shiftId == null) {
-                              Utils.flushBarErrorMessage("Invalid time selection", context);
-                              return;
-                            }
-
-                            String formattedDate = _dateController.text;
-                            Map<String, dynamic> bookingData = {
-                              "userId": userId.toString(),
-                              "district": "Chittagong",
-                              "area": "N/A",
-                              "planType": _selectedFrequency.toUpperCase(),
-                              "fullName": _fullNameController.text.trim(),
-                              "phone": _phoneController.text.trim(),
-                              "fullAddress": _addressController.text.trim(),
-                              "houseSize": _selectedHouseSize,
-                              "notes": _specialRequestController.text.trim().isEmpty ? null : _specialRequestController.text.trim(),
-                              "tasks": tasks,
-                              "couponCode": null,
-                              "shiftId": shiftId,
-                              "date": formattedDate,
-                            };
-
-                            print('Booking Data: $bookingData');
-
-                            // Call the booking API with success callback
-                            final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
-
-                            // CHANGED: Pass callback that receives trackingId
-                            await bookingViewModel.bookPremiumHouseKeeperPostApi(context, bookingData, (String trackingId) {
-                              // This callback only runs on SUCCESS and receives trackingId
-                              print('Success! TrackingId: $trackingId');
-
-                              // Close checkout dialog
-                              Navigator.pop(context);
-
-                              // Clear all data
-                              setState(() {
-                                _serviceQuantities.clear();
-                                _selectedTaskItems.clear();
-                                _fullNameController.clear();
-                                _phoneController.clear();
-                                _addressController.clear();
-                                _specialRequestController.clear();
-                                _selectedHouseSize = null;
-                              });
-
-                              Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId});
-                            });
-                            // If API fails, callback won't run, dialog stays open
-                          },
-                          child: Consumer<PostBookPremiumHouseKeeperViewModel>(
-                            builder: (context, bookingViewModel, _) {
-                              return Container(
-                                height: 40,
-                                width: 120,
-                                decoration: BoxDecoration(color: AppColors.blackColor, borderRadius: BorderRadius.circular(8), border: Border.all(width: 1,color: AppColors.whiteColor)),
-                                child: bookingViewModel.createBookPremiumHouseKeeperLoading
-                                    ? Container(
-                                        width: 120,
-                                        height: 40,
-                                        child: Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 50)),
-                                      )
-                                    : Center(
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              'Confirm',
-                                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-                                            ),
-                                            SizedBox(width: 8),
-                                            Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                                          ],
-                                        ),
-                                      ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+      builder: (context) => CheckoutDialog(
+        serviceQuantities: _serviceQuantities,
+        selectedTaskItems: _selectedTaskItems,
+        selectedFrequency: _selectedFrequency,
+        selectedDate: _dateController.text,
+        selectedTime: _selectedTime!,
+        customerName: widget.customerName,
+        customerPhone: widget.customerPhone,
+        customerAddress: widget.customerAddress,
+        onSuccess: () {
+          setState(() {
+            _serviceQuantities.clear();
+            _selectedTaskItems.clear();
+          });
         },
-      ),
-    );
-  }
-
-  // Helper method for house size buttons
-  Widget _houseSizeButton(String size, StateSetter setDialogState) {
-    bool isSelected = _selectedHouseSize == size;
-    return GestureDetector(
-      onTap: () {
-        setDialogState(() {
-          _selectedHouseSize = size;
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.button(context).withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 1),
-        ),
-        child: Text(
-          size,
-          style: AppTextStyles.textSize14(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
-        ),
-      ),
-    );
-  }
-
-  // Helper method for bullet points
-  Widget _buildBulletPoint(String text) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 4, left: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('• ', style: AppTextStyles.textSize12(context)),
-          Expanded(
-            child: Text(text, style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context))),
-          ),
-        ],
       ),
     );
   }
