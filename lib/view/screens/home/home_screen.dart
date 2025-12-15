@@ -283,10 +283,65 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Method to fetch Premium House keeper Check Coverage
+  // Future<void> _checkCoverage() async {
+  //   if (!mounted) return;
+  //
+  //   // Set loading state FIRST
+  //   setState(() {
+  //     isCheckingCoverage = true;
+  //     isInsideServiceArea = null;
+  //   });
+  //
+  //   try {
+  //     final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(context, listen: false);
+  //
+  //     // Call the API
+  //     await checkCoverageViewModel.fetchCheckCoverageDataApi();
+  //     if (!mounted) return;
+  //
+  //     // Check the status
+  //     if (checkCoverageViewModel.checkCoverageData.status == Status.COMPLETED) {
+  //       final responseData = checkCoverageViewModel.checkCoverageData.data;
+  //       if (responseData?.data?.insideServiceArea == true) {
+  //         setState(() {
+  //           isInsideServiceArea = true;
+  //           isCheckingCoverage = false;
+  //         });
+  //       } else {
+  //         setState(() {
+  //           isInsideServiceArea = false;
+  //           isCheckingCoverage = false;
+  //         });
+  //         // Utils.flushBarErrorMessage(
+  //         //   responseData?.message ?? "Service is not available in your location.",
+  //         //   context,
+  //         // );
+  //       }
+  //     } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
+  //       setState(() {
+  //         isInsideServiceArea = false;
+  //         isCheckingCoverage = false;
+  //       });
+  //       Utils.flushBarErrorMessage("Failed to check service coverage", context);
+  //     } else {
+  //       await Future.delayed(Duration(milliseconds: 500));
+  //       if (mounted) {
+  //         _checkCoverage(); // Retry
+  //       }
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       setState(() {
+  //         isInsideServiceArea = false;
+  //         isCheckingCoverage = false;
+  //       });
+  //       Utils.flushBarErrorMessage("Failed to check service coverage", context);
+  //     }
+  //   }
+  // }
   Future<void> _checkCoverage() async {
     if (!mounted) return;
 
-    // Set loading state FIRST
     setState(() {
       isCheckingCoverage = true;
       isInsideServiceArea = null;
@@ -295,39 +350,34 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(context, listen: false);
 
-      // Call the API
       await checkCoverageViewModel.fetchCheckCoverageDataApi();
       if (!mounted) return;
 
-      // Check the status
       if (checkCoverageViewModel.checkCoverageData.status == Status.COMPLETED) {
         final responseData = checkCoverageViewModel.checkCoverageData.data;
-        if (responseData?.data?.insideServiceArea == true) {
-          setState(() {
-            isInsideServiceArea = true;
-            isCheckingCoverage = false;
-          });
-        } else {
-          setState(() {
-            isInsideServiceArea = false;
-            isCheckingCoverage = false;
-          });
-          // Utils.flushBarErrorMessage(
-          //   responseData?.message ?? "Service is not available in your location.",
-          //   context,
-          // );
+        setState(() {
+          isInsideServiceArea = responseData?.data?.insideServiceArea ?? false;
+          isCheckingCoverage = false;
+        });
+
+        if (isInsideServiceArea == false) {
+          Utils.flushBarErrorMessage(
+            responseData?.message ?? "Service is not available in your location.",
+            context,
+          );
         }
       } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
         setState(() {
           isInsideServiceArea = false;
           isCheckingCoverage = false;
         });
-        Utils.flushBarErrorMessage("Failed to check service coverage", context);
-      } else {
-        await Future.delayed(Duration(milliseconds: 500));
-        if (mounted) {
-          _checkCoverage(); // Retry
-        }
+
+        // ✅ Show specific error message
+        String errorMsg = checkCoverageViewModel.checkCoverageData.message ?? "Failed to check service coverage";
+        Utils.flushBarErrorMessage(errorMsg, context);
+
+        // ✅ REMOVE the retry logic that was causing infinite loop
+        // Don't call _checkCoverage() again here!
       }
     } catch (e) {
       if (mounted) {
@@ -339,7 +389,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;

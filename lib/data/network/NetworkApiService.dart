@@ -16,7 +16,8 @@ import 'BaseApiServices.dart';
 class NetworkApiService extends BaseApiServices {
   static bool _isRefreshing = false;
   static List<Completer<String?>> _refreshQueue = [];
-
+  static Map<String, int> _retryAttempts = {};
+  static const int _maxRetries = 2;
   /// All Get Api Response
   @override
   Future getGetApiResponse(String url) async {
@@ -584,50 +585,117 @@ class NetworkApiService extends BaseApiServices {
   }
 
   // Enhanced response handler with better logging and retry logic
-  Future<dynamic> _handleResponse(https.Response response, String originalUrl, Future<dynamic> Function() retryFunction) async {
+  // Future<dynamic> _handleResponse(https.Response response, String originalUrl, Future<dynamic> Function() retryFunction) async {
+  //   print('📡 Response from $originalUrl: ${response.statusCode}');
+  //
+  //   if (response.statusCode == 401) {
+  //     print('🔒 Unauthorized response detected for: $originalUrl');
+  //
+  //     // Check if this is an API call that should trigger refresh
+  //     if (_shouldRefreshToken(originalUrl)) {
+  //       print('🔄 Attempting token refresh for URL: $originalUrl');
+  //
+  //       try {
+  //         final newAccessToken = await _refreshAccessToken();
+  //         if (newAccessToken != null && newAccessToken.isNotEmpty) {
+  //           print('✅ Token refreshed successfully, retrying original request');
+  //           // Retry the original request with new token
+  //           return await retryFunction();
+  //         } else {
+  //           print('❌ Token refresh returned null - refresh token likely expired');
+  //           // This means refresh token API returned 401 - now we should logout
+  //           throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+  //         }
+  //       } catch (e) {
+  //         print('❌ Token refresh exception: $e');
+  //
+  //         // Only logout if refresh token is expired (refresh API returned 401)
+  //         if (e.toString().contains('Refresh token expired')) {
+  //           print(e);
+  //           // throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+  //         } else {
+  //           print(e);
+  //           // For network errors or other issues, don't logout - just throw the error
+  //           // throw FetchDataException('Unable to refresh session. Please check your connection and try again.');
+  //         }
+  //       }
+  //     } else {
+  //       print('🔒 401 response for excluded endpoint: $originalUrl');
+  //       // For login/register endpoints, don't try to refresh
+  //       throw UnauthorisedExceptionLogin('Authentication failed');
+  //     }
+  //   }
+  //
+  //   return returnResponse(response);
+  // }
+  Future<dynamic> _handleResponse(
+      https.Response response,
+      String originalUrl,
+      Future<dynamic> Function() retryFunction,
+      ) async {
     print('📡 Response from $originalUrl: ${response.statusCode}');
 
     if (response.statusCode == 401) {
       print('🔒 Unauthorized response detected for: $originalUrl');
 
+      // ✅ Check retry count for this URL
+      int retryCount = _retryAttempts[originalUrl] ?? 0;
+
+      if (retryCount >= _maxRetries) {
+        print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
+        _retryAttempts.remove(originalUrl); // Clean up
+        throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+      }
+
       // Check if this is an API call that should trigger refresh
       if (_shouldRefreshToken(originalUrl)) {
-        print('🔄 Attempting token refresh for URL: $originalUrl');
+        print('🔄 Attempting token refresh for URL: $originalUrl (Retry: ${retryCount + 1}/$_maxRetries)');
 
         try {
           final newAccessToken = await _refreshAccessToken();
           if (newAccessToken != null && newAccessToken.isNotEmpty) {
             print('✅ Token refreshed successfully, retrying original request');
+
+            // ✅ Increment retry counter
+            _retryAttempts[originalUrl] = retryCount + 1;
+
             // Retry the original request with new token
-            return await retryFunction();
+            final result = await retryFunction();
+
+            // ✅ Success - clear retry counter
+            _retryAttempts.remove(originalUrl);
+
+            return result;
           } else {
             print('❌ Token refresh returned null - refresh token likely expired');
-            // This means refresh token API returned 401 - now we should logout
+            _retryAttempts.remove(originalUrl); // Clean up
             throw UnauthorisedExceptionLogin('Session expired. Please login again.');
           }
         } catch (e) {
           print('❌ Token refresh exception: $e');
+          _retryAttempts.remove(originalUrl); // Clean up
 
-          // Only logout if refresh token is expired (refresh API returned 401)
           if (e.toString().contains('Refresh token expired')) {
-            print(e);
-            // throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+            throw UnauthorisedExceptionLogin('Session expired. Please login again.');
           } else {
-            print(e);
-            // For network errors or other issues, don't logout - just throw the error
-            // throw FetchDataException('Unable to refresh session. Please check your connection and try again.');
+            throw FetchDataException('Unable to refresh session: ${e.toString()}');
           }
         }
       } else {
         print('🔒 401 response for excluded endpoint: $originalUrl');
-        // For login/register endpoints, don't try to refresh
         throw UnauthorisedExceptionLogin('Authentication failed');
       }
     }
 
+    // ✅ Success response - clear any retry counters for this URL
+    _retryAttempts.remove(originalUrl);
+
     return returnResponse(response);
   }
 
+  static void clearRetryAttempts() {
+    _retryAttempts.clear();
+  }
   // Check if the URL should trigger token refresh
   bool _shouldRefreshToken(String url) {
     // Don't refresh token for login, register, or refresh token endpoints
