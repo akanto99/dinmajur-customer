@@ -129,7 +129,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                             ),
                           ),
 
-                          SizedboxSpaccing.height02(context),
+                          SizedboxSpaccing.height01(context),
 
                           // Title
                           Text(
