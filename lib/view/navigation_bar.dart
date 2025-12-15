@@ -40,12 +40,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
   void initState() {
     super.initState();
 
-    _pages = [
-      HomeScreen(scaffoldKey: _key),
-      OffersScreen(),
-      OrderScreen(),
-      DraftScreen(),
-    ];
+    _pages = [HomeScreen(scaffoldKey: _key), OffersScreen(), OrderScreen(), DraftScreen()];
 
     _currentIndex = widget.initialIndex;
   }
@@ -55,12 +50,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     super.didChangeDependencies();
     _setSystemUIColors();
 
-    labels = [
-      AppLocalizations.of(context)!.home,
-      AppLocalizations.of(context)!.offers,
-      AppLocalizations.of(context)!.order,
-      AppLocalizations.of(context)!.draft,
-    ];
+    labels = [AppLocalizations.of(context)!.home, AppLocalizations.of(context)!.offers, AppLocalizations.of(context)!.order, AppLocalizations.of(context)!.draft];
   }
 
   void _setSystemUIColors() {
@@ -116,19 +106,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
               builder: (context) {
                 return AlertDialog(
                   backgroundColor: AppColors.containerBackground(context),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.02,
-                    vertical: screenHeight * 0.02,
-                  ),
-                  insetPadding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.1,
-                    vertical: screenHeight * 0.2,
-                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.02),
+                  insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenHeight * 0.2),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                  content: Text(
-                    "Are you sure you want to exit?",
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-                  ),
+                  content: Text("Are you sure you want to exit?", style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                   actions: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -138,15 +119,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
                           child: Container(
                             width: screenWidth * 0.2,
                             padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
-                            decoration: BoxDecoration(
-                              color: AppColors.textFieldFill(context),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
+                            decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(5)),
                             child: Center(
-                              child: Text(
-                                'No',
-                                style: AppTextStyles.textSize12(context, weight: FontWeight.w600),
-                              ),
+                              child: Text('No', style: AppTextStyles.textSize12(context, weight: FontWeight.w600)),
                             ),
                           ),
                         ),
@@ -156,18 +131,11 @@ class _NavigationScreenState extends State<NavigationScreen> {
                           child: Container(
                             width: screenWidth * 0.2,
                             padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
-                            decoration: BoxDecoration(
-                              color: AppColors.button(context),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
+                            decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(5)),
                             child: Center(
                               child: Text(
                                 'Yes',
-                                style: GoogleFonts.hindSiliguri(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.whiteColor,
-                                ),
+                                style: GoogleFonts.hindSiliguri(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.whiteColor),
                               ),
                             ),
                           ),
@@ -191,16 +159,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   color: AppColors.globalBlackWhite(context),
                   boxShadow: [
                     Theme.of(context).brightness == Brightness.dark
-                        ? BoxShadow(
-                      color: Colors.white12.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, -2),
-                    )
-                        : BoxShadow(
-                      color: Colors.white10,
-                      blurRadius: 10,
-                      offset: const Offset(0, -2),
-                    ),
+                        ? BoxShadow(color: Colors.white12.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, -2))
+                        : BoxShadow(color: Colors.white10, blurRadius: 10, offset: const Offset(0, -2)),
                   ],
                 ),
                 child: Column(
@@ -214,10 +174,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         return GestureDetector(
                           onTap: () {
                             // If already on home and drawer is open, close it
-                            if (index == 0 &&
-                                _currentIndex == 0 &&
-                                _key.currentState != null &&
-                                _key.currentState!.isDrawerOpen) {
+                            if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
                               _key.currentState!.closeDrawer();
                             } else {
                               setState(() {
@@ -232,24 +189,14 @@ class _NavigationScreenState extends State<NavigationScreen> {
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                SvgPicture.asset(
-                                  icons[index],
-                                  width: 18,
-                                  height: 18,
-                                  color: isSelected
-                                      ? AppColors.button(context)
-                                      : AppColors.subtitle(context),
-                                  semanticsLabel: labels[index],
-                                ),
+                                SvgPicture.asset(icons[index], width: 18, height: 18, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context), semanticsLabel: labels[index]),
                                 const SizedBox(height: 6),
                                 Text(
                                   labels[index],
                                   style: AppTextStyles.textSize12(
                                     context,
                                     weight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                                    color: isSelected
-                                        ? AppColors.button(context)
-                                        : AppColors.subtitle(context),
+                                    color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
                                   ),
                                 ),
                               ],

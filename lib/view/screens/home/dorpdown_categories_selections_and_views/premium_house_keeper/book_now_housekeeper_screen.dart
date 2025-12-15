@@ -252,7 +252,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
               // Show error only for housekeeper data
               if (hasHousekeeperError) {
-                return ErrorStateEmptyHeaderWidget(
+                return ErrorStateWidget(
                   errorMessage: housekeeperViewModel.getAllPremiumHouseKeeperTaskData.message.toString(),
                   onRetry: () {
                     housekeeperViewModel.fetchGetAllPermiumHouseKeeperTaskGetDataApi();

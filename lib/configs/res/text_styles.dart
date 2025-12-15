@@ -37,6 +37,15 @@ final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: fa
       color: color?? AppColors.textPrimary(context),
     );
   }
+  static TextStyle textSize26(BuildContext context,{weight,Color? color}) {
+    final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: false);    final isBengali = languageProvider.appLocale?.languageCode == 'bn';
+    return TextStyle(
+      fontFamily: isBengali ? "hindSiliguri" : "poppins",
+      fontSize: 26,
+      fontWeight:weight,
+      color: color?? AppColors.textPrimary(context),
+    );
+  }
   ///18------------------
   static TextStyle textSize18(BuildContext context,{weight,Color? color}) {
 final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: false);    final isBengali = languageProvider.appLocale?.languageCode == 'bn';
@@ -97,6 +106,16 @@ final isBengali = languageProvider.appLocale?.languageCode == 'bn';
     return TextStyle(
       fontFamily: isBengali ? "hindSiliguri" : "poppins",
       fontSize: 20,
+      fontWeight: weight ?? FontWeight.w500,
+      color: color ?? AppColors.textPrimary(context),
+    );
+  }
+  static TextStyle textSize22(BuildContext context, {FontWeight? weight, Color? color}) {
+    final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: false);
+    final isBengali = languageProvider.appLocale?.languageCode == 'bn';
+    return TextStyle(
+      fontFamily: isBengali ? "hindSiliguri" : "poppins",
+      fontSize: 22,
       fontWeight: weight ?? FontWeight.w500,
       color: color ?? AppColors.textPrimary(context),
     );

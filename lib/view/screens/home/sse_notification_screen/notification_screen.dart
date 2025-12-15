@@ -125,7 +125,7 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                   return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
 
                 case Status.ERROR:
-                  return ErrorStateEmptyHeaderWidget(
+                  return ErrorStateWidget(
                     errorMessage: viewModel.notificationListData.message.toString(),
                     onRetry: () {
                       viewModel.fetchLocationListApi();
