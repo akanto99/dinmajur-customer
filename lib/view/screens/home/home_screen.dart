@@ -659,8 +659,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Scaffold.of(context).openDrawer();
                         },
                         child: Container(
-                          height: 48,
-                          width: 48,
+                          height: 40,
+                          width: 40,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppColors.appBackground(context),
@@ -686,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 children: [
                                   Text(
                                     userName,
-                                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                   ),
@@ -697,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Expanded(
                                         child: Text(
                                           displayAddress,
-                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                                          style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
                                         ),

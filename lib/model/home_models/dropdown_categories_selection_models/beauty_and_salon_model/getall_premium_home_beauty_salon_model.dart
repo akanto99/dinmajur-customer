@@ -99,10 +99,10 @@ class Image {
 class Item {
   String? id;
   String? name;
-  int? originalPrice;
-  int? salePrice;
+  num? originalPrice;  // Changed from int? to num?
+  num? salePrice;      // Changed from int? to num?
   DiscountType? discountType;
-  int? discountValue;
+  num? discountValue;  // Changed from int? to num?
   String? details;
   Image? image;
   List<dynamic>? faqs;

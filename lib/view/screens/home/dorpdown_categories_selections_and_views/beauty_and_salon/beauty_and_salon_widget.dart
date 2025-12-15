@@ -97,7 +97,7 @@ class PremiumBeautyAndSalonCoverageWidget extends StatelessWidget {
         // House Keeper Service Card
         Container(
           width: screenWidth * 0.9,
-          padding: EdgeInsets.all(screenHeight * 0.015),
+          padding: EdgeInsets.all(screenHeight * 0.025),
           decoration: BoxDecoration(
             color: AppColors.containerBackground(context),
             borderRadius: BorderRadius.circular(24),
@@ -109,29 +109,50 @@ class PremiumBeautyAndSalonCoverageWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Left side - Icon and Title
                   Expanded(
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           height: 40,
                           width: 40,
-                          decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(6)),
-                          child: Icon(FontAwesomeIcons.houseChimneyUser, color: AppColors.containerBackground(context), size: 16),
+                          decoration: BoxDecoration(
+                              color: AppColors.textPrimary(context),
+                              borderRadius: BorderRadius.circular(6)
+                          ),
+                          child: Icon(
+                              FontAwesomeIcons.houseChimneyUser,
+                              color: AppColors.containerBackground(context),
+                              size: 16
+                          ),
                         ),
                         SizedboxSpaccing.width03(context),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Home Beauty & Salon",
-                              style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.button(context)),
-                            ),
-                            Text(
-                              "Dinmajur Premium",
-                              style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Home Beauty & Salon",
+                                style: AppTextStyles.textSize18(
+                                    context,
+                                    weight: FontWeight.w500,
+                                    color: AppColors.button(context)
+                                ),
+                                maxLines: 2, // Allow up to 2 lines
+                                overflow: TextOverflow.ellipsis, // Add ellipsis if still too long
+                              ),
+                              Text(
+                                "Dinmajur Premium",
+                                style: AppTextStyles.textSize14(
+                                    context,
+                                    weight: FontWeight.w400,
+                                    color: AppColors.subtitle(context)
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
