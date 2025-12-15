@@ -50,7 +50,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
           child: Container(
             height: screenHeight * 0.48,
             width: screenWidth,
-            color: AppColors.containerBackground(context),
+            color: AppColors.border(context),
             child: SvgPicture.asset("assets/images/login/welcome.svg", fit: BoxFit.cover),
           ),
         ),
