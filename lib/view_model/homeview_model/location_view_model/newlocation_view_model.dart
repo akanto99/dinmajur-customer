@@ -1,8 +1,12 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/respository/home_repositories/location_repository/newlocation_repository.dart';
+import 'package:dinmajur_customer/view/navigation_bar.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddLocationViewModel with ChangeNotifier {
@@ -16,7 +20,7 @@ class AddLocationViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addLocationPatchApi(BuildContext context, dynamic fields) async {
+  Future<void> addLocationPostApi(BuildContext context, dynamic fields) async {
     setCreateAddLocationLoading(true);
 
     try {
@@ -38,6 +42,23 @@ class AddLocationViewModel with ChangeNotifier {
       dynamic response = await _myRepo.addLocationPatchApi(fields);
 
       setCreateAddLocationLoading(false);
+      Utils.flushBarSuccessMessage('Location saved successfully', context);
+
+        final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+        profileViewModel.clearCache(); // Clear the cache to force refresh
+
+
+
+        // Navigate back and refresh will happen automatically due to cleared cache
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NavigationScreen(initialIndex: 0),
+            ),
+          );
+        });
+
 
       if (kDebugMode) {
         print('Location API Response: ${jsonEncode(response)}');
@@ -46,6 +67,41 @@ class AddLocationViewModel with ChangeNotifier {
 
       // Optional: Show success message (you might want to remove this for automatic posting)
       // Utils.flushBarSuccessMessage('Location saved successfully', context);
+    } catch (error) {
+      setCreateAddLocationLoading(false);
+      _handleError(error, context);
+
+      if (kDebugMode) {
+        print('Error in AddLocationViewModel: $error');
+      }
+    }
+  }
+
+  Future updateAddressPatchApi(BuildContext context, dynamic fields, String userId) async {
+    setCreateAddLocationLoading(true);
+
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? accessToken = prefs.getString('accessToken');
+
+      if (accessToken == null || accessToken.isEmpty) {
+        Utils.flushBarErrorMessage('Authentication token not found', context);
+        setCreateAddLocationLoading(false);
+        return;
+      }
+      dynamic response = await _myRepo.updateAddressPatchApi(fields, userId);
+
+      setCreateAddLocationLoading(false);
+      Utils.flushBarSuccessMessage('Location updated successfully', context);
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+      profileViewModel.clearCache(); // Clear the cache to force refresh
+
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));
+        });
+      if (kDebugMode) {
+        print('Location API Response: ${jsonEncode(response)}');
+      }
 
     } catch (error) {
       setCreateAddLocationLoading(false);
@@ -79,61 +135,7 @@ class AddLocationViewModel with ChangeNotifier {
       print('AddLocation Error: $errorMessage');
     }
 
-    // For automatic location posting, you might want to use a less intrusive error handling
-    // Utils.flushBarErrorMessage(errorMessage, context);
-  }
-
-  // Method to check if location should be auto-posted
-  Future<bool> shouldAutoPostLocation() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      // You can add logic here to check if location was already posted recently
-      // For example, check last post timestamp
-      String? lastLocationPost = prefs.getString('lastLocationPostTime');
-
-      if (lastLocationPost == null) {
-        return true; // First time, should post
-      }
-
-      DateTime lastPost = DateTime.parse(lastLocationPost);
-      DateTime now = DateTime.now();
-
-      // Only auto-post if last post was more than 1 hour ago
-      if (now.difference(lastPost).inHours > 1) {
-        return true;
-      }
-
-      return false;
-    } catch (e) {
-      if (kDebugMode) print('Error checking auto-post condition: $e');
-      return true; // Default to posting if check fails
-    }
-  }
-
-  // Method to update last location post time
-  Future<void> updateLastLocationPostTime() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('lastLocationPostTime', DateTime.now().toIso8601String());
-    } catch (e) {
-      if (kDebugMode) print('Error updating last location post time: $e');
-    }
-  }
-
-  // Enhanced method for automatic location posting with conditions
-  Future<void> autoPostLocationIfNeeded(BuildContext context, dynamic locationData) async {
-    try {
-      bool shouldPost = await shouldAutoPostLocation();
-
-      if (shouldPost) {
-        if (kDebugMode) print('Auto-posting location data...');
-        await addLocationPatchApi(context, locationData);
-        await updateLastLocationPostTime();
-      } else {
-        if (kDebugMode) print('Skipping auto-post - location posted recently');
-      }
-    } catch (e) {
-      if (kDebugMode) print('Error in auto-post location: $e');
-    }
+    // ADD THIS LINE - Show error to user
+    Utils.flushBarErrorMessage(errorMessage, context);
   }
 }

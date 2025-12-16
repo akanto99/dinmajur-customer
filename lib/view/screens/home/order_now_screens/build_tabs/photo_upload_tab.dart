@@ -12,22 +12,14 @@ class SelectedImage {
   final String name;
   final DateTime timestamp;
 
-  SelectedImage({
-    required this.imageData,
-    required this.name,
-    required this.timestamp,
-  });
+  SelectedImage({required this.imageData, required this.name, required this.timestamp});
 }
 
 class PhotoUploadTab extends StatefulWidget {
   final Function(List<Map<String, dynamic>>)? onPhotosChanged;
   final List<Map<String, dynamic>>? initialPhotos;
 
-  const PhotoUploadTab({
-    Key? key,
-    this.onPhotosChanged,
-    this.initialPhotos,
-  }) : super(key: key);
+  const PhotoUploadTab({Key? key, this.onPhotosChanged, this.initialPhotos}) : super(key: key);
 
   @override
   State<PhotoUploadTab> createState() => _PhotoUploadTabState();
@@ -45,22 +37,14 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
   void _initializeWithExistingPhotos() {
     if (widget.initialPhotos != null && widget.initialPhotos!.isNotEmpty) {
       _selectedImages = widget.initialPhotos!.map((photoData) {
-        return SelectedImage(
-          imageData: photoData['imageData'] as Uint8List,
-          name: photoData['name'] as String,
-          timestamp: photoData['timestamp'] as DateTime,
-        );
+        return SelectedImage(imageData: photoData['imageData'] as Uint8List, name: photoData['name'] as String, timestamp: photoData['timestamp'] as DateTime);
       }).toList();
     }
   }
 
   void _addImage(Uint8List imageData) {
     setState(() {
-      _selectedImages.add(SelectedImage(
-        imageData: imageData,
-        name: "Bazaar List ${_selectedImages.length + 1}",
-        timestamp: DateTime.now(),
-      ));
+      _selectedImages.add(SelectedImage(imageData: imageData, name: "Bazaar List ${_selectedImages.length + 1}", timestamp: DateTime.now()));
     });
     _updateParent();
   }
@@ -74,22 +58,14 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
 
   void _updateParent() {
     if (widget.onPhotosChanged != null) {
-      List<Map<String, dynamic>> photoData = _selectedImages.map((image) => {
-        'name': image.name,
-        'imageData': image.imageData,
-        'timestamp': image.timestamp,
-        'size': image.imageData.length,
-      }).toList();
+      List<Map<String, dynamic>> photoData = _selectedImages.map((image) => {'name': image.name, 'imageData': image.imageData, 'timestamp': image.timestamp, 'size': image.imageData.length}).toList();
 
       widget.onPhotosChanged!(photoData);
     }
   }
 
   void _openImagePicker() {
-    ImagePickerOnly.pickImageWithSourceSelection(
-      context: context,
-      onImagePicked: _addImage,
-    );
+    ImagePickerOnly.pickImageWithSourceSelection(context: context, onImagePicked: _addImage);
   }
 
   @override
@@ -97,12 +73,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Column(
-      children: [
-        _buildUploadSection(screenWidth, screenHeight),
-        if (_selectedImages.isNotEmpty) _buildPhotoListSection(screenWidth, screenHeight),
-      ],
-    );
+    return Column(children: [_buildUploadSection(screenWidth, screenHeight), if (_selectedImages.isNotEmpty) _buildPhotoListSection(screenWidth, screenHeight)]);
   }
 
   Widget _buildUploadSection(double screenWidth, double screenHeight) {
@@ -116,10 +87,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
           left: BorderSide(width: 1, color: AppColors.border(context)),
           bottom: BorderSide(width: 1, color: AppColors.border(context)),
         ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
       ),
       padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
       child: Column(
@@ -160,10 +128,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
       child: Container(
         width: screenHeight * 0.3,
         height: 48,
-        decoration: BoxDecoration(
-          color: AppColors.button(context),
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -171,11 +136,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
             SizedboxSpaccing.width02(context),
             Text(
               "Upload Bazaar List",
-              style: AppTextStyles.textSize16(
-                context,
-                color: Colors.white,
-                weight: FontWeight.w500,
-              ),
+              style: AppTextStyles.textSize16(context, color: Colors.white, weight: FontWeight.w500),
             ),
           ],
         ),
@@ -193,10 +154,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Uploaded Photos (${_selectedImages.length})",
-                style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-              ),
+              Text("Uploaded Photos (${_selectedImages.length})", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
               SizedboxSpaccing.height012(context),
               // Use ListView.separated with shrinkWrap instead of fixed height container
               ListView.separated(
@@ -223,14 +181,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(width: 1, color: AppColors.border(context)),
       ),
-      child: Row(
-        children: [
-          _buildImageThumbnail(image),
-          SizedboxSpaccing.width02(context),
-          _buildImageDetails(image),
-          _buildImageActions(image, index),
-        ],
-      ),
+      child: Row(children: [_buildImageThumbnail(image), SizedboxSpaccing.width02(context), _buildImageDetails(image), _buildImageActions(image, index)]),
     );
   }
 
@@ -254,15 +205,9 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            image.name,
-            style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-          ),
+          Text(image.name, style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
           const SizedBox(height: 4),
-          Text(
-            "${_formatTimestamp(image.timestamp)} • ${_formatFileSize(image.imageData.length)}",
-            style: AppTextStyles.textSize12(context, color: Colors.grey),
-          ),
+          Text("${_formatTimestamp(image.timestamp)} • ${_formatFileSize(image.imageData.length)}", style: AppTextStyles.textSize12(context, color: Colors.grey)),
         ],
       ),
     );
@@ -274,11 +219,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
       children: [
         IconButton(
           onPressed: () => _viewImage(image),
-          icon: Icon(
-            Icons.visibility,
-            color: AppColors.textPrimary(context),
-            size: 20,
-          ),
+          icon: Icon(Icons.visibility, color: AppColors.textPrimary(context), size: 20),
         ),
         IconButton(
           onPressed: () => _removeImage(index),
@@ -292,10 +233,7 @@ class _PhotoUploadTabState extends State<PhotoUploadTab> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FullScreenImage2(
-          imageData: image.imageData,
-          imageName: image.name,
-        ),
+        builder: (context) => FullScreenImage2(imageData: image.imageData, imageName: image.name),
       ),
     );
   }

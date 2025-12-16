@@ -112,6 +112,47 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   await _saveFormData();
 
                   // Call the API
+                  // forgotOtpSendMode.otpSendPostAPI(
+                  //   data,
+                  //   context,
+                  //   onSuccess: () async {
+                  //     // Wait a bit for the data to be saved
+                  //     await Future.delayed(const Duration(milliseconds: 500));
+                  //
+                  //     // Now read the saved data
+                  //     final prefs = await SharedPreferences.getInstance();
+                  //     final userID = prefs.getString('forgot_user_id') ?? '';
+                  //     final token = prefs.getString('forgot_token') ?? '';
+                  //     final phone = prefs.getString('forgot_phone') ?? '';
+                  //     final role = prefs.getString('forgot_role') ?? '';
+                  //
+                  //     print('📊 Retrieved from SharedPreferences:');
+                  //     print('User ID: $userID');
+                  //     print('Token: $token');
+                  //     print('Phone: $phone');
+                  //     print('Role: $role');
+                  //
+                  //     // Navigate to OTP verification screen
+                  //     Navigator.pushNamed(
+                  //       context,
+                  //       RoutesName.forgot_otpVerify,
+                  //       arguments: {
+                  //         'userID': userID,
+                  //         'phone': phone,
+                  //         'token': token,
+                  //         'role': role,
+                  //       },
+                  //     );
+                  //
+                  //     // Clear form and temporary data
+                  //     setState(() {
+                  //       _phoneController.clear();
+                  //     });
+                  //
+                  //     // Remove the temporary form data
+                  //     await prefs.remove('f_phone');
+                  //   },
+                  // );
                   forgotOtpSendMode.otpSendPostAPI(
                     data,
                     context,
@@ -132,7 +173,22 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       print('Phone: $phone');
                       print('Role: $role');
 
-                      // Navigate to OTP verification screen
+                      // ✅ ADD ROLE VALIDATION HERE
+                      if (role.toLowerCase() != 'customer') {
+                        Utils.flushBarErrorMessage('This phone number is not registered as a customer account', context);
+
+                        // Clear the stored data since it's not a customer
+                        await forgotOtpSendMode.clearForgotPasswordData();
+
+                        // Clear the phone field
+                        setState(() {
+                          _phoneController.clear();
+                        });
+
+                        return; // Don't navigate
+                      }
+
+                      // Navigate to OTP verification screen ONLY if role is customer
                       Navigator.pushNamed(
                         context,
                         RoutesName.forgot_otpVerify,

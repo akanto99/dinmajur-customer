@@ -259,22 +259,22 @@ class _VerificationSuccessScreenState extends State<VerificationSuccessScreen>
                           },
                         ),
 
-                        SizedBox(height: screenHeight * 0.025),
-
-                        // Set up profile later button
-                        GestureDetector(
-                          onTap: (){
-                            Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
-                          },
-                          child: Container(
-                            child: Text(
-                                AppLocalizations.of(context)!.setup_profile_later,
-                              style: AppTextStyles.textSize16(context,
-                                weight: FontWeight.w500,
-                              )
-                            ),
-                          ),
-                        ),
+                        // SizedBox(height: screenHeight * 0.025),
+                        //
+                        // // Set up profile later button
+                        // GestureDetector(
+                        //   onTap: (){
+                        //     Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
+                        //   },
+                        //   child: Container(
+                        //     child: Text(
+                        //         AppLocalizations.of(context)!.setup_profile_later,
+                        //       style: AppTextStyles.textSize16(context,
+                        //         weight: FontWeight.w500,
+                        //       )
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

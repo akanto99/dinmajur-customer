@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashService {
-
   Future<void> navigateAfterDelay(BuildContext context) async {
     await Future.delayed(Duration(seconds: 2));
 
@@ -15,41 +14,60 @@ class SplashService {
       bool? isPhoneVerified = prefs.getBool('isPhoneVerified');
       String? role = prefs.getString('role');
 
-      print("accessToken: $accessToken");
-      print("isPhoneVerified: $isPhoneVerified");
-      print("role: $role");
+      print("🔍 Splash Check:");
+      print("   - accessToken: ${accessToken != null ? 'Present' : 'Missing'}");
+      print("   - isPhoneVerified: $isPhoneVerified");
+      print("   - role: $role");
 
       await Future.delayed(Duration(milliseconds: 1500));
 
+      // Check if no token or empty token
       if (accessToken == null || accessToken.isEmpty) {
-        print("🔓 A: No token found");
-        Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
+        print("🔓 Navigation: No token found - Going to login");
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          RoutesName.welcomeLoginSignup,
+              (route) => false,
+        );
       }
-      // ✅ Most specific condition first (F)
+      // Check if user is verified CUSTOMER
       else if (accessToken.isNotEmpty &&
-          isPhoneVerified == true
-          // &&
-          // role == "CUSTOMER"
-      ) {
-        print("✅ Navigation: Going to home - All conditions met");
-        Navigator.pushNamed(context, RoutesName.navigationBar);
+          isPhoneVerified == true &&
+          role == "CUSTOMER") {
+        print("✅ Navigation: All conditions met - Going to home");
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          RoutesName.navigationBar,
+              (route) => false,
+        );
       }
+      // User is not verified or not a CUSTOMER
       else {
-        print("   - role == CUSTOMER: ${role == "CUSTOMER"}");
+        print("❌ Navigation: Conditions not met:");
+        print("   - Has token: ${accessToken.isNotEmpty}");
+        print("   - Phone verified: $isPhoneVerified");
+        print("   - Is CUSTOMER: ${role == "CUSTOMER"}");
         print("   - Current role: $role");
-        Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          RoutesName.welcomeLoginSignup,
+              (route) => false,
+        );
       }
     } else {
-      print("👋 : First time, show onboarding");
-      // Navigator.pushNamed(context, RoutesName.onBoard);
-      Navigator.pushNamed(context, RoutesName.onBoardUpdated);
+      print("👋 Navigation: First time user - Show onboarding");
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        RoutesName.onBoardUpdated,
+            (route) => false,
+      );
     }
   }
 }
 
 Future<void> setShowHome() async {
   SharedPreferences preferences = await SharedPreferences.getInstance();
-  preferences.setBool('showHome', true);
+  await preferences.setBool('showHome', true);
 }
 
 Future<bool> getShowHome() async {

@@ -70,8 +70,8 @@ class PostForgotOtpSendViewModel with ChangeNotifier {
           return;
         }
 
-        await Future.delayed(Duration(milliseconds: 1000));
-        Utils.flushBarSuccessMessage(successMessage, context);
+        // await Future.delayed(Duration(milliseconds: 1000));
+        // Utils.flushBarSuccessMessage(successMessage, context);
         // Start countdown timer and execute success callback
         if (onSuccess != null) {
           final timerProvider = Provider.of<ForgotPasswordCountdown>(context, listen: false);

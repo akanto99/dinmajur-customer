@@ -30,6 +30,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get log_in_subtitle => 'Please enter your login credential';
 
   @override
+  String get fullName => 'Your Name';
+
+  @override
+  String get fullName_hint => 'Enter your full name';
+
+  @override
   String get phone => 'Mobile Number';
 
   @override
@@ -39,7 +45,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get password => 'Password';
 
   @override
-  String get password_hint => 'Enter 8 characters or more';
+  String get password_hint => 'Enter 6 characters or more';
 
   @override
   String get forgot_password => 'Forgot Password';
@@ -67,7 +73,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mobile_number_required => 'Mobile Number *';
 
   @override
-  String get password_required => 'Password is required';
+  String get new_password => 'Password*';
 
   @override
   String get reenter_password => 'Re-enter Password*';
@@ -92,6 +98,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get error_try_again => 'An error occurred. Please try again.';
+
+  @override
+  String get enter_full_name => 'Please enter your full name';
+
+  @override
+  String get full_name_min_length =>
+      'Full name must be at least 3 characters long';
+
+  @override
+  String get full_name_max_length => 'Name cannot exceed 26 characters';
+
+  @override
+  String get full_name_invalid_characters =>
+      'Full name can only contain letters and spaces';
 
   @override
   String get otp_screen =>
@@ -162,7 +182,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get new_password_title => 'New password';
 
   @override
+  String get password_required => 'Password is required';
+
+  @override
   String get reenter_password_required => 'Re-enter password *';
+
+  @override
+  String get password_matched => 'Passwords matched';
+
+  @override
+  String get password_notmatched => 'Passwords not matched';
 
   @override
   String get confirm => 'Confirm';
@@ -204,11 +233,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get password_min_characters =>
-      'Please enter your password & at least 8 characters';
+      'Please enter your password & at least 6 characters';
 
   @override
   String get reenter_password_min_characters =>
-      'Please re-enter your password & at least 8 characters';
+      'Please re-enter your password & at least 6 characters';
 
   @override
   String get passwords_do_not_match => 'Passwords do not match';
@@ -218,7 +247,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Password is too weak. Please meet at least 3 requirements.';
 
   @override
-  String get password_must_be_8 => 'Password must be at least 8 characters';
+  String get password_must_be_6 => 'Password must be at least 6 characters';
 
   @override
   String get please_confirm_password => 'Please confirm your password';
@@ -228,6 +257,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Passwords & Re-enter Passwords do not match';
 
   @override
+  String get password_cannot_contain_spaces => 'Password cannot contain spaces';
+
+  @override
+  String get reenter_password_cannot_contain_spaces =>
+      'Re-enter password cannot contain spaces';
+
+  @override
+  String get enter_old_password => 'Please enter your old password';
+
+  @override
+  String get old_password_min_characters =>
+      'Old password must be at least 6 characters';
+
+  @override
   String get navigation_bar =>
       '--------------------navigation_bar------------------------';
 
@@ -235,16 +278,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home => 'Home';
 
   @override
-  String get scan => 'Scan';
+  String get offers => 'Offers';
 
   @override
-  String get task => 'Task';
+  String get order => 'Order';
 
   @override
-  String get stores => 'Stores';
-
-  @override
-  String get income => 'Income';
+  String get draft => 'Draft';
 
   @override
   String get home_screen =>
@@ -267,6 +307,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeType_clothing => 'Clothing';
+
+  @override
+  String get storeType_housekeeper => 'Premium House Keeper';
+
+  @override
+  String get storeType_beauty_salon => 'Premium Home Beauty & Salon';
 
   @override
   String get select_store_type => 'What do you need?';
@@ -310,9 +356,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_menu => 'Profile Menu';
 
   @override
-  String get order => 'Order';
-
-  @override
   String get wishlist => 'Wishlist';
 
   @override
@@ -353,4 +396,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get no_data_found => 'No data found';
+
+  @override
+  String get save_address => 'Save Addresses';
+
+  @override
+  String get orders => 'Orders';
+
+  @override
+  String get promo_codes => 'Promo Codes';
+
+  @override
+  String get terms_conditions => 'Terms & Condition';
+
+  @override
+  String get privacy_policy => 'Privacy Policy';
 }

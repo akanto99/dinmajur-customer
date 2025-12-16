@@ -3,7 +3,6 @@ import 'package:geocoding/geocoding.dart';
 
 class LocationService {
   static Position? _cachedPosition;
-  static String? _cachedAddress;
 
   Future<Position> getCurrentLocation({bool forceRefresh = false}) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -89,14 +88,11 @@ class LocationService {
     }
   }
 
-  // Method to get current location with address
+  // Method to get current location_screens with address
   Future<Map<String, dynamic>> getCurrentLocationWithAddress({bool forceRefresh = false}) async {
     try {
       Position position = await getCurrentLocation(forceRefresh: forceRefresh);
       String address = await getAddressFromCoordinates(position.latitude, position.longitude);
-
-      // Cache the address
-      _cachedAddress = address;
 
       return {
         'position': position,
@@ -109,10 +105,6 @@ class LocationService {
     }
   }
 
-  // Get cached address if available
-  String? getCachedAddress() {
-    return _cachedAddress;
-  }
 
   // Method to get a short address (for display in app bar)
   Future<String> getShortAddress(double latitude, double longitude) async {

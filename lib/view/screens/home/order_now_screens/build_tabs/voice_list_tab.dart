@@ -115,33 +115,21 @@ class _VoiceListTabState extends State<VoiceListTab> {
               left: BorderSide(width: 1, color: AppColors.border(context)),
               bottom: BorderSide(width: 1, color: AppColors.border(context)),
             ),
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(24),
-              bottomRight: Radius.circular(24),
-            ),
+            borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
           ),
           padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
-          child: Column(
-            children: [
-              SizedboxSpaccing.height02(context),
-              _buildRecordingArea(screenHeight,screenWidth),
-              SizedboxSpaccing.height02(context),
-            ],
-          ),
+          child: Column(children: [SizedboxSpaccing.height02(context), _buildRecordingArea(screenHeight, screenWidth), SizedboxSpaccing.height02(context)]),
         ),
-        if (_hasRecording) ...[
-          SizedboxSpaccing.height02(context),
-          _buildRecordingControls(),
-        ],
+        if (_hasRecording) ...[SizedboxSpaccing.height02(context), _buildRecordingControls()],
       ],
     );
   }
 
-  Widget _buildRecordingArea(double screenHeight,double screenWidth,) {
+  Widget _buildRecordingArea(double screenHeight, double screenWidth) {
     return Container(
       height: 200,
       width: screenWidth * 0.9,
-      padding: EdgeInsets.symmetric(horizontal: screenHeight*0.02),
+      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
       decoration: BoxDecoration(
         color: AppColors.textFieldFill(context),
         borderRadius: BorderRadius.circular(16),
@@ -153,10 +141,7 @@ class _VoiceListTabState extends State<VoiceListTab> {
           _buildRecordingIcon(),
           SizedboxSpaccing.height01(context),
           _buildRecordingText(),
-          if (_isRecording) ...[
-            SizedboxSpaccing.height01(context),
-            _buildRecordingDuration(),
-          ],
+          if (_isRecording) ...[SizedboxSpaccing.height01(context), _buildRecordingDuration()],
           SizedboxSpaccing.height02(context),
           _buildRecordButton(screenHeight),
         ],
@@ -167,11 +152,7 @@ class _VoiceListTabState extends State<VoiceListTab> {
   Widget _buildRecordingIcon() {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      child: Icon(
-        _isRecording ? Icons.mic : Icons.mic,
-        size: 35,
-        color: _isRecording ? Colors.red : Colors.grey,
-      ),
+      child: Icon(_isRecording ? Icons.mic : Icons.mic, size: 35, color: _isRecording ? Colors.red : Colors.grey),
     );
   }
 
@@ -184,10 +165,7 @@ class _VoiceListTabState extends State<VoiceListTab> {
 
     return Text(
       text,
-      style: AppTextStyles.textSize14(
-        context,
-        color: _isRecording ? Colors.red : Colors.grey,
-      ),
+      style: AppTextStyles.textSize14(context, color: _isRecording ? Colors.red : Colors.grey),
       textAlign: TextAlign.center,
     );
   }
@@ -195,14 +173,8 @@ class _VoiceListTabState extends State<VoiceListTab> {
   Widget _buildRecordingDuration() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        _recordingDuration,
-        style: AppTextStyles.textSize12(context, color: Colors.red),
-      ),
+      decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+      child: Text(_recordingDuration, style: AppTextStyles.textSize12(context, color: Colors.red)),
     );
   }
 
@@ -212,26 +184,15 @@ class _VoiceListTabState extends State<VoiceListTab> {
       child: Container(
         width: screenHeight * 0.3,
         height: 48,
-        decoration: BoxDecoration(
-          color: _isRecording ? Colors.red : Colors.red,
-          borderRadius: BorderRadius.circular(4),
-        ),
+        decoration: BoxDecoration(color: _isRecording ? Colors.red : Colors.red, borderRadius: BorderRadius.circular(4)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              _isRecording ? Icons.stop : Icons.mic,
-              color: Colors.white,
-              size: 20,
-            ),
+            Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.white, size: 20),
             SizedboxSpaccing.width01(context),
             Text(
               _isRecording ? "Stop Recording" : "Start Recording",
-              style: AppTextStyles.textSize16(
-                context,
-                color: Colors.white,
-                weight: FontWeight.w500,
-              ),
+              style: AppTextStyles.textSize16(context, color: Colors.white, weight: FontWeight.w500),
             ),
           ],
         ),
@@ -253,39 +214,18 @@ class _VoiceListTabState extends State<VoiceListTab> {
             children: [
               const Icon(Icons.audiotrack, color: Colors.green, size: 20),
               SizedboxSpaccing.width02(context),
-              Text(
-                "Voice Recording",
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-              ),
+              Text("Voice Recording", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
               const Spacer(),
-              Text(
-                _recordingDuration,
-                style: AppTextStyles.textSize12(context, color: Colors.grey),
-              ),
+              Text(_recordingDuration, style: AppTextStyles.textSize12(context, color: Colors.grey)),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildControlButton(
-                icon: Icons.play_arrow,
-                label: "Play",
-                onTap: _playRecording,
-                color: Colors.green,
-              ),
-              _buildControlButton(
-                icon: Icons.mic,
-                label: "Re-record",
-                onTap: _toggleRecording,
-                color: Colors.orange,
-              ),
-              _buildControlButton(
-                icon: Icons.delete,
-                label: "Delete",
-                onTap: _deleteRecording,
-                color: Colors.red,
-              ),
+              _buildControlButton(icon: Icons.play_arrow, label: "Play", onTap: _playRecording, color: Colors.green),
+              _buildControlButton(icon: Icons.mic, label: "Re-record", onTap: _toggleRecording, color: Colors.orange),
+              _buildControlButton(icon: Icons.delete, label: "Delete", onTap: _deleteRecording, color: Colors.red),
             ],
           ),
         ],
@@ -293,12 +233,7 @@ class _VoiceListTabState extends State<VoiceListTab> {
     );
   }
 
-  Widget _buildControlButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
+  Widget _buildControlButton({required IconData icon, required String label, required VoidCallback onTap, required Color color}) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -306,17 +241,11 @@ class _VoiceListTabState extends State<VoiceListTab> {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppTextStyles.textSize12(context, color: color),
-          ),
+          Text(label, style: AppTextStyles.textSize12(context, color: color)),
         ],
       ),
     );
