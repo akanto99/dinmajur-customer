@@ -564,6 +564,7 @@ import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:provider/provider.dart';
@@ -592,14 +593,13 @@ import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_n
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
 
   final themeProvider = ThemeProvider();
   await themeProvider.initializeTheme();
 
   final languageProvider = LanguageChangeProvider();
   await languageProvider.getLanguage();
-
-  await Upgrader.clearSavedSettings();
 
   ///SOCKET.IO
   final socketProvider = SocketProvider();

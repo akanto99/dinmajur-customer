@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import 'package:upgrader/upgrader.dart';
 import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
 import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -394,19 +395,26 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      key: widget.scaffoldKey,
-      backgroundColor: AppColors.containerBackground(context),
-      drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(80),
-        child: Container(
-          color: AppColors.containerBackground(context),
-          child: Center(child: _customAppBar(context)),
+    return UpgradeAlert(
+      barrierDismissible: false,
+      showLater: false,
+      showIgnore: false,
+      showReleaseNotes: false,
+      upgrader: Upgrader(),
+      child: Scaffold(
+        key: widget.scaffoldKey,
+        backgroundColor: AppColors.containerBackground(context),
+        drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(80),
+          child: Container(
+            color: AppColors.containerBackground(context),
+            child: Center(child: _customAppBar(context)),
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
+        body: SafeArea(
+          child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
+        ),
       ),
     );
   }
@@ -680,34 +688,43 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           children: [
                             Flexible(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    userName,
-                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Icon(Icons.location_on, size: 16, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
-                                      SizedBox(width: 4),
-                                      Expanded(
-                                        child: Text(
+                              child: Container(
+                                color:Colors.transparent,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      userName,
+                                      style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                    // Row(
+                                    //   children: [
+                                    //     Icon(Icons.location_on, size: 16, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                                    //     SizedBox(width: 4),
+                                    //     Expanded(
+                                    //       child: Text(
+                                    //         displayAddress,
+                                    //         style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                                    //         overflow: TextOverflow.ellipsis,
+                                    //         maxLines: 1,
+                                    //       ),
+                                    //     ),
+                                    //   ],
+                                    // ),
+                                Text(
                                           displayAddress,
                                           style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                           overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
+
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                            Container(width: 25, height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
+                            Container(width: 22, height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
                           ],
                         ),
                       ),
