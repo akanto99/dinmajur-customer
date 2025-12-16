@@ -81,7 +81,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
             width: screenWidth * 0.7,
             child: GooglePlaceAutoCompleteTextField(
               textEditingController: _controller.addressController,
-              googleAPIKey: MapLocationController.googlePlacesApiKey,
+              googleAPIKey: _controller.googlePlacesApiKey,
               isCrossBtnShown: false,
               inputDecoration: InputDecoration(
                 hintText: 'Search for a location...',

@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -33,13 +34,15 @@ class MapLocationController {
   String? lightMapTheme;
 
   // Constants
-  static const String googlePlacesApiKey = 'REMOVED_KEY';
+  late final String googlePlacesApiKey;
   static const CameraPosition kGooglePlex = CameraPosition(
     target: LatLng(22.3569, 91.7832), // Chittagong coordinates
     zoom: 14.4746,
   );
 
-  MapLocationController(this.context, this.setState);
+  MapLocationController(this.context, this.setState) {
+    googlePlacesApiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  }
 
   // ============ INITIALIZATION (replaces initState) ============
 
