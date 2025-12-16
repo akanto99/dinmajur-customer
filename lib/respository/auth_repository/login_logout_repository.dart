@@ -17,15 +17,9 @@ class LoginLogoutRepository {
 
   Future<void> logoutApi(String token) async {
     try {
-      final response = await https.get(
-        Uri.parse(AppUrl.logOutEndPoint),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-      } else {
-        throw Exception('Failed to logout. Status code: ${response.statusCode}');
-      }
+      dynamic response = await _apiServices.getPostApiWithOutBodyresponse(AppUrl.logOutEndPoint,
+          headers: {'Authorization': '$token'});
+      return response;
     } catch (e) {
       throw e;
     }

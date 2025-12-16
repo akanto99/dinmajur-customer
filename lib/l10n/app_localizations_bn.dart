@@ -30,6 +30,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get log_in_subtitle => 'আপনার লগইন তথ্য দিন';
 
   @override
+  String get fullName => 'আপনার নাম';
+
+  @override
+  String get fullName_hint => 'আপনার পুরো নাম লিখুন';
+
+  @override
   String get phone => 'মোবাইল নম্বর';
 
   @override
@@ -39,7 +45,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get password => 'পাসওয়ার্ড';
 
   @override
-  String get password_hint => '৮ অক্ষর বা তার বেশি লিখুন';
+  String get password_hint => '৬ অক্ষর বা তার বেশি লিখুন';
 
   @override
   String get forgot_password => 'পাসওয়ার্ড ভুলে গেছেন?';
@@ -67,7 +73,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get mobile_number_required => 'মোবাইল নম্বর *';
 
   @override
-  String get password_required => 'পাসওয়ার্ড প্রয়োজন';
+  String get new_password => 'পাসওয়ার্ড *';
 
   @override
   String get reenter_password => 'পুনরায় পাসওয়ার্ড লিখুন*';
@@ -93,6 +99,19 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get error_try_again =>
       'একটি ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
+
+  @override
+  String get enter_full_name => 'দয়া করে আপনার নাম লিখুন';
+
+  @override
+  String get full_name_min_length => 'নাম কমপক্ষে ৩ অক্ষরের হতে হবে';
+
+  @override
+  String get full_name_max_length => 'নাম সর্বোচ্চ ২৬ অক্ষরের হতে হবে';
+
+  @override
+  String get full_name_invalid_characters =>
+      'নামে শুধুমাত্র অক্ষর ও ফাঁকা স্থান থাকতে পারে';
 
   @override
   String get otp_screen =>
@@ -163,7 +182,16 @@ class AppLocalizationsBn extends AppLocalizations {
   String get new_password_title => 'নতুন পাসওয়ার্ড';
 
   @override
+  String get password_required => 'পাসওয়ার্ড প্রয়োজন';
+
+  @override
   String get reenter_password_required => 'পুনরায় পাসওয়ার্ড লিখুন *';
+
+  @override
+  String get password_matched => 'পাসওয়ার্ড ম্যাচ হয়েছে';
+
+  @override
+  String get password_notmatched => 'পাসওয়ার্ড ম্যাচ হয়নি';
 
   @override
   String get confirm => 'নিশ্চিত করুন';
@@ -204,11 +232,11 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get password_min_characters =>
-      'অনুগ্রহ করে আপনার পাসওয়ার্ড দিন এবং কমপক্ষে ৮ অক্ষর';
+      'অনুগ্রহ করে আপনার পাসওয়ার্ড দিন এবং কমপক্ষে ৬ অক্ষর';
 
   @override
   String get reenter_password_min_characters =>
-      'অনুগ্রহ করে পুনরায় পাসওয়ার্ড দিন এবং কমপক্ষে ৮ অক্ষর';
+      'অনুগ্রহ করে পুনরায় পাসওয়ার্ড দিন এবং কমপক্ষে ৬ অক্ষর';
 
   @override
   String get passwords_do_not_match => 'পাসওয়ার্ড মিলছে না';
@@ -218,7 +246,7 @@ class AppLocalizationsBn extends AppLocalizations {
       'পাসওয়ার্ড খুব দুর্বল। কমপক্ষে ৩টি শর্ত পূরণ করুন।';
 
   @override
-  String get password_must_be_8 => 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে';
+  String get password_must_be_6 => 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
 
   @override
   String get please_confirm_password => 'অনুগ্রহ করে পাসওয়ার্ড নিশ্চিত করুন';
@@ -228,6 +256,21 @@ class AppLocalizationsBn extends AppLocalizations {
       'পাসওয়ার্ড এবং পুনরায় পাসওয়ার্ড মিলছে না';
 
   @override
+  String get password_cannot_contain_spaces =>
+      'পাসওয়ার্ডে স্পেস ব্যবহার করা যাবে না';
+
+  @override
+  String get reenter_password_cannot_contain_spaces =>
+      'পুনরায় দেওয়া পাসওয়ার্ডে স্পেস ব্যবহার করা যাবে না';
+
+  @override
+  String get enter_old_password => 'অনুগ্রহ করে আপনার পুরোনো পাসওয়ার্ড দিন';
+
+  @override
+  String get old_password_min_characters =>
+      'পুরোনো পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
+
+  @override
   String get navigation_bar =>
       '--------------------Navigation Bar------------------------';
 
@@ -235,16 +278,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get home => 'হোম';
 
   @override
-  String get scan => 'স্ক্যান';
+  String get offers => 'অফারসমূহ';
 
   @override
-  String get task => 'টাস্ক';
+  String get order => 'অর্ডার';
 
   @override
-  String get stores => 'স্টোরস';
-
-  @override
-  String get income => 'ইনকাম';
+  String get draft => 'ড্রাফট';
 
   @override
   String get home_screen =>
@@ -254,7 +294,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get storeType_retail => 'রিটেল';
 
   @override
-  String get storeType_grocery => 'কিরানা দোকান';
+  String get storeType_grocery => 'মুদি দোকান';
 
   @override
   String get storeType_restaurant => 'রেস্তোরাঁ';
@@ -267,6 +307,12 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get storeType_clothing => 'পোশাক';
+
+  @override
+  String get storeType_housekeeper => 'প্রিমিয়াম হাউস কিপার';
+
+  @override
+  String get storeType_beauty_salon => 'প্রিমিয়াম হোম বিউটি ও সেলুন';
 
   @override
   String get select_store_type => 'কি লাগবে?';
@@ -310,9 +356,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String get profile_menu => 'প্রোফাইল মেনু';
 
   @override
-  String get order => 'অর্ডার';
-
-  @override
   String get wishlist => 'পছন্দের তালিকা';
 
   @override
@@ -353,4 +396,19 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get no_data_found => 'কোনো তথ্য পাওয়া যায়নি';
+
+  @override
+  String get save_address => 'ঠিকানা সংরক্ষণ করুন';
+
+  @override
+  String get orders => 'অর্ডারসমূহ';
+
+  @override
+  String get promo_codes => 'প্রোমো কোডসমূহ';
+
+  @override
+  String get terms_conditions => 'শর্তাবলী';
+
+  @override
+  String get privacy_policy => 'গোপনীয়তা নীতি';
 }

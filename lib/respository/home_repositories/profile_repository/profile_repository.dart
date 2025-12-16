@@ -9,8 +9,8 @@ class ProfileRepository {
 
   Future<ProfileViewModel> fetchProfileUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userID = prefs.getString('id');
-    print("usaser id $userID");
+    String? userID = prefs.getString('userId');
+    print("usaser id----------------- $userID");
     ///6860e54d7ef33b5157635834
     try {
       dynamic response = await _apiServices.getGetApiResponse("${AppUrl.viewProfile}/$userID");

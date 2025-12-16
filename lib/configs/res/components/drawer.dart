@@ -6,18 +6,19 @@ import 'package:dinmajur_customer/configs/res/components/full_screen_image/full_
 import 'package:dinmajur_customer/configs/res/components/profile_view_header/drawer_profile_view.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
-import 'package:dinmajur_customer/configs/services/socket/socket_provider.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
+import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
+import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,8 +63,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 onTap: () {
                   Navigator.pop(context);
                 },
-                child: Container(height: 60, 
-                    // color: AppColors.containerBackground(context),
+                child: Container(height: 60,
+                    color: AppColors.containerBackground(context),
                     child: AppBarHeader(AppLocalizations.of(context)!.profile_menu)),
               ),
          Expanded(child: SingleChildScrollView(
@@ -71,12 +72,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
              children: [
                _buildHeader(),
                _buildMenu(context),
-               SizedboxSpaccing.height025(context)
+               // SizedboxSpaccing.height025(context)
              ],
            ),
          )),
 
-              
+
             ],
           ),
         ),
@@ -93,12 +94,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
-            return Container(height: 280, child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
+            return Container(height: 220,
+                color: AppColors.containerBackground(context),
+                child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
 
           case Status.ERROR:
             return Container(
-              height: 280,
-              color: AppColors.appBackground(context),
+              height: 220,
+              color: AppColors.containerBackground(context),
               child: Center(
                 child: GestureDetector(
                   onTap: () {
@@ -121,27 +124,35 @@ class _CustomDrawerState extends State<CustomDrawer> {
             final profileData = profileViewModel.profileviewUserData.data!.data!;
 
             String? profileImageUrl = userData.profilePicture?.url;
-            String userName = userData.firstName ?? userData.lastName ?? '${userData.firstName ?? ''} ${userData.lastName ?? ''}'.trim();
+            String userName = '${userData.fullName ?? ''}'.trim();
             if (userName.isEmpty) userName = 'Unknown User';
-            String userExperience = userData.experience?.toString() ?? '0';
             String userPhone = userData.phone ?? '0';
-            String allSkillsCategory = profileData.skills?.where((skill) => skill.category != null).map((skill) => skill.category!).join(' ও ') ?? 'No skills';
 
-            return DrawerProfileHeader(
-              title: "$userName",
-              isActive: true,
-              phone: "$userPhone",
-              order: "0",
-              Wishlist: "0",
-              reviews: "0",
-              onImageTap: () {
-                // if (imageUrl != null && imageUrl!.isNotEmpty) {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => FullScreenImage(imageUrl: "$profileImageUrl")));
-                // }
-              },
-              onCameraTap: patchprofileImageUpdateViewMode.profileImageUpdateLoading ? () {} : _handleImagePick,
-              profileImage: "$profileImageUrl",
+            return Container(
+              height: 220,
+              decoration: BoxDecoration(
+                color: AppColors.containerBackground(context),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppColors.border(context),
+                    width: 1.0,
+                  ),
+                )
+              ),
+              child: DrawerProfileHeader(
+                title: "$userName",
+                phone: "$userPhone",
+                rating: 0.0,
+                onImageTap: () {
+                  // if (imageUrl != null && imageUrl!.isNotEmpty) {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => FullScreenImage(imageUrl: "$profileImageUrl")));
+                  // }
+                },
+                onCameraTap: patchprofileImageUpdateViewMode.profileImageUpdateLoading ? () {} : _handleImagePick,
+                profileImage: "$profileImageUrl",
+              ),
             );
+
           default:
             return Container();
         }
@@ -153,112 +164,159 @@ class _CustomDrawerState extends State<CustomDrawer> {
   Widget _buildMenu(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width * 1;
     final screenHeight = MediaQuery.of(context).size.height * 1;
-    return  Container(
-      width: screenWidth* 0.9,
-      padding: EdgeInsets.all(screenHeight * 0.02),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 30,
-            // color: Colors.yellow,
-            color: Colors.transparent,
-            alignment: Alignment.topLeft,
-            child: Text(AppLocalizations.of(context)!.account_settings, style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-          ),
-          GestureDetector(
-            onTap: () {
-              // Navigator.pushNamed(context, RoutesName.viewProfile);
-            },
-            child: _buildDrawerItem(CupertinoIcons.person, AppLocalizations.of(context)!.view_profile),
-          ),
+    return Container(
+        width: screenWidth,
+        decoration: BoxDecoration(color: AppColors.containerBackground(context)),
+    child: Center(
+      child: Container(
+        width: screenWidth* 0.85,
+        padding: EdgeInsets.symmetric(vertical:screenHeight * 0.02),
+        decoration: BoxDecoration(
+          color: AppColors.containerBackground(context),
+        ),
+        child: Column(
+          children: [
+            // Container(
+            //   height: 30,
+            //   // color: Colors.yellow,
+            //   color: Colors.transparent,
+            //   alignment: Alignment.topLeft,
+            //   child: Text(AppLocalizations.of(context)!.account_settings, style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+            // ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.viewProfile);
+              },
+              child: _buildDrawerItem(CupertinoIcons.person, AppLocalizations.of(context)!.view_profile),
+            ),
 
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, RoutesName.passwordChange);
-            },
-            child: _buildDrawerItem(Icons.lock_outline, AppLocalizations.of(context)!.change_password),
-          ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.passwordChange);
+              },
+              child: _buildDrawerItem(Icons.lock_outline, AppLocalizations.of(context)!.change_password),
+            ),
 
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, RoutesName.paymentMethod);
-            },
-            child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
-          ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.paymentMethod);
+              },
+              child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.addlocation);
+              },
+              child: _buildDrawerItem(Icons.maps_home_work_outlined, AppLocalizations.of(context)!.save_address),
+            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     Navigator.pushNamed(context, RoutesName.ordersScreen);
+            //   },
+            //   child: _buildDrawerItem(Icons.shopping_bag_outlined, AppLocalizations.of(context)!.order),
+            // ),
+            // GestureDetector(
+            //   onTap: () {
+            //     Navigator.pushNamed(context, RoutesName.promoCodes);
+            //   },
+            //   child: _buildDrawerItem(Icons.view_sidebar_outlined, AppLocalizations.of(context)!.promo_codes),
+            // ),
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2))),
+              child: _buildDrawerItem(Icons.shopping_bag_outlined, AppLocalizations.of(context)!.order),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.offers);
+              },
+              child: _buildDrawerItem(Icons.local_offer_outlined, AppLocalizations.of(context)!.offers),
+            ),
 
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, RoutesName.review);
-            },
-            child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
-          ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.review);
+              },
+              child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
+            ),
 
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, RoutesName.support);
-            },
-            child: _buildDrawerItem(CupertinoIcons.question_circle, AppLocalizations.of(context)!.support),
-          ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.support);
+              },
+              child: _buildDrawerItem(CupertinoIcons.question_circle, AppLocalizations.of(context)!.support),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.termsAndCondition);
+              },
+              child: _buildDrawerItem(Icons.description, AppLocalizations.of(context)!.terms_conditions),
+            ),
+            GestureDetector(
+              onTap: () {
 
-          SizedboxSpaccing.height025(context),
-          GestureDetector(
-            onTap: () {
-              _showLogoutDialog();
-            },
-            child: Container(
-              height: 48,
-              width: widget.screenWidth * 0.85,
-              decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.rotationY(3.1416),
-                    child: Icon(Icons.logout, size: 18, color: AppColors.whiteColor),
-                  ),
+                Navigator.pushNamed(context, RoutesName.privacyPolicy);
+              },
+              child: _buildDrawerItem(FontAwesomeIcons.shieldHalved, AppLocalizations.of(context)!.privacy_policy),
+            ),
 
-                  SizedboxSpaccing.width03(context),
-                  SizedboxSpaccing.width03(context),
-                  Text(
-                    AppLocalizations.of(context)!.sign_out,
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
-                  ),
-                ],
+            SizedboxSpaccing.height025(context),
+            GestureDetector(
+              onTap: () {
+                _showLogoutDialog();
+              },
+              child: Container(
+                height: 48,
+                width: widget.screenWidth * 0.85,
+                decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.rotationY(3.1416),
+                      child: Icon(Icons.logout, size: 18, color: AppColors.whiteColor),
+                    ),
+
+                    SizedboxSpaccing.width03(context),
+                    SizedboxSpaccing.width03(context),
+                    Text(
+                      AppLocalizations.of(context)!.sign_out,
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedboxSpaccing.height025(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: () => _launchURL('https://docs.google.com/document/d/157rhznRzYesD7MfCrKj_RGfTm77DxfciFKlEvr8p5Ro/edit?usp=sharing'),
-                child: Text(
-                  "Terms & Conditions",
-                  style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+            SizedboxSpaccing.height025(context),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () => _launchURL('https://docs.google.com/document/d/157rhznRzYesD7MfCrKj_RGfTm77DxfciFKlEvr8p5Ro/edit?usp=sharing'),
+                  child: Text(
+                    "Terms & Conditions",
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                  ),
                 ),
-              ),
-              Text(
-                " | ",
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
-              ),
-              GestureDetector(
-                onTap: () => _launchURL('https://docs.google.com/document/d/1wrU4DFajwzoO3kE5BERxNSnotvuqMbVP_JLn7iNxgqc/edit?usp=sharing'),
-                child: Text(
-                  "Privacy Policy",
-                  style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                Text(
+                  " | ",
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
                 ),
-              ),
-            ],
-          ),
-          // SizedboxSpaccing.height025(context),
+                GestureDetector(
+                  onTap: () => _launchURL('https://docs.google.com/document/d/1wrU4DFajwzoO3kE5BERxNSnotvuqMbVP_JLn7iNxgqc/edit?usp=sharing'),
+                  child: Text(
+                    "Privacy Policy",
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                  ),
+                ),
+              ],
+            ),
+            // SizedboxSpaccing.height025(context),
 
-        ],
+          ],
+        ),
       ),
+    )
     );
   }
 
@@ -455,60 +513,21 @@ class _CustomDrawerState extends State<CustomDrawer> {
   // Perform the actual logout
   Future<void> _performLogout() async {
     try {
-      print("🔓 CustomDrawer: Starting logout process...");
-
-      // Close the dialog first
-      Navigator.of(context).pop();
-
-      // Use the LoginLogoutViewModel's logout method which handles socket disconnection
       final loginLogoutViewModel = Provider.of<LoginLogoutViewModel>(context, listen: false);
       await loginLogoutViewModel.logoutUser(context);
-
-      // Additional cleanup if needed
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove("isDeliveryPerson");
-
-      print("🔓 CustomDrawer: Logout completed successfully");
-
     } catch (e) {
       print("🔥 CustomDrawer: Logout error - $e");
 
-      // Show error message if needed
+      // Only close dialog on error
       if (mounted) {
+        // Try to close dialog if it's still open
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+
         Utils.flushBarErrorMessage("Logout failed. Please try again.", context);
       }
-
-      // Fallback: manual cleanup if socket logout fails
-      try {
-        final userViewModel = Provider.of<UserViewModel>(context, listen: false);
-        final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-
-        // Get user data before clearing
-        final currentUser = userViewModel.currentUser;
-        final userId = currentUser?.data?.user?.userId ?? '';
-        final userRole = currentUser?.data?.user?.role ?? '';
-
-        // Disconnect socket manually
-        if (userId.isNotEmpty && userRole.isNotEmpty) {
-          await socketProvider.unregisterAndDisconnect(
-            userId: userId,
-            role: userRole,
-          );
-        }
-
-        // Clear user data
-        await userViewModel.remove();
-
-        // Navigate to login
-        if (mounted) {
-          Navigator.pushNamedAndRemoveUntil(context, RoutesName.welcomeLoginSignup, (route) => false);
-        }
-
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.remove("isDeliveryPerson");
-
-      } catch (fallbackError) {
-        print("🔥 CustomDrawer: Fallback logout also failed - $fallbackError");
-      }
     }
-}}
+  }
+
+}

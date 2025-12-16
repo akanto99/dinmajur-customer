@@ -1,4 +1,4 @@
-package com.example.dinmajur_customer
+package com.dinmajurplatformservice.dinmajurcustomer
 
 import io.flutter.embedding.android.FlutterActivity
 

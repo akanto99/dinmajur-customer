@@ -8,15 +8,35 @@ import 'package:dinmajur_customer/view/forgot_password/otp_verify.dart';
 import 'package:dinmajur_customer/view/login/login_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/homebeauty_salon_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/password/password_change.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/privacy_policy/privacy_policy_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/promo_codes/promo_code_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/review/review.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/save_address/save_address_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/add_newlocation_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/location/map_location_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/terms_conditions/terms_conditions_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/view_edit_profile/view_profile.dart';
+import 'package:dinmajur_customer/view/screens/home/location_screens/add_newlocation_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/location_screens/map_location_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_new.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/deliverd_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
+import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/notification_screen.dart';
+// import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/sse_notification_screen.dart';
+import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
+import 'package:dinmajur_customer/view/screens/order/pending_orders/pending_orders_view_details_socketScreen.dart';
+import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
 import 'package:dinmajur_customer/view/welcome_loginsignup/welcome_loginsignup.dart';
 import 'package:flutter/material.dart';
@@ -54,25 +74,180 @@ class Routes {
       ///Home
       case RoutesName.home:
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
-        //-----------location
-        case RoutesName.addlocation:
+        case RoutesName.notificationsListScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
+        //  case RoutesName.notificationsListScreen:
+        // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
+      case RoutesName.orderDetailsSocketScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => OrderDetailsSocketScreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      //-----------location_screens
+      case RoutesName.addlocation:
         return MaterialPageRoute(builder: (BuildContext context) => const AddNewlocationScreen());
       case RoutesName.mapLocationScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const MapLocationScreen());
+
+
+
+        ///order Now Screen For Retail after clicking Grocerry in HOME SCreen- DropDown 1
       case RoutesName.orderNow:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderNow(), settings: settings);
-      case RoutesName.checkoutScreen:
-        return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
-     //===========>
+      // case RoutesName.checkoutScreen:
+      //   return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
+        case RoutesName.checkoutScreenNew:
+        return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreenNew(), settings: settings);
+      case RoutesName.orderConfirmScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => OrderConfirmedScreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+        case RoutesName.trackOrderViewdetailsSocketScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => TrackOrderViewdetailsSocketScreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+        case RoutesName.deliverdScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => DeliverdScreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+    ///In HOME SCreen- DropDown 2 Premium House Keeper
+      case RoutesName.bookNowPremiumHouseKeeper:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => BookNowHousekeeperScreen(
+                customerName: args['customerName'],
+                customerPhone: args['customerPhone'],
+                customerAddress: args['customerAddress'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.confirmedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => ConfirmedScreen(trackingId: args['trackingId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+    ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
+      case RoutesName.bookNowHomeBeautySalonScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => BookNowHomeBeautySalonScreen(
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.beautyConfirmedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => BeautyConfirmedScreen(trackingId: args['trackingId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+
+    //drawer===========>
+        case RoutesName.viewProfile:
+        return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());
       case RoutesName.passwordChange:
         return MaterialPageRoute(builder: (BuildContext context) => const PasswordChange());
-     case RoutesName.paymentMethod:
+      case RoutesName.paymentMethod:
         return MaterialPageRoute(builder: (BuildContext context) => const PaymentMethod());
-        case RoutesName.review:
+      case RoutesName.saveAddress:
+        return MaterialPageRoute(builder: (BuildContext context) => const SaveAddressScreen());
+      case RoutesName.ordersScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
+      case RoutesName.promoCodes:
+        return MaterialPageRoute(builder: (BuildContext context) => const PromoCodeScreen());
+      case RoutesName.offers:
+        return MaterialPageRoute(builder: (BuildContext context) => const OffersScreen());
+      case RoutesName.review:
         return MaterialPageRoute(builder: (BuildContext context) => const Review());
-        case RoutesName.support:
+      case RoutesName.support:
         return MaterialPageRoute(builder: (BuildContext context) => const Support());
+      case RoutesName.termsAndCondition:
+        return MaterialPageRoute(builder: (BuildContext context) => const TermsConditionsScreen());
+      case RoutesName.privacyPolicy:
+        return MaterialPageRoute(builder: (BuildContext context) => const PrivacyPolicyScreen());
 
+      ///Task
+      case RoutesName.orderScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
+        //pending Order Details SOCKET.IO Screen
+      case RoutesName.pendingOrdersViewDetailsSocketscreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => PendingOrdersViewDetailsSocketscreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+        //running Order Details SOCKET.IO Screen
+      case RoutesName.runningOrdersViewDetailsSocketscreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => RunningOrdersViewDetailsSocketscreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+        //Complete Order Details API Get Data
+      case RoutesName.completeOrdersDetailsScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CompleteOrdersDetailsScreen(orderId: args['orderId']),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+
+      // case RoutesName.orderDetailsScreen:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   if (args == null) {
+      //     return _errorRoute();
+      //   }
+      //   return MaterialPageRoute(
+      //     builder: (BuildContext context) => OrderDetailsScreen(orderData: args),
+      //     settings: settings,
+      //   );
 
 
       default:

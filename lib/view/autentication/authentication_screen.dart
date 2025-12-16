@@ -6,8 +6,7 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
-import 'package:dinmajur_customer/configs/validations/authentication_validation/authentication_validation.dart';
-import 'package:dinmajur_customer/configs/validations/forgotpasword_validation/newpassword_validation.dart';
+import 'package:dinmajur_customer/configs/validations/unifiedpassword_validation/unifiedpassword_validation.dart';
 import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
 import 'package:dinmajur_customer/configs/widgets/reusable_passwordfield.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
@@ -16,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 class AuthenticationScreen extends StatefulWidget {
   const AuthenticationScreen({super.key});
 
@@ -24,6 +24,7 @@ class AuthenticationScreen extends StatefulWidget {
 }
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
+  TextEditingController _fullNameController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   ValueNotifier<bool> _obsecurePassword = ValueNotifier<bool>(true);
@@ -31,42 +32,52 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   TextEditingController _reenterPasswordController = TextEditingController();
   ValueNotifier<bool> _reObsecurePassword = ValueNotifier<bool>(true);
 
+  final FocusNode _fullNameFocus = FocusNode();
   final FocusNode _phoneFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _rePasswordFocus = FocusNode();
 
   // Password validation instance
-  late NewPasswordValidation _newPasswordValidation;
+  late UnifiedPasswordValidation _passwordValidation;
   bool _isInitialized = false;
 
   void _onPasswordChanged() {
     if (_isInitialized && mounted) {
       setState(() {
-        _newPasswordValidation.checkPasswordStrength(_passwordController.text);
+        // _newPasswordValidation.checkPasswordStrength(_passwordController.text);
       });
     }
+  }
+
+  bool get passwordsMatch {
+    if (_reenterPasswordController.text.isEmpty) return true;
+    return _passwordController.text == _reenterPasswordController.text;
   }
 
   @override
   void initState() {
     super.initState();
-    _newPasswordValidation = NewPasswordValidation();
+    _passwordValidation = UnifiedPasswordValidation();
     _passwordController.addListener(_onPasswordChanged);
+    _reenterPasswordController.addListener(_onPasswordChanged);
     _isInitialized = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadFormData();
     });
 
   }
+
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
+    _fullNameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    _reenterPasswordController.dispose();
     _obsecurePassword.dispose();
     _reObsecurePassword.dispose();
 
+    _fullNameFocus.dispose();
     _phoneFocus.dispose();
     _passwordFocus.dispose();
     _rePasswordFocus.dispose();
@@ -101,104 +112,126 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                 child: AppBarHeader(AppLocalizations.of(context)!.registration_title,))),
         Expanded(
           child: SingleChildScrollView(
-           child: Column(
-             children: [
+            child: Column(
+              children: [
 
-               Center(child: SizedboxSpaccing.height025(context)),
-               Text(AppLocalizations.of(context)!.create_account ,style: AppTextStyles.textSize32(context,weight: FontWeight.w600),),
-               SizedboxSpaccing.height005(context),
-               Text(AppLocalizations.of(context)!.slogan, style: AppTextStyles.textSize18(context,weight: FontWeight.w500),),
-               // Text("ব্যস্ত জীবন, সহজ সমাধান",style:TextStyle(color: AppColors.blackColor.withOpacity(0.6),fontFamily: )),
-               SizedboxSpaccing.height025(context),
-
-
-               Container(
-                 width: screenWidth*0.9,
-                 padding: EdgeInsets.all(screenHeight * 0.02),
-                 decoration: BoxDecoration(
-                   borderRadius: BorderRadius.circular(24),
-                   border: Border.all(
-                     color: AppColors.border(context),
-                     width: 1,
-                   ),
-                 ),
-                 child: Column(
-                   children: [
-                     CustomTextFieldWithFormFieldPoppins(
-                       titleText: "${AppLocalizations.of(context)!.phone}*",
-                       placeholder: AppLocalizations.of(context)!.phone_hint,
-                       controller: _phoneController,
-                       focusCurrent: _phoneFocus,
-                       keyboardType: TextInputType.number,
-                     ),
-                     SizedboxSpaccing.height015(context),
-                     CustomPasswordFieldPoppins(
-                       titleText: "${AppLocalizations.of(context)!.password}*",
-                       controller: _passwordController,
-                       focusNode: _passwordFocus,
-                       obsecurePassword: _obsecurePassword,
-                     ),
-                     if (_passwordController.text.isNotEmpty && _isInitialized) ...[
-                       SizedboxSpaccing.height01(context),
-                       _buildPasswordValidationSafely(),
-                     ],
-                     SizedboxSpaccing.height015(context),
-                     CustomPasswordFieldPoppins(
-                       titleText: AppLocalizations.of(context)!.reenter_password,
-                       controller: _reenterPasswordController,
-                       focusNode: _rePasswordFocus,
-                       obsecurePassword: _reObsecurePassword,
-                     ),
-                     SizedboxSpaccing.height015(context),
-                     Row(
-                       children: [
-                         SizedBox(width: 15),
-                         Expanded(
-                           child: _buildPasswordRequirementsSafely(),
-                         ),
-                       ],
-                     ),
-                   ],
-                 ),
-               ),
-               SizedboxSpaccing.height025(context),
-               Consumer<AuthenticationViewModel>(
-                 builder: (context, authenticationViewMode, child) {
-                   return     Container(
-                     width: screenWidth*0.9,
-                     // padding: EdgeInsets.all(screenHeight * 0.02),
-                     child: RoundButton(
-                       title:AppLocalizations.of(context)!.next,
-                       iconData: Icons.arrow_forward_ios_rounded,
-                       loading: authenticationViewMode.otpAPiloading,
-                       onPress: () => _handleSubmit(authenticationViewMode),
-                     ),
-                   );
-                 },
-               ),
+                Center(child: SizedboxSpaccing.height025(context)),
+                Text(AppLocalizations.of(context)!.create_account ,style: AppTextStyles.textSize32(context,weight: FontWeight.w600),),
+                SizedboxSpaccing.height005(context),
+                Text(AppLocalizations.of(context)!.slogan, style: AppTextStyles.textSize18(context,weight: FontWeight.w500),),
+                // Text("ব্যস্ত জীবন, সহজ সমাধান",style:TextStyle(color: AppColors.blackColor.withOpacity(0.6),fontFamily: )),
+                SizedboxSpaccing.height025(context),
 
 
+                Container(
+                  width: screenWidth*0.9,
+                  padding: EdgeInsets.all(screenHeight * 0.02),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: AppColors.border(context),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      CustomTextFieldWithFormFieldPoppins(
+                        titleText: "${AppLocalizations.of(context)!.fullName}*",
+                        placeholder: AppLocalizations.of(context)!.fullName_hint,
+                        controller: _fullNameController,
+                        focusCurrent: _fullNameFocus,
+                        keyboardType: TextInputType.name,
+                      ),
+                      SizedboxSpaccing.height015(context),
+                      CustomTextFieldWithFormFieldPoppins(
+                        titleText: "${AppLocalizations.of(context)!.phone}*",
+                        placeholder: AppLocalizations.of(context)!.phone_hint,
+                        controller: _phoneController,
+                        focusCurrent: _phoneFocus,
+                        keyboardType: TextInputType.number,
+                      ),
+                      SizedboxSpaccing.height015(context),
+                      CustomPasswordFieldPoppins(
+                        titleText: "${AppLocalizations.of(context)!.password}*",
+                        controller: _passwordController,
+                        focusNode: _passwordFocus,
+                        obsecurePassword: _obsecurePassword,
+                      ),
+                      // if (_passwordController.text.isNotEmpty && _isInitialized) ...[
+                      //   SizedboxSpaccing.height01(context),
+                      //   _buildPasswordValidationSafely(),
+                      // ],
+                      SizedboxSpaccing.height015(context),
+                      CustomPasswordFieldPoppins(
+                        titleText: AppLocalizations.of(context)!.reenter_password,
+                        controller: _reenterPasswordController,
+                        focusNode: _rePasswordFocus,
+                        obsecurePassword: _reObsecurePassword,
+                      ),
+                      if (_reenterPasswordController.text.isNotEmpty) ...[
+                        SizedboxSpaccing.height005(context),
+                        Container(
+                          // width: screenWidth*0.9,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                              passwordsMatch
+                                  ? AppLocalizations.of(context)!.password_matched
+                                  : AppLocalizations.of(context)!.password_notmatched,
+                              style:AppTextStyles.textSize12(context, color: passwordsMatch ? Colors.green : Colors.red, )
+                          ),
+                        ),
+                        // SizedboxSpaccing.height025(context),
+                      ],
+                      // SizedboxSpaccing.height015(context),
+                      // Row(
+                      //   children: [
+                      //     SizedBox(width: 15),
+                      //     Expanded(
+                      //       child: _buildPasswordRequirementsSafely(),
+                      //     ),
+                      //   ],
+                      // ),
+                    ],
+                  ),
+                ),
+                SizedboxSpaccing.height025(context),
+                Consumer<AuthenticationViewModel>(
+                  builder: (context, authenticationViewMode, child) {
+                    return     Container(
+                      width: screenWidth*0.9,
+                      // padding: EdgeInsets.all(screenHeight * 0.02),
+                      child: RoundButton(
+                        title:AppLocalizations.of(context)!.next,
+                        iconData: Icons.arrow_forward_ios_rounded,
+                        loading: authenticationViewMode.otpAPiloading,
+                        onPress: () => _handleSubmit(authenticationViewMode),
+                      ),
+                    );
+                  },
+                ),
 
-               SizedboxSpaccing.height025(context),
-               GestureDetector(
-                 onTap: (){
-                   Navigator.pushNamed(context, RoutesName.login);
-                 },
-                 child: Row(
-                   mainAxisAlignment: MainAxisAlignment.center,
-                   children: [
-                     Text(AppLocalizations.of(context)!.already_have_account,   style: AppTextStyles.textSize16(context,weight: FontWeight.w500)),
-                     Text(AppLocalizations.of(context)!.login,    style: GoogleFonts.poppins(fontSize: 16,   color: AppColors.button(context), fontWeight: FontWeight.w500, decoration: TextDecoration
-                         .underline,
-                       decorationColor:  AppColors.button(context),),),
-                   ],
-                 ),
-               ),
 
-             ],
-           ),
-         ),
-       ),
+
+                SizedboxSpaccing.height025(context),
+                GestureDetector(
+                  onTap: (){
+                    Navigator.pushNamed(context, RoutesName.login);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(AppLocalizations.of(context)!.already_have_account,   style: AppTextStyles.textSize16(context,weight: FontWeight.w500)),
+                      Text(AppLocalizations.of(context)!.login,    style: GoogleFonts.poppins(fontSize: 16,   color: AppColors.button(context), fontWeight: FontWeight.w500, decoration: TextDecoration
+                          .underline,
+                        decorationColor:  AppColors.button(context),),),
+                    ],
+                  ),
+                ),
+
+              ],
+            ),
+          ),
+        ),
 
       ],
     );
@@ -211,64 +244,56 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
 
   // Safe wrapper for password validation widgets
-  Widget _buildPasswordValidationSafely() {
-    try {
-      return _newPasswordValidation.buildProgressBar();
-    } catch (e) {
-      // Fallback UI in case of error
-      return Container(
-        height: 20,
-        child: Text(
-          'Loading validation...',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-      );
-    }
-  }
+  // Widget _buildPasswordValidationSafely() {
+  //   try {
+  //     return _newPasswordValidation.buildProgressBar();
+  //   } catch (e) {
+  //     // Fallback UI in case of error
+  //     return Container(
+  //       height: 20,
+  //       child: Text(
+  //         'Loading validation...',
+  //         style: TextStyle(fontSize: 12, color: Colors.grey),
+  //       ),
+  //     );
+  //   }
+  // }
 
-  Widget _buildPasswordRequirementsSafely() {
-    try {
-      return _newPasswordValidation.buildRequirementsList(context);
-    } catch (e) {
-      // Fallback UI in case of error
-      return Container(
-        height: 100,
-        child: Text(
-          'Loading requirements...',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-      );
-    }
-  }
+  // Widget _buildPasswordRequirementsSafely() {
+  //   try {
+  //     return _newPasswordValidation.buildRequirementsList(context);
+  //   } catch (e) {
+  //     // Fallback UI in case of error
+  //     return Container(
+  //       height: 100,
+  //       child: Text(
+  //         'Loading requirements...',
+  //         style: TextStyle(fontSize: 12, color: Colors.grey),
+  //       ),
+  //     );
+  //   }
+  // }
 
   Future<void> _handleSubmit(AuthenticationViewModel authenticationViewMode) async {
     try {
       await _saveFormData();
-      // First validate using new password validation
-      String? validationMessage = _newPasswordValidation.getValidationMessage(
-        _phoneController.text,
-        _passwordController.text,
-        _reenterPasswordController.text,
-        context
-      );
-
-      if (validationMessage != null) {
-        Utils.flushBarErrorMessage(validationMessage, context);
-        return;
-      }
-
       // Additional validation using existing validation
-      String? error = AutheticationValidation.getFirstError(
+      String? error = UnifiedPasswordValidation.validateRegistration(
+        fullName: _fullNameController.text.trim(),
         phone: _phoneController.text.trim(),
         password: _passwordController.text.trim(),
         reenterPassword: _reenterPasswordController.text.trim(),
+        context: context,
       );
 
       if (error != null) {
         Utils.flushBarErrorMessage(error, context);
         return;
       }
+
+
       Map data = {
+        'fullName':_fullNameController.text,
         'phone': _phoneController.text.trim(),
         'password': _passwordController.text.trim(),
         'role': 'CUSTOMER'
@@ -313,6 +338,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       final prefs = await SharedPreferences.getInstance();
       if (mounted) {
         setState(() {
+          _fullNameController.text = prefs.getString('fullName') ?? '';
           _phoneController.text = prefs.getString('otpphone') ?? '';
           _passwordController.text = prefs.getString('otppassword') ?? '';
           _reenterPasswordController.text = prefs.getString('re_enterpassword') ?? '';
@@ -326,6 +352,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   Future<void> _saveFormData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('fullName', _fullNameController.text);
       await prefs.setString('otpphone', _phoneController.text);
       await prefs.setString('otppassword', _passwordController.text);
       await prefs.setString('re_enterpassword', _reenterPasswordController.text);
@@ -337,12 +364,14 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   Future<void> _clearFormDataAndControllers() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('fullName');
       await prefs.remove('otpphone');
       await prefs.remove('otppassword');
       await prefs.remove('re_enterpassword');
 
       if (mounted) {
         setState(() {
+          _fullNameController.clear();
           _phoneController.clear();
           _passwordController.clear();
           _reenterPasswordController.clear();

@@ -266,7 +266,7 @@ class ScreenshotHandler {
                 if (androidVersion >= 30) ...[
                   SizedBox(height: 8),
                   Text(
-                    "File location: ${savedFile?.path}",
+                    "File location_screens: ${savedFile?.path}",
                     style: AppTextStyles.textSize12(
                       color: AppColors.subtitle(context),
                       context,

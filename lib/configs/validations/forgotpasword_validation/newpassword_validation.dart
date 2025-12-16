@@ -77,9 +77,7 @@ class NewPasswordValidation {
       return AppLocalizations.of(context)!.invalid_phone_number;
     }
 
-    List<String> validPrefixes = [
-      '013', '014', '015', '016', '017', '018', '019'
-    ];
+    List<String> validPrefixes = ['013', '014', '015', '016', '017', '018', '019'];
 
     String prefix = cleanPhone.substring(0, 3);
     if (!validPrefixes.contains(prefix)) {
@@ -103,11 +101,11 @@ class NewPasswordValidation {
   }
 
   String? _validatePasswords(String password, String confirmPassword, BuildContext context) {
-    if (password.isEmpty || password.length < 8) {
+    if (password.isEmpty || password.length < 6) {
       return AppLocalizations.of(context)!.password_min_characters;
     }
 
-    if (confirmPassword.isEmpty || confirmPassword.length < 8) {
+    if (confirmPassword.isEmpty || confirmPassword.length < 6) {
       return AppLocalizations.of(context)!.reenter_password_min_characters;
     }
 
@@ -115,9 +113,9 @@ class NewPasswordValidation {
       return AppLocalizations.of(context)!.passwords_do_not_match;
     }
 
-    if (!isPasswordValid()) {
-      return AppLocalizations.of(context)!.password_too_weak_requirements;
-    }
+    // if (!isPasswordValid()) {
+    //   return AppLocalizations.of(context)!.password_too_weak_requirements;
+    // }
 
     return null;
   }
@@ -127,8 +125,8 @@ class NewPasswordValidation {
       return AppLocalizations.of(context)!.password_required;
     }
 
-    if (password.length < 8) {
-      return AppLocalizations.of(context)!.password_must_be_8;
+    if (password.length < 6) {
+      return AppLocalizations.of(context)!.password_must_be_6;
     }
 
     if (!isPasswordValid()) {
@@ -150,6 +148,27 @@ class NewPasswordValidation {
     return null;
   }
 
+  // ✅ Full Name Validation
+  static String? validateFullName(String? fullName, BuildContext context) {
+    if (fullName == null || fullName.trim().isEmpty) {
+      return AppLocalizations.of(context)!.enter_full_name;
+    }
+
+    if (fullName.trim().length < 3) {
+      return AppLocalizations.of(context)!.full_name_min_length;
+    }
+    if (fullName.trim().length > 26) {
+      return AppLocalizations.of(context)!.full_name_max_length;
+    }
+
+    if (!RegExp(r'^[a-zA-Z\u0980-\u09FF\s]+$').hasMatch(fullName.trim())) {
+      // Allows Bangla and English letters only
+      return AppLocalizations.of(context)!.full_name_invalid_characters;
+    }
+
+    return null;
+  }
+
   // UI builder methods unchanged...
   Widget buildRequirement(BuildContext context, String text, bool isMet) {
     return Padding(
@@ -162,28 +181,15 @@ class NewPasswordValidation {
             margin: const EdgeInsets.only(right: 10),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: isMet ? Colors.green : AppColors.border(context),
-                width: 1,
-              ),
+              border: Border.all(color: isMet ? Colors.green : AppColors.border(context), width: 1),
               color: isMet ? Colors.green : Colors.transparent,
             ),
-            child: isMet
-                ? Icon(
-              Icons.check,
-              size: 8,
-              color: AppColors.whiteColor,
-            )
-                : null,
+            child: isMet ? Icon(Icons.check, size: 8, color: AppColors.whiteColor) : null,
           ),
           Flexible(
             child: Text(
               text,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: isMet ? Colors.green : AppColors.textPrimary(context),
-                fontWeight: FontWeight.w400,
-              ),
+              style: GoogleFonts.poppins(fontSize: 14, color: isMet ? Colors.green : AppColors.textPrimary(context), fontWeight: FontWeight.w400),
             ),
           ),
         ],
@@ -205,26 +211,16 @@ class NewPasswordValidation {
         SizedBox(height: 8),
         Text(
           'Password strength: $strengthText',
-          style: TextStyle(
-            fontSize: 14,
-            color: strengthColor,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(fontSize: 14, color: strengthColor, fontWeight: FontWeight.w500),
         ),
       ],
     );
   }
 
   Widget buildRequirementsList(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: getRequirements()
-          .map((requirement) => buildRequirement(context, requirement.text, requirement.isMet))
-          .toList(),
-    );
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: getRequirements().map((requirement) => buildRequirement(context, requirement.text, requirement.isMet)).toList());
   }
 }
-
 
 // Helper class for password requirements
 class PasswordRequirement {
@@ -236,21 +232,21 @@ class PasswordRequirement {
 
 // Extension class for additional validation methods (Optional)
 extension NewPasswordValidationExtension on NewPasswordValidation {
-
   // Method for complete form validation (Registration)
-  ValidationResult validateRegistrationForm({
-    required String phone,
-    required String password,
-    required String confirmPassword,
-    required BuildContext context,
-  }) {
-    // Check phone with context
+  ValidationResult validateRegistrationForm({required String fullName, required String phone, required String password, required String confirmPassword, required BuildContext context}) {
+    // ✅ Full name validation
+    String? fullNameError = NewPasswordValidation.validateFullName(fullName, context);
+    if (fullNameError != null) {
+      return ValidationResult(isValid: false, errorMessage: fullNameError);
+    }
+
+    // Phone validation
     String? phoneError = NewPasswordValidation.validateBangladeshiPhone(phone, context);
     if (phoneError != null) {
       return ValidationResult(isValid: false, errorMessage: phoneError);
     }
 
-    // Check passwords with context
+    // Password validation
     String? passwordError = _validatePasswords(password, confirmPassword, context);
     if (passwordError != null) {
       return ValidationResult(isValid: false, errorMessage: passwordError);
@@ -260,11 +256,7 @@ extension NewPasswordValidationExtension on NewPasswordValidation {
   }
 
   // Method for forgot password validation
-  ValidationResult validateForgotPasswordForm({
-    required String password,
-    required String confirmPassword,
-    required BuildContext context,
-  }) {
+  ValidationResult validateForgotPasswordForm({required String password, required String confirmPassword, required BuildContext context}) {
     String? passwordError = _validatePasswords(password, confirmPassword, context);
     if (passwordError != null) {
       return ValidationResult(isValid: false, errorMessage: passwordError);

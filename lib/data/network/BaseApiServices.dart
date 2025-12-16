@@ -7,6 +7,7 @@ abstract class BaseApiServices {
 
   ///All Post Api Response {login, otpApi, emailvalidation}
   Future<dynamic> getPostApiResponse(String url, dynamic data);
+  Future<dynamic> getPostApiWithOutBodyresponse(String url,{Map<String, String>? headers});
   Future<dynamic> gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers});
 
   ///Otp token Added here Response {otpverify}

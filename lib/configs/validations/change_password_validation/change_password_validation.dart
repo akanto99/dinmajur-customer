@@ -1,6 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class ChangePasswordValidation {
   // Password requirements
@@ -9,7 +8,7 @@ class ChangePasswordValidation {
   bool hasLowerCase = false;
   bool hasNumber = false;
   bool hasSpecialChar = false;
-
+  bool hasNoSpaces = true; // New requirement
   double passwordStrength = 0.0;
   String strengthText = 'Too weak';
   Color strengthColor = Colors.red;
@@ -24,6 +23,7 @@ class ChangePasswordValidation {
     hasLowerCase = password.contains(RegExp(r'[a-z]'));
     hasNumber = password.contains(RegExp(r'[0-9]'));
     hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    hasNoSpaces = !password.contains(' '); // Check for spaces
 
     // Calculate strength
     int metRequirements = 0;
@@ -32,8 +32,9 @@ class ChangePasswordValidation {
     if (hasLowerCase) metRequirements++;
     if (hasNumber) metRequirements++;
     if (hasSpecialChar) metRequirements++;
+    if (hasNoSpaces) metRequirements++;
 
-    passwordStrength = metRequirements / 5.0;
+    passwordStrength = metRequirements / 6.0; // Changed to 6 requirements
 
     // Update strength text and color
     if (metRequirements <= 2) {
@@ -59,31 +60,40 @@ class ChangePasswordValidation {
       PasswordRequirement('Contains lowercase letter', hasLowerCase),
       PasswordRequirement('Contains number', hasNumber),
       PasswordRequirement('Contains special character', hasSpecialChar),
+      PasswordRequirement('No spaces allowed', hasNoSpaces),
     ];
   }
 
   // Method to validate password for form submission
   bool isPasswordValid() {
-    return passwordStrength >= 0.6; // At least 60% strength (3 out of 5 requirements)
+    return passwordStrength >= 0.5 && hasNoSpaces; // At least 50% strength and no spaces
   }
 
   // Method to get validation error message
   String? getValidationMessage(String password, String confirmPassword) {
-    if (password.isEmpty || password.length < 8) {
-      return 'Please enter your password & at least 8 characters';
+    if (password.isEmpty || password.length < 6) {
+      return 'Please enter your password & at least 6 characters';
     }
 
-    if (confirmPassword.isEmpty || confirmPassword.length < 8) {
-      return 'Please re-enter your password & at least 8 characters';
+    if (password.contains(' ')) {
+      return 'Password cannot contain spaces';
+    }
+
+    if (confirmPassword.isEmpty || confirmPassword.length < 6) {
+      return 'Please re-enter your password & at least 6 characters';
+    }
+
+    if (confirmPassword.contains(' ')) {
+      return 'Password cannot contain spaces';
     }
 
     if (password != confirmPassword) {
       return 'Passwords do not match';
     }
 
-    if (!isPasswordValid()) {
-      return 'Password is too weak. Please meet at least 3 requirements.';
-    }
+    // if (!isPasswordValid()) {
+    //   return 'Password is too weak. Please meet at least 3 requirements.';
+    // }
 
     return null; // No error
   }
@@ -115,7 +125,8 @@ class ChangePasswordValidation {
           ),
           Text(
             text,
-            style: GoogleFonts.hindSiliguri(
+            style: TextStyle(
+              fontFamily: "hindSiliguri",
               fontSize: 14,
               color: isMet ? Colors.green : AppColors.textPrimary(context),
               fontWeight: FontWeight.w400,
@@ -135,7 +146,7 @@ class ChangePasswordValidation {
           value: passwordStrength,
           backgroundColor: Colors.grey[300],
           borderRadius: BorderRadius.circular(4),
-          valueColor: AlwaysStoppedAnimation<Color>(strengthColor),
+          valueColor: AlwaysStoppedAnimation(strengthColor),
           minHeight: 6,
         ),
         const SizedBox(height: 8),
@@ -155,7 +166,8 @@ class ChangePasswordValidation {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: getRequirements()
-          .map((requirement) => buildRequirement(context, requirement.text, requirement.isMet))
+          .map((requirement) =>
+          buildRequirement(context, requirement.text, requirement.isMet))
           .toList(),
     );
   }

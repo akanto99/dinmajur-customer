@@ -97,10 +97,10 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.globalBlackWhite(context),
-        body: ResPonsiveUi(
+    return Scaffold(
+      backgroundColor: AppColors.globalBlackWhite(context),
+      body: SafeArea(
+        child: ResPonsiveUi(
           mobile: body(),
           desktop: body(),
           tablet: body(),
@@ -131,7 +131,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
                     onTap: _skipOnboarding,
                     child: Text(
                       "স্কিপ",
-                      style: AppTextStyles.textSize24(context,
+                      style: AppTextStyles.textSize22(context,
                         weight: FontWeight.w600,
                       ),
                     ),
@@ -178,7 +178,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
                 width: screenWidth * 0.9,
                 child: Text(
                   _getTitle(currentIndex),
-                  style:AppTextStyles.textSize28(context, weight: FontWeight.w600),
+                  style:AppTextStyles.textSize26(context, weight: FontWeight.w600),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -244,11 +244,11 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
   String _getSvgAsset(int index) {
     switch (index) {
       case 0:
-        return "assets/images/onboard/trainedIMG.svg";
+        return "assets/images/onboard/house_keeper.svg";
       case 1:
-        return "assets/images/onboard/elaka.svg";
+        return "assets/images/onboard/beauty_salon.svg";
       case 2:
-        return "assets/images/onboard/earning.svg";
+        return "assets/images/onboard/bazar.svg";
       default:
         return "assets/images/onboard/onboard1.svg";
     }
@@ -257,26 +257,34 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
   String _getTitle(int index) {
     switch (index) {
       case 0:
-        return 'আমি হব প্রশিক্ষিত দিনমজুর';
+        return 'প্রিমিয়াম হাউসকিপার হোম-সার্ভিস';
+        // return 'আমি হব প্রশিক্ষিত দিনমজুর';
       case 1:
-        return 'আমার দক্ষতা হবে আমার আয়';
+        return 'প্রিমিয়াম হোম বিউটি & সেলুন';
+        // return 'আমার দক্ষতা হবে আমার আয়';
       case 2:
-        return 'নিজ এলাকার কাজের সুযোগ';
+        return 'তাৎক্ষণিক বাজার সার্ভিস';
+        // return 'নিজ এলাকার কাজের সুযোগ';
       default:
         return 'দক্ষ কর্মী, ঘরে বসেই সেবা!';
+        // return 'দক্ষ কর্মী, ঘরে বসেই সেবা!';
     }
   }
 
   String _getSubtitle(int index) {
     switch (index) {
       case 0:
-        return "আমার দক্ষতা, আমার পরিচয়";
+        return "আপনার ঘর, আমাদের দায়িত্ব";
+        // return "আমার দক্ষতা, আমার পরিচয়";
       case 1:
-        return "আয়ের নতুন সুযোগ";
+        return "আপনার সৌন্দর্য, আমাদের যত্ন";
+        // return "আয়ের নতুন সুযোগ";
       case 2:
-        return "আমার এলাকার কাজ, আমার হাতে";
+        return "প্রয়োজনীয় সবকিছু, এক ক্লিক";
+        // return "আমার এলাকার কাজ, আমার হাতে";
       default:
         return "ব্যস্ত জীবন, সহজ সমাধান";
+        // return "ব্যস্ত জীবন, সহজ সমাধান";
     }
   }
 

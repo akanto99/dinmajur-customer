@@ -140,6 +140,18 @@ abstract class AppLocalizations {
   /// **'Please enter your login credential'**
   String get log_in_subtitle;
 
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Name'**
+  String get fullName;
+
+  /// No description provided for @fullName_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your full name'**
+  String get fullName_hint;
+
   /// No description provided for @phone.
   ///
   /// In en, this message translates to:
@@ -161,7 +173,7 @@ abstract class AppLocalizations {
   /// No description provided for @password_hint.
   ///
   /// In en, this message translates to:
-  /// **'Enter 8 characters or more'**
+  /// **'Enter 6 characters or more'**
   String get password_hint;
 
   /// No description provided for @forgot_password.
@@ -212,11 +224,11 @@ abstract class AppLocalizations {
   /// **'Mobile Number *'**
   String get mobile_number_required;
 
-  /// No description provided for @password_required.
+  /// No description provided for @new_password.
   ///
   /// In en, this message translates to:
-  /// **'Password is required'**
-  String get password_required;
+  /// **'Password*'**
+  String get new_password;
 
   /// No description provided for @reenter_password.
   ///
@@ -265,6 +277,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An error occurred. Please try again.'**
   String get error_try_again;
+
+  /// No description provided for @enter_full_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your full name'**
+  String get enter_full_name;
+
+  /// No description provided for @full_name_min_length.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name must be at least 3 characters long'**
+  String get full_name_min_length;
+
+  /// No description provided for @full_name_max_length.
+  ///
+  /// In en, this message translates to:
+  /// **'Name cannot exceed 26 characters'**
+  String get full_name_max_length;
+
+  /// No description provided for @full_name_invalid_characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name can only contain letters and spaces'**
+  String get full_name_invalid_characters;
 
   /// No description provided for @otp_screen.
   ///
@@ -392,11 +428,29 @@ abstract class AppLocalizations {
   /// **'New password'**
   String get new_password_title;
 
+  /// No description provided for @password_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get password_required;
+
   /// No description provided for @reenter_password_required.
   ///
   /// In en, this message translates to:
   /// **'Re-enter password *'**
   String get reenter_password_required;
+
+  /// No description provided for @password_matched.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords matched'**
+  String get password_matched;
+
+  /// No description provided for @password_notmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords not matched'**
+  String get password_notmatched;
 
   /// No description provided for @confirm.
   ///
@@ -473,13 +527,13 @@ abstract class AppLocalizations {
   /// No description provided for @password_min_characters.
   ///
   /// In en, this message translates to:
-  /// **'Please enter your password & at least 8 characters'**
+  /// **'Please enter your password & at least 6 characters'**
   String get password_min_characters;
 
   /// No description provided for @reenter_password_min_characters.
   ///
   /// In en, this message translates to:
-  /// **'Please re-enter your password & at least 8 characters'**
+  /// **'Please re-enter your password & at least 6 characters'**
   String get reenter_password_min_characters;
 
   /// No description provided for @passwords_do_not_match.
@@ -494,11 +548,11 @@ abstract class AppLocalizations {
   /// **'Password is too weak. Please meet at least 3 requirements.'**
   String get password_too_weak_requirements;
 
-  /// No description provided for @password_must_be_8.
+  /// No description provided for @password_must_be_6.
   ///
   /// In en, this message translates to:
-  /// **'Password must be at least 8 characters'**
-  String get password_must_be_8;
+  /// **'Password must be at least 6 characters'**
+  String get password_must_be_6;
 
   /// No description provided for @please_confirm_password.
   ///
@@ -512,6 +566,30 @@ abstract class AppLocalizations {
   /// **'Passwords & Re-enter Passwords do not match'**
   String get passwords_reenter_do_not_match;
 
+  /// No description provided for @password_cannot_contain_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Password cannot contain spaces'**
+  String get password_cannot_contain_spaces;
+
+  /// No description provided for @reenter_password_cannot_contain_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter password cannot contain spaces'**
+  String get reenter_password_cannot_contain_spaces;
+
+  /// No description provided for @enter_old_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your old password'**
+  String get enter_old_password;
+
+  /// No description provided for @old_password_min_characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Old password must be at least 6 characters'**
+  String get old_password_min_characters;
+
   /// No description provided for @navigation_bar.
   ///
   /// In en, this message translates to:
@@ -524,29 +602,23 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get home;
 
-  /// No description provided for @scan.
+  /// No description provided for @offers.
   ///
   /// In en, this message translates to:
-  /// **'Scan'**
-  String get scan;
+  /// **'Offers'**
+  String get offers;
 
-  /// No description provided for @task.
+  /// No description provided for @order.
   ///
   /// In en, this message translates to:
-  /// **'Task'**
-  String get task;
+  /// **'Order'**
+  String get order;
 
-  /// No description provided for @stores.
+  /// No description provided for @draft.
   ///
   /// In en, this message translates to:
-  /// **'Stores'**
-  String get stores;
-
-  /// No description provided for @income.
-  ///
-  /// In en, this message translates to:
-  /// **'Income'**
-  String get income;
+  /// **'Draft'**
+  String get draft;
 
   /// No description provided for @home_screen.
   ///
@@ -589,6 +661,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clothing'**
   String get storeType_clothing;
+
+  /// No description provided for @storeType_housekeeper.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium House Keeper'**
+  String get storeType_housekeeper;
+
+  /// No description provided for @storeType_beauty_salon.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Home Beauty & Salon'**
+  String get storeType_beauty_salon;
 
   /// No description provided for @select_store_type.
   ///
@@ -661,12 +745,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile Menu'**
   String get profile_menu;
-
-  /// No description provided for @order.
-  ///
-  /// In en, this message translates to:
-  /// **'Order'**
-  String get order;
 
   /// No description provided for @wishlist.
   ///
@@ -751,6 +829,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data found'**
   String get no_data_found;
+
+  /// No description provided for @save_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Addresses'**
+  String get save_address;
+
+  /// No description provided for @orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get orders;
+
+  /// No description provided for @promo_codes.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo Codes'**
+  String get promo_codes;
+
+  /// No description provided for @terms_conditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Condition'**
+  String get terms_conditions;
+
+  /// No description provided for @privacy_policy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacy_policy;
 }
 
 class _AppLocalizationsDelegate

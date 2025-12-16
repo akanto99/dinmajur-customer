@@ -1,6 +1,11 @@
 class AppUrl {
 
-  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
+
+  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
   static var loginEndPint = baseUrl + '/auth/login';
@@ -14,13 +19,17 @@ class AppUrl {
 
 
 
-  static var logOutEndPoint = baseUrl + '/api/app/logout';
-
+  static var logOutEndPoint = baseUrl + '/auth/logout';
 
 
   ///Home
-  static var viewProfile = baseUrl + '/users/get-user-data';
-  static var addlocationPatchAPI = baseUrl + '/customers/update-address';
+  static var viewProfile = baseUrl + '/customers/get-all-data';
+  static var addlocationPostAPI = baseUrl + '/customers/create-address';
+  static var updateAddressPatchAPI = baseUrl + '/customers/update-address-by-id';
+  static var locationListGetAPI = baseUrl + '/customers/get-delivery-address';
+  static var deleteAddressDeleteAPI = baseUrl + '/customers/delete-address';
+  //Notification
+  static var notificationGetAPI = baseUrl +'/notifications/get-all';
 
   ///=========>
   static var profileHeaderUpdatePatchAPI = baseUrl + '/users/update-me';
@@ -33,10 +42,24 @@ class AppUrl {
   static var accountUpdatePatchAPI = baseUrl + '/payment-methods';
   static var paymentMethodPostAPI = baseUrl + '/payment-methods';
 
-
-  //order Now
+  ///Home Screen DropDown
+  //========>order Now
   static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
   static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";
+  static var orderDetailsGetAPI = baseUrl + '/orders';
+  //Freelancer Rating
+  static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
+  //========>Premium house Keeper
+  static var checkCoverageGetAPI = baseUrl + '/customers/check-coverage';
+  static var getAllPremiumHouseKeeperGetAPI = baseUrl + '/house-keeper-tasks';
+  static var getAllShiftTimeGetAPI = baseUrl + '/shifts/get-all';
+  static var getAllShiftTimeByDateGetAPI = baseUrl + '/shifts';
+  static var bookPremiumHouseKeeperPostAPI = baseUrl + '/house-keeper-bookings/create';
+  static var getBookingByTrackingIdGetAPI = baseUrl + '/house-keeper-bookings/tracking';
+  //========>Premium Home Beauty and Salon
+  static var getAllPremiumHomeBeautySalonGetAPI = baseUrl + '/beauty-salon-tasks';
+  static var bookPremiumHomeBeautySalonPostAPI = baseUrl + '/beauty-salon-bookings/create';
+  static var getBeautySalonByTrackingIdGetAPI = baseUrl + '/beauty-salon-bookings/tracking';
 
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';
@@ -47,4 +70,11 @@ class AppUrl {
 
 
   static var suppportAPI = baseUrl + '/contact';//support
+
+
+///Order Tab
+ static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';
+ static var pendingOrderGetAPI = baseUrl + '/customers/orders?status=PENDING';
+ static var completedOrderGetAPI = baseUrl + '/customers/orders?status=COMPLETED';
+
 }
