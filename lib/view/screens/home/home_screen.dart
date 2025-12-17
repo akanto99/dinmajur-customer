@@ -408,13 +408,13 @@ class _HomeScreenState extends State<HomeScreen> {
         key: widget.scaffoldKey,
         backgroundColor: AppColors.containerBackground(context),
         drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(80),
-          child: Container(
-            color: AppColors.containerBackground(context),
-            child: Center(child: _customAppBar(context)),
-          ),
-        ),
+        // appBar: PreferredSize(
+        //   preferredSize:  Size.fromHeight(100),
+        //   child: Container(
+        //     color: AppColors.containerBackground(context),
+        //     child: Center(child: _customAppBar(context)),
+        //   ),
+        // ),
         body: SafeArea(
           child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
         ),
@@ -432,142 +432,148 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.containerBackground(context),
       displacement: 40,
       strokeWidth: 2.0,
-      child: SingleChildScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        child: Column(
-          children: [
+      child: Column(
+        children: [
+          _customAppBar(context),
+          SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
 
-            Container(
-              width: screenWidth * 0.9,
-              padding: EdgeInsets.all(screenHeight * 0.02),
-              decoration: BoxDecoration(
-                color: AppColors.containerBackground(context),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(width: 1, color: AppColors.border(context)),
-              ),
-              child: CustomDropdown(
-                titleText: AppLocalizations.of(context)!.select_store_type,
-                items: storeTypes.keys.toList(),
-                selectedItem: selectedStoreType,
-                hintText: AppLocalizations.of(context)!.select_store_type_hint,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedStoreType = newValue;
-                    nearbyStores = [];
-                    isInsideServiceArea = null;
-                    isCheckingCoverage = false;
-                  });
+                SizedboxSpaccing.height02(context),
+                Container(
+                  width: screenWidth * 0.9,
+                  padding: EdgeInsets.all(screenHeight * 0.02),
+                  decoration: BoxDecoration(
+                    color: AppColors.containerBackground(context),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(width: 1, color: AppColors.border(context)),
+                  ),
+                  child: CustomDropdown(
+                    titleText: AppLocalizations.of(context)!.select_store_type,
+                    items: storeTypes.keys.toList(),
+                    selectedItem: selectedStoreType,
+                    hintText: AppLocalizations.of(context)!.select_store_type_hint,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedStoreType = newValue;
+                        nearbyStores = [];
+                        isInsideServiceArea = null;
+                        isCheckingCoverage = false;
+                      });
 
-                  if (newValue != null) {
-                    debugPrint('🔄 Selected store type: $newValue');
+                      if (newValue != null) {
+                        debugPrint('🔄 Selected store type: $newValue');
 
-                    if (newValue == 'Retail') {
-                      _fetchNearbyRetailers(newValue);
-                    } else if (newValue == 'Premium House Keeper') {
-                      _checkCoverage();
-                    }else if (newValue == 'Premium Home Beauty & Salon') {
-                      _checkCoverage();
-                    }
-                  }
-                },
-                valueToBengaliMap: storeTypes,
-              ),
+                        if (newValue == 'Retail') {
+                          _fetchNearbyRetailers(newValue);
+                        } else if (newValue == 'Premium House Keeper') {
+                          _checkCoverage();
+                        }else if (newValue == 'Premium Home Beauty & Salon') {
+                          _checkCoverage();
+                        }
+                      }
+                    },
+                    valueToBengaliMap: storeTypes,
+                  ),
+                ),
+                Center(child: SizedboxSpaccing.height02(context)),
+                DynamicNearestHeader(
+                  selectedStoreType: selectedStoreType,
+                  storeCount: nearbyStores.length,
+                  screenWidth: screenWidth,
+                  onSeeAllTap: () => _handleSeeAllNavigation(context),
+                ),
+                SizedboxSpaccing.height02(context),
+
+                // Conditionally show content based on selection and coverage
+                if (selectedStoreType == 'Retail')
+                  GroceryStoresSection(
+                    isLoading: isLoadingStores,
+                    stores: nearbyStores,
+                    storeTypes: storeTypes,
+                    selectedStoreType: selectedStoreType,
+                    currentPosition: _currentPosition,
+                    currentAddress: _currentAddress,
+                  )
+                else if (selectedStoreType == 'Premium House Keeper')
+                  Consumer<ProfileViewViewModel>(
+                    builder: (context, profileViewModel, _) {
+                      // Extract customer data from profile
+                      String customerName = '';
+                      String customerPhone = '';
+                      String customerAddress = '';
+
+                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                        final userData = profileViewModel.profileviewUserData.data?.data;
+
+                        // Get name
+                        if (userData?.user?.fullName != null) {
+                          customerName = userData!.user!.fullName!;
+                        }
+
+                        // Get phone
+                        if (userData?.user?.phone != null) {
+                          customerPhone = userData!.user!.phone!;
+                        }
+
+                        // Get address
+                        if (userData?.addresses?.fullAddress != null) {
+                          customerAddress = userData!.addresses!.fullAddress!;
+                        }
+                      }
+
+                      return PremiumHouseKeeperCoverageWidget(
+                        isCheckingCoverage: isCheckingCoverage,
+                        isInsideServiceArea: isInsideServiceArea,
+                        customerName: customerName,
+                        customerPhone: customerPhone,
+                        customerAddress: customerAddress,
+                      );
+                    },
+                  )
+                else if (selectedStoreType == 'Premium Home Beauty & Salon')
+                  Consumer<ProfileViewViewModel>(
+                    builder: (context, profileViewModel, _) {
+                      // Extract customer data from profile
+                      String customerName = '';
+                      String customerPhone = '';
+                      String customerAddress = '';
+
+                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                        final userData = profileViewModel.profileviewUserData.data?.data;
+
+                        // Get name
+                        if (userData?.user?.fullName != null) {
+                          customerName = userData!.user!.fullName!;
+                        }
+
+                        // Get phone
+                        if (userData?.user?.phone != null) {
+                          customerPhone = userData!.user!.phone!;
+                        }
+
+                        // Get address
+                        if (userData?.addresses?.fullAddress != null) {
+                          customerAddress = userData!.addresses!.fullAddress!;
+                        }
+                      }
+
+                      return PremiumBeautyAndSalonCoverageWidget(
+                        isCheckingCoverage: isCheckingCoverage,
+                        isInsideServiceArea: isInsideServiceArea,
+                        customerName: customerName,
+                        customerPhone: customerPhone,
+                        customerAddress: customerAddress,
+                      );
+                    },
+                  ),
+
+                SizedboxSpaccing.height02(context),
+              ],
             ),
-            Center(child: SizedboxSpaccing.height02(context)),
-            DynamicNearestHeader(
-              selectedStoreType: selectedStoreType,
-              storeCount: nearbyStores.length,
-              screenWidth: screenWidth,
-              onSeeAllTap: () => _handleSeeAllNavigation(context),
-            ),
-            SizedboxSpaccing.height02(context),
-
-            // Conditionally show content based on selection and coverage
-            if (selectedStoreType == 'Retail')
-              GroceryStoresSection(
-                isLoading: isLoadingStores,
-                stores: nearbyStores,
-                storeTypes: storeTypes,
-                selectedStoreType: selectedStoreType,
-                currentPosition: _currentPosition,
-                currentAddress: _currentAddress,
-              )
-            else if (selectedStoreType == 'Premium House Keeper')
-              Consumer<ProfileViewViewModel>(
-                builder: (context, profileViewModel, _) {
-                  // Extract customer data from profile
-                  String customerName = '';
-                  String customerPhone = '';
-                  String customerAddress = '';
-
-                  if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                    final userData = profileViewModel.profileviewUserData.data?.data;
-
-                    // Get name
-                    if (userData?.user?.fullName != null) {
-                      customerName = userData!.user!.fullName!;
-                    }
-
-                    // Get phone
-                    if (userData?.user?.phone != null) {
-                      customerPhone = userData!.user!.phone!;
-                    }
-
-                    // Get address
-                    if (userData?.addresses?.fullAddress != null) {
-                      customerAddress = userData!.addresses!.fullAddress!;
-                    }
-                  }
-
-                  return PremiumHouseKeeperCoverageWidget(
-                    isCheckingCoverage: isCheckingCoverage,
-                    isInsideServiceArea: isInsideServiceArea,
-                    customerName: customerName,
-                    customerPhone: customerPhone,
-                    customerAddress: customerAddress,
-                  );
-                },
-              )
-            else if (selectedStoreType == 'Premium Home Beauty & Salon')
-              Consumer<ProfileViewViewModel>(
-                builder: (context, profileViewModel, _) {
-                  // Extract customer data from profile
-                  String customerName = '';
-                  String customerPhone = '';
-                  String customerAddress = '';
-
-                  if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                    final userData = profileViewModel.profileviewUserData.data?.data;
-
-                    // Get name
-                    if (userData?.user?.fullName != null) {
-                      customerName = userData!.user!.fullName!;
-                    }
-
-                    // Get phone
-                    if (userData?.user?.phone != null) {
-                      customerPhone = userData!.user!.phone!;
-                    }
-
-                    // Get address
-                    if (userData?.addresses?.fullAddress != null) {
-                      customerAddress = userData!.addresses!.fullAddress!;
-                    }
-                  }
-
-                  return PremiumBeautyAndSalonCoverageWidget(
-                    isCheckingCoverage: isCheckingCoverage,
-                    isInsideServiceArea: isInsideServiceArea,
-                    customerName: customerName,
-                    customerPhone: customerPhone,
-                    customerAddress: customerAddress,
-                  );
-                },
-              ),
-
-            SizedboxSpaccing.height02(context),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -644,7 +650,7 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
               ),
-              height: 80,
+              height: 75,
             );
         }
       },
@@ -653,7 +659,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAppBarContent({required double screenWidth, required double screenHeight, required String userName, required String displayAddress, String? profileImageUrl}) {
     return Container(
-      height: 60,
+      height: 75,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
         color: AppColors.containerBackground(context),
@@ -676,8 +682,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Scaffold.of(context).openDrawer();
                         },
                         child: Container(
-                          height: 40,
-                          width: 40,
+                          height: 45,
+                          width: 45,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppColors.appBackground(context),
