@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/draft/draft_screen.dart';
@@ -87,11 +88,15 @@ class _NavigationScreenState extends State<NavigationScreen> {
         systemNavigationBarContrastEnforced: false,
       ),
       child: UpgradeAlert(
+        navigatorKey: NavigationService.navigatorKey,
         barrierDismissible: false,
         showLater: false,
         showIgnore: false,
         showReleaseNotes: false,
-        upgrader: Upgrader(),
+        upgrader: Upgrader(
+          // debugLogging: true,
+          // debugDisplayAlways: true
+        ),
         child: WillPopScope(
           onWillPop: () async {
             // Handle drawer close if open

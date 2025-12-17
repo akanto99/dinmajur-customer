@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
+import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_count/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification/sse_notification_view_model.dart';
@@ -14,6 +15,7 @@ import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beauty_and_salon_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -396,6 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return UpgradeAlert(
+      navigatorKey: NavigationService.navigatorKey,
       barrierDismissible: false,
       showLater: false,
       showIgnore: false,
@@ -433,7 +436,7 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            Center(child: SizedboxSpaccing.height02(context)),
+
             Container(
               width: screenWidth * 0.9,
               padding: EdgeInsets.all(screenHeight * 0.02),
@@ -470,6 +473,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 valueToBengaliMap: storeTypes,
               ),
             ),
+            Center(child: SizedboxSpaccing.height02(context)),
+            DynamicNearestHeader(
+              selectedStoreType: selectedStoreType,
+              storeCount: nearbyStores.length,
+              screenWidth: screenWidth,
+              onSeeAllTap: () => _handleSeeAllNavigation(context),
+            ),
             SizedboxSpaccing.height02(context),
 
             // Conditionally show content based on selection and coverage
@@ -482,7 +492,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 currentPosition: _currentPosition,
                 currentAddress: _currentAddress,
               )
-            // In HomeScreen body() method, update the PremiumHouseKeeperCoverageWidget call:
             else if (selectedStoreType == 'Premium House Keeper')
               Consumer<ProfileViewViewModel>(
                 builder: (context, profileViewModel, _) {
@@ -801,7 +810,65 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+  void _handleSeeAllNavigation(BuildContext context) {
+    if (selectedStoreType == null) {
+      debugPrint('No store type selected');
+      return;
+    }
 
+    // Prepare common arguments
+    Map<String, dynamic> arguments = {
+      'storeType': selectedStoreType,
+    };
+
+    if (selectedStoreType == 'Retail') {
+      // Add Retail-specific data
+      arguments.addAll({
+        'stores': nearbyStores,
+        'storeTypes': storeTypes,
+        'currentPosition': _currentPosition,
+        'currentAddress': _currentAddress,
+      });
+    } else if (selectedStoreType == 'Premium House Keeper' ||
+        selectedStoreType == 'Premium Home Beauty & Salon') {
+      // Get customer data from profile for premium services
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+
+      String customerName = '';
+      String customerPhone = '';
+      String customerAddress = '';
+
+      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+        final userData = profileViewModel.profileviewUserData.data?.data;
+
+        if (userData?.user?.fullName != null) {
+          customerName = userData!.user!.fullName!;
+        }
+        if (userData?.user?.phone != null) {
+          customerPhone = userData!.user!.phone!;
+        }
+        if (userData?.addresses?.fullAddress != null) {
+          customerAddress = userData!.addresses!.fullAddress!;
+        }
+      }
+
+      // Add Premium service-specific data
+      arguments.addAll({
+        'isCheckingCoverage': isCheckingCoverage,
+        'isInsideServiceArea': isInsideServiceArea,
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+        'customerAddress': customerAddress,
+      });
+    }
+
+    // Navigate to unified screen
+    Navigator.pushNamed(
+      context,
+      RoutesName.unifiedSeeAllScreen,
+      arguments: arguments,
+    );
+  }
   Widget _buildIconButton({VoidCallback? onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(
       onTap: onTap,

@@ -18,6 +18,7 @@ class RoutesName {
   ///home
   static const String home = 'home_view';
   static const String notificationsListScreen = 'notificationsListScreen_view'; //Notifications ListScreen SSE Just
+  static const String unifiedSeeAllScreen = 'unifiedSeeAllScreen_view';
   static const String orderDetailsSocketScreen = 'orderDetailsSocketScreen_view';
   //-----------location_screens
   static const String addlocation = 'addLocation_view';

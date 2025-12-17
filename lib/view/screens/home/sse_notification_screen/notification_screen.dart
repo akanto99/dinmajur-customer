@@ -392,7 +392,10 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
       child: Icon(icon, size: 24, color: color),
     );
   }
-
+  // ACCEPTED
+  // PICKED_UP
+  // ARRIVED_DESTINATION
+  // DELIVERED
   String _getNotificationTitle(String type) {
     switch (type.toLowerCase()) {
       case 'new_order':
