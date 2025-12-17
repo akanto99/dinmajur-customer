@@ -3,8 +3,10 @@ import 'package:dinmajur_customer/configs/res/components/language_changer/langua
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:upgrader/upgrader.dart';
@@ -21,6 +23,8 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
   @override
   Widget build(BuildContext context) {
     return UpgradeAlert(
+      navigatorKey: NavigationService.navigatorKey,
+
       barrierDismissible: false,
       showLater: false,
       showIgnore: false,
@@ -28,6 +32,8 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
       upgrader: Upgrader(
         // debugDisplayAlways: true,
         // debugLogging: true,
+        // debugDisplayAlways: kDebugMode,
+        // debugLogging: kDebugMode,
       ),
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),

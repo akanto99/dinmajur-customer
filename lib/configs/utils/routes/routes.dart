@@ -33,6 +33,7 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
 import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/notification_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/unified_seeall_screen/unified_seeall_screen.dart';
 // import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/sse_notification_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/pending_orders/pending_orders_view_details_socketScreen.dart';
@@ -77,7 +78,27 @@ class Routes {
         case RoutesName.notificationsListScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
         //  case RoutesName.notificationsListScreen:
-        // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
+        // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just//
+      case RoutesName.unifiedSeeAllScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => UnifiedSeeAllScreen(
+              storeType: args['storeType'],
+              stores: args['stores'],
+              storeTypes: args['storeTypes'],
+              currentPosition: args['currentPosition'],
+              currentAddress: args['currentAddress'],
+              isCheckingCoverage: args['isCheckingCoverage'],
+              isInsideServiceArea: args['isInsideServiceArea'],
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
       case RoutesName.orderDetailsSocketScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
