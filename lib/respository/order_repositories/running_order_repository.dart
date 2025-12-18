@@ -14,10 +14,10 @@ class GetRunningOrderRepository {
 
       dynamic response = await _apiServices.getGetApiWithHeaderResponse(
         AppUrl.runningOrderGetAPI,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$accessToken',
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        //   'Authorization': '$accessToken',
+        // },
       );
 
       // Parse the Map response to GetAllOrderModel
@@ -33,10 +33,6 @@ class GetRunningOrderRepository {
 
       dynamic response = await _apiServices.getGetApiWithHeaderResponse(
         AppUrl.pendingOrderGetAPI,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$accessToken',
-        },
       );
 
       // Parse the Map response to GetAllOrderModel

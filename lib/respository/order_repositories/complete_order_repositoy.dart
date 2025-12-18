@@ -14,10 +14,10 @@ class GetCompleteOrderRepository {
 
       dynamic response = await _apiServices.getGetApiWithHeaderResponse(
         AppUrl.completedOrderGetAPI,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$accessToken',
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        //   'Authorization': '$accessToken',
+        // },
       );
 
       // Parse the Map response to GetAllOrderModel

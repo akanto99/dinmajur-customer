@@ -814,6 +814,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleSeeAllNavigation(BuildContext context) {
     if (selectedStoreType == null) {
       debugPrint('No store type selected');
+      Utils.flushBarErrorMessage("No store type selected", context);
       return;
     }
 

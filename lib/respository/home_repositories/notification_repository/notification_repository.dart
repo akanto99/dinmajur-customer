@@ -14,10 +14,10 @@ class NotificationListRepository {
 
       dynamic response = await _apiServices.getGetApiWithHeaderResponse(
         AppUrl.notificationGetAPI,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$accessToken',
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        //   'Authorization': '$accessToken',
+        // },
       );
       return NotificationListModel.fromJson(response);
 
