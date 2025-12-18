@@ -76,7 +76,7 @@ class DynamicServiceList<T, S> extends StatelessWidget {
                 children: [
                   // Category Header
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                    padding: EdgeInsets.only(bottom: 10),
                     child: Text(
                       categoryName,
                       style: categoryHeaderStyle(context),
@@ -152,7 +152,7 @@ class DynamicServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: 15),
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: getBackgroundColor(context),
