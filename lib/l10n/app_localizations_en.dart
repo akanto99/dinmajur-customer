@@ -321,6 +321,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get select_store_type_hint => 'Select';
 
   @override
+  String get select_dropdown_hint => 'Primium House Keeper';
+
+  @override
   String nearby_stores(Object count) {
     return 'Nearby Stores ($count)';
   }

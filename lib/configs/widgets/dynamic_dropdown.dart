@@ -35,7 +35,7 @@ class CustomDropdown extends StatelessWidget {
             child: Text(titleText,  style: AppTextStyles.textSize18(context, weight: FontWeight.w500))),
         SizedBox(height: screenHeight * 0.012,),
         Container(
-          height: 42,
+          height: 50,
           // height: screenHeight * 0.05,
           child: DropdownButtonHideUnderline(
             child: DropdownButton2<String>(
@@ -47,27 +47,27 @@ class CustomDropdown extends StatelessWidget {
                 icon: Icon(
                   Icons.keyboard_arrow_down,
                   size: 25,
-                  color: AppColors.form_hover(context),
+                  color: AppColors.textPrimary(context),
                 ),
               ),
               buttonStyleData: ButtonStyleData(
                 width: screenWidth * 0.9,
-                height: 42,
+                height: 50,
                 // height: screenHeight * 0.06,
                 decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
+                    color: AppColors.containerBackground(context),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                         width: 1,
                         color: AppColors.border(context)
                     )
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 10,),
+                padding: const EdgeInsets.symmetric(horizontal: 15,),
               ),
               dropdownStyleData: DropdownStyleData(
                 // padding: EdgeInsets.all( screenHeight*0.01),
                 maxHeight: 200,
-                width: actualWidth,
+                width: screenWidth * 0.9,
                 decoration: BoxDecoration(
                   color: AppColors.textFieldFill(context),
                 ),

@@ -16,6 +16,7 @@ import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beauty_and_salon_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_service_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -67,9 +68,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     storeTypes = {
       // 'Retail': AppLocalizations.of(context)!.storeType_retail,
-      'Retail': AppLocalizations.of(context)!.storeType_grocery,
       'Premium House Keeper': AppLocalizations.of(context)!.storeType_housekeeper,
       'Premium Home Beauty & Salon': AppLocalizations.of(context)!.storeType_beauty_salon,
+      'Retail': AppLocalizations.of(context)!.storeType_grocery,
       // 'restaurant': AppLocalizations.of(context)!.storeType_restaurant,
       // 'pharmacy': AppLocalizations.of(context)!.storeType_pharmacy,
       // 'electronics': AppLocalizations.of(context)!.storeType_electronics,
@@ -364,10 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
         });
 
         if (isInsideServiceArea == false) {
-          Utils.flushBarErrorMessage(
-            responseData?.message ?? "Service is not available in your location.",
-            context,
-          );
+          Utils.flushBarErrorMessage(responseData?.message ?? "Service is not available in your location.", context);
         }
       } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
         setState(() {
@@ -392,6 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -439,21 +438,21 @@ class _HomeScreenState extends State<HomeScreen> {
             physics: AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
-
-                SizedboxSpaccing.height02(context),
+                SizedboxSpaccing.height025(context),
                 Container(
                   width: screenWidth * 0.9,
-                  padding: EdgeInsets.all(screenHeight * 0.02),
+                  // padding: EdgeInsets.all(screenHeight * 0.02),
                   decoration: BoxDecoration(
                     color: AppColors.containerBackground(context),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(width: 1, color: AppColors.border(context)),
+                    // border: Border.all(width: 1, color: AppColors.border(context)),
                   ),
                   child: CustomDropdown(
                     titleText: AppLocalizations.of(context)!.select_store_type,
                     items: storeTypes.keys.toList(),
                     selectedItem: selectedStoreType,
-                    hintText: AppLocalizations.of(context)!.select_store_type_hint,
+                    // hintText: AppLocalizations.of(context)!.select_store_type_hint,
+                    hintText: AppLocalizations.of(context)!.select_dropdown_hint,
                     onChanged: (String? newValue) {
                       setState(() {
                         selectedStoreType = newValue;
@@ -463,40 +462,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
 
                       if (newValue != null) {
-                        debugPrint('🔄 Selected store type: $newValue');
-
-                        if (newValue == 'Retail') {
+                      if (newValue == 'Premium House Keeper') {
+                          _checkCoverage();
+                        } else if (newValue == 'Premium Home Beauty & Salon') {
+                          _checkCoverage();
+                        }else  if (newValue == 'Retail') {
                           _fetchNearbyRetailers(newValue);
-                        } else if (newValue == 'Premium House Keeper') {
-                          _checkCoverage();
-                        }else if (newValue == 'Premium Home Beauty & Salon') {
-                          _checkCoverage();
                         }
-                      }
+                    }
                     },
                     valueToBengaliMap: storeTypes,
                   ),
                 ),
-                Center(child: SizedboxSpaccing.height02(context)),
-                DynamicNearestHeader(
-                  selectedStoreType: selectedStoreType,
-                  storeCount: nearbyStores.length,
-                  screenWidth: screenWidth,
-                  onSeeAllTap: () => _handleSeeAllNavigation(context),
-                ),
-                SizedboxSpaccing.height02(context),
+                SizedboxSpaccing.height012(context),
+                TrendingServicesWidget( services: ["House Keeper", "Home Beauty Parlour", "তাৎক্ষণিক বাজার",]),
+                Center(child: SizedboxSpaccing.height025(context)),
+                DynamicNearestHeader(selectedStoreType: selectedStoreType, storeCount: nearbyStores.length, screenWidth: screenWidth, onSeeAllTap: () => _handleSeeAllNavigation(context)),
+                SizedboxSpaccing.height025(context),
 
                 // Conditionally show content based on selection and coverage
-                if (selectedStoreType == 'Retail')
-                  GroceryStoresSection(
-                    isLoading: isLoadingStores,
-                    stores: nearbyStores,
-                    storeTypes: storeTypes,
-                    selectedStoreType: selectedStoreType,
-                    currentPosition: _currentPosition,
-                    currentAddress: _currentAddress,
-                  )
-                else if (selectedStoreType == 'Premium House Keeper')
+
+                 if (selectedStoreType == 'Premium House Keeper')
                   Consumer<ProfileViewViewModel>(
                     builder: (context, profileViewModel, _) {
                       // Extract customer data from profile
@@ -567,6 +553,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         customerAddress: customerAddress,
                       );
                     },
+                  )
+               else if (selectedStoreType == 'Retail')
+                  GroceryStoresSection(
+                    isLoading: isLoadingStores,
+                    stores: nearbyStores,
+                    storeTypes: storeTypes,
+                    selectedStoreType: selectedStoreType,
+                    currentPosition: _currentPosition,
+                    currentAddress: _currentAddress,
                   ),
 
                 SizedboxSpaccing.height02(context),
@@ -704,7 +699,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Flexible(
                               child: Container(
-                                color:Colors.transparent,
+                                color: Colors.transparent,
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -729,12 +724,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     //     ),
                                     //   ],
                                     // ),
-                                Text(
-                                          displayAddress,
-                                          style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
-                                          overflow: TextOverflow.ellipsis,
-
-                                        ),
+                                    Text(
+                                      displayAddress,
+                                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -816,6 +810,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
   void _handleSeeAllNavigation(BuildContext context) {
     if (selectedStoreType == null) {
       debugPrint('No store type selected');
@@ -823,20 +818,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Prepare common arguments
-    Map<String, dynamic> arguments = {
-      'storeType': selectedStoreType,
-    };
+    Map<String, dynamic> arguments = {'storeType': selectedStoreType};
 
     if (selectedStoreType == 'Retail') {
       // Add Retail-specific data
-      arguments.addAll({
-        'stores': nearbyStores,
-        'storeTypes': storeTypes,
-        'currentPosition': _currentPosition,
-        'currentAddress': _currentAddress,
-      });
-    } else if (selectedStoreType == 'Premium House Keeper' ||
-        selectedStoreType == 'Premium Home Beauty & Salon') {
+      arguments.addAll({'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress});
+    } else if (selectedStoreType == 'Premium House Keeper' || selectedStoreType == 'Premium Home Beauty & Salon') {
       // Get customer data from profile for premium services
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 
@@ -869,12 +856,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Navigate to unified screen
-    Navigator.pushNamed(
-      context,
-      RoutesName.unifiedSeeAllScreen,
-      arguments: arguments,
-    );
+    Navigator.pushNamed(context, RoutesName.unifiedSeeAllScreen, arguments: arguments);
   }
+
   Widget _buildIconButton({VoidCallback? onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(
       onTap: onTap,

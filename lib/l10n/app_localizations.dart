@@ -686,6 +686,12 @@ abstract class AppLocalizations {
   /// **'Select'**
   String get select_store_type_hint;
 
+  /// No description provided for @select_dropdown_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Primium House Keeper'**
+  String get select_dropdown_hint;
+
   /// No description provided for @nearby_stores.
   ///
   /// In en, this message translates to:

@@ -100,6 +100,7 @@
     "storeType_beauty_salon": "প্রিমিয়াম হোম বিউটি ও সেলুন",
     "select_store_type": "কি লাগবে?",
     "select_store_type_hint": "নির্বাচন করুন",
+    "select_dropdown_hint": "প্রিমিয়াম হাউস কিপার",
     "nearby_stores": "নিকটবর্তী দোকান ({count}টি)",
     "see_all": "সব দেখুন",
     "available": "উপলব্ধ",

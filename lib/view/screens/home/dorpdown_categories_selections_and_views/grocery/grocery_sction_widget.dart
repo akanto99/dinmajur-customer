@@ -262,7 +262,9 @@ class GroceryStoresSection extends StatelessWidget {
               ),
             ],
           ),
-          SizedboxSpaccing.height02(context),
+          SizedboxSpaccing.height012(context),
+          Divider(height: 1,color: AppColors.border(context),),
+          SizedboxSpaccing.height012(context),
           RoundButton(
             title: AppLocalizations.of(context)!.order_now,
             onPress: () => _navigateToOrderScreen(context, store, distanceText, durationText, businessName, isAvailable, businessType, userID, logoUrl, fullAddress, storeLatitude, storeLongitude),

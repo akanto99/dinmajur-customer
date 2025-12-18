@@ -171,8 +171,9 @@ class PremiumBeautyAndSalonCoverageWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedboxSpaccing.height02(context),
-              // Book Now Button
+              SizedboxSpaccing.height012(context),
+              Divider(height: 1,color: AppColors.border(context),),
+              SizedboxSpaccing.height012(context),
               RoundButton(
                 title: "Book Now",
                 onPress: () {

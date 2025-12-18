@@ -321,6 +321,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get select_store_type_hint => 'নির্বাচন করুন';
 
   @override
+  String get select_dropdown_hint => 'প্রিমিয়াম হাউস কিপার';
+
+  @override
   String nearby_stores(Object count) {
     return 'নিকটবর্তী দোকান ($countটি)';
   }
