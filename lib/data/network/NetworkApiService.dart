@@ -414,10 +414,13 @@ class NetworkApiService extends BaseApiServices {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
 
-    Map<String, String> headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
 
     if (accessToken != null && accessToken.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $accessToken';
+      headers['Authorization'] = 'Bearer $accessToken';  // ✅ Adds Bearer prefix
     }
 
     if (additionalHeaders != null) {
@@ -427,26 +430,9 @@ class NetworkApiService extends BaseApiServices {
     return headers;
   }
 
-  // Only logout when both tokens are expired or invalid
-  Future<void> _handleLogout() async {
-    try {
-      // print('🚪 Handling logout - clearing user data...');
-      // final userViewModel = UserViewModel();
-      // await userViewModel.remove();
-
-      // Show a message to user and navigate to login
-      final navigationService = SessionExpiredService();
-      await navigationService.handleSessionExpired();
-
-      print('🚪 User logged out due to token expiry');
-    } catch (e) {
-      print('❌ Error during logout: $e');
-    }
-  }
-
   Future<String?> _refreshAccessToken() async {
+    // If already refreshing, wait for the result
     if (_isRefreshing) {
-      // Wait for ongoing refresh
       final completer = Completer<String?>();
       _refreshQueue.add(completer);
       return completer.future;
@@ -471,14 +457,16 @@ class NetworkApiService extends BaseApiServices {
       }
 
       print('🔄 Attempting to refresh access token...');
+      print('🔑 Using refresh token: ${refreshToken.substring(0, 20)}...');
 
-      final response = await https
-          .post(
-            Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
-            headers: {'Content-Type': 'application/json', 'Authorization': refreshToken},
-            body: jsonEncode({'refreshToken': refreshToken}),
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await https.post(
+        Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': refreshToken, // ✅ Pass as Authorization header
+        },
+        body: jsonEncode({'refreshToken': refreshToken}),
+      ).timeout(const Duration(seconds: 30));
 
       print('🔄 Refresh token API response status: ${response.statusCode}');
       print('🔄 Refresh token API response body: ${response.body}');
@@ -487,28 +475,53 @@ class NetworkApiService extends BaseApiServices {
         final responseData = jsonDecode(response.body);
 
         if (responseData['success'] == true && responseData['data'] != null) {
-          // Parse the new user data
-          final userModel = UserModel.fromJson(responseData);
-          final newAccessToken = userModel.data?.accessToken;
+          final data = responseData['data'];
+          final newAccessToken = data['accessToken'];
+          final newRefreshToken = data['refreshToken'];
 
           if (newAccessToken != null && newAccessToken.isNotEmpty) {
-            // FIX: Always preserve existing refresh token (server doesn't generate new ones)
+            // ✅ Get current user data
             final userViewModel = UserViewModel();
-
-            // Get current user data to preserve existing refresh token
             final currentUser = await userViewModel.getUser();
-            final existingRefreshToken = currentUser.data?.refreshToken;
 
-            // Always use existing refresh token (server doesn't return new ones)
-            print('🔄 Preserving existing refresh token (server keeps same refresh token)');
-            userModel.data?.refreshToken = existingRefreshToken;
+            // ✅ Create updated user model with new access token
+            // but PRESERVE the existing refresh token (server doesn't return new one)
+            final updatedUserModel = UserModel(
+              success: true,
+              message: responseData['message'] ?? 'Token refreshed successfully',
+              data: Data(
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken,
+                user: User(
+                  id: data['user']['_id'] ?? data['user']['id'],
+                  userId: data['user']['id'],
+                  phone: data['user']['phone'],
+                  role: data['user']['role'],
+                  userStatus: data['user']['userStatus'],
+                  isRegistered: data['user']['isRegistered'],
+                  isPhoneVerified: data['user']['isPhoneVerified'],
+                  firstName: data['user']['firstName'],
+                  lastName: data['user']['lastName'],
+                  profilePicture: data['user']['profilePicture'] != null
+                      ? ProfilePicture(
+                    url: data['user']['profilePicture']['url'],
+                    altText: data['user']['profilePicture']['altText'],
+                  )
+                      : null,
+                  isDeliveryPerson: currentUser.data?.user?.isDeliveryPerson ?? false,
+                  checkedJoinUs: currentUser.data?.user?.checkedJoinUs ?? false,
+                  checkedSelectServices: currentUser.data?.user?.checkedSelectServices ?? false,
+                  checkedSelectArea: currentUser.data?.user?.checkedSelectArea ?? false,
+                ),
+              ),
+            );
 
-            // Update stored user data with new access token and preserved refresh token
-            await userViewModel.saveUser(userModel);
+            // ✅ Save updated user data
+            await userViewModel.saveUser(updatedUserModel);
 
             print('✅ Access token refreshed successfully');
             print('🔑 New access token: ${newAccessToken.substring(0, 20)}...');
-            print('🔄 Refresh token preserved: ${userModel.data?.refreshToken?.substring(0, 20)}...');
+            print('🔄 Refresh token preserved: ${currentUser.data?.refreshToken?.substring(0, 20)}...');
 
             // Notify all waiting requests with success
             for (final completer in _refreshQueue) {
@@ -523,10 +536,11 @@ class NetworkApiService extends BaseApiServices {
           }
         } else {
           print('❌ Invalid response format from refresh token API');
-          throw Exception('Invalid response format: $responseData');
+          throw Exception('Invalid response format');
         }
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        print('❌ REFRESH TOKEN API RETURNED 401 - REFRESH TOKEN EXPIRED - LOGGING OUT USER');
+        // ✅ ONLY logout when refresh token itself is expired/invalid
+        print('❌ REFRESH TOKEN EXPIRED (401/403) - LOGGING OUT USER');
         await _handleLogout();
 
         for (final completer in _refreshQueue) {
@@ -536,6 +550,7 @@ class NetworkApiService extends BaseApiServices {
 
         throw Exception('Refresh token expired');
       } else {
+        // ✅ Other errors (500, network issues) - DON'T logout
         print('❌ Refresh token API failed with status: ${response.statusCode} - NOT LOGGING OUT');
 
         for (final completer in _refreshQueue) {
@@ -546,6 +561,7 @@ class NetworkApiService extends BaseApiServices {
         throw Exception('Token refresh failed with status: ${response.statusCode}');
       }
     } on SocketException catch (e) {
+      // ✅ Network error - DON'T logout
       print('❌ Network error during token refresh: $e - NOT LOGGING OUT');
 
       for (final completer in _refreshQueue) {
@@ -555,6 +571,7 @@ class NetworkApiService extends BaseApiServices {
 
       throw Exception('Network error during token refresh');
     } on TimeoutException catch (e) {
+      // ✅ Timeout - DON'T logout
       print('❌ Timeout during token refresh: $e - NOT LOGGING OUT');
 
       for (final completer in _refreshQueue) {
@@ -566,12 +583,14 @@ class NetworkApiService extends BaseApiServices {
     } catch (e) {
       print('❌ Token refresh error: $e');
 
+      // Only clear queue if it's a refresh token expiry issue
       if (e.toString().contains('Refresh token expired')) {
         for (final completer in _refreshQueue) {
           completer.complete(null);
         }
         _refreshQueue.clear();
       } else {
+        // For other errors, still notify waiting requests
         for (final completer in _refreshQueue) {
           completer.complete(null);
         }
@@ -584,6 +603,7 @@ class NetworkApiService extends BaseApiServices {
     }
   }
 
+  /// Handle API response with automatic token refresh
   Future<dynamic> _handleResponse(
       https.Response response,
       String originalUrl,
@@ -599,8 +619,8 @@ class NetworkApiService extends BaseApiServices {
 
       if (retryCount >= _maxRetries) {
         print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
-        _retryAttempts.remove(originalUrl); // Clean up
-        throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+        _retryAttempts.remove(originalUrl);
+        throw UnauthorisedException('Session expired. Please login again.');
       }
 
       // Check if this is an API call that should trigger refresh
@@ -609,6 +629,7 @@ class NetworkApiService extends BaseApiServices {
 
         try {
           final newAccessToken = await _refreshAccessToken();
+
           if (newAccessToken != null && newAccessToken.isNotEmpty) {
             print('✅ Token refreshed successfully, retrying original request');
 
@@ -624,22 +645,22 @@ class NetworkApiService extends BaseApiServices {
             return result;
           } else {
             print('❌ Token refresh returned null - refresh token likely expired');
-            _retryAttempts.remove(originalUrl); // Clean up
-            throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+            _retryAttempts.remove(originalUrl);
+            throw UnauthorisedException('Session expired. Please login again.');
           }
         } catch (e) {
           print('❌ Token refresh exception: $e');
-          _retryAttempts.remove(originalUrl); // Clean up
+          _retryAttempts.remove(originalUrl);
 
           if (e.toString().contains('Refresh token expired')) {
-            throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+            throw UnauthorisedException('Session expired. Please login again.');
           } else {
             throw FetchDataException('Unable to refresh session: ${e.toString()}');
           }
         }
       } else {
         print('🔒 401 response for excluded endpoint: $originalUrl');
-        throw UnauthorisedExceptionLogin('Authentication failed');
+        throw UnauthorisedException('Authentication failed');
       }
     }
 
@@ -649,17 +670,43 @@ class NetworkApiService extends BaseApiServices {
     return returnResponse(response);
   }
 
+  /// Handle logout only when both tokens are expired/invalid
+  Future<void> _handleLogout() async {
+    try {
+      final navigationService = SessionExpiredService();
+      await navigationService.handleSessionExpired();
+      print('🚪 User logged out due to token expiry');
+    } catch (e) {
+      print('❌ Error during logout: $e');
+    }
+  }
+
+  /// Check if the URL should trigger token refresh
+  bool _shouldRefreshToken(String url) {
+    final excludedEndpoints = [
+      '/login',
+      '/register',
+      '/refresh-token',
+      '/otp',
+      '/verify',
+      'login',
+      'register',
+      'refresh-token',
+      'otp',
+      'verify'
+    ];
+
+    return !excludedEndpoints.any(
+            (endpoint) => url.toLowerCase().contains(endpoint.toLowerCase())
+    );
+  }
+
+  /// Static method to clear retry attempts
   static void clearRetryAttempts() {
     _retryAttempts.clear();
   }
-  // Check if the URL should trigger token refresh
-  bool _shouldRefreshToken(String url) {
-    // Don't refresh token for login, register, or refresh token endpoints
-    final excludedEndpoints = ['/login', '/register', '/refresh-token', '/otp', '/verify', 'login', 'register', 'refresh-token', 'otp', 'verify'];
 
-    return !excludedEndpoints.any((endpoint) => url.toLowerCase().contains(endpoint.toLowerCase()));
-  }
-
+  /// Parse response based on status code
   dynamic returnResponse(https.Response response) {
     switch (response.statusCode) {
       case 200:
@@ -670,26 +717,289 @@ class NetworkApiService extends BaseApiServices {
       case 400:
         throw BadRequestException(response.body.toString());
       case 401:
-        throw UnauthorisedExceptionLogin(response.body.toString());
+        throw UnauthorisedException(response.body.toString());
       case 403:
-        throw UnauthorisedExceptionLogin(response.body.toString());
-      case 422:
-        final dynamic responseBody = jsonDecode(response.body);
-        final dynamic data = responseBody['data'];
-        if (data != null && data is Map<String, dynamic>) {
-          final List<dynamic>? emailErrors = data['email'];
-          // Handle email errors if needed
-        }
-        throw UnauthorisedExceptionLogin("Unknown validation error occurred");
-      case 500:
-        throw FetchDataException("Server error");
+        throw UnauthorisedException(response.body.toString());
       case 404:
         dynamic responseJson = jsonDecode(response.body);
         return responseJson;
       case 409:
         throw BadRequestException(response.body.toString());
+      case 500:
+        throw FetchDataException("Server error");
       default:
-        throw FetchDataException('Error occurred while communicating with server' + ' with status code ' + response.statusCode.toString());
+        throw FetchDataException(
+            'Error occurred while communicating with server with status code ${response.statusCode}'
+        );
     }
   }
 }
+
+
+
+// // Only logout when both tokens are expired or invalid
+  // Future<void> _handleLogout() async {
+  //   try {
+  //     // print('🚪 Handling logout - clearing user data...');
+  //     // final userViewModel = UserViewModel();
+  //     // await userViewModel.remove();
+  //
+  //     // Show a message to user and navigate to login
+  //     final navigationService = SessionExpiredService();
+  //     await navigationService.handleSessionExpired();
+  //
+  //     print('🚪 User logged out due to token expiry');
+  //   } catch (e) {
+  //     print('❌ Error during logout: $e');
+  //   }
+  // }
+  //
+  // Future<String?> _refreshAccessToken() async {
+  //   if (_isRefreshing) {
+  //     // Wait for ongoing refresh
+  //     final completer = Completer<String?>();
+  //     _refreshQueue.add(completer);
+  //     return completer.future;
+  //   }
+  //
+  //   _isRefreshing = true;
+  //
+  //   try {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? refreshToken = prefs.getString('refreshToken');
+  //
+  //     if (refreshToken == null || refreshToken.isEmpty) {
+  //       print('❌ No refresh token available in storage');
+  //       await _handleLogout();
+  //
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //
+  //       throw Exception('Refresh token expired');
+  //     }
+  //
+  //     print('🔄 Attempting to refresh access token...');
+  //
+  //     final response = await https
+  //         .post(
+  //           Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
+  //           headers: {'Content-Type': 'application/json', 'Authorization': refreshToken},
+  //           body: jsonEncode({'refreshToken': refreshToken}),
+  //         )
+  //         .timeout(const Duration(seconds: 30));
+  //
+  //     print('🔄 Refresh token API response status: ${response.statusCode}');
+  //     print('🔄 Refresh token API response body: ${response.body}');
+  //
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       final responseData = jsonDecode(response.body);
+  //
+  //       if (responseData['success'] == true && responseData['data'] != null) {
+  //         // Parse the new user data
+  //         final userModel = UserModel.fromJson(responseData);
+  //         final newAccessToken = userModel.data?.accessToken;
+  //
+  //         if (newAccessToken != null && newAccessToken.isNotEmpty) {
+  //           // FIX: Always preserve existing refresh token (server doesn't generate new ones)
+  //           final userViewModel = UserViewModel();
+  //
+  //           // Get current user data to preserve existing refresh token
+  //           final currentUser = await userViewModel.getUser();
+  //           final existingRefreshToken = currentUser.data?.refreshToken;
+  //
+  //           // Always use existing refresh token (server doesn't return new ones)
+  //           print('🔄 Preserving existing refresh token (server keeps same refresh token)');
+  //           userModel.data?.refreshToken = existingRefreshToken;
+  //
+  //           // Update stored user data with new access token and preserved refresh token
+  //           await userViewModel.saveUser(userModel);
+  //
+  //           print('✅ Access token refreshed successfully');
+  //           print('🔑 New access token: ${newAccessToken.substring(0, 20)}...');
+  //           print('🔄 Refresh token preserved: ${userModel.data?.refreshToken?.substring(0, 20)}...');
+  //
+  //           // Notify all waiting requests with success
+  //           for (final completer in _refreshQueue) {
+  //             completer.complete(newAccessToken);
+  //           }
+  //           _refreshQueue.clear();
+  //
+  //           return newAccessToken;
+  //         } else {
+  //           print('❌ Invalid access token received in refresh response');
+  //           throw Exception('Invalid access token received');
+  //         }
+  //       } else {
+  //         print('❌ Invalid response format from refresh token API');
+  //         throw Exception('Invalid response format: $responseData');
+  //       }
+  //     } else if (response.statusCode == 401 || response.statusCode == 403) {
+  //       print('❌ REFRESH TOKEN API RETURNED 401 - REFRESH TOKEN EXPIRED - LOGGING OUT USER');
+  //       await _handleLogout();
+  //
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //
+  //       throw Exception('Refresh token expired');
+  //     } else {
+  //       print('❌ Refresh token API failed with status: ${response.statusCode} - NOT LOGGING OUT');
+  //
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //
+  //       throw Exception('Token refresh failed with status: ${response.statusCode}');
+  //     }
+  //   } on SocketException catch (e) {
+  //     print('❌ Network error during token refresh: $e - NOT LOGGING OUT');
+  //
+  //     for (final completer in _refreshQueue) {
+  //       completer.complete(null);
+  //     }
+  //     _refreshQueue.clear();
+  //
+  //     throw Exception('Network error during token refresh');
+  //   } on TimeoutException catch (e) {
+  //     print('❌ Timeout during token refresh: $e - NOT LOGGING OUT');
+  //
+  //     for (final completer in _refreshQueue) {
+  //       completer.complete(null);
+  //     }
+  //     _refreshQueue.clear();
+  //
+  //     throw Exception('Timeout during token refresh');
+  //   } catch (e) {
+  //     print('❌ Token refresh error: $e');
+  //
+  //     if (e.toString().contains('Refresh token expired')) {
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //     } else {
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //     }
+  //
+  //     return null;
+  //   } finally {
+  //     _isRefreshing = false;
+  //   }
+  // }
+  //
+  // Future<dynamic> _handleResponse(
+  //     https.Response response,
+  //     String originalUrl,
+  //     Future<dynamic> Function() retryFunction,
+  //     ) async {
+  //   print('📡 Response from $originalUrl: ${response.statusCode}');
+  //
+  //   if (response.statusCode == 401) {
+  //     print('🔒 Unauthorized response detected for: $originalUrl');
+  //
+  //     // ✅ Check retry count for this URL
+  //     int retryCount = _retryAttempts[originalUrl] ?? 0;
+  //
+  //     if (retryCount >= _maxRetries) {
+  //       print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
+  //       _retryAttempts.remove(originalUrl); // Clean up
+  //       throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+  //     }
+  //
+  //     // Check if this is an API call that should trigger refresh
+  //     if (_shouldRefreshToken(originalUrl)) {
+  //       print('🔄 Attempting token refresh for URL: $originalUrl (Retry: ${retryCount + 1}/$_maxRetries)');
+  //
+  //       try {
+  //         final newAccessToken = await _refreshAccessToken();
+  //         if (newAccessToken != null && newAccessToken.isNotEmpty) {
+  //           print('✅ Token refreshed successfully, retrying original request');
+  //
+  //           // ✅ Increment retry counter
+  //           _retryAttempts[originalUrl] = retryCount + 1;
+  //
+  //           // Retry the original request with new token
+  //           final result = await retryFunction();
+  //
+  //           // ✅ Success - clear retry counter
+  //           _retryAttempts.remove(originalUrl);
+  //
+  //           return result;
+  //         } else {
+  //           print('❌ Token refresh returned null - refresh token likely expired');
+  //           _retryAttempts.remove(originalUrl); // Clean up
+  //           throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+  //         }
+  //       } catch (e) {
+  //         print('❌ Token refresh exception: $e');
+  //         _retryAttempts.remove(originalUrl); // Clean up
+  //
+  //         if (e.toString().contains('Refresh token expired')) {
+  //           throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+  //         } else {
+  //           throw FetchDataException('Unable to refresh session: ${e.toString()}');
+  //         }
+  //       }
+  //     } else {
+  //       print('🔒 401 response for excluded endpoint: $originalUrl');
+  //       throw UnauthorisedExceptionLogin('Authentication failed');
+  //     }
+  //   }
+  //
+  //   // ✅ Success response - clear any retry counters for this URL
+  //   _retryAttempts.remove(originalUrl);
+  //
+  //   return returnResponse(response);
+  // }
+  //
+  // static void clearRetryAttempts() {
+  //   _retryAttempts.clear();
+  // }
+  // // Check if the URL should trigger token refresh
+  // bool _shouldRefreshToken(String url) {
+  //   // Don't refresh token for login, register, or refresh token endpoints
+  //   final excludedEndpoints = ['/login', '/register', '/refresh-token', '/otp', '/verify', 'login', 'register', 'refresh-token', 'otp', 'verify'];
+  //
+  //   return !excludedEndpoints.any((endpoint) => url.toLowerCase().contains(endpoint.toLowerCase()));
+  // }
+  //
+  // dynamic returnResponse(https.Response response) {
+  //   switch (response.statusCode) {
+  //     case 200:
+  //     case 201:
+  //       dynamic responseJson = jsonDecode(response.body);
+  //       print('✅ Parsed response JSON: $responseJson');
+  //       return responseJson;
+  //     case 400:
+  //       throw BadRequestException(response.body.toString());
+  //     case 401:
+  //       throw UnauthorisedExceptionLogin(response.body.toString());
+  //     case 403:
+  //       throw UnauthorisedExceptionLogin(response.body.toString());
+  //     case 422:
+  //       final dynamic responseBody = jsonDecode(response.body);
+  //       final dynamic data = responseBody['data'];
+  //       if (data != null && data is Map<String, dynamic>) {
+  //         final List<dynamic>? emailErrors = data['email'];
+  //         // Handle email errors if needed
+  //       }
+  //       throw UnauthorisedExceptionLogin("Unknown validation error occurred");
+  //     case 500:
+  //       throw FetchDataException("Server error");
+  //     case 404:
+  //       dynamic responseJson = jsonDecode(response.body);
+  //       return responseJson;
+  //     case 409:
+  //       throw BadRequestException(response.body.toString());
+  //     default:
+  //       throw FetchDataException('Error occurred while communicating with server' + ' with status code ' + response.statusCode.toString());
+  //   }
+  // }
+

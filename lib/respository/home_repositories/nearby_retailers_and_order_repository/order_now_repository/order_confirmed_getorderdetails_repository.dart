@@ -19,10 +19,10 @@ class OrderDetailsRepository {
     try {
       dynamic response = await _apiServices.getGetApiWithHeaderResponse(
         "${AppUrl.orderDetailsGetAPI}/$orderId",
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$accessToken',
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        //   'Authorization': '$accessToken',
+        // },
       );
       return GetOrderDetailsModel.fromJson(response);
     } catch (e) {
