@@ -20,6 +20,7 @@ class NetworkApiService extends BaseApiServices {
   static const int _maxRetries = 2;
 
   /// All Get Api Response
+  ///  Corrected
   @override
   Future getGetApiResponse(String url) async {
     dynamic responseJson;
@@ -36,6 +37,7 @@ class NetworkApiService extends BaseApiServices {
   }
 
   /// Header Get Api
+  /// Corrected
   @override
   Future<dynamic> getGetApiWithHeaderResponse(String url, {Map<String, String>? headers}) async {
     dynamic responseJson;
@@ -71,6 +73,7 @@ class NetworkApiService extends BaseApiServices {
     return responseJson;
   }
 
+  ///Corected
   @override
   Future getPostApiWithOutBodyresponse(String url, {Map<String, String>? headers}) async {
     try {
@@ -263,23 +266,22 @@ class NetworkApiService extends BaseApiServices {
   }
 
   /// Patch Api Update Me
+  /// Corrected
   @override
   Future getPatchApiResponse(String url, dynamic data, {Map<String, String>? headers}) async {
     dynamic responseJson;
     try {
+      final authHeaders = await _getAuthHeaders(headers);
       final response = await https
           .patch(
             Uri.parse(url),
-            headers: {
-              'Content-Type': 'application/json',
-              ...?headers, // Merge additional headers (like authorization)
-            },
+            headers: authHeaders,
             body: jsonEncode(data),
           )
           .timeout(const Duration(seconds: 30));
       print(" ${response.statusCode}");
       print(" ${response.body}");
-      responseJson = await _handleResponse(response, url, () => getPatchApiResponse(url, data, headers: headers));
+      responseJson = await _handleResponse(response, url, () => getPatchApiResponse(url, data, ));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
@@ -289,18 +291,39 @@ class NetworkApiService extends BaseApiServices {
   }
 
   /// Same url, data, header ------>   {Create Area Address}
+  // @override
+  // Future getsamePostApiResponse(String url, dynamic data, {Map<String, String>? headers}) async {
+  //   dynamic responseJson;
+  //   try {
+  //     https.Response response = await https
+  //         .post(
+  //           Uri.parse(url),
+  //           headers: headers ?? {'Content-Type': 'application/json'},
+  //           body: jsonEncode(data), // Encode data as JSON
+  //         )
+  //         .timeout(const Duration(seconds: 30));
+  //     responseJson = await _handleResponse(response, url, () => getsamePostApiResponse(url, data, headers: headers));
+  //   } on SocketException {
+  //     throw FetchDataException('No Internet Connection');
+  //   } on TimeoutException {
+  //     throw FetchDataException('Request timeout. Please try again');
+  //   }
+  //   return responseJson;
+  // }
+///Corrected
+
   @override
   Future getsamePostApiResponse(String url, dynamic data, {Map<String, String>? headers}) async {
     dynamic responseJson;
     try {
+      final authHeaders = await _getAuthHeaders(headers);
+
       https.Response response = await https
           .post(
-            Uri.parse(url),
-            headers: headers ?? {'Content-Type': 'application/json'},
-            body: jsonEncode(data), // Encode data as JSON
-          )
+          Uri.parse(url), body: jsonEncode(data), headers: authHeaders
+      )
           .timeout(const Duration(seconds: 30));
-      responseJson = await _handleResponse(response, url, () => getsamePostApiResponse(url, data, headers: headers));
+      responseJson = await _handleResponse(response, url, () => getsamePostApiResponse(url, data,));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
@@ -308,6 +331,7 @@ class NetworkApiService extends BaseApiServices {
     }
     return responseJson;
   }
+
 
   /// PUT API
   @override
@@ -429,12 +453,13 @@ class NetworkApiService extends BaseApiServices {
   Future getDeleteApiResponse(String url, {Map<String, String>? headers}) async {
     dynamic responseJson;
     try {
-      final response = await https.delete(Uri.parse(url), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 30));
+  final authHeaders = await _getAuthHeaders(headers);
+      final response = await https.delete(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
 
       print('delete Response Status: ${response.statusCode}');
       print('delete Response Body: ${response.body}');
 
-      responseJson = await _handleResponse(response, url, () => getDeleteApiResponse(url, headers: headers));
+      responseJson = await _handleResponse(response, url, () => getDeleteApiResponse(url));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
