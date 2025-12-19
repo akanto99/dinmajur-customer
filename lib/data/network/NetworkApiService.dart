@@ -18,6 +18,7 @@ class NetworkApiService extends BaseApiServices {
   static List<Completer<String?>> _refreshQueue = [];
   static Map<String, int> _retryAttempts = {};
   static const int _maxRetries = 2;
+
   /// All Get Api Response
   @override
   Future getGetApiResponse(String url) async {
@@ -85,11 +86,44 @@ class NetworkApiService extends BaseApiServices {
     }
   }
 
+  // @override
+  // Future gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers}) async {
+  //   try {
+  //     final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 120));
+  //     return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data, headers: headers));
+  //   } on SocketException {
+  //     throw FetchDataException('No Internet Connection');
+  //   } on TimeoutException {
+  //     throw FetchDataException('Request timeout. Please try again');
+  //   }
+  // }
+  // @override
+  // Future gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers}) async {
+  //   try {
+  //     final authHeaders = await _getAuthHeaders(headers);
+  //
+  //     // Corrected: Moved .timeout() to the end of the post call
+  //     final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: authHeaders).timeout(const Duration(seconds: 30));
+  //
+  //     return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data, headers: authHeaders));
+  //   } on SocketException {
+  //     throw FetchDataException('No Internet Connection');
+  //   } on TimeoutException {
+  //     throw FetchDataException('Request timeout. Please try again');
+  //   }
+  // }
+  ///Corrected
+  // ✅ Fetch auth headers fresh each time (including on retries)
+  // ✅ Pass null for headers so retry will fetch fresh headers
   @override
   Future gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers}) async {
     try {
-      final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 120));
-      return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data, headers: headers));
+      // ✅ Fetch auth headers fresh each time (including on retries)
+      final authHeaders = await _getAuthHeaders(headers);
+      final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: authHeaders).timeout(const Duration(seconds: 30));
+      // ✅ Pass null for headers so retry will fetch fresh headers
+      return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data), // Don't pass old headers
+      );
     } on SocketException {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
@@ -154,12 +188,12 @@ class NetworkApiService extends BaseApiServices {
   /// Document PDF image upload with documentType field
   @override
   Future<dynamic> documentPdfImageMultipartPostApiResponse(
-      String url,
-      Uint8List pdfImageBytes,
-      String documentType,
-      String fileName, { // Accept filename as parameter
-        Map<String, String>? headers,
-      }) async {
+    String url,
+    Uint8List pdfImageBytes,
+    String documentType,
+    String fileName, { // Accept filename as parameter
+    Map<String, String>? headers,
+  }) async {
     try {
       var request = https.MultipartRequest('POST', Uri.parse(url));
 
@@ -235,13 +269,13 @@ class NetworkApiService extends BaseApiServices {
     try {
       final response = await https
           .patch(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          ...?headers, // Merge additional headers (like authorization)
-        },
-        body: jsonEncode(data),
-      )
+            Uri.parse(url),
+            headers: {
+              'Content-Type': 'application/json',
+              ...?headers, // Merge additional headers (like authorization)
+            },
+            body: jsonEncode(data),
+          )
           .timeout(const Duration(seconds: 30));
       print(" ${response.statusCode}");
       print(" ${response.body}");
@@ -261,10 +295,10 @@ class NetworkApiService extends BaseApiServices {
     try {
       https.Response response = await https
           .post(
-        Uri.parse(url),
-        headers: headers ?? {'Content-Type': 'application/json'},
-        body: jsonEncode(data), // Encode data as JSON
-      )
+            Uri.parse(url),
+            headers: headers ?? {'Content-Type': 'application/json'},
+            body: jsonEncode(data), // Encode data as JSON
+          )
           .timeout(const Duration(seconds: 30));
       responseJson = await _handleResponse(response, url, () => getsamePostApiResponse(url, data, headers: headers));
     } on SocketException {
@@ -414,10 +448,7 @@ class NetworkApiService extends BaseApiServices {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
 
-    Map<String, String> headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    };
+    Map<String, String> headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
 
     if (accessToken != null && accessToken.isNotEmpty) {
       headers['Authorization'] = '$accessToken';
@@ -459,14 +490,16 @@ class NetworkApiService extends BaseApiServices {
       print('🔄 Attempting to refresh access token...');
       print('🔑 Using refresh token: ${refreshToken.substring(0, 20)}...');
 
-      final response = await https.post(
-        Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': refreshToken, // ✅ Pass as Authorization header
-        },
-        body: jsonEncode({'refreshToken': refreshToken}),
-      ).timeout(const Duration(seconds: 30));
+      final response = await https
+          .post(
+            Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': refreshToken, // ✅ Pass as Authorization header
+            },
+            body: jsonEncode({'refreshToken': refreshToken}),
+          )
+          .timeout(const Duration(seconds: 30));
 
       print('🔄 Refresh token API response status: ${response.statusCode}');
       print('🔄 Refresh token API response body: ${response.body}');
@@ -502,12 +535,7 @@ class NetworkApiService extends BaseApiServices {
                   isPhoneVerified: data['user']['isPhoneVerified'],
                   firstName: data['user']['firstName'],
                   lastName: data['user']['lastName'],
-                  profilePicture: data['user']['profilePicture'] != null
-                      ? ProfilePicture(
-                    url: data['user']['profilePicture']['url'],
-                    altText: data['user']['profilePicture']['altText'],
-                  )
-                      : null,
+                  profilePicture: data['user']['profilePicture'] != null ? ProfilePicture(url: data['user']['profilePicture']['url'], altText: data['user']['profilePicture']['altText']) : null,
                   isDeliveryPerson: currentUser.data?.user?.isDeliveryPerson ?? false,
                   checkedJoinUs: currentUser.data?.user?.checkedJoinUs ?? false,
                   checkedSelectServices: currentUser.data?.user?.checkedSelectServices ?? false,
@@ -560,30 +588,11 @@ class NetworkApiService extends BaseApiServices {
 
         throw Exception('Token refresh failed with status: ${response.statusCode}');
       }
-    } on SocketException catch (e) {
-      // ✅ Network error - DON'T logout
-      print('❌ Network error during token refresh: $e - NOT LOGGING OUT');
-
-      for (final completer in _refreshQueue) {
-        completer.complete(null);
-      }
-      _refreshQueue.clear();
-
-      throw Exception('Network error during token refresh');
-    } on TimeoutException catch (e) {
-      // ✅ Timeout - DON'T logout
-      print('❌ Timeout during token refresh: $e - NOT LOGGING OUT');
-
-      for (final completer in _refreshQueue) {
-        completer.complete(null);
-      }
-      _refreshQueue.clear();
-
-      throw Exception('Timeout during token refresh');
+    } on SocketException {
+      throw FetchDataException('No Internet Connection');
+    } on TimeoutException {
+      throw FetchDataException('Request timeout. Please try again');
     } catch (e) {
-      print('❌ Token refresh error: $e');
-
-      // Only clear queue if it's a refresh token expiry issue
       if (e.toString().contains('Refresh token expired')) {
         for (final completer in _refreshQueue) {
           completer.complete(null);
@@ -604,11 +613,7 @@ class NetworkApiService extends BaseApiServices {
   }
 
   /// Handle API response with automatic token refresh
-  Future<dynamic> _handleResponse(
-      https.Response response,
-      String originalUrl,
-      Future<dynamic> Function() retryFunction,
-      ) async {
+  Future<dynamic> _handleResponse(https.Response response, String originalUrl, Future<dynamic> Function() retryFunction) async {
     print('📡 Response from $originalUrl: ${response.statusCode}');
 
     if (response.statusCode == 401) {
@@ -683,22 +688,9 @@ class NetworkApiService extends BaseApiServices {
 
   /// Check if the URL should trigger token refresh
   bool _shouldRefreshToken(String url) {
-    final excludedEndpoints = [
-      '/login',
-      '/register',
-      '/refresh-token',
-      '/otp',
-      '/verify',
-      'login',
-      'register',
-      'refresh-token',
-      'otp',
-      'verify'
-    ];
+    final excludedEndpoints = ['/login', '/register', '/refresh-token', '/otp', '/verify', 'login', 'register', 'refresh-token', 'otp', 'verify'];
 
-    return !excludedEndpoints.any(
-            (endpoint) => url.toLowerCase().contains(endpoint.toLowerCase())
-    );
+    return !excludedEndpoints.any((endpoint) => url.toLowerCase().contains(endpoint.toLowerCase()));
   }
 
   /// Static method to clear retry attempts
@@ -728,12 +720,7 @@ class NetworkApiService extends BaseApiServices {
       case 500:
         throw FetchDataException("Server error");
       default:
-        throw FetchDataException(
-            'Error occurred while communicating with server with status code ${response.statusCode}'
-        );
+        throw FetchDataException('Error occurred while communicating with server with status code ${response.statusCode}');
     }
   }
 }
-
-
-

@@ -13,10 +13,10 @@ class PostCheckOutOrderRepository {
       dynamic response = await _apiServices.gePostApiWithHeaderesponse(
         AppUrl.CheckoutOrderPostAPI,
         data,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$accessToken',
-        },
+        // headers: {
+        //   'Content-Type': 'application/json',
+        //   'Authorization': '$accessToken',
+        // },
       );
       return response;
     } catch (e) {

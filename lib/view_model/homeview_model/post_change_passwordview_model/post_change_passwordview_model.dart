@@ -19,13 +19,13 @@ class PostChangePasswordViewModel with ChangeNotifier {
   Future<void> changePasswordPostApi(BuildContext context, dynamic fields,) async {
     setCreatePostChangePasswordLoading(true);
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? AToken = prefs.getString('accessToken');
-      if (AToken == null || AToken.isEmpty) {
-        Utils.flushBarErrorMessage('Invalid token', context);
-        setCreatePostChangePasswordLoading(false);
-        return;
-      }
+      // SharedPreferences prefs = await SharedPreferences.getInstance();
+      // String? AToken = prefs.getString('accessToken');
+      // if (AToken == null || AToken.isEmpty) {
+      //   Utils.flushBarErrorMessage('Invalid token', context);
+      //   setCreatePostChangePasswordLoading(false);
+      //   return;
+      // }
       dynamic value = await _myRepo.changePasswordPostApi(fields);
       setCreatePostChangePasswordLoading(false);
       Utils.flushBarSuccessMessage('Password has been successfully changed', context);
