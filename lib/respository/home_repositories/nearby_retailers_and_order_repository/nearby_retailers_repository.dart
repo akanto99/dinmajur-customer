@@ -13,10 +13,11 @@ class PostNearbyRetailersRepository {
       dynamic response = await _apiServices.gePostApiWithHeaderesponse(
         AppUrl.nearbyRetailersPostAPI,
         data,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$accessToken',
-        },
+        ///Added AuthHeader in Network Service without it response 401 not worked
+        // headers: {
+        //   'Content-Type': 'application/json',
+        //   'Authorization': '$accessToken',
+        // },
       );
       return response;
     } catch (e) {
