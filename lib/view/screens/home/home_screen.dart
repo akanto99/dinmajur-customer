@@ -582,7 +582,7 @@ class _HomeScreenState extends State<HomeScreen> {
         String displayAddress;
 
         if (_isLoadingLocation) {
-          displayAddress = "Getting location_screens...";
+          displayAddress = "Getting location...";
         } else if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
           final responseData = profileViewModel.profileviewUserData.data;
 

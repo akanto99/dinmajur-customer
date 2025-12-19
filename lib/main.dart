@@ -560,6 +560,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/post_change_password
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/order_view_models/complete_orders_view_model.dart';
 import 'package:dinmajur_customer/view_model/order_view_models/running_orders_view_model.dart';
+import 'package:dinmajur_customer/view_model/refresh_token_view_model/refresh_token_view_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -633,6 +634,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider<LanguageChangeProvider>.value(value: languageProvider),
         ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
+        ChangeNotifierProvider(create: (_) => RefreshTokenViewModel()),
         ChangeNotifierProvider(create: (_) => CountdownTimerProvider()),
         ChangeNotifierProvider(create: (_) => ForgotPasswordCountdown()),
         ChangeNotifierProvider(create: (_) => LoginLogoutViewModel()),
