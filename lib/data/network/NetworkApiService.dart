@@ -485,7 +485,69 @@ class NetworkApiService extends BaseApiServices {
 
     return headers;
   }
+  /// Handle API response with automatic token refresh
+  Future<dynamic> _handleResponse(
+      https.Response response,
+      String originalUrl,
+      Future<dynamic> Function() retryFunction,
+      ) async {
+    print('📡 Response from $originalUrl: ${response.statusCode}');
 
+    if (response.statusCode == 401) {
+      print('🔒 Unauthorized response detected for: $originalUrl');
+
+      // Check retry count for this URL
+      int retryCount = _retryAttempts[originalUrl] ?? 0;
+
+      if (retryCount >= _maxRetries) {
+        print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
+        _retryAttempts.remove(originalUrl);
+        throw UnauthorisedException('Session expired. Please login again.');
+      }
+
+      // Check if this is an API call that should trigger refresh
+      if (_shouldRefreshToken(originalUrl)) {
+        print('🔄 Attempting token refresh for URL: $originalUrl (Retry: ${retryCount + 1}/$_maxRetries)');
+
+        try {
+          // This will throw if refresh token is expired
+          final newAccessToken = await _refreshAccessToken();
+
+          print('✅ Token refreshed successfully, retrying original request');
+
+          // Increment retry counter
+          _retryAttempts[originalUrl] = retryCount + 1;
+
+          // Retry the original request with new token
+          final result = await retryFunction();
+
+          // Success - clear retry counter
+          _retryAttempts.remove(originalUrl);
+
+          return result;
+        } catch (e) {
+          // Clean up retry counter
+          _retryAttempts.remove(originalUrl);
+
+          // Just re-throw whatever _refreshAccessToken() threw
+          // (it already called _handleLogout() if needed)
+          rethrow;
+        }
+      } else {
+        print('🔒 401 response for excluded endpoint: $originalUrl');
+        throw UnauthorisedException('Authentication failed');
+      }
+    }
+
+    // Success response - clear any retry counters for this URL
+    _retryAttempts.remove(originalUrl);
+
+    return returnResponse(response);
+  }
+
+// ------------------------------------------------------------------
+// UPDATED: _refreshAccessToken() - Cleaner exception throwing
+// ------------------------------------------------------------------
   Future<String?> _refreshAccessToken() async {
     // If already refreshing, wait for the result
     if (_isRefreshing) {
@@ -509,7 +571,7 @@ class NetworkApiService extends BaseApiServices {
         }
         _refreshQueue.clear();
 
-        throw Exception('Refresh token expired');
+        throw UnauthorisedException('Session expired. Please login again.');
       }
 
       print('🔄 Attempting to refresh access token...');
@@ -517,13 +579,13 @@ class NetworkApiService extends BaseApiServices {
 
       final response = await https
           .post(
-            Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': refreshToken, // ✅ Pass as Authorization header
-            },
-            body: jsonEncode({'refreshToken': refreshToken}),
-          )
+        Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': refreshToken,
+        },
+        body: jsonEncode({'refreshToken': refreshToken}),
+      )
           .timeout(const Duration(seconds: 30));
 
       print('🔄 Refresh token API response status: ${response.statusCode}');
@@ -538,12 +600,11 @@ class NetworkApiService extends BaseApiServices {
           final newRefreshToken = data['refreshToken'];
 
           if (newAccessToken != null && newAccessToken.isNotEmpty) {
-            // ✅ Get current user data
+            // Get current user data
             final userViewModel = UserViewModel();
             final currentUser = await userViewModel.getUser();
 
-            // ✅ Create updated user model with new access token
-            // but PRESERVE the existing refresh token (server doesn't return new one)
+            // Create updated user model with new access token
             final updatedUserModel = UserModel(
               success: true,
               message: responseData['message'] ?? 'Token refreshed successfully',
@@ -560,21 +621,27 @@ class NetworkApiService extends BaseApiServices {
                   isPhoneVerified: data['user']['isPhoneVerified'],
                   firstName: data['user']['firstName'],
                   lastName: data['user']['lastName'],
-                  profilePicture: data['user']['profilePicture'] != null ? ProfilePicture(url: data['user']['profilePicture']['url'], altText: data['user']['profilePicture']['altText']) : null,
-                  isDeliveryPerson: currentUser.data?.user?.isDeliveryPerson ?? false,
+                  profilePicture: data['user']['profilePicture'] != null
+                      ? ProfilePicture(
+                      url: data['user']['profilePicture']['url'],
+                      altText: data['user']['profilePicture']['altText'])
+                      : null,
+                  isDeliveryPerson:
+                  currentUser.data?.user?.isDeliveryPerson ?? false,
                   checkedJoinUs: currentUser.data?.user?.checkedJoinUs ?? false,
-                  checkedSelectServices: currentUser.data?.user?.checkedSelectServices ?? false,
-                  checkedSelectArea: currentUser.data?.user?.checkedSelectArea ?? false,
+                  checkedSelectServices:
+                  currentUser.data?.user?.checkedSelectServices ?? false,
+                  checkedSelectArea:
+                  currentUser.data?.user?.checkedSelectArea ?? false,
                 ),
               ),
             );
 
-            // ✅ Save updated user data
+            // Save updated user data
             await userViewModel.saveUser(updatedUserModel);
 
             print('✅ Access token refreshed successfully');
             print('🔑 New access token: ${newAccessToken.substring(0, 20)}...');
-            print('🔄 Refresh token preserved: ${currentUser.data?.refreshToken?.substring(0, 20)}...');
 
             // Notify all waiting requests with success
             for (final completer in _refreshQueue) {
@@ -585,120 +652,283 @@ class NetworkApiService extends BaseApiServices {
             return newAccessToken;
           } else {
             print('❌ Invalid access token received in refresh response');
-            throw Exception('Invalid access token received');
+
+            // Notify waiting requests
+            for (final completer in _refreshQueue) {
+              completer.complete(null);
+            }
+            _refreshQueue.clear();
+
+            throw FetchDataException('Invalid access token received');
           }
         } else {
           print('❌ Invalid response format from refresh token API');
-          throw Exception('Invalid response format');
+
+          // Notify waiting requests
+          for (final completer in _refreshQueue) {
+            completer.complete(null);
+          }
+          _refreshQueue.clear();
+
+          throw FetchDataException('Invalid response format');
         }
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        // ✅ ONLY logout when refresh token itself is expired/invalid
+        // ONLY logout when refresh token itself is expired/invalid
         print('❌ REFRESH TOKEN EXPIRED (401/403) - LOGGING OUT USER');
         await _handleLogout();
 
+        // Notify waiting requests
         for (final completer in _refreshQueue) {
           completer.complete(null);
         }
         _refreshQueue.clear();
 
-        throw Exception('Refresh token expired');
+        throw UnauthorisedException('Session expired. Please login again.');
       } else {
-        // ✅ Other errors (500, network issues) - DON'T logout
+        // Other errors (500, network issues) - DON'T logout
         print('❌ Refresh token API failed with status: ${response.statusCode} - NOT LOGGING OUT');
 
+        // Notify waiting requests
         for (final completer in _refreshQueue) {
           completer.complete(null);
         }
         _refreshQueue.clear();
 
-        throw Exception('Token refresh failed with status: ${response.statusCode}');
+        throw FetchDataException('Token refresh failed with status: ${response.statusCode}');
       }
     } on SocketException {
+      // Network error - don't logout
+      for (final completer in _refreshQueue) {
+        completer.complete(null);
+      }
+      _refreshQueue.clear();
+
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
-      throw FetchDataException('Request timeout. Please try again');
-    } catch (e) {
-      if (e.toString().contains('Refresh token expired')) {
-        for (final completer in _refreshQueue) {
-          completer.complete(null);
-        }
-        _refreshQueue.clear();
-      } else {
-        // For other errors, still notify waiting requests
-        for (final completer in _refreshQueue) {
-          completer.complete(null);
-        }
-        _refreshQueue.clear();
+      // Timeout - don't logout
+      for (final completer in _refreshQueue) {
+        completer.complete(null);
       }
+      _refreshQueue.clear();
 
-      return null;
+      throw FetchDataException('Request timeout. Please try again');
     } finally {
       _isRefreshing = false;
     }
   }
-
-  /// Handle API response with automatic token refresh
-  Future<dynamic> _handleResponse(https.Response response, String originalUrl, Future<dynamic> Function() retryFunction) async {
-    print('📡 Response from $originalUrl: ${response.statusCode}');
-
-    if (response.statusCode == 401) {
-      print('🔒 Unauthorized response detected for: $originalUrl');
-
-      // ✅ Check retry count for this URL
-      int retryCount = _retryAttempts[originalUrl] ?? 0;
-
-      if (retryCount >= _maxRetries) {
-        print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
-        _retryAttempts.remove(originalUrl);
-        throw UnauthorisedException('Session expired. Please login again.');
-      }
-
-      // Check if this is an API call that should trigger refresh
-      if (_shouldRefreshToken(originalUrl)) {
-        print('🔄 Attempting token refresh for URL: $originalUrl (Retry: ${retryCount + 1}/$_maxRetries)');
-
-        try {
-          final newAccessToken = await _refreshAccessToken();
-
-          if (newAccessToken != null && newAccessToken.isNotEmpty) {
-            print('✅ Token refreshed successfully, retrying original request');
-
-            // ✅ Increment retry counter
-            _retryAttempts[originalUrl] = retryCount + 1;
-
-            // Retry the original request with new token
-            final result = await retryFunction();
-
-            // ✅ Success - clear retry counter
-            _retryAttempts.remove(originalUrl);
-
-            return result;
-          } else {
-            print('❌ Token refresh returned null - refresh token likely expired');
-            _retryAttempts.remove(originalUrl);
-            throw UnauthorisedException('Session expired. Please login again.');
-          }
-        } catch (e) {
-          print('❌ Token refresh exception: $e');
-          _retryAttempts.remove(originalUrl);
-
-          if (e.toString().contains('Refresh token expired')) {
-            throw UnauthorisedException('Session expired. Please login again.');
-          } else {
-            throw FetchDataException('Unable to refresh session: ${e.toString()}');
-          }
-        }
-      } else {
-        print('🔒 401 response for excluded endpoint: $originalUrl');
-        throw UnauthorisedException('Authentication failed');
-      }
-    }
-
-    // ✅ Success response - clear any retry counters for this URL
-    _retryAttempts.remove(originalUrl);
-
-    return returnResponse(response);
-  }
+  // Future<String?> _refreshAccessToken() async {
+  //   // If already refreshing, wait for the result
+  //   if (_isRefreshing) {
+  //     final completer = Completer<String?>();
+  //     _refreshQueue.add(completer);
+  //     return completer.future;
+  //   }
+  //
+  //   _isRefreshing = true;
+  //
+  //   try {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? refreshToken = prefs.getString('refreshToken');
+  //
+  //     if (refreshToken == null || refreshToken.isEmpty) {
+  //       print('❌ No refresh token available in storage');
+  //       await _handleLogout();
+  //
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //
+  //       throw Exception('Refresh token expired');
+  //     }
+  //
+  //     print('🔄 Attempting to refresh access token...');
+  //     print('🔑 Using refresh token: ${refreshToken.substring(0, 20)}...');
+  //
+  //     final response = await https
+  //         .post(
+  //           Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //             'Authorization': refreshToken, // ✅ Pass as Authorization header
+  //           },
+  //           body: jsonEncode({'refreshToken': refreshToken}),
+  //         )
+  //         .timeout(const Duration(seconds: 30));
+  //
+  //     print('🔄 Refresh token API response status: ${response.statusCode}');
+  //     print('🔄 Refresh token API response body: ${response.body}');
+  //
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       final responseData = jsonDecode(response.body);
+  //
+  //       if (responseData['success'] == true && responseData['data'] != null) {
+  //         final data = responseData['data'];
+  //         final newAccessToken = data['accessToken'];
+  //         final newRefreshToken = data['refreshToken'];
+  //
+  //         if (newAccessToken != null && newAccessToken.isNotEmpty) {
+  //           // ✅ Get current user data
+  //           final userViewModel = UserViewModel();
+  //           final currentUser = await userViewModel.getUser();
+  //
+  //           // ✅ Create updated user model with new access token
+  //           // but PRESERVE the existing refresh token (server doesn't return new one)
+  //           final updatedUserModel = UserModel(
+  //             success: true,
+  //             message: responseData['message'] ?? 'Token refreshed successfully',
+  //             data: Data(
+  //               accessToken: newAccessToken,
+  //               refreshToken: newRefreshToken,
+  //               user: User(
+  //                 id: data['user']['_id'] ?? data['user']['id'],
+  //                 userId: data['user']['id'],
+  //                 phone: data['user']['phone'],
+  //                 role: data['user']['role'],
+  //                 userStatus: data['user']['userStatus'],
+  //                 isRegistered: data['user']['isRegistered'],
+  //                 isPhoneVerified: data['user']['isPhoneVerified'],
+  //                 firstName: data['user']['firstName'],
+  //                 lastName: data['user']['lastName'],
+  //                 profilePicture: data['user']['profilePicture'] != null ? ProfilePicture(url: data['user']['profilePicture']['url'], altText: data['user']['profilePicture']['altText']) : null,
+  //                 isDeliveryPerson: currentUser.data?.user?.isDeliveryPerson ?? false,
+  //                 checkedJoinUs: currentUser.data?.user?.checkedJoinUs ?? false,
+  //                 checkedSelectServices: currentUser.data?.user?.checkedSelectServices ?? false,
+  //                 checkedSelectArea: currentUser.data?.user?.checkedSelectArea ?? false,
+  //               ),
+  //             ),
+  //           );
+  //
+  //           // ✅ Save updated user data
+  //           await userViewModel.saveUser(updatedUserModel);
+  //
+  //           print('✅ Access token refreshed successfully');
+  //           print('🔑 New access token: ${newAccessToken.substring(0, 20)}...');
+  //           print('🔄 Refresh token preserved: ${currentUser.data?.refreshToken?.substring(0, 20)}...');
+  //
+  //           // Notify all waiting requests with success
+  //           for (final completer in _refreshQueue) {
+  //             completer.complete(newAccessToken);
+  //           }
+  //           _refreshQueue.clear();
+  //
+  //           return newAccessToken;
+  //         } else {
+  //           print('❌ Invalid access token received in refresh response');
+  //           throw Exception('Invalid access token received');
+  //         }
+  //       } else {
+  //         print('❌ Invalid response format from refresh token API');
+  //         throw Exception('Invalid response format');
+  //       }
+  //     } else if (response.statusCode == 401 || response.statusCode == 403) {
+  //       // ✅ ONLY logout when refresh token itself is expired/invalid
+  //       print('❌ REFRESH TOKEN EXPIRED (401/403) - LOGGING OUT USER');
+  //       await _handleLogout();
+  //
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //
+  //       throw Exception('Refresh token expired');
+  //     } else {
+  //       // ✅ Other errors (500, network issues) - DON'T logout
+  //       print('❌ Refresh token API failed with status: ${response.statusCode} - NOT LOGGING OUT');
+  //
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //
+  //       throw Exception('Token refresh failed with status: ${response.statusCode}');
+  //     }
+  //   } on SocketException {
+  //     throw FetchDataException('No Internet Connection');
+  //   } on TimeoutException {
+  //     throw FetchDataException('Request timeout. Please try again');
+  //   } catch (e) {
+  //     if (e.toString().contains('Refresh token expired')) {
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //     } else {
+  //       // For other errors, still notify waiting requests
+  //       for (final completer in _refreshQueue) {
+  //         completer.complete(null);
+  //       }
+  //       _refreshQueue.clear();
+  //     }
+  //
+  //     return null;
+  //   } finally {
+  //     _isRefreshing = false;
+  //   }
+  // }
+  //
+  // /// Handle API response with automatic token refresh
+  // Future<dynamic> _handleResponse(https.Response response, String originalUrl, Future<dynamic> Function() retryFunction) async {
+  //   print('📡 Response from $originalUrl: ${response.statusCode}');
+  //
+  //   if (response.statusCode == 401) {
+  //     print('🔒 Unauthorized response detected for: $originalUrl');
+  //
+  //     // ✅ Check retry count for this URL
+  //     int retryCount = _retryAttempts[originalUrl] ?? 0;
+  //
+  //     if (retryCount >= _maxRetries) {
+  //       print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
+  //       _retryAttempts.remove(originalUrl);
+  //       throw UnauthorisedException('Session expired. Please login again.');
+  //     }
+  //
+  //     // Check if this is an API call that should trigger refresh
+  //     if (_shouldRefreshToken(originalUrl)) {
+  //       print('🔄 Attempting token refresh for URL: $originalUrl (Retry: ${retryCount + 1}/$_maxRetries)');
+  //
+  //       try {
+  //         final newAccessToken = await _refreshAccessToken();
+  //
+  //         if (newAccessToken != null && newAccessToken.isNotEmpty) {
+  //           print('✅ Token refreshed successfully, retrying original request');
+  //
+  //           // ✅ Increment retry counter
+  //           _retryAttempts[originalUrl] = retryCount + 1;
+  //
+  //           // Retry the original request with new token
+  //           final result = await retryFunction();
+  //
+  //           // ✅ Success - clear retry counter
+  //           _retryAttempts.remove(originalUrl);
+  //
+  //           return result;
+  //         } else {
+  //           print('❌ Token refresh returned null - refresh token likely expired');
+  //           _retryAttempts.remove(originalUrl);
+  //           throw UnauthorisedException('Session expired. Please login again.');
+  //         }
+  //       } catch (e) {
+  //         print('❌ Token refresh exception: $e');
+  //         _retryAttempts.remove(originalUrl);
+  //
+  //         if (e.toString().contains('Refresh token expired')) {
+  //           throw UnauthorisedException('Session expired. Please login again.');
+  //         } else {
+  //           throw FetchDataException('Unable to refresh session: ${e.toString()}');
+  //         }
+  //       }
+  //     } else {
+  //       print('🔒 401 response for excluded endpoint: $originalUrl');
+  //       throw UnauthorisedException('Authentication failed');
+  //     }
+  //   }
+  //
+  //   // ✅ Success response - clear any retry counters for this URL
+  //   _retryAttempts.remove(originalUrl);
+  //
+  //   return returnResponse(response);
+  // }
 
   /// Handle logout only when both tokens are expired/invalid
   Future<void> _handleLogout() async {
