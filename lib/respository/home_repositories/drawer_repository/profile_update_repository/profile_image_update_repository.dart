@@ -8,7 +8,6 @@ class PatchprofileImageUpdateRepository {
 
   Future profileImageUpdatePatchApi(
       Uint8List imageBytes,
-      String accessToken,
       String imageType,
       String fileName,
       ) async {
@@ -18,7 +17,6 @@ class PatchprofileImageUpdateRepository {
         fileName,
         imageBytes,
         imageType,
-        headers: {'Authorization': accessToken},
       );
     } catch (e) {
       rethrow;
@@ -27,7 +25,6 @@ class PatchprofileImageUpdateRepository {
 
   Future<dynamic> imageAndCoverUploadPatchApi(
       Uint8List imageBytes,
-      String accessToken,
       String imageType,
       String fileName
       ) async {
@@ -37,7 +34,6 @@ class PatchprofileImageUpdateRepository {
         fileName,
         imageBytes,
         imageType,
-        headers: {'Authorization': accessToken},
       );
     } catch (e) {
       rethrow;
