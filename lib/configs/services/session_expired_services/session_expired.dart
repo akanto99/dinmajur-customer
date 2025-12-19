@@ -1,45 +1,9 @@
-// import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
-// import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
-//
-// class SessionExpiredService {
-//   // ✅ Use the existing NavigationService navigatorKey
-//   static GlobalKey<NavigatorState> get navigatorKey => NavigationService.navigatorKey;
-//
-//   /// Handle session expired - clear all user data and navigate to welcome screen
-//   Future<void> handleSessionExpired() async {
-//     try {
-//       print('🔒 Handling session expired...');
-//
-//       // Clear all stored data
-//       SharedPreferences prefs = await SharedPreferences.getInstance();
-//       await prefs.clear();
-//
-//       print('✅ All user data cleared');
-//
-//       // Navigate to welcome screen using NavigationService
-//       final context = navigatorKey.currentContext;
-//       if (context != null && context.mounted) {
-//
-//         Navigator.of(context).pushNamedAndRemoveUntil(
-//           RoutesName.welcomeLoginSignup,
-//               (Route<dynamic> route) => false,
-//         );
-//         print('✅ Navigated to welcome screen');
-//       } else {
-//         print('❌ Context not available for navigation');
-//       }
-//     } catch (e) {
-//       print('❌ Error in handleSessionExpired: $e');
-//     }
-//   }
-// }
-
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
@@ -52,21 +16,21 @@ class SessionExpiredService {
   /// Show session expired dialog
   Future<void> showSessionExpiredDialog() async {
     final context = navigatorKey.currentContext;
+
     if (context == null || !context.mounted) {
       print('❌ Context not available for dialog');
-      await handleSessionExpired(); // Fallback: direct logout
       return;
     }
-
-    final screenWidth = MediaQuery.of(context).size.width * 1;
-    final screenHeight = MediaQuery.of(context).size.height * 1;
 
     await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
+        final screenWidth = MediaQuery.of(context).size.width * 1;
+        final screenHeight = MediaQuery.of(context).size.height * 1;
+
         return WillPopScope(
-          onWillPop: () async => false,
+          onWillPop: () async => false, // Prevent back button
           child: AlertDialog(
             backgroundColor: AppColors.appBackground(dialogContext),
             insetPadding: EdgeInsets.symmetric(
@@ -120,11 +84,33 @@ class SessionExpiredService {
                   SizedboxSpaccing.height02(dialogContext),
                   GestureDetector(
                     onTap: () async {
-                      // Close dialog first
-                      Navigator.of(dialogContext).pop();
+                      try {
+                        // ✅ 1. Close the dialog first
+                        Navigator.of(dialogContext).pop();
 
-                      // Handle logout and navigation
-                      await handleSessionExpired();
+                        print('🔄 User clicked Login Again, logging out...');
+
+                        // ✅ 2. Perform logout
+                        final loginLogoutViewModel = Provider.of<LoginLogoutViewModel>(
+                            context,
+                            listen: false
+                        );
+
+                        await loginLogoutViewModel.logoutUser(context);
+
+                        print('✅ Logout successful');
+
+                        // ✅ 3. Navigate to welcome screen
+                        if (context.mounted) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            RoutesName.welcomeLoginSignup,
+                                (Route<dynamic> route) => false,
+                          );
+                          print('✅ Navigated to welcome screen');
+                        }
+                      } catch (e) {
+                        print('❌ Error during logout/navigation: $e');
+                      }
                     },
                     child: Container(
                       width: screenWidth * 0.3,
@@ -154,34 +140,22 @@ class SessionExpiredService {
     );
   }
 
-  /// Handle session expired - clear all user data and navigate to welcome screen
+  /// Handle session expired - clear all user data and show dialog
   Future<void> handleSessionExpired() async {
     try {
-      print('🔒 Handling session expired...');
+      await showSessionExpiredDialog();
 
-      // Clear UserViewModel data
-      final userViewModel = UserViewModel();
-      await userViewModel.remove();
-      print('✅ UserModel data cleared');
+    } catch (e) {
+      print('❌ Error in handleSessionExpired: $e');
 
-      // Clear all SharedPreferences data
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      print('✅ All SharedPreferences data cleared');
-
-      // Navigate to welcome screen
+      // Fallback: If dialog fails, navigate directly
       final context = navigatorKey.currentContext;
       if (context != null && context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           RoutesName.welcomeLoginSignup,
               (Route<dynamic> route) => false,
         );
-        print('✅ Navigated to welcome screen');
-      } else {
-        print('❌ Context not available for navigation');
       }
-    } catch (e) {
-      print('❌ Error in handleSessionExpired: $e');
     }
   }
 }
