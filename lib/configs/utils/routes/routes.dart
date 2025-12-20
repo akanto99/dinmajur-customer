@@ -51,6 +51,8 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const AuthLoginSendOTPScreen());
         case RoutesName.authOtp:
         return MaterialPageRoute(builder: (BuildContext context) => const CustomerAuthOtpScreen(), settings: settings);
+    // case RoutesName.verificationSuccessScreen:
+    //     return MaterialPageRoute(builder: (BuildContext context) => const ());
 
 
 

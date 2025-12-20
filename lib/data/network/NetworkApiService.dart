@@ -617,22 +617,11 @@ class NetworkApiService extends BaseApiServices {
                   phone: data['user']['phone'],
                   role: data['user']['role'],
                   userStatus: data['user']['userStatus'],
-                  isRegistered: data['user']['isRegistered'],
-                  isPhoneVerified: data['user']['isPhoneVerified'],
-                  firstName: data['user']['firstName'],
-                  lastName: data['user']['lastName'],
                   profilePicture: data['user']['profilePicture'] != null
                       ? ProfilePicture(
                       url: data['user']['profilePicture']['url'],
                       altText: data['user']['profilePicture']['altText'])
                       : null,
-                  isDeliveryPerson:
-                  currentUser.data?.user?.isDeliveryPerson ?? false,
-                  checkedJoinUs: currentUser.data?.user?.checkedJoinUs ?? false,
-                  checkedSelectServices:
-                  currentUser.data?.user?.checkedSelectServices ?? false,
-                  checkedSelectArea:
-                  currentUser.data?.user?.checkedSelectArea ?? false,
                 ),
               ),
             );

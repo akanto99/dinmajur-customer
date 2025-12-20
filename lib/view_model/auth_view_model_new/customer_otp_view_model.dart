@@ -47,7 +47,7 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
           return;
         }
         await prefs.setString('accessToken', accessToken);
-        await prefs.setBool('isPhoneVerified', true);
+
         if (userId != null && userId.isNotEmpty) {
           await prefs.setString('userId', userId);}
         ///SOCKET
@@ -98,7 +98,8 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
 
         //Navigate to success screen
         await Future.delayed(const Duration(seconds: 1));
-        Navigator.pushReplacementNamed(context, RoutesName.verificationSuccessScreen);
+        // Navigator.pushReplacementNamed(context, RoutesName.verificationSuccessScreen);
+        Navigator.pushReplacementNamed(context, RoutesName.navigationBar);
 
         print("✅ OTP Verification Complete: Socket & SSE connected, navigating to success screen");
 

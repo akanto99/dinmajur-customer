@@ -6,14 +6,12 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/configs/validations/authentication_validation/authentication_validation.dart';
 import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
-import 'package:dinmajur_customer/configs/widgets/reusable_passwordfield.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/auth_view_model_new/customer_authlogin_view_model.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class AuthLoginSendOTPScreen extends StatefulWidget {
@@ -57,7 +55,7 @@ class _AuthLoginSendOTPScreenState extends State<AuthLoginSendOTPScreen> {
   }
 
   Widget body() {
-    final loginMode = Provider.of<LoginLogoutViewModel>(context);
+    final customerAuthLoginViewModel = Provider.of<CustomerAuthLoginViewModel>(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -117,8 +115,17 @@ class _AuthLoginSendOTPScreenState extends State<AuthLoginSendOTPScreen> {
                 child: RoundButton(
                   title: AppLocalizations.of(context)!.sign_in,
                   iconData: Icons.arrow_forward_ios_rounded,
-                  loading: loginMode.loading,
+                  loading: customerAuthLoginViewModel.authApiSendOtploading,
                   onPress: () {
+                    String? firstError = AuthenticationValidation.getFirstLoginError(
+                      fullName: _fullNameController.text,
+                      phone: _phoneController.text,
+                    );
+
+                    if (firstError != null) {
+                      Utils.flushBarErrorMessage(firstError, context);
+                      return;
+                    }
                     Map data = {
                       "fullName":_fullNameController.text.toString(),
                       'phone': _phoneController.text.toString(),

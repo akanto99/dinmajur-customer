@@ -9,7 +9,7 @@ class AuthOtpVerifyRepository {
   Future<dynamic> authOtpVerify(dynamic data, String token) async {
     try {
       return await _apiServices.getOTPPostApiResponse(
-        AppUrl.otpVerify,
+        AppUrl.customerAuthOtpVeryfyApi,
         data,
         headers: {
           'Content-Type': 'application/json',

@@ -150,7 +150,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
                             isEditing: true,
                             onUpdatePressed: () async {
                               // Validate phone number first
-                              String? validationError = AutheticationValidation.validateBangladeshiPhone(_bikashController.text);
+                              String? validationError = AuthenticationValidation.validateBangladeshiPhone(_bikashController.text);
                               if (validationError != null) {
                                 Utils.flushBarErrorMessage(validationError, context);
                                 return;
@@ -303,7 +303,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
                             isEditing: true,
                             onUpdatePressed: () async {
                               // Validate phone number first
-                              String? validationError = AutheticationValidation.validateBangladeshiPhone(_nogodController.text);
+                              String? validationError = AuthenticationValidation.validateBangladeshiPhone(_nogodController.text);
                               if (validationError != null) {
                                 Utils.flushBarErrorMessage(validationError, context);
                                 return;
@@ -428,7 +428,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
       GetBkashNagadViewModel getBkashNagadViewModel,
       ) async {
     // Validate phone number
-    String? validationError = AutheticationValidation.validateBangladeshiPhone(controller.text);
+    String? validationError = AuthenticationValidation.validateBangladeshiPhone(controller.text);
 
     if (validationError != null) {
       Utils.flushBarErrorMessage(validationError, context);
