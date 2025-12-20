@@ -11,7 +11,8 @@ class CustomerAuthLoginViewModel with ChangeNotifier {
   final _myRepo = CustomerAuthLoginRepository();
 
   bool _authApiSendOtploading = false;
-  bool get  authApiSendOtploading => _authApiSendOtploading;
+  bool get authApiSendOtploading => _authApiSendOtploading;
+
   setAuthApiSendOtpLoading(bool value) {
     _authApiSendOtploading = value;
     notifyListeners();
@@ -25,13 +26,12 @@ class CustomerAuthLoginViewModel with ChangeNotifier {
       setAuthApiSendOtpLoading(false);
 
       String? otpToken = value['data']['token'];
-      int expiresInSeconds = value['data']['expiresInSeconds'] ?? 120;
+      int cooldownInSeconds = value['data']['cooldownInSeconds'] ?? 30;
       String successMessage = value['message'] ?? 'OTP সফলভাবে পাঠানো হয়েছে';
 
       if (otpToken != null && otpToken.isNotEmpty) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('otp_token', otpToken);
-
 
         if (kDebugMode) print('✅ OTP Token received and saved: $otpToken');
       } else {
@@ -39,14 +39,14 @@ class CustomerAuthLoginViewModel with ChangeNotifier {
         return;
       }
 
-
       Utils.flushBarSuccessMessage(successMessage, context);
 
       if (onSuccess != null) {
         onSuccess();
 
+        // ✅ Start timer with cooldown duration
         final timerProvider = Provider.of<CountdownTimerProvider>(context, listen: false);
-        timerProvider.startTimer(seconds: expiresInSeconds);
+        timerProvider.startTimer(seconds: cooldownInSeconds);
       }
 
       if (kDebugMode) print(value.toString());
@@ -61,9 +61,12 @@ class CustomerAuthLoginViewModel with ChangeNotifier {
           String jsonString = errorBody.substring(jsonStartIndex);
           final decodedError = jsonDecode(jsonString);
 
-          errorMessage =
-              decodedError['message'] ??
-                  (decodedError['errorMessages'] != null && decodedError['errorMessages'] is List && decodedError['errorMessages'].isNotEmpty ? decodedError['errorMessages'][0]['message'] : errorMessage);
+          errorMessage = decodedError['message'] ??
+              (decodedError['errorMessages'] != null &&
+                  decodedError['errorMessages'] is List &&
+                  decodedError['errorMessages'].isNotEmpty
+                  ? decodedError['errorMessages'][0]['message']
+                  : errorMessage);
         }
       } catch (e) {
         errorMessage = 'Unexpected error';

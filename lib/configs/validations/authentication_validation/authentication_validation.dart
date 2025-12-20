@@ -1,4 +1,4 @@
-class AutheticationValidation {
+class AuthenticationValidation {
   // Validate Full Name
   static String? validateFullName(String? fullName) {
     if (fullName == null || fullName.trim().isEmpty) {
@@ -21,14 +21,24 @@ class AutheticationValidation {
     return null; // Valid
   }
 
-  // Validate Bangladeshi phone number
+  // Validate Bangladeshi phone number (supports +88 prefix)
   static String? validateBangladeshiPhone(String? phone) {
     if (phone == null || phone.isEmpty) {
       return 'Please enter phone number';
     }
 
-    // Remove any spaces or special characters
-    String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+    // Remove spaces and special characters except +
+    String cleanPhone = phone.replaceAll(RegExp(r'[\s\-()]'), '');
+
+    // Handle +88 prefix
+    if (cleanPhone.startsWith('+88')) {
+      cleanPhone = cleanPhone.substring(3); // Remove +88
+    } else if (cleanPhone.startsWith('88') && cleanPhone.length > 11) {
+      cleanPhone = cleanPhone.substring(2); // Remove 88
+    }
+
+    // Remove any remaining non-digit characters
+    cleanPhone = cleanPhone.replaceAll(RegExp(r'[^\d]'), '');
 
     // Check if it's a valid Bangladeshi mobile number
     // Bangladeshi mobile numbers: 11 digits starting with 01
@@ -41,9 +51,7 @@ class AutheticationValidation {
     }
 
     // Check for valid operator prefixes
-    List<String> validPrefixes = [
-      '013', '014', '015', '016', '017', '018', '019'
-    ];
+    List<String> validPrefixes = ['013', '014', '015', '016', '017', '018', '019'];
 
     String prefix = cleanPhone.substring(0, 3);
     if (!validPrefixes.contains(prefix)) {
@@ -53,121 +61,34 @@ class AutheticationValidation {
     return null; // Valid
   }
 
-  static String? validatePassword(String? password) {
-    if (password == null || password.isEmpty) {
-      return 'Please enter your password';
+  // Clean phone number for API submission (removes +88, 88, spaces, etc.)
+  static String cleanPhoneNumber(String phone) {
+    String cleanPhone = phone.replaceAll(RegExp(r'[\s\-()]'), '');
+
+    if (cleanPhone.startsWith('+88')) {
+      cleanPhone = cleanPhone.substring(3);
+    } else if (cleanPhone.startsWith('88') && cleanPhone.length > 11) {
+      cleanPhone = cleanPhone.substring(2);
     }
 
-    // Check minimum length
-    if (password.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-
-    // Check for spaces
-    if (password.contains(' ')) {
-      return 'Password cannot contain spaces';
-    }
-
-    // Old validation code (removed uppercase, lowercase, special character requirements)
-    // bool hasMinLength = password.length >= 6;
-    // bool hasNoSpaces = !password.contains(' ');
-    // bool hasLowercase = password.contains(RegExp(r'[a-z]'));
-    // bool hasUppercase = password.contains(RegExp(r'[A-Z]'));
-    // bool hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>_+=\-\[\]\\;/~`]'));
-
-    // if (!hasMinLength || !hasNoSpaces || !hasLowercase || !hasUppercase || !hasSpecialChar) {
-    //   return 'Password must be at least 6 characters with uppercase, lowercase, special character, and no spaces';
-    // }
-
-    return null; // Valid
+    return cleanPhone.replaceAll(RegExp(r'[^\d]'), '');
   }
 
-
-
-  /// Validate re-entered password
-  static String? validateReenterPassword(String? reenterPassword) {
-    if (reenterPassword == null || reenterPassword.isEmpty) {
-      return 'Please re-enter your password';
-    }
-
-    // Check minimum length
-    if (reenterPassword.length < 6) {
-      return 'Re-enter Password must be at least 6 characters';
-    }
-
-    // Check for spaces
-    if (reenterPassword.contains(' ')) {
-      return 'Re-enter Password cannot contain spaces';
-    }
-
-    // Old validation code (removed uppercase, lowercase, special character requirements)
-    // bool hasMinLength = reenterPassword.length >= 6;
-    // bool hasNoSpaces = !reenterPassword.contains(' ');
-    // bool hasLowercase = reenterPassword.contains(RegExp(r'[a-z]'));
-    // bool hasUppercase = reenterPassword.contains(RegExp(r'[A-Z]'));
-    // bool hasSpecialChar = reenterPassword.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>_+=\-\[\]\\;/~`]'));
-
-    // if (!hasMinLength || !hasNoSpaces || !hasLowercase || !hasUppercase || !hasSpecialChar) {
-    //   return 'Password must be at least 6 characters with uppercase, lowercase, special character, and no spaces';
-    // }
-
-    return null; // Valid
+  // Validate login form (Full Name + Phone)
+  static Map<String, String?> validateLoginForm({required String fullName, required String phone}) {
+    return {'fullName': validateFullName(fullName), 'phone': validateBangladeshiPhone(phone)};
   }
 
-  static String? validatePasswordsMatch(String password, String reenterPassword) {
-    if (password != reenterPassword) {
-      return 'Passwords do not match';
-    }
-    return null;
-  }
-
-  /// Comprehensive validation for all fields
-  static Map<String, String?> validateAllFields({
-    required String fullName,
-    required String phone,
-    required String password,
-    required String reenterPassword,
-  }) {
-    return {
-      'fullName': validateFullName(fullName),
-      'phone': validateBangladeshiPhone(phone),
-      'password': validatePassword(password),
-      'reenterPassword': validateReenterPassword(reenterPassword),
-      'passwordMatch': validatePasswordsMatch(password, reenterPassword), // Add this line
-    };
-  }
-
-
-  // Check if all validations pass
-  static bool isFormValid({
-    required String fullName,
-    required String phone,
-    required String password,
-    required String reenterPassword,
-  }) {
-    Map<String, String?> validations = validateAllFields(
-      fullName: fullName,
-      phone: phone,
-      password: password,
-      reenterPassword: reenterPassword,
-    );
+  // Check if login form is valid
+  static bool isLoginFormValid({required String fullName, required String phone}) {
+    Map<String, String?> validations = validateLoginForm(fullName: fullName, phone: phone);
 
     return validations.values.every((error) => error == null);
   }
 
   // Get the first error message if any
-  static String? getFirstError({
-    required String fullName,
-    required String phone,
-    required String password,
-    required String reenterPassword,
-  }) {
-    Map<String, String?> validations = validateAllFields(
-      fullName: fullName,
-      phone: phone,
-      password: password,
-      reenterPassword: reenterPassword,
-    );
+  static String? getFirstLoginError({required String fullName, required String phone}) {
+    Map<String, String?> validations = validateLoginForm(fullName: fullName, phone: phone);
 
     for (String? error in validations.values) {
       if (error != null) {

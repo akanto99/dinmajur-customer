@@ -11,12 +11,10 @@ class SplashService {
     if (seen) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? accessToken = prefs.getString('accessToken');
-      bool? isPhoneVerified = prefs.getBool('isPhoneVerified');
       String? role = prefs.getString('role');
 
       print("🔍 Splash Check:");
       print("   - accessToken: ${accessToken != null ? 'Present' : 'Missing'}");
-      print("   - isPhoneVerified: $isPhoneVerified");
       print("   - role: $role");
 
       await Future.delayed(Duration(milliseconds: 1500));
@@ -32,7 +30,6 @@ class SplashService {
       }
       // Check if user is verified CUSTOMER
       else if (accessToken.isNotEmpty &&
-          isPhoneVerified == true &&
           role == "CUSTOMER") {
         print("✅ Navigation: All conditions met - Going to home");
         Navigator.pushNamedAndRemoveUntil(
@@ -45,7 +42,6 @@ class SplashService {
       else {
         print("❌ Navigation: Conditions not met:");
         print("   - Has token: ${accessToken.isNotEmpty}");
-        print("   - Phone verified: $isPhoneVerified");
         print("   - Is CUSTOMER: ${role == "CUSTOMER"}");
         print("   - Current role: $role");
         Navigator.pushNamedAndRemoveUntil(

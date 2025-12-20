@@ -33,132 +33,132 @@ class LoginLogoutViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loginApi(dynamic data, BuildContext context) async {
-    setLoading(true);
-
-    try {
-      final response = await _myRepo.loginApi(data);
-
-      // Parse the response
-      final user = UserModel.fromJson(response);
-
-      final bool isPhoneVerified = user.data?.user?.isPhoneVerified ?? false;
-      final bool isRegistered = user.data?.user?.isRegistered ?? false;
-      final String userRole = user.data?.user?.role ?? '';
-      final String userId = user.data?.user?.userId ?? '';
-      final String accessToken = user.data?.accessToken ?? ''; // ✅ Get access token
-
-      print("🔍 Login Response Check:");
-      print("   - accessToken: ${accessToken.isNotEmpty ? 'Present' : 'Missing'}");
-      print("   - isPhoneVerified: $isPhoneVerified");
-      print("   - isRegistered: $isRegistered");
-      print("   - userRole: $userRole");
-      print("   - userId: $userId");
-
-      // ✅ CHECK ROLE FIRST - Before saving anything
-      if (!isPhoneVerified || userRole.isEmpty) {
-        setLoading(false);
-        print("❌ Login Failed: Phone not verified or account doesn't exist");
-        Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
-        return; // Exit early
-      }
-
-      // ✅ CHECK ROLE - This handles accounts registered for other apps
-      if (userRole.toUpperCase() != 'CUSTOMER') {
-        setLoading(false);
-        print("❌ Login Failed: User role is '$userRole', not 'CUSTOMER'");
-        Utils.flushBarErrorMessage("এই অ্যাকাউন্টটি কাস্টমার অ্যাকাউন্ট নয়", context);
-        return; // Exit early - don't save user data or navigate
-      }
-
-
-      // ✅ If we reach here, user is a verified CUSTOMER - proceed with auth_login
-      final userPreference = Provider.of<UserViewModel>(context, listen: false);
-      await userPreference.saveUser(user);
-
-      // Save additional preferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('accessToken', accessToken);
-      await prefs.setBool('isPhoneVerified', isPhoneVerified);
-      await prefs.setBool('isRegistered', isRegistered);
-      await prefs.setString('role', userRole);
-      await prefs.setString('userId', userId);
-
-      // ✅ CONNECT SOCKET AFTER SUCCESSFUL LOGIN
-      if (userId.isNotEmpty) {
-        try {
-          final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-
-          print("🔌 Login: Connecting socket for user: $userId");
-
-          // Connect socket with user credentials
-          await socketProvider.connectWithUser(userId: userId);
-
-          // Wait to ensure connection is established
-          await Future.delayed(Duration(seconds: 1));
-
-          if (socketProvider.isConnected) {
-            print("🔌 Login: ✅ Socket connected successfully");
-          } else {
-            print("🔌 Login: ⚠️ Socket not connected, attempting retry");
-            await socketProvider.autoReconnect(
-              maxRetries: 3,
-              delay: Duration(seconds: 2),
-            );
-          }
-        } catch (socketError) {
-          print("🔌 Login: Socket connection error - $socketError");
-          // Don't fail auth_login if socket connection fails
-          // Socket will be reconnected by app lifecycle management
-        }
-      } else {
-        print("⚠️ Login: userId is empty, skipping socket connection");
-      }
-
-      // ✅ START SSE CONNECTION AFTER SUCCESSFUL LOGIN
-      if (accessToken.isNotEmpty) {
-        try {
-          final sseService = Provider.of<SSENotificationService>(context, listen: false);
-          final notificationCountViewModel = NotificationCountViewModel();
-
-          print("🔔 Login: Starting SSE connection with access token");
-
-          // Start SSE listening with the access token
-          await sseService.startListening();
-          await Future.delayed(Duration(milliseconds: 500)); // Wait for initial count
-          notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
-          notificationCountViewModel.setInitialCount(sseService.currentCount);
-        } catch (sseError) {
-          print("🔔 Login: SSE connection error - $sseError");
-          // Don't fail auth_login if SSE connection fails
-          // SSE can be reconnected later
-        }
-      } else {
-        print("⚠️ Login: accessToken is empty, skipping SSE connection");
-      }
-
-      setLoading(false);
-
-      // Show success message
-      await Future.delayed(Duration(milliseconds: 300));
-      Utils.flushBarSuccessMessage('Login Successfully', context);
-
-      print("✅ Login Success: Customer verified - Navigating to home");
-
-      // Navigate to home
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        RoutesName.navigationBar,
-            (route) => false,
-      );
-
-      if (kDebugMode) print("Login Response: ${response.toString()}");
-    } catch (error) {
-      print("🔥 Login Error: $error");
-      setLoading(false);
-      _handleError(error, context);
-    }
-  }
+  // Future<void> loginApi(dynamic data, BuildContext context) async {
+  //   setLoading(true);
+  //
+  //   try {
+  //     final response = await _myRepo.loginApi(data);
+  //
+  //     // Parse the response
+  //     final user = UserModel.fromJson(response);
+  //
+  //     final bool isPhoneVerified = user.data?.user?.isPhoneVerified ?? false;
+  //     final bool isRegistered = user.data?.user?.isRegistered ?? false;
+  //     final String userRole = user.data?.user?.role ?? '';
+  //     final String userId = user.data?.user?.userId ?? '';
+  //     final String accessToken = user.data?.accessToken ?? ''; // ✅ Get access token
+  //
+  //     print("🔍 Login Response Check:");
+  //     print("   - accessToken: ${accessToken.isNotEmpty ? 'Present' : 'Missing'}");
+  //     print("   - isPhoneVerified: $isPhoneVerified");
+  //     print("   - isRegistered: $isRegistered");
+  //     print("   - userRole: $userRole");
+  //     print("   - userId: $userId");
+  //
+  //     // ✅ CHECK ROLE FIRST - Before saving anything
+  //     if (!isPhoneVerified || userRole.isEmpty) {
+  //       setLoading(false);
+  //       print("❌ Login Failed: Phone not verified or account doesn't exist");
+  //       Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
+  //       return; // Exit early
+  //     }
+  //
+  //     // ✅ CHECK ROLE - This handles accounts registered for other apps
+  //     if (userRole.toUpperCase() != 'CUSTOMER') {
+  //       setLoading(false);
+  //       print("❌ Login Failed: User role is '$userRole', not 'CUSTOMER'");
+  //       Utils.flushBarErrorMessage("এই অ্যাকাউন্টটি কাস্টমার অ্যাকাউন্ট নয়", context);
+  //       return; // Exit early - don't save user data or navigate
+  //     }
+  //
+  //
+  //     // ✅ If we reach here, user is a verified CUSTOMER - proceed with auth_login
+  //     final userPreference = Provider.of<UserViewModel>(context, listen: false);
+  //     await userPreference.saveUser(user);
+  //
+  //     // Save additional preferences
+  //     final prefs = await SharedPreferences.getInstance();
+  //     await prefs.setString('accessToken', accessToken);
+  //     await prefs.setBool('isPhoneVerified', isPhoneVerified);
+  //     await prefs.setBool('isRegistered', isRegistered);
+  //     await prefs.setString('role', userRole);
+  //     await prefs.setString('userId', userId);
+  //
+  //     // ✅ CONNECT SOCKET AFTER SUCCESSFUL LOGIN
+  //     if (userId.isNotEmpty) {
+  //       try {
+  //         final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+  //
+  //         print("🔌 Login: Connecting socket for user: $userId");
+  //
+  //         // Connect socket with user credentials
+  //         await socketProvider.connectWithUser(userId: userId);
+  //
+  //         // Wait to ensure connection is established
+  //         await Future.delayed(Duration(seconds: 1));
+  //
+  //         if (socketProvider.isConnected) {
+  //           print("🔌 Login: ✅ Socket connected successfully");
+  //         } else {
+  //           print("🔌 Login: ⚠️ Socket not connected, attempting retry");
+  //           await socketProvider.autoReconnect(
+  //             maxRetries: 3,
+  //             delay: Duration(seconds: 2),
+  //           );
+  //         }
+  //       } catch (socketError) {
+  //         print("🔌 Login: Socket connection error - $socketError");
+  //         // Don't fail auth_login if socket connection fails
+  //         // Socket will be reconnected by app lifecycle management
+  //       }
+  //     } else {
+  //       print("⚠️ Login: userId is empty, skipping socket connection");
+  //     }
+  //
+  //     // ✅ START SSE CONNECTION AFTER SUCCESSFUL LOGIN
+  //     if (accessToken.isNotEmpty) {
+  //       try {
+  //         final sseService = Provider.of<SSENotificationService>(context, listen: false);
+  //         final notificationCountViewModel = NotificationCountViewModel();
+  //
+  //         print("🔔 Login: Starting SSE connection with access token");
+  //
+  //         // Start SSE listening with the access token
+  //         await sseService.startListening();
+  //         await Future.delayed(Duration(milliseconds: 500)); // Wait for initial count
+  //         notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
+  //         notificationCountViewModel.setInitialCount(sseService.currentCount);
+  //       } catch (sseError) {
+  //         print("🔔 Login: SSE connection error - $sseError");
+  //         // Don't fail auth_login if SSE connection fails
+  //         // SSE can be reconnected later
+  //       }
+  //     } else {
+  //       print("⚠️ Login: accessToken is empty, skipping SSE connection");
+  //     }
+  //
+  //     setLoading(false);
+  //
+  //     // Show success message
+  //     await Future.delayed(Duration(milliseconds: 300));
+  //     Utils.flushBarSuccessMessage('Login Successfully', context);
+  //
+  //     print("✅ Login Success: Customer verified - Navigating to home");
+  //
+  //     // Navigate to home
+  //     Navigator.pushNamedAndRemoveUntil(
+  //       context,
+  //       RoutesName.navigationBar,
+  //           (route) => false,
+  //     );
+  //
+  //     if (kDebugMode) print("Login Response: ${response.toString()}");
+  //   } catch (error) {
+  //     print("🔥 Login Error: $error");
+  //     setLoading(false);
+  //     _handleError(error, context);
+  //   }
+  // }
 
   /// ✅ UPDATED LOGOUT: Disconnect both Socket and SSE
   Future<void> logoutUser(BuildContext context) async {

@@ -8,7 +8,7 @@ class CustomerAuthLoginRepository {
 
   Future<dynamic> authApiSendOtp(dynamic data) async {
     try {
-      dynamic response = await _apiServices.getPostApiResponse(AppUrl.otpApi, data);
+      dynamic response = await _apiServices.getPostApiResponse(AppUrl.customerAuthSendOtpApi, data);
       print('📥 Raw response body: $response');
 
       if (response['success'] == false) {

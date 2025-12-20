@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomerAuthOtpScreen extends StatefulWidget {
   const CustomerAuthOtpScreen({super.key});
@@ -25,6 +24,7 @@ class CustomerAuthOtpScreen extends StatefulWidget {
 
 class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
   final TextEditingController pinTEController = TextEditingController();
+
   @override
   void dispose() {
     pinTEController.dispose();
@@ -33,8 +33,12 @@ class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: AppColors.globalBlackWhite(context),
-        body: SafeArea(child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body())));
+    return Scaffold(
+      backgroundColor: AppColors.globalBlackWhite(context),
+      body: SafeArea(
+        child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
+      ),
+    );
   }
 
   Widget body() {
@@ -57,7 +61,6 @@ class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
               child: Container(height: 60, child: AppBarHeader(AppLocalizations.of(context)!.otp_verification_title)),
             ),
             SizedboxSpaccing.height025(context),
-
             Container(
               width: screenWidth * 0.9,
               padding: EdgeInsets.all(screenHeight * 0.02),
@@ -86,49 +89,30 @@ class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
                       length: 4,
                       obscureText: false,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      // obscuringCharacter: 'X',
-                      // animationCurve:Curves.bounceOut,
                       animationCurve: Curves.linear,
                       animationDuration: Duration(milliseconds: 0),
-
                       textStyle: AppTextStyles.textSize16(context, weight: FontWeight.w600),
                       enablePinAutofill: false,
                       pinTheme: PinTheme(
                         fieldWidth: 60,
                         fieldHeight: 55,
-                        // activeFillColor: AppColors.textFieldColor,
-                        // activeFillColor: AppColors.textFieldColor,
                         activeFillColor: AppColors.textFieldFill(context),
-                        // selectedFillColor: AppColors.textFieldColor,
                         selectedFillColor: AppColors.textFieldFill(context),
-                        // inactiveFillColor: AppColors.textFieldColor,
                         inactiveFillColor: AppColors.textFieldFill(context),
-
-                        /// inactiveColor: Colors.red,
-                        // inactiveColor: AppColors.textFieldColor,
                         inactiveColor: AppColors.textFieldFill(context),
-
-                        /// selectedColor: Colors.black,
-                        // selectedColor: AppColors.textFieldColor,
                         selectedColor: AppColors.textFieldFill(context),
-
-                        /// activeColor: Colors.yellow,
-                        // activeColor: AppColors.textFieldColor,
                         activeColor: AppColors.textFieldFill(context),
                         shape: PinCodeFieldShape.box,
                         borderRadius: BorderRadius.circular(5),
                       ),
                       enableActiveFill: true,
                       cursorColor: AppColors.coursorColor(context),
-
                     ),
                   ),
-
                 ],
               ),
             ),
             SizedboxSpaccing.height025(context),
-
             Consumer<AuthOtpVerifyViewModel>(
               builder: (context, verify, child) {
                 return Container(
@@ -142,9 +126,9 @@ class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
                         Utils.flushBarErrorMessage(AppLocalizations.of(context)!.please_enter_valid_otp, context);
                       } else {
                         Map data = {'otpCode': pinTEController.text.toString()};
-                        verify.authOtpVerify(data, context);
-                        // final prefs = await SharedPreferences.getInstance();
-                        // await prefs.setBool("isPhoneVerified", true);
+                        await verify.authOtpVerify(data, context);
+
+                        // ✅ Clear PIN controller after verification attempt
                         setState(() {
                           pinTEController.clear();
                         });
@@ -154,78 +138,47 @@ class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
                 );
               },
             ),
-
             SizedboxSpaccing.height025(context),
-
             Container(
               width: screenWidth * 0.85,
               child: Column(
                 children: [
-                  GestureDetector(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(AppLocalizations.of(context)!.havent_received_code, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                        Text(
-                          "${timerProvider.formattedTime}",
-                          style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.button(context)),
-                        ),
-                      ],
-                    ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(AppLocalizations.of(context)!.havent_received_code, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                      Text(
+                        "${timerProvider.formattedTime}",
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                      ),
+                    ],
                   ),
                   SizedboxSpaccing.height01(context),
-
                   GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       if (timerProvider.canResend) {
-                        // Resend OTP API call
                         final customerAuthLoginViewModel = Provider.of<CustomerAuthLoginViewModel>(context, listen: false);
 
-                        Map data = {
-                          "fullName":fullName,
-                          'phone': phone,
-                          "role":role,
-                        };
+                        Map data = {"fullName": fullName, 'phone': phone, "role": role};
+
                         customerAuthLoginViewModel.authApiSendOtp(
                           data,
                           context,
                           onSuccess: () async {
+                            // ✅ Clear PIN controller when resending OTP
                             pinTEController.clear();
                             Utils.flushBarSuccessMessage(AppLocalizations.of(context)!.otp_sent_success, context);
                           },
                         );
-
                       }
                     },
                     child: Builder(
                       builder: (context) {
                         final textStyle = GoogleFonts.hindSiliguri(fontSize: 18, color: timerProvider.canResend ? AppColors.button(context) : Colors.grey, fontWeight: FontWeight.w500);
 
-                        final textPainter = TextPainter(
-                          text: TextSpan(text: "Send Again", style: textStyle),
-                          textDirection: TextDirection.ltr,
-                        );
-                        textPainter.layout();
-
-                        // final textWidth = textPainter.size.width;
-
                         return Column(
                           mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Center(child: Text(AppLocalizations.of(context)!.send_again, style: textStyle)),
-                            // Center(
-                            //   child: DottedLine(
-                            //     direction: Axis.horizontal,
-                            //     lineLength: textWidth,
-                            //     lineThickness: 1.0,
-                            //     dashLength: 1.0,
-                            //     dashColor: timerProvider.canResend ? AppColors.button(context) : Colors.grey,
-                            //     dashRadius: 1,
-                            //     dashGapLength: 2.0,
-                            //     dashGapColor: Colors.transparent,
-                            //   ),
-                            // ),
-                          ],
+                          children: [Center(child: Text(AppLocalizations.of(context)!.send_again, style: textStyle))],
                         );
                       },
                     ),
