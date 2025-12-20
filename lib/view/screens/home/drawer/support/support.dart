@@ -99,7 +99,7 @@ class _SupportState extends State<Support> {
                       final userId = userViewModel.userId;
 
                       if (userId == null || userId.isEmpty) {
-                        Utils.flushBarErrorMessage("User not found. Please login again.", context);
+                        Utils.flushBarErrorMessage("User not found. Please auth_login again.", context);
                         return;
                       }
 

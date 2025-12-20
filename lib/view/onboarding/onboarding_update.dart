@@ -372,7 +372,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
     }
   }
 
-  /// Navigate to login
+  /// Navigate to auth_login
   void _goToHome() async {
     _pageTransitionController.reverse();
 

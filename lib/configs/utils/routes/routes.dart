@@ -1,11 +1,6 @@
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
-import 'package:dinmajur_customer/view/autentication/authentication_screen.dart';
-import 'package:dinmajur_customer/view/autentication/otp_screen.dart';
-import 'package:dinmajur_customer/view/autentication/verification_success_dialouge.dart';
-import 'package:dinmajur_customer/view/forgot_password/forgot_password.dart';
-import 'package:dinmajur_customer/view/forgot_password/new_password.dart';
-import 'package:dinmajur_customer/view/forgot_password/otp_verify.dart';
-import 'package:dinmajur_customer/view/login/login_screen.dart';
+import 'package:dinmajur_customer/view/auth_login/authregister_screen.dart';
+import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
@@ -14,7 +9,6 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/drawer/password/password_change.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/privacy_policy/privacy_policy_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/promo_codes/promo_code_screen.dart';
@@ -47,30 +41,23 @@ class Routes {
     switch (settings.name) {
       case RoutesName.splash:
         return MaterialPageRoute(builder: (BuildContext context) => const SplashScreen());
-      case RoutesName.welcomeLoginSignup:
-        return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginSignup());
-      case RoutesName.login:
-        return MaterialPageRoute(builder: (BuildContext context) => const LoginScreen());
-      // case RoutesName.onBoard:
-      // return MaterialPageRoute(builder: (BuildContext context) => const OnboardingScreen());
       case RoutesName.onBoardUpdated:
         return MaterialPageRoute(builder: (BuildContext context) => const OnboardingScreenUpdated());
+      case RoutesName.welcomeLoginSignup:
+        return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginSignup());
+
+        ///New
+        case RoutesName.authLoginSendOtp:
+        return MaterialPageRoute(builder: (BuildContext context) => const AuthLoginSendOTPScreen());
+        case RoutesName.authOtp:
+        return MaterialPageRoute(builder: (BuildContext context) => const CustomerAuthOtpScreen(), settings: settings);
+
+
+
+
       case RoutesName.navigationBar:
         return MaterialPageRoute(builder: (BuildContext context) => const NavigationScreen());
-      case RoutesName.register:
-        return MaterialPageRoute(builder: (BuildContext context) => const AuthenticationScreen());
-      case RoutesName.otp:
-        return MaterialPageRoute(builder: (BuildContext context) => const OtpScreen(), settings: settings);
-      case RoutesName.verificationSuccessScreen:
-        return MaterialPageRoute(builder: (BuildContext context) => const VerificationSuccessScreen());
 
-      ///Forgot Password
-      case RoutesName.forgotPassword:
-        return MaterialPageRoute(builder: (BuildContext context) => const ForgotPassword());
-      case RoutesName.forgot_otpVerify:
-        return MaterialPageRoute(builder: (BuildContext context) => const OtpVerify(), settings: settings);
-      case RoutesName.newPassword:
-        return MaterialPageRoute(builder: (BuildContext context) => const NewPassword(), settings: settings);
 
       ///Home
       case RoutesName.home:
@@ -203,8 +190,6 @@ class Routes {
     //drawer===========>
         case RoutesName.viewProfile:
         return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());
-      case RoutesName.passwordChange:
-        return MaterialPageRoute(builder: (BuildContext context) => const PasswordChange());
       case RoutesName.paymentMethod:
         return MaterialPageRoute(builder: (BuildContext context) => const PaymentMethod());
       case RoutesName.saveAddress:

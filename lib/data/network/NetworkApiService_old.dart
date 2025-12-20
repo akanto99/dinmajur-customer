@@ -376,11 +376,11 @@
 //         } else {
 //           // Refresh failed, logout user
 //           await _handleLogout();
-//           throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+//           throw UnauthorisedExceptionLogin('Session expired. Please auth_login again.');
 //         }
 //       } catch (e) {
 //         await _handleLogout();
-//         throw UnauthorisedExceptionLogin('Session expired. Please login again.');
+//         throw UnauthorisedExceptionLogin('Session expired. Please auth_login again.');
 //       }
 //     }
 //
@@ -390,7 +390,7 @@
 //   /// Check if the URL should trigger token refresh
 //   bool _shouldRefreshToken(String url) {
 //     final excludedEndpoints = [
-//       '/login',
+//       '/auth_login',
 //       '/register',
 //       '/refresh-token',
 //       '/otp',

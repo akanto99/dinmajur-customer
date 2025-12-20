@@ -84,7 +84,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
                     SizedboxSpaccing.height02(context),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, RoutesName.login);
+                        Navigator.pushNamed(context, RoutesName.authLoginSendOtp);
                       },
                       child: Container(
                         height: 50,
@@ -107,31 +107,31 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup> {
                     ),
                     SizedboxSpaccing.height02(context),
                     // SizedBox(height: 16,),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, RoutesName.register);
-                      },
-                      child: Container(
-                        height: 50,
-                        width: screenWidth * 0.75,
-                        decoration: BoxDecoration(
-                            color:AppColors.button(context),
-                            // borderRadius: BorderRadius.circular(16)
-                            borderRadius: BorderRadius.circular(8)
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Icon(Icons.arrow_forward_ios_rounded, size:14 ,color: Colors.transparent),
-                            Text(
-                              AppLocalizations.of(context)!.register,
-                              style: AppTextStyles.textSize16(context, color: AppColors.whiteColor, weight: FontWeight.w700),
-                            ),
-                            Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // GestureDetector(
+                    //   onTap: () {
+                    //     Navigator.pushNamed(context, RoutesName.register);
+                    //   },
+                    //   child: Container(
+                    //     height: 50,
+                    //     width: screenWidth * 0.75,
+                    //     decoration: BoxDecoration(
+                    //         color:AppColors.button(context),
+                    //         // borderRadius: BorderRadius.circular(16)
+                    //         borderRadius: BorderRadius.circular(8)
+                    //     ),
+                    //     child: Row(
+                    //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    //       children: [
+                    //         Icon(Icons.arrow_forward_ios_rounded, size:14 ,color: Colors.transparent),
+                    //         Text(
+                    //           AppLocalizations.of(context)!.register,
+                    //           style: AppTextStyles.textSize16(context, color: AppColors.whiteColor, weight: FontWeight.w700),
+                    //         ),
+                    //         Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

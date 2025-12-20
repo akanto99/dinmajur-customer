@@ -13,7 +13,7 @@ class OrderDetailsRepository {
 
     // Check if token exists
     if (accessToken == null || accessToken.isEmpty) {
-      throw Exception('Access token not found. Please login again.');
+      throw Exception('Access token not found. Please auth_login again.');
     }
 
     try {

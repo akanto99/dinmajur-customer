@@ -37,13 +37,13 @@ class NavigationService {
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           title: const Text('Session Expired'),
-          content: const Text('Your session has expired. Please login again.'),
+          content: const Text('Your session has expired. Please auth_login again.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 // Navigate to login and clear all previous routes
-                navigateAndClearStack('/login');
+                navigateAndClearStack('/auth_login');
               },
               child: const Text('OK'),
             ),
@@ -51,8 +51,8 @@ class NavigationService {
         ),
       );
     } else {
-      // If no context available, just navigate to login
-      navigateAndClearStack('/login');
+      // If no context available, just navigate to auth_login
+      navigateAndClearStack('/auth_login');
     }
   }
 }

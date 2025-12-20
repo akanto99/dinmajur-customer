@@ -1,28 +1,28 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
-import 'package:dinmajur_customer/respository/auth_repository/authentication_repository.dart';
+import 'package:dinmajur_customer/respository/auth_repository_new/customer_authlogin_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AuthenticationViewModel with ChangeNotifier {
-  final _myRepo = AuthenticationRepository();
+class CustomerAuthLoginViewModel with ChangeNotifier {
+  final _myRepo = CustomerAuthLoginRepository();
 
-  bool _otpAPiloading = false;
-  bool get otpAPiloading => _otpAPiloading;
-  setotpAPiLoading(bool value) {
-    _otpAPiloading = value;
+  bool _authApiSendOtploading = false;
+  bool get  authApiSendOtploading => _authApiSendOtploading;
+  setAuthApiSendOtpLoading(bool value) {
+    _authApiSendOtploading = value;
     notifyListeners();
   }
 
-  Future<void> otpApi(dynamic data, BuildContext context, {VoidCallback? onSuccess}) async {
-    setotpAPiLoading(true);
+  Future<void> authApiSendOtp(dynamic data, BuildContext context, {VoidCallback? onSuccess}) async {
+    setAuthApiSendOtpLoading(true);
 
     try {
-      dynamic value = await _myRepo.otpApi(data);
-      setotpAPiLoading(false);
+      dynamic value = await _myRepo.authApiSendOtp(data);
+      setAuthApiSendOtpLoading(false);
 
       String? otpToken = value['data']['token'];
       int expiresInSeconds = value['data']['expiresInSeconds'] ?? 120;
@@ -52,7 +52,7 @@ class AuthenticationViewModel with ChangeNotifier {
       if (kDebugMode) print(value.toString());
       debugPrint('🔁 Full OTP API Response:\n${jsonEncode(value)}', wrapWidth: 1024);
     } catch (error) {
-      setotpAPiLoading(false);
+      setAuthApiSendOtpLoading(false);
       String errorMessage = '$error';
       try {
         String errorBody = error.toString();

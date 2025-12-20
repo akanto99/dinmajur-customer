@@ -502,7 +502,7 @@ class NetworkApiService extends BaseApiServices {
       if (retryCount >= _maxRetries) {
         print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
         _retryAttempts.remove(originalUrl);
-        throw UnauthorisedException('Session expired. Please login again.');
+        throw UnauthorisedException('Session expired. Please auth_login again.');
       }
 
       // Check if this is an API call that should trigger refresh
@@ -571,7 +571,7 @@ class NetworkApiService extends BaseApiServices {
         }
         _refreshQueue.clear();
 
-        throw UnauthorisedException('Session expired. Please login again.');
+        throw UnauthorisedException('Session expired. Please auth_login again.');
       }
 
       print('🔄 Attempting to refresh access token...');
@@ -683,7 +683,7 @@ class NetworkApiService extends BaseApiServices {
         }
         _refreshQueue.clear();
 
-        throw UnauthorisedException('Session expired. Please login again.');
+        throw UnauthorisedException('Session expired. Please auth_login again.');
       } else {
         // Other errors (500, network issues) - DON'T logout
         print('❌ Refresh token API failed with status: ${response.statusCode} - NOT LOGGING OUT');
@@ -880,7 +880,7 @@ class NetworkApiService extends BaseApiServices {
   //     if (retryCount >= _maxRetries) {
   //       print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
   //       _retryAttempts.remove(originalUrl);
-  //       throw UnauthorisedException('Session expired. Please login again.');
+  //       throw UnauthorisedException('Session expired. Please auth_login again.');
   //     }
   //
   //     // Check if this is an API call that should trigger refresh
@@ -906,14 +906,14 @@ class NetworkApiService extends BaseApiServices {
   //         } else {
   //           print('❌ Token refresh returned null - refresh token likely expired');
   //           _retryAttempts.remove(originalUrl);
-  //           throw UnauthorisedException('Session expired. Please login again.');
+  //           throw UnauthorisedException('Session expired. Please auth_login again.');
   //         }
   //       } catch (e) {
   //         print('❌ Token refresh exception: $e');
   //         _retryAttempts.remove(originalUrl);
   //
   //         if (e.toString().contains('Refresh token expired')) {
-  //           throw UnauthorisedException('Session expired. Please login again.');
+  //           throw UnauthorisedException('Session expired. Please auth_login again.');
   //         } else {
   //           throw FetchDataException('Unable to refresh session: ${e.toString()}');
   //         }
@@ -943,7 +943,7 @@ class NetworkApiService extends BaseApiServices {
 
   /// Check if the URL should trigger token refresh
   bool _shouldRefreshToken(String url) {
-    final excludedEndpoints = ['/login', '/register', '/refresh-token', '/otp', '/verify', 'login', 'register', 'refresh-token', 'otp', 'verify'];
+    final excludedEndpoints = ['/auth_login', '/register', '/refresh-token', '/otp', '/verify', 'auth_login', 'register', 'refresh-token', 'otp', 'verify'];
 
     return !excludedEndpoints.any((endpoint) => url.toLowerCase().contains(endpoint.toLowerCase()));
   }

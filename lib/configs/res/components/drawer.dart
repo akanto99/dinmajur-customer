@@ -192,13 +192,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
             GestureDetector(
               onTap: () {
-                Navigator.pushNamed(context, RoutesName.passwordChange);
-              },
-              child: _buildDrawerItem(Icons.lock_outline, AppLocalizations.of(context)!.change_password),
-            ),
-
-            GestureDetector(
-              onTap: () {
                 Navigator.pushNamed(context, RoutesName.paymentMethod);
               },
               child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),

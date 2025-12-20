@@ -3,10 +3,10 @@ import 'package:dinmajur_customer/data/network/BaseApiServices.dart';
 import 'package:dinmajur_customer/data/network/NetworkApiService.dart';
 
 
-class OtpVerifyRepository {
+class AuthOtpVerifyRepository {
   BaseApiServices _apiServices = NetworkApiService();
 
-  Future<dynamic> otpVerify(dynamic data, String token) async {
+  Future<dynamic> authOtpVerify(dynamic data, String token) async {
     try {
       return await _apiServices.getOTPPostApiResponse(
         AppUrl.otpVerify,
@@ -14,7 +14,7 @@ class OtpVerifyRepository {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': '$token',
-          'x-token-type':'registration-otp',
+          'x-token-type':'auth-otp',
         },
       );
     } catch (e) {

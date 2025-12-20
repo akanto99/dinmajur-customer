@@ -72,7 +72,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       }
 
 
-      // ✅ If we reach here, user is a verified CUSTOMER - proceed with login
+      // ✅ If we reach here, user is a verified CUSTOMER - proceed with auth_login
       final userPreference = Provider.of<UserViewModel>(context, listen: false);
       await userPreference.saveUser(user);
 
@@ -108,7 +108,7 @@ class LoginLogoutViewModel with ChangeNotifier {
           }
         } catch (socketError) {
           print("🔌 Login: Socket connection error - $socketError");
-          // Don't fail login if socket connection fails
+          // Don't fail auth_login if socket connection fails
           // Socket will be reconnected by app lifecycle management
         }
       } else {
@@ -130,7 +130,7 @@ class LoginLogoutViewModel with ChangeNotifier {
           notificationCountViewModel.setInitialCount(sseService.currentCount);
         } catch (sseError) {
           print("🔔 Login: SSE connection error - $sseError");
-          // Don't fail login if SSE connection fails
+          // Don't fail auth_login if SSE connection fails
           // SSE can be reconnected later
         }
       } else {
@@ -193,7 +193,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       if (token.isEmpty) {
         print("❌ Logout: No accessToken found");
         setLoggingOut(false);
-        Utils.flushBarErrorMessage("Invalid session. Please login again.", context);
+        Utils.flushBarErrorMessage("Invalid session. Please auth_login again.", context);
         return;
       }
 
@@ -264,7 +264,7 @@ class LoginLogoutViewModel with ChangeNotifier {
         Utils.flushBarSuccessMessage("Logged out successfully", context);
       }
 
-      // ✅ STEP 5: Navigate to login
+      // ✅ STEP 5: Navigate to auth_login
       Navigator.pushNamedAndRemoveUntil(
           context, RoutesName.welcomeLoginSignup, (route) => false);
 

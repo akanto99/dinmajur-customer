@@ -3,9 +3,10 @@ import 'package:dinmajur_customer/data/network/BaseApiServices.dart';
 import 'package:dinmajur_customer/data/network/NetworkApiService.dart';
 
 
-class AuthenticationRepository {
+class CustomerAuthLoginRepository {
   BaseApiServices _apiServices = NetworkApiService();
- Future<dynamic> otpApi(dynamic data) async {
+
+  Future<dynamic> authApiSendOtp(dynamic data) async {
     try {
       dynamic response = await _apiServices.getPostApiResponse(AppUrl.otpApi, data);
       print('📥 Raw response body: $response');
