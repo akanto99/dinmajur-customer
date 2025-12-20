@@ -390,7 +390,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     final userId = prefs.getString('userId') ?? '';
 
     if (userId.isEmpty) {
-      Utils.flushBarErrorMessage('User ID not found. Please login again.', context);
+      Utils.flushBarErrorMessage('User ID not found. Please auth_login again.', context);
       return;
     }
 

@@ -8,7 +8,7 @@ class AppUrl {
 
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
-  static var loginEndPint = baseUrl + '/auth/login';
+  static var loginEndPint = baseUrl + '/auth/auth_login';
   static var emailCheckEndPoint = baseUrl + '/auth/check-email';
 
   ///Multisteps

@@ -23,7 +23,7 @@ class SplashService {
 
       // Check if no token or empty token
       if (accessToken == null || accessToken.isEmpty) {
-        print("🔓 Navigation: No token found - Going to login");
+        print("🔓 Navigation: No token found - Going to auth_login");
         Navigator.pushNamedAndRemoveUntil(
           context,
           RoutesName.welcomeLoginSignup,

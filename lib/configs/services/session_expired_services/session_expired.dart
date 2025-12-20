@@ -74,7 +74,7 @@ class SessionExpiredService {
                   ),
                   SizedboxSpaccing.height02(dialogContext),
                   Text(
-                    "Your session has expired. Don't worry, we kept all of your filters and breakdowns in place.\nPlease login again to continue.",
+                    "Your session has expired. Don't worry, we kept all of your filters and breakdowns in place.\nPlease auth_login again to continue.",
                     style: AppTextStyles.textSize14(
                       dialogContext,
                       weight: FontWeight.w400,

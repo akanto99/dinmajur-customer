@@ -7,8 +7,8 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
-import 'package:dinmajur_customer/view_model/authview_model/authview_model.dart';
-import 'package:dinmajur_customer/view_model/authview_model/otp_verify_view_model.dart';
+import 'package:dinmajur_customer/view_model/auth_view_model_new/customer_authlogin_view_model.dart';
+import 'package:dinmajur_customer/view_model/auth_view_model_new/customer_otp_view_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,14 +16,14 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class OtpScreen extends StatefulWidget {
-  const OtpScreen({super.key});
+class CustomerAuthOtpScreen extends StatefulWidget {
+  const CustomerAuthOtpScreen({super.key});
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  State<CustomerAuthOtpScreen> createState() => _CustomerAuthOtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
+class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
   final TextEditingController pinTEController = TextEditingController();
   @override
   void dispose() {
@@ -42,8 +42,8 @@ class _OtpScreenState extends State<OtpScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    final String phone = args?['phone'] ?? '';
-    String password = args?['password'] ?? '';
+    final String fullName = args?['fullName'] ?? '';
+    String phone = args?['phone'] ?? '';
     String role = "CUSTOMER";
 
     return Consumer<CountdownTimerProvider>(
@@ -129,29 +129,25 @@ class _OtpScreenState extends State<OtpScreen> {
             ),
             SizedboxSpaccing.height025(context),
 
-            Consumer<OtpVerifyViewModel>(
+            Consumer<AuthOtpVerifyViewModel>(
               builder: (context, verify, child) {
                 return Container(
                   width: screenWidth * 0.79,
                   child: RoundButton(
                     title: AppLocalizations.of(context)!.next,
                     iconData: Icons.arrow_forward_ios_rounded,
-                    loading: verify.otpVerifyloading,
+                    loading: verify.authOTPVerifyloading,
                     onPress: () async {
                       if (pinTEController.text.isEmpty || pinTEController.text.length < 4) {
                         Utils.flushBarErrorMessage(AppLocalizations.of(context)!.please_enter_valid_otp, context);
                       } else {
                         Map data = {'otpCode': pinTEController.text.toString()};
-                        verify.otpVerify(data, context);
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setBool("isPhoneVerified", true);
+                        verify.authOtpVerify(data, context);
+                        // final prefs = await SharedPreferences.getInstance();
+                        // await prefs.setBool("isPhoneVerified", true);
                         setState(() {
                           pinTEController.clear();
-                          prefs.remove('otpphone');
-                          prefs.remove('otppassword');
-                          prefs.remove('re_enterpassword');
                         });
-                        // Navigator.pushNamed(context, RoutesName.multistep);
                       }
                     },
                   ),
@@ -171,7 +167,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       children: [
                         Text(AppLocalizations.of(context)!.havent_received_code, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
                         Text(
-                         "${timerProvider.formattedTime}",
+                          "${timerProvider.formattedTime}",
                           style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.button(context)),
                         ),
                       ],
@@ -183,10 +179,14 @@ class _OtpScreenState extends State<OtpScreen> {
                     onTap: (){
                       if (timerProvider.canResend) {
                         // Resend OTP API call
-                        final authViewModel = Provider.of<AuthenticationViewModel>(context, listen: false);
-                        Map data = {'phone': phone, 'password': password, 'role': role};
+                        final customerAuthLoginViewModel = Provider.of<CustomerAuthLoginViewModel>(context, listen: false);
 
-                        authViewModel.otpApi(
+                        Map data = {
+                          "fullName":fullName,
+                          'phone': phone,
+                          "role":role,
+                        };
+                        customerAuthLoginViewModel.authApiSendOtp(
                           data,
                           context,
                           onSuccess: () async {
@@ -194,6 +194,7 @@ class _OtpScreenState extends State<OtpScreen> {
                             Utils.flushBarSuccessMessage(AppLocalizations.of(context)!.otp_sent_success, context);
                           },
                         );
+
                       }
                     },
                     child: Builder(
