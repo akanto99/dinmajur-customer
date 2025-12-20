@@ -596,17 +596,17 @@ class _HomeScreenState extends State<HomeScreen> {
             } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
               displayAddress = _currentAddress!;
             } else {
-              displayAddress = "Tap to set location_screens";
+              displayAddress = "Tap to set location...";
             }
           } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
             displayAddress = _currentAddress!;
           } else {
-            displayAddress = "Tap to set location_screens";
+            displayAddress = "Tap to set location...";
           }
         } else if (_currentAddress != null && _currentAddress!.isNotEmpty) {
           displayAddress = _currentAddress!;
         } else {
-          displayAddress = "Tap to set location_screens";
+          displayAddress = "Tap to set location...";
         }
 
         switch (profileViewModel.profileviewUserData.status) {

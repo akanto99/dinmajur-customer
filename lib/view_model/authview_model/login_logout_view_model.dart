@@ -56,6 +56,14 @@ class LoginLogoutViewModel with ChangeNotifier {
       print("   - userId: $userId");
 
       // ✅ CHECK ROLE FIRST - Before saving anything
+      if (!isPhoneVerified || userRole.isEmpty) {
+        setLoading(false);
+        print("❌ Login Failed: Phone not verified or account doesn't exist");
+        Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
+        return; // Exit early
+      }
+
+      // ✅ CHECK ROLE - This handles accounts registered for other apps
       if (userRole.toUpperCase() != 'CUSTOMER') {
         setLoading(false);
         print("❌ Login Failed: User role is '$userRole', not 'CUSTOMER'");
@@ -63,13 +71,6 @@ class LoginLogoutViewModel with ChangeNotifier {
         return; // Exit early - don't save user data or navigate
       }
 
-      // ✅ CHECK PHONE VERIFICATION
-      if (!isPhoneVerified) {
-        setLoading(false);
-        print("❌ Login Failed: Phone not verified");
-        Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
-        return; // Exit early
-      }
 
       // ✅ If we reach here, user is a verified CUSTOMER - proceed with login
       final userPreference = Provider.of<UserViewModel>(context, listen: false);
