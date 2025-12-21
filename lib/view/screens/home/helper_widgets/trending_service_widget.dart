@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 class TrendingServicesWidget extends StatelessWidget {
   final List<String> services;
+  final Function(String)? onServiceTap;
+  final String? selectedService; // Add this to track selection
 
   const TrendingServicesWidget({
     Key? key,
@@ -13,6 +15,8 @@ class TrendingServicesWidget extends StatelessWidget {
       "Home Beauty Parlour",
       "তাৎক্ষণিক বাজার",
     ],
+    this.onServiceTap,
+    this.selectedService, // Add this parameter
   }) : super(key: key);
 
   @override
@@ -33,8 +37,8 @@ class TrendingServicesWidget extends StatelessWidget {
           ),
           SizedboxSpaccing.height012(context),
           Wrap(
-            spacing: 5, // Horizontal space between items
-            runSpacing: 8, // Vertical space between lines
+            spacing: 5,
+            runSpacing: 8,
             children: services.map((service) => _buildServiceChip(context, service)).toList(),
           ),
         ],
@@ -43,21 +47,31 @@ class TrendingServicesWidget extends StatelessWidget {
   }
 
   Widget _buildServiceChip(BuildContext context, String label) {
+    final isSelected = selectedService == label;
+
     return IntrinsicWidth(
-      child: Container(
-        height: 22,
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: AppColors.textFieldFill(context),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(width: 1, color: AppColors.border(context)),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: AppTextStyles.textSize10(
-            context,
-            weight: FontWeight.w400,
+      child: GestureDetector(
+        onTap: onServiceTap != null ? () => onServiceTap!(label) : null,
+        child: Container(
+          height: 22,
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: AppColors.textFieldFill(context),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              width: 1,
+              color: isSelected
+                  ? AppColors.button(context) // Use button color when selected
+                  : AppColors.border(context), // Use default border color when not selected
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTextStyles.textSize10(
+              context,
+              weight: FontWeight.w400,
+            ),
           ),
         ),
       ),

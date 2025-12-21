@@ -41,6 +41,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? selectedServiceFromTrending;
   String? selectedStoreType;
   List<dynamic> nearbyStores = [];
   bool isLoadingStores = false;
@@ -62,48 +63,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ✅ Add SSE listener flag
   bool _sseListenerInitialized = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
     storeTypes = {
-      // 'Retail': AppLocalizations.of(context)!.storeType_retail,
       'Premium House Keeper': AppLocalizations.of(context)!.storeType_housekeeper,
       'Premium Home Beauty & Salon': AppLocalizations.of(context)!.storeType_beauty_salon,
       'Retail': AppLocalizations.of(context)!.storeType_grocery,
-      // 'restaurant': AppLocalizations.of(context)!.storeType_restaurant,
-      // 'pharmacy': AppLocalizations.of(context)!.storeType_pharmacy,
-      // 'electronics': AppLocalizations.of(context)!.storeType_electronics,
-      // 'clothing': AppLocalizations.of(context)!.storeType_clothing,
     };
-    // ✅ Initialize ONLY count listener in home screen
-    // if (!_sseListenerInitialized) {
-    //   _initializeSSECountListener();
-    //   _sseListenerInitialized = true;
-    // }
   }
-
-  // void _initializeSSECountListener() {
-  //   try {
-  //     final sseService = Provider.of<SSENotificationService>(context, listen: false);
-  //     final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
-  //
-  //     // Connect only count stream
-  //     countViewModel.initializeCountListener(sseService.notificationCountStream);
-  //
-  //     debugPrint('✅ HomeScreen: notificationCount listener initialized');
-  //   } catch (e) {
-  //     debugPrint('❌ HomeScreen: Error initializing count listener: $e');
-  //   }
-  // }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-
-      // Only fetch if not already initialized (first load only)
       profileViewModel.fetchProfileViewUserDataApi();
     });
 
@@ -114,11 +90,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       debugPrint('🔄 HomeScreen: Pull to refresh triggered');
 
-      // 1. Force refresh profile data
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-      await profileViewModel.refreshProfileData(); // Use refreshProfileData instead
+      await profileViewModel.refreshProfileData();
 
-      // 2. If a store type is selected and it's Retail, refresh nearby retailers
       if (selectedStoreType == 'Retail') {
         await _fetchNearbyRetailers(selectedStoreType!);
       }
@@ -129,7 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Check if location_screens has already been posted, if not, get and post it
   Future<void> _checkAndGetLocation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool locationAlreadyPosted = prefs.getBool(_locationPostedKey) ?? false;
@@ -245,9 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
           fullAddress ??= "Current Location";
         } else {
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Location not available. Please enable location_screens services.'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+            Utils.flushBarErrorMessage("Location not available. Please enable location services.", context);
           }
           setState(() => isLoadingStores = false);
           return;
@@ -271,8 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         if (stores != null && stores.isNotEmpty) {
           setState(() => nearbyStores = stores);
-        } else {
-          // Utils.snackBar("No nearby stores found for this business type.", context);
         }
       }
     } catch (e) {
@@ -286,63 +255,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Method to fetch Premium House keeper Check Coverage
-  // Future<void> _checkCoverage() async {
-  //   if (!mounted) return;
-  //
-  //   // Set loading state FIRST
-  //   setState(() {
-  //     isCheckingCoverage = true;
-  //     isInsideServiceArea = null;
-  //   });
-  //
-  //   try {
-  //     final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(context, listen: false);
-  //
-  //     // Call the API
-  //     await checkCoverageViewModel.fetchCheckCoverageDataApi();
-  //     if (!mounted) return;
-  //
-  //     // Check the status
-  //     if (checkCoverageViewModel.checkCoverageData.status == Status.COMPLETED) {
-  //       final responseData = checkCoverageViewModel.checkCoverageData.data;
-  //       if (responseData?.data?.insideServiceArea == true) {
-  //         setState(() {
-  //           isInsideServiceArea = true;
-  //           isCheckingCoverage = false;
-  //         });
-  //       } else {
-  //         setState(() {
-  //           isInsideServiceArea = false;
-  //           isCheckingCoverage = false;
-  //         });
-  //         // Utils.flushBarErrorMessage(
-  //         //   responseData?.message ?? "Service is not available in your location.",
-  //         //   context,
-  //         // );
-  //       }
-  //     } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
-  //       setState(() {
-  //         isInsideServiceArea = false;
-  //         isCheckingCoverage = false;
-  //       });
-  //       Utils.flushBarErrorMessage("Failed to check service coverage", context);
-  //     } else {
-  //       await Future.delayed(Duration(milliseconds: 500));
-  //       if (mounted) {
-  //         _checkCoverage(); // Retry
-  //       }
-  //     }
-  //   } catch (e) {
-  //     if (mounted) {
-  //       setState(() {
-  //         isInsideServiceArea = false;
-  //         isCheckingCoverage = false;
-  //       });
-  //       Utils.flushBarErrorMessage("Failed to check service coverage", context);
-  //     }
-  //   }
-  // }
   Future<void> _checkCoverage() async {
     if (!mounted) return;
 
@@ -373,12 +285,8 @@ class _HomeScreenState extends State<HomeScreen> {
           isCheckingCoverage = false;
         });
 
-        // ✅ Show specific error message
         String errorMsg = checkCoverageViewModel.checkCoverageData.message ?? "Failed to check service coverage";
         Utils.flushBarErrorMessage(errorMsg, context);
-
-        // ✅ REMOVE the retry logic that was causing infinite loop
-        // Don't call _checkCoverage() again here!
       }
     } catch (e) {
       if (mounted) {
@@ -388,6 +296,41 @@ class _HomeScreenState extends State<HomeScreen> {
         });
         Utils.flushBarErrorMessage("Failed to check service coverage", context);
       }
+    }
+  }
+
+  /// ✅ Method to map trending service names to store types
+  String _mapServiceToStoreType(String serviceName) {
+    switch (serviceName) {
+      case "House Keeper":
+        return "Premium House Keeper";
+      case "Home Beauty Parlour":
+        return "Premium Home Beauty & Salon";
+      case "তাৎক্ষণিক বাজার":
+        return "Retail";
+      default:
+        return serviceName;
+    }
+  }
+
+  /// ✅ Method to handle trending service selection
+  void _handleTrendingServiceTap(String serviceName) {
+    final storeType = _mapServiceToStoreType(serviceName);
+
+    setState(() {
+      selectedStoreType = storeType;
+      selectedServiceFromTrending = serviceName; // Track the trending service
+      nearbyStores = [];
+      isInsideServiceArea = null;
+      isCheckingCoverage = false;
+    });
+    // Trigger the appropriate action based on store type
+    if (storeType == 'Premium House Keeper') {
+      _checkCoverage();
+    } else if (storeType == 'Premium Home Beauty & Salon') {
+      _checkCoverage();
+    } else if (storeType == 'Retail') {
+      _fetchNearbyRetailers(storeType);
     }
   }
 
@@ -407,13 +350,6 @@ class _HomeScreenState extends State<HomeScreen> {
         key: widget.scaffoldKey,
         backgroundColor: AppColors.containerBackground(context),
         drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
-        // appBar: PreferredSize(
-        //   preferredSize:  Size.fromHeight(100),
-        //   child: Container(
-        //     color: AppColors.containerBackground(context),
-        //     child: Center(child: _customAppBar(context)),
-        //   ),
-        // ),
         body: SafeArea(
           child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
         ),
@@ -434,138 +370,128 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           _customAppBar(context),
-          SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
-            child: Column(
-              children: [
-                SizedboxSpaccing.height025(context),
-                Container(
-                  width: screenWidth * 0.9,
-                  // padding: EdgeInsets.all(screenHeight * 0.02),
-                  decoration: BoxDecoration(
-                    color: AppColors.containerBackground(context),
-                    borderRadius: BorderRadius.circular(24),
-                    // border: Border.all(width: 1, color: AppColors.border(context)),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  SizedboxSpaccing.height025(context),
+                  Container(
+                    width: screenWidth * 0.9,
+                    decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(24)),
+                    child: CustomDropdown(
+                      titleText: AppLocalizations.of(context)!.select_store_type,
+                      items: storeTypes.keys.toList(),
+                      selectedItem: selectedStoreType,
+                      hintText: AppLocalizations.of(context)!.select_dropdown_hint,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedStoreType = newValue;
+                          selectedServiceFromTrending = null; // Clear trending selection when using dropdown
+                          nearbyStores = [];
+                          isInsideServiceArea = null;
+                          isCheckingCoverage = false;
+                        });
+
+                        if (newValue != null) {
+                          if (newValue == 'Premium House Keeper') {
+                            _checkCoverage();
+                          } else if (newValue == 'Premium Home Beauty & Salon') {
+                            _checkCoverage();
+                          } else if (newValue == 'Retail') {
+                            _fetchNearbyRetailers(newValue);
+                          }
+                        }
+                      },
+                      valueToBengaliMap: storeTypes,
+                    ),
                   ),
-                  child: CustomDropdown(
-                    titleText: AppLocalizations.of(context)!.select_store_type,
-                    items: storeTypes.keys.toList(),
-                    selectedItem: selectedStoreType,
-                    // hintText: AppLocalizations.of(context)!.select_store_type_hint,
-                    hintText: AppLocalizations.of(context)!.select_dropdown_hint,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedStoreType = newValue;
-                        nearbyStores = [];
-                        isInsideServiceArea = null;
-                        isCheckingCoverage = false;
-                      });
+                  SizedboxSpaccing.height012(context),
 
-                      if (newValue != null) {
-                      if (newValue == 'Premium House Keeper') {
-                          _checkCoverage();
-                        } else if (newValue == 'Premium Home Beauty & Salon') {
-                          _checkCoverage();
-                        }else  if (newValue == 'Retail') {
-                          _fetchNearbyRetailers(newValue);
-                        }
-                    }
-                    },
-                    valueToBengaliMap: storeTypes,
+                  // ✅ Updated TrendingServicesWidget with callback
+                  TrendingServicesWidget(
+                    services: ["House Keeper", "Home Beauty Parlour", "তাৎক্ষণিক বাজার"],
+                    onServiceTap: _handleTrendingServiceTap,
+                    selectedService: selectedServiceFromTrending, // Pass the selected service
                   ),
-                ),
-                SizedboxSpaccing.height012(context),
-                TrendingServicesWidget( services: ["House Keeper", "Home Beauty Parlour", "তাৎক্ষণিক বাজার",]),
-                Center(child: SizedboxSpaccing.height025(context)),
-                DynamicNearestHeader(selectedStoreType: selectedStoreType, storeCount: nearbyStores.length, screenWidth: screenWidth, onSeeAllTap: () => _handleSeeAllNavigation(context)),
-                SizedboxSpaccing.height025(context),
+                  Center(child: SizedboxSpaccing.height025(context)),
+                  DynamicNearestHeader(selectedStoreType: selectedStoreType, storeCount: nearbyStores.length, screenWidth: screenWidth, onSeeAllTap: () => _handleSeeAllNavigation(context)),
+                  SizedboxSpaccing.height025(context),
 
-                // Conditionally show content based on selection and coverage
+                  // Conditionally show content based on selection and coverage
+                  if (selectedStoreType == 'Premium House Keeper')
+                    Consumer<ProfileViewViewModel>(
+                      builder: (context, profileViewModel, _) {
+                        String customerName = '';
+                        String customerPhone = '';
+                        String customerAddress = '';
 
-                 if (selectedStoreType == 'Premium House Keeper')
-                  Consumer<ProfileViewViewModel>(
-                    builder: (context, profileViewModel, _) {
-                      // Extract customer data from profile
-                      String customerName = '';
-                      String customerPhone = '';
-                      String customerAddress = '';
+                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                          final userData = profileViewModel.profileviewUserData.data?.data;
 
-                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                        final userData = profileViewModel.profileviewUserData.data?.data;
-
-                        // Get name
-                        if (userData?.user?.fullName != null) {
-                          customerName = userData!.user!.fullName!;
+                          if (userData?.user?.fullName != null) {
+                            customerName = userData!.user!.fullName!;
+                          }
+                          if (userData?.user?.phone != null) {
+                            customerPhone = userData!.user!.phone!;
+                          }
+                          if (userData?.addresses?.fullAddress != null) {
+                            customerAddress = userData!.addresses!.fullAddress!;
+                          }
                         }
 
-                        // Get phone
-                        if (userData?.user?.phone != null) {
-                          customerPhone = userData!.user!.phone!;
+                        return PremiumHouseKeeperCoverageWidget(
+                          isCheckingCoverage: isCheckingCoverage,
+                          isInsideServiceArea: isInsideServiceArea,
+                          customerName: customerName,
+                          customerPhone: customerPhone,
+                          customerAddress: customerAddress,
+                        );
+                      },
+                    )
+                  else if (selectedStoreType == 'Premium Home Beauty & Salon')
+                    Consumer<ProfileViewViewModel>(
+                      builder: (context, profileViewModel, _) {
+                        String customerName = '';
+                        String customerPhone = '';
+                        String customerAddress = '';
+
+                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                          final userData = profileViewModel.profileviewUserData.data?.data;
+
+                          if (userData?.user?.fullName != null) {
+                            customerName = userData!.user!.fullName!;
+                          }
+                          if (userData?.user?.phone != null) {
+                            customerPhone = userData!.user!.phone!;
+                          }
+                          if (userData?.addresses?.fullAddress != null) {
+                            customerAddress = userData!.addresses!.fullAddress!;
+                          }
                         }
 
-                        // Get address
-                        if (userData?.addresses?.fullAddress != null) {
-                          customerAddress = userData!.addresses!.fullAddress!;
-                        }
-                      }
+                        return PremiumBeautyAndSalonCoverageWidget(
+                          isCheckingCoverage: isCheckingCoverage,
+                          isInsideServiceArea: isInsideServiceArea,
+                          customerName: customerName,
+                          customerPhone: customerPhone,
+                          customerAddress: customerAddress,
+                        );
+                      },
+                    )
+                  else if (selectedStoreType == 'Retail')
+                    GroceryStoresSection(
+                      isLoading: isLoadingStores,
+                      stores: nearbyStores,
+                      storeTypes: storeTypes,
+                      selectedStoreType: selectedStoreType,
+                      currentPosition: _currentPosition,
+                      currentAddress: _currentAddress,
+                    ),
 
-                      return PremiumHouseKeeperCoverageWidget(
-                        isCheckingCoverage: isCheckingCoverage,
-                        isInsideServiceArea: isInsideServiceArea,
-                        customerName: customerName,
-                        customerPhone: customerPhone,
-                        customerAddress: customerAddress,
-                      );
-                    },
-                  )
-                else if (selectedStoreType == 'Premium Home Beauty & Salon')
-                  Consumer<ProfileViewViewModel>(
-                    builder: (context, profileViewModel, _) {
-                      // Extract customer data from profile
-                      String customerName = '';
-                      String customerPhone = '';
-                      String customerAddress = '';
-
-                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                        final userData = profileViewModel.profileviewUserData.data?.data;
-
-                        // Get name
-                        if (userData?.user?.fullName != null) {
-                          customerName = userData!.user!.fullName!;
-                        }
-
-                        // Get phone
-                        if (userData?.user?.phone != null) {
-                          customerPhone = userData!.user!.phone!;
-                        }
-
-                        // Get address
-                        if (userData?.addresses?.fullAddress != null) {
-                          customerAddress = userData!.addresses!.fullAddress!;
-                        }
-                      }
-
-                      return PremiumBeautyAndSalonCoverageWidget(
-                        isCheckingCoverage: isCheckingCoverage,
-                        isInsideServiceArea: isInsideServiceArea,
-                        customerName: customerName,
-                        customerPhone: customerPhone,
-                        customerAddress: customerAddress,
-                      );
-                    },
-                  )
-               else if (selectedStoreType == 'Retail')
-                  GroceryStoresSection(
-                    isLoading: isLoadingStores,
-                    stores: nearbyStores,
-                    storeTypes: storeTypes,
-                    selectedStoreType: selectedStoreType,
-                    currentPosition: _currentPosition,
-                    currentAddress: _currentAddress,
-                  ),
-
-                SizedboxSpaccing.height02(context),
-              ],
+                  SizedboxSpaccing.height02(context),
+                ],
+              ),
             ),
           ),
         ],
