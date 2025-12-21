@@ -266,7 +266,7 @@ class LoginLogoutViewModel with ChangeNotifier {
 
       // ✅ STEP 5: Navigate to auth_login
       Navigator.pushNamedAndRemoveUntil(
-          context, RoutesName.welcomeLoginSignup, (route) => false);
+          context, RoutesName.authLoginWelcome, (route) => false);
 
       print("🔓 ✅ Logout Completed Successfully");
 

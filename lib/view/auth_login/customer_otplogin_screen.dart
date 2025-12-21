@@ -9,6 +9,7 @@ import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/view_model/auth_view_model_new/customer_authlogin_view_model.dart';
 import 'package:dinmajur_customer/view_model/auth_view_model_new/customer_otp_view_model.dart';
+import 'package:dinmajur_customer/view_model/auth_view_model_new/resend_otp_view_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -154,35 +155,79 @@ class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
                     ],
                   ),
                   SizedboxSpaccing.height01(context),
-                  GestureDetector(
-                    onTap: () {
-                      if (timerProvider.canResend) {
-                        final customerAuthLoginViewModel = Provider.of<CustomerAuthLoginViewModel>(context, listen: false);
+                  Consumer<ResendOtpViewModel>(
+                    builder: (context, resendOtpViewModel, child) {
+                      return GestureDetector(
+                        onTap: () {
+                          if (timerProvider.canResend && !resendOtpViewModel.resendOTPloading) {
+                            final resendOtpViewModel = Provider.of<ResendOtpViewModel>(context, listen: false);
 
-                        Map data = {"fullName": fullName, 'phone': phone, "role": role};
+                            Map data = {'phone': phone, "role": role};
 
-                        customerAuthLoginViewModel.authApiSendOtp(
-                          data,
-                          context,
-                          onSuccess: () async {
-                            // ✅ Clear PIN controller when resending OTP
-                            pinTEController.clear();
-                            Utils.flushBarSuccessMessage(AppLocalizations.of(context)!.otp_sent_success, context);
+                            resendOtpViewModel.reSendOtp(
+                              data,
+                              context,
+                              onSuccess: () async {
+                                pinTEController.clear();
+                                Utils.flushBarSuccessMessage(AppLocalizations.of(context)!.otp_sent_success, context);
+                              },
+                            );
+                          }
+                        },
+                        child: Builder(
+                          builder: (context) {
+                            final textStyle = GoogleFonts.hindSiliguri(
+                              fontSize: 18,
+                              color: timerProvider.canResend && !resendOtpViewModel.resendOTPloading
+                                  ? AppColors.button(context)
+                                  : Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            );
+
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Center(
+                                  child: resendOtpViewModel.resendOTPloading
+                                      ? Text("Sending...", style: textStyle)
+                                      : Text(AppLocalizations.of(context)!.send_again, style: textStyle),
+                                )
+                              ],
+                            );
                           },
-                        );
-                      }
+                        ),
+                      );
                     },
-                    child: Builder(
-                      builder: (context) {
-                        final textStyle = GoogleFonts.hindSiliguri(fontSize: 18, color: timerProvider.canResend ? AppColors.button(context) : Colors.grey, fontWeight: FontWeight.w500);
-
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [Center(child: Text(AppLocalizations.of(context)!.send_again, style: textStyle))],
-                        );
-                      },
-                    ),
-                  ),
+                  )
+                  // GestureDetector(
+                  //   onTap: () {
+                  //     if (timerProvider.canResend) {
+                  //       final resendOtpViewModel = Provider.of<ResendOtpViewModel>(context, listen: false);
+                  //
+                  //       Map data = {'phone': phone, "role": role};
+                  //
+                  //       resendOtpViewModel.reSendOtp(
+                  //         data,
+                  //         context,
+                  //         onSuccess: () async {
+                  //           // ✅ Clear PIN controller when resending OTP
+                  //           pinTEController.clear();
+                  //           Utils.flushBarSuccessMessage(AppLocalizations.of(context)!.otp_sent_success, context);
+                  //         },
+                  //       );
+                  //     }
+                  //   },
+                  //   child: Builder(
+                  //     builder: (context) {
+                  //       final textStyle = GoogleFonts.hindSiliguri(fontSize: 18, color: timerProvider.canResend ? AppColors.button(context) : Colors.grey, fontWeight: FontWeight.w500);
+                  //
+                  //       return Column(
+                  //         mainAxisSize: MainAxisSize.min,
+                  //         children: [Center(child: Text(AppLocalizations.of(context)!.send_again, style: textStyle))],
+                  //       );
+                  //     },
+                  //   ),
+                  // ),
                 ],
               ),
             ),

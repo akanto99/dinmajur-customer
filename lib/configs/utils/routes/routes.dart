@@ -1,5 +1,5 @@
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
-import 'package:dinmajur_customer/view/auth_login/authregister_screen.dart';
+import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
 import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
@@ -33,7 +33,6 @@ import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_or
 import 'package:dinmajur_customer/view/screens/order/pending_orders/pending_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
-import 'package:dinmajur_customer/view/welcome_loginsignup/welcome_loginsignup.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
@@ -43,12 +42,11 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const SplashScreen());
       case RoutesName.onBoardUpdated:
         return MaterialPageRoute(builder: (BuildContext context) => const OnboardingScreenUpdated());
-      case RoutesName.welcomeLoginSignup:
-        return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginSignup());
+
 
         ///New
-        case RoutesName.authLoginSendOtp:
-        return MaterialPageRoute(builder: (BuildContext context) => const AuthLoginSendOTPScreen());
+         case RoutesName.authLoginWelcome:
+         return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginScreen());
         case RoutesName.authOtp:
         return MaterialPageRoute(builder: (BuildContext context) => const CustomerAuthOtpScreen(), settings: settings);
     // case RoutesName.verificationSuccessScreen:

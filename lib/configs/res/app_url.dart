@@ -15,6 +15,7 @@ class AppUrl {
   ///New
   static var customerAuthSendOtpApi = baseUrl + '/auth/login-customer';
   static var customerAuthOtpVeryfyApi = baseUrl + '/auth/verify-customer-otp';
+  static var resendOtpApi = baseUrl + '/auth/resend-otp';
 
 
 

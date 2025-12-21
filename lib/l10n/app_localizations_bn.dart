@@ -42,6 +42,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get phone_hint => '০১xxxxxxxxx';
 
   @override
+  String get phone_hint_new => '১xxxxxxxxx';
+
+  @override
   String get password => 'পাসওয়ার্ড';
 
   @override
@@ -52,6 +55,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get sign_in => 'সাইন ইন';
+
+  @override
+  String get login_with_otp => 'লগইন উইথ ওটিপি';
 
   @override
   String get new_user => 'নতুন ইউজার?';
