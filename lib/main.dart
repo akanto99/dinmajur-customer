@@ -40,6 +40,7 @@ import 'configs/utils/routes/routes_name.dart';
 import 'l10n/app_localizations.dart';
 import 'view_model/auth_view_model_new/customer_authlogin_view_model.dart';
 import 'view_model/auth_view_model_new/customer_otp_view_model.dart';
+import 'view_model/auth_view_model_new/resend_otp_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/account_update_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/get_bkash_nagad_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/payment_method_view_model.dart';
@@ -101,6 +102,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => UserViewModel()),
         ChangeNotifierProvider(create: (_) => CustomerAuthLoginViewModel()),
         ChangeNotifierProvider(create: (_) => AuthOtpVerifyViewModel()),
+        ChangeNotifierProvider(create: (_) => ResendOtpViewModel()),
 
         ChangeNotifierProvider(create: (_) => ProfileViewViewModel()),
         ChangeNotifierProvider(create: (_) => AddLocationViewModel()),

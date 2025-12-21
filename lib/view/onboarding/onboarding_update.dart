@@ -368,7 +368,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
     prefs.setBool("showHome", true);
 
     if (mounted) {
-      Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
+      Navigator.pushNamed(context, RoutesName.authLoginWelcome);
     }
   }
 
@@ -380,7 +380,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
     prefs.setBool('showHome', true);
 
     if (mounted) {
-      Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
+      Navigator.pushNamed(context, RoutesName.authLoginWelcome);
     }
   }
 

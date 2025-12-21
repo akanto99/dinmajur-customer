@@ -103,7 +103,7 @@ class SessionExpiredService {
                         // ✅ 3. Navigate to welcome screen
                         if (context.mounted) {
                           Navigator.of(context).pushNamedAndRemoveUntil(
-                            RoutesName.welcomeLoginSignup,
+                            RoutesName.authLoginWelcome,
                                 (Route<dynamic> route) => false,
                           );
                           print('✅ Navigated to welcome screen');
@@ -152,7 +152,7 @@ class SessionExpiredService {
       final context = navigatorKey.currentContext;
       if (context != null && context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
-          RoutesName.welcomeLoginSignup,
+          RoutesName.authLoginWelcome,
               (Route<dynamic> route) => false,
         );
       }

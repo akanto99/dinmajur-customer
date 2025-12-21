@@ -24,7 +24,7 @@ class SplashService {
         print("🔓 Navigation: No token found - Going to auth_login");
         Navigator.pushNamedAndRemoveUntil(
           context,
-          RoutesName.welcomeLoginSignup,
+          RoutesName.authLoginWelcome,
               (route) => false,
         );
       }
@@ -46,7 +46,7 @@ class SplashService {
         print("   - Current role: $role");
         Navigator.pushNamedAndRemoveUntil(
           context,
-          RoutesName.welcomeLoginSignup,
+          RoutesName.authLoginWelcome,
               (route) => false,
         );
       }

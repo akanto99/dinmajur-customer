@@ -1,10 +1,9 @@
 class RoutesName {
   static const String splash = 'splash_view';
-  static const String welcomeLoginSignup = 'welcomeLoginSignup_view';
   static const String onBoardUpdated = 'onBoardUpdated_view';
 
   ///new
-  static const String authLoginSendOtp = 'authLoginSendOtp_view';
+  static const String authLoginWelcome = 'welcomeLoginScreen_view';
   static const String authOtp = 'authOtp_view';
   static const String verificationSuccessScreen = 'verificationSuccessScreen_view';
 
