@@ -7,15 +7,14 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
 import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
-import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_count/notification_count_view_model.dart';
-import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
-import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification/sse_notification_view_model.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beauty_and_salon_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_service_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
@@ -45,6 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? selectedStoreType;
   List<dynamic> nearbyStores = [];
   bool isLoadingStores = false;
+  bool _nameDialogShown = false;
+  bool _locationFlowStarted = false;
 
   // Location related variables
   final LocationService _locationService = LocationService();
@@ -83,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
       profileViewModel.fetchProfileViewUserDataApi();
     });
 
-    _checkAndGetLocation();
+    // _checkAndGetLocation();
   }
 
   Future<void> _handleRefresh() async {
@@ -144,16 +145,22 @@ class _HomeScreenState extends State<HomeScreen> {
         await _markLocationAsPosted();
 
         final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-        await profileViewModel.fetchProfileViewUserDataApi();
+        await profileViewModel.fetchProfileViewUserDataApi(forceRefresh: true);
       }
     } catch (e) {
-      debugPrint('Error getting location_screens with address: $e');
+      debugPrint('Error getting location with address: $e');
       if (mounted) {
         setState(() {
           _isLoadingLocation = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Location error: ${e.toString()}'), backgroundColor: Colors.red, duration: Duration(seconds: 3)));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Location error: ${e.toString()}'),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3)
+            )
+        );
       }
     }
   }
@@ -175,16 +182,21 @@ class _HomeScreenState extends State<HomeScreen> {
         "type": "DELIVERY_ADDRESS",
       };
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-      await addLocationViewModel.addLocationPostApi(context, locationData);
+      await addLocationViewModel.addLocationPostApi(context, locationData, false);
       debugPrint('Location posted successfully to API');
     } catch (e) {
-      debugPrint('Error posting location_screens to API: $e');
+      debugPrint('Error posting location to API: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save location_screens: ${e.toString()}'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Failed to save location: ${e.toString()}'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 3)
+            )
+        );
       }
     }
   }
-
   /// Method to fetch nearby retailers
   Future<void> _fetchNearbyRetailers(String businessType) async {
     if (!mounted) return;
@@ -345,7 +357,10 @@ class _HomeScreenState extends State<HomeScreen> {
       showLater: false,
       showIgnore: false,
       showReleaseNotes: false,
-      upgrader: Upgrader(),
+      upgrader: Upgrader(
+        // debugLogging: true,
+        // debugDisplayAlways: true
+      ),
       child: Scaffold(
         key: widget.scaffoldKey,
         backgroundColor: AppColors.containerBackground(context),
@@ -564,6 +579,8 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             }
 
+            _checkAndShowNameDialog(userName);
+
             return _buildAppBarContent(screenWidth: screenWidth, screenHeight: screenHeight, userName: userName, displayAddress: displayAddress, profileImageUrl: profileImageUrl);
 
           default:
@@ -579,6 +596,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAppBarContent({required double screenWidth, required double screenHeight, required String userName, required String displayAddress, String? profileImageUrl}) {
+    bool isAddressMissing = displayAddress == "Tap to set location..." && userName != "Loading...";
+
     return Container(
       height: 75,
       decoration: BoxDecoration(
@@ -652,7 +671,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                     // ),
                                     Text(
                                       displayAddress,
-                                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                                      style: AppTextStyles.textSize12(
+                                          context,
+                                          weight: FontWeight.w400,
+                                          color: isAddressMissing
+                                              ? Colors.red  // ✅ Red if missing
+                                              : (_isLoadingLocation
+                                              ? AppColors.subtitle(context)
+                                              : AppColors.textPrimary(context)
+                                          )
+                                      ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
@@ -797,5 +825,34 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
       ),
     );
+  }
+
+
+  void _checkAndShowNameDialog(String userName) {
+    // Show dialog only once and only if name is empty or 'Unknown User'
+    if (!_nameDialogShown &&
+        (userName.trim().isEmpty || userName == 'Unknown User')) {
+
+      _nameDialogShown = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // ✅ Show dialog and wait for it to close
+        await showNameEntryDialog(context);
+
+        // ✅ After dialog closes, start location flow
+        if (mounted && !_locationFlowStarted) {
+          _locationFlowStarted = true;
+          await _checkAndGetLocation();
+        }
+      });
+    } else {
+      // ✅ If no dialog needed, start location flow immediately
+      if (!_locationFlowStarted) {
+        _locationFlowStarted = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _checkAndGetLocation();
+        });
+      }
+    }
   }
 }

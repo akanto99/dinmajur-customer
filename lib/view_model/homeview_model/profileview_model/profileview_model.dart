@@ -1,43 +1,6 @@
-// import 'package:dinmajur_customer/data/response/api_response.dart';
-// import 'package:dinmajur_customer/model/home_models/profile_model/profileview_model.dart';
-// import 'package:dinmajur_customer/respository/home_repositories/profile_repository/profile_repository.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/foundation.dart';
-//
-// class ProfileViewViewModel with ChangeNotifier {
-//   final _myRepo = ProfileRepository();
-//
-//   ApiResponse<ProfileViewModel> profileviewUserData = ApiResponse.loading();
-//
-//   setProfileViewUserData(ApiResponse<ProfileViewModel> response){
-//     profileviewUserData = response ;
-//     notifyListeners();
-//   }
-//
-//
-//   Future<void> fetchProfileViewUserDataApi ()async{
-//
-//     setProfileViewUserData(ApiResponse.loading());
-//
-//     _myRepo.fetchProfileUserData().then((value){
-//       print(value);
-//       setProfileViewUserData(ApiResponse.completed(value));
-//
-//
-//     }).onError((error, stackTrace){
-//       if (kDebugMode) {
-//         print(error);
-//         print(stackTrace);
-//       }
-//       setProfileViewUserData(ApiResponse.error(error.toString()));
-//     });
-//   }
-//
-//
-//
-//
-//
-// }
+import 'dart:convert';
+
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/api_response.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/profile_model/profileview_model.dart';
@@ -105,6 +68,8 @@ class ProfileViewViewModel with ChangeNotifier {
     });
   }
 
+
+
   // Method to force refresh (for pull-to-refresh or manual updates)
   Future<void> refreshProfileData() async {
     return fetchProfileViewUserDataApi(forceRefresh: true);
@@ -122,4 +87,65 @@ class ProfileViewViewModel with ChangeNotifier {
   void invalidateCache() {
     _lastFetchTime = null;
   }
+
+
+  ///Update Profile Name
+  bool _profileHeaderUpdateLoading = false;
+  bool get profileHeaderUpdateLoading => _profileHeaderUpdateLoading;
+
+  setprofileHeaderUpdateLoading(bool value) {
+    _profileHeaderUpdateLoading = value;
+    notifyListeners();
+  }
+
+  Future<void> profileUpdatePatchApi(
+      BuildContext context,
+      dynamic data, {
+        bool showSuccessMessage = true, // Add this parameter
+      }) async {
+    setprofileHeaderUpdateLoading(true);
+    try {
+      final value = await _myRepo.profileUpdatePatchAPI(data);
+      setprofileHeaderUpdateLoading(false);
+
+      if (kDebugMode) {
+        print('Response from image upload: $value');
+      }
+
+      // Only show success message if requested
+      if (showSuccessMessage) {
+        Utils.flushBarSuccessMessage('Profile Name Updated Successfully', context);
+      }
+
+    } catch (error) {
+      setprofileHeaderUpdateLoading(false);
+      _handleError(error, context);
+      rethrow; // Re-throw so the dialog knows it failed
+    }
+  }
+
+  void _handleError(dynamic error, BuildContext context) {
+    String errorMessage = '$error';
+    try {
+      String errorBody = error.toString();
+      int jsonStartIndex = errorBody.indexOf('{');
+      if (jsonStartIndex != -1) {
+        final decoded = jsonDecode(errorBody.substring(jsonStartIndex));
+        errorMessage = decoded['message'] ??
+            (decoded['errorMessages'] is List && decoded['errorMessages'].isNotEmpty
+                ? decoded['errorMessages'][0]['message']
+                : errorMessage);
+      }
+    } catch (_) {
+      errorMessage = 'Unexpected error occurred';
+    }
+    Utils.flushBarErrorMessage(errorMessage, context);
+  }
+
+
+
+
+
+
+
 }

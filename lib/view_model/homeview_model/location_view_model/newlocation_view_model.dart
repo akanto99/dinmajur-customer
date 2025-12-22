@@ -20,7 +20,11 @@ class AddLocationViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addLocationPostApi(BuildContext context, dynamic fields) async {
+  Future<void> addLocationPostApi(
+      BuildContext context,
+      dynamic fields,
+      bool shouldNavigate, // ✅ New parameter
+      ) async {
     setCreateAddLocationLoading(true);
 
     try {
@@ -37,6 +41,7 @@ class AddLocationViewModel with ChangeNotifier {
         print('========== POSTING LOCATION DATA ==========');
         print('Request data: ${jsonEncode(fields)}');
         print('Access token: ${accessToken.substring(0, 20)}...');
+        print('Should Navigate: $shouldNavigate');
       }
 
       dynamic response = await _myRepo.addLocationPatchApi(fields);
@@ -44,12 +49,11 @@ class AddLocationViewModel with ChangeNotifier {
       setCreateAddLocationLoading(false);
       Utils.flushBarSuccessMessage('Location saved successfully', context);
 
-        final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-        profileViewModel.clearCache(); // Clear the cache to force refresh
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+      profileViewModel.clearCache(); // Clear the cache to force refresh
 
-
-
-        // Navigate back and refresh will happen automatically due to cleared cache
+      // ✅ Only navigate if shouldNavigate is true
+      if (shouldNavigate) {
         Future.delayed(const Duration(milliseconds: 1000), () {
           Navigator.pushReplacement(
             context,
@@ -58,15 +62,13 @@ class AddLocationViewModel with ChangeNotifier {
             ),
           );
         });
-
+      }
 
       if (kDebugMode) {
         print('Location API Response: ${jsonEncode(response)}');
         print('========================================');
       }
 
-      // Optional: Show success message (you might want to remove this for automatic posting)
-      // Utils.flushBarSuccessMessage('Location saved successfully', context);
     } catch (error) {
       setCreateAddLocationLoading(false);
       _handleError(error, context);

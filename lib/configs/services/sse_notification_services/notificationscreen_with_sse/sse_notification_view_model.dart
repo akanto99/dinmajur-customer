@@ -1,5 +1,5 @@
 // notification_view_model.dart
-import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification/get_ssc_nofication_model.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/notificationscreen_with_sse/get_ssc_nofication_model.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 

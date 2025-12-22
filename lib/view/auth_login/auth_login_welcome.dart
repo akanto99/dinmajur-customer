@@ -29,10 +29,8 @@ class WelcomeLoginScreen extends StatefulWidget {
 }
 
 class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
-  TextEditingController _fullNameController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
 
-  final FocusNode _fullNameFocus = FocusNode();
   final FocusNode _phoneFocus = FocusNode();
 
 
@@ -40,9 +38,6 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
-    _fullNameFocus.dispose();
-    _fullNameFocus.dispose();
-
     _phoneController.dispose();
     _phoneFocus.dispose();
 
@@ -107,13 +102,13 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                     Text(AppLocalizations.of(context)!.welcome, style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
                     Text(AppLocalizations.of(context)!.welcome_subtitle, style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                     SizedboxSpaccing.height04(context),
-                    CustometextFormfield(
-                      placeholder:  AppLocalizations.of(context)!.fullName_hint,
-                      controller: _fullNameController,
-                      focusCurrent: _fullNameFocus,
-                      keyboardType: TextInputType.name,
-                    ),
-                    SizedboxSpaccing.height02(context),
+                    // CustometextFormfield(
+                    //   placeholder:  AppLocalizations.of(context)!.fullName_hint,
+                    //   controller: _fullNameController,
+                    //   focusCurrent: _fullNameFocus,
+                    //   keyboardType: TextInputType.name,
+                    // ),
+                    // SizedboxSpaccing.height02(context),
                     CustomeMobileTextfield(
                       placeholder:  AppLocalizations.of(context)!.phone_hint_new,
                       controller: _phoneController,
@@ -132,7 +127,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                               loading: customerAuthLoginViewModel.authApiSendOtploading,
                               onPress: () {
                                 String? firstError = WelcomeLoginValidation.getFirstLoginError(
-                                  fullName: _fullNameController.text,
+                                  // fullName: _fullNameController.text,
                                   phone: _phoneController.text,
                                 );
 
@@ -141,7 +136,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                                   return;
                                 }
                                 Map data = {
-                                  "fullName":_fullNameController.text.toString(),
+                                  // "fullName":_fullNameController.text.toString(),
                                   'phone': "0${_phoneController.text.toString()}",
                                   "role":"CUSTOMER"
                                 };
@@ -157,7 +152,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                                         context,
                                         RoutesName.authOtp,
                                         arguments: {
-                                          "fullName":_fullNameController.text.toString(),
+                                          // "fullName":_fullNameController.text.toString(),
                                           'phone': "0${_phoneController.text.toString()}",
                                           "role":"CUSTOMER"
                                         },

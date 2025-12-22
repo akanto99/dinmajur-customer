@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/draft/draft_screen.dart';
@@ -172,13 +173,54 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Divider(color: AppColors.border(context), height: 1),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    //   children: List.generate(icons.length, (index) {
+                    //     bool isSelected = _currentIndex == index;
+                    //     return GestureDetector(
+                    //       onTap: () {
+                    //         // If already on home and drawer is open, close it
+                    //         if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
+                    //           _key.currentState!.closeDrawer();
+                    //         } else {
+                    //           setState(() {
+                    //             _currentIndex = index;
+                    //           });
+                    //         }
+                    //       },
+                    //       child: Container(
+                    //         width: screenWidth * 0.2,
+                    //         color: Colors.transparent,
+                    //         child: Column(
+                    //           mainAxisSize: MainAxisSize.min,
+                    //           mainAxisAlignment: MainAxisAlignment.center,
+                    //           children: [
+                    //             SvgPicture.asset(icons[index], width: 18, height: 18, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context), semanticsLabel: labels[index]),
+                    //             const SizedBox(height: 6),
+                    //             Text(
+                    //               labels[index],
+                    //               style: AppTextStyles.textSize12(
+                    //                 context,
+                    //                 weight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                    //                 color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     );
+                    //   }),
+                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: List.generate(icons.length, (index) {
                         bool isSelected = _currentIndex == index;
+
+                        // ✅ Check if this is the Order tab (index 2)
+                        bool isOrderTab = index == 2;
+
                         return GestureDetector(
                           onTap: () {
-                            // If already on home and drawer is open, close it
                             if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
                               _key.currentState!.closeDrawer();
                             } else {
@@ -194,7 +236,60 @@ class _NavigationScreenState extends State<NavigationScreen> {
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                SvgPicture.asset(icons[index], width: 18, height: 18, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context), semanticsLabel: labels[index]),
+                                // ✅ Wrap the icon in a Stack to add badge for Order tab
+                                isOrderTab
+                                    ? Consumer<RunningOrderCountViewModel>(
+                                  builder: (context, orderCountViewModel, _) {
+                                    return Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        SvgPicture.asset(
+                                          icons[index],
+                                          width: 18,
+                                          height: 18,
+                                          color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                          semanticsLabel: labels[index],
+                                        ),
+
+                                        // ✅ Badge showing running order count
+                                        if (orderCountViewModel.hasRunningOrders)
+                                          Positioned(
+                                            right: -6,
+                                            top: -4,
+                                            child: Container(
+                                              padding: EdgeInsets.all(2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: AppColors.globalBlackWhite(context),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              constraints: BoxConstraints(minWidth: 14, minHeight: 14),
+                                              child: Text(
+                                                '${orderCountViewModel.runningOrderCount > 9 ? '9+' : orderCountViewModel.runningOrderCount}',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
+                                )
+                                    : SvgPicture.asset(
+                                  icons[index],
+                                  width: 18,
+                                  height: 18,
+                                  color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                  semanticsLabel: labels[index],
+                                ),
+
                                 const SizedBox(height: 6),
                                 Text(
                                   labels[index],

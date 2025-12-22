@@ -40,6 +40,7 @@ class AppUrl {
   static var notificationGetAPI = baseUrl +'/notifications/get-all';
 
   ///=========>
+  static var profileUpdateFullNamePatchAPI = baseUrl + '/customers';
   static var profileHeaderUpdatePatchAPI = baseUrl + '/users/update-me';
   static var patchImageUpdateApi= baseUrl + '/files/images/update-image';
   static var uploadThumnailPostApi= baseUrl + '/files/images/upload-image';

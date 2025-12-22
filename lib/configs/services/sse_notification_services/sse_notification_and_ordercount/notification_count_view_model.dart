@@ -105,7 +105,7 @@ class NotificationCountViewModel extends ChangeNotifier {
     debugPrint('🎯 NotificationCountViewModel: Initializing count listener...');
 
     _countSubscription = countStream.listen(
-          (count) {
+      (count) {
         debugPrint('═══════════════════════════════════════════');
         debugPrint('📊 COUNT RECEIVED: $count');
         debugPrint('📊 Previous count: $_notificationCount');
@@ -136,45 +136,6 @@ class NotificationCountViewModel extends ChangeNotifier {
     _notificationCount = count;
     notifyListeners();
     debugPrint('🎯 Initial count set to: $count');
-  }
-
-  // Manually update count (if needed)
-  void updateCount(int count) {
-    _notificationCount = count;
-    notifyListeners();
-    debugPrint('📊 Count manually updated to: $count');
-  }
-
-  // Reset count
-  void resetCount() {
-    _notificationCount = 0;
-    notifyListeners();
-    debugPrint('🔄 Count reset to 0');
-  }
-
-  // Increment count (for local testing)
-  void incrementCount() {
-    _notificationCount++;
-    notifyListeners();
-    debugPrint('➕ Count incremented to: $_notificationCount');
-  }
-
-  // Decrement count (for local testing)
-  void decrementCount() {
-    if (_notificationCount > 0) {
-      _notificationCount--;
-      notifyListeners();
-      debugPrint('➖ Count decremented to: $_notificationCount');
-    }
-  }
-
-  // ✅ Clean up when reinitializing
-  void reset() {
-    _countSubscription?.cancel();
-    _notificationCount = 0;
-    _isInitialized = false;
-    notifyListeners();
-    debugPrint('🔄 NotificationCountViewModel reset');
   }
 
   @override

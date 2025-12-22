@@ -2,6 +2,8 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
@@ -32,9 +34,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
-import 'configs/services/sse_notification_services/sse_notification_count/notification_count_view_model.dart';
 import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
 import 'l10n/app_localizations.dart';
@@ -70,6 +70,7 @@ void main() async {
   ///SSE
   final sseService = SSENotificationService();
   final notificationCountViewModel = NotificationCountViewModel();
+  final runningOrderCountViewModel = RunningOrderCountViewModel();
 
   // ✅ Auto-connect if user is already logged in
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -89,6 +90,10 @@ void main() async {
     notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
     notificationCountViewModel.setInitialCount(sseService.currentCount);
     print("✅ Main: SSE listener initialized with count: ${sseService.currentCount}");
+
+    runningOrderCountViewModel.initializeCountListener(sseService.runningOrderCountStream);
+    runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
+    print("✅ Main: SSE running order listener initialized with count: ${sseService.currentRunningOrderCount}");
   }
 
   runApp(
@@ -111,9 +116,8 @@ void main() async {
 
         Provider<SSENotificationService>.value(value: sseService),
 
-        ChangeNotifierProvider<NotificationCountViewModel>.value(
-          value: notificationCountViewModel,
-        ),
+        ChangeNotifierProvider<NotificationCountViewModel>.value(value: notificationCountViewModel,),
+        ChangeNotifierProvider<RunningOrderCountViewModel>.value(value: runningOrderCountViewModel,),
         ChangeNotifierProvider(create: (_) => GetNotificationViewModel()),
 
         //==============>Order Now
@@ -283,6 +287,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     try {
       final sseService = Provider.of<SSENotificationService>(context, listen: false);
       final notificationCountViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
+      final runningOrderCountViewModel = Provider.of<RunningOrderCountViewModel>(context, listen: false); // ✅ Add this
 
       print("🔔 MyApp: Checking SSE status");
 
@@ -298,11 +303,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         if (!notificationCountViewModel.isInitialized) {
           notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
         }
-
-        // Update with current count
         notificationCountViewModel.setInitialCount(sseService.currentCount);
 
-        print("🔔 MyApp: ✅ SSE reconnected successfully, count: ${sseService.currentCount}");
+        if (!runningOrderCountViewModel.isInitialized) {
+          runningOrderCountViewModel.initializeCountListener(sseService.runningOrderCountStream);
+        }
+        runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
+
+        print("🔔 MyApp: ✅ SSE reconnected successfully");
+        print("🔔 Notification count: ${sseService.currentCount}");
+        print("📦 Running order count: ${sseService.currentRunningOrderCount}");
       } else {
         print("🔔 MyApp: SSE already connected");
       }
