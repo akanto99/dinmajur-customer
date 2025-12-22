@@ -281,7 +281,7 @@ class MapLocationController {
           context,
           listen: false,
         );
-        await addLocationViewModel.addLocationPostApi(context, locationData);
+        await addLocationViewModel.addLocationPostApi(context, locationData,true);
       } catch (e) {
         debugPrint('Error saving location: $e');
         Utils.flushBarErrorMessage('Failed to save location', context);

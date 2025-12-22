@@ -1,6 +1,5 @@
 
 import 'dart:convert';
-import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_count/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';

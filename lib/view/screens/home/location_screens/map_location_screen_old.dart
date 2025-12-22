@@ -301,7 +301,7 @@ class _MapLocationScreenOldState extends State<MapLocationScreenOld> {
         };
 
         final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
-        await addLocationViewModel.addLocationPostApi(context, locationData);
+        await addLocationViewModel.addLocationPostApi(context, locationData,true);
 
 
       } catch (e) {

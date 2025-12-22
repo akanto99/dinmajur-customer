@@ -74,20 +74,29 @@ class WelcomeLoginValidation {
     return cleanPhone.replaceAll(RegExp(r'[^\d]'), '');
   }
 
-  // Validate login form (Full Name + Phone)
-  static Map<String, String?> validateLoginForm({required String fullName, required String phone}) {
-    return {'fullName': validateFullName(fullName), 'phone': validateBangladeshiPhone(phone)};
+  // Validate login form (Full Name + Phone) - fullName is now optional
+  static Map<String, String?> validateLoginForm({String? fullName, required String phone}) {
+    Map<String, String?> errors = {};
+
+    // Only validate fullName if it's provided
+    if (fullName != null) {
+      errors['fullName'] = validateFullName(fullName);
+    }
+
+    errors['phone'] = validateBangladeshiPhone(phone);
+
+    return errors;
   }
 
-  // Check if login form is valid
-  static bool isLoginFormValid({required String fullName, required String phone}) {
+  // Check if login form is valid - fullName is now optional
+  static bool isLoginFormValid({String? fullName, required String phone}) {
     Map<String, String?> validations = validateLoginForm(fullName: fullName, phone: phone);
 
     return validations.values.every((error) => error == null);
   }
 
-  // Get the first error message if any
-  static String? getFirstLoginError({required String fullName, required String phone}) {
+  // Get the first error message if any - fullName is now optional
+  static String? getFirstLoginError({String? fullName, required String phone}) {
     Map<String, String?> validations = validateLoginForm(fullName: fullName, phone: phone);
 
     for (String? error in validations.values) {

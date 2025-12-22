@@ -4,7 +4,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
-import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_count/notification_count_view_model.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/notification_model/get_notificationlist_model.dart';
@@ -269,6 +269,27 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
   Widget _buildNotificationCard(Datum notification, double screenHeight) {
     final isUnread = notification.read == false;
 
+
+    // String orderType = '';
+    // String displayOrderId = '';
+    // String orderIdForNavigation = '';
+    //
+    // if (datum.type == 'BEAUTY_SALON') {
+    //   orderType = 'Premium Beauty Salon';
+    //   displayOrderId = datum.beautySalonBookingId ?? 'N/A';
+    //   orderIdForNavigation = datum.beautySalonBookingId ?? '';
+    // } else if (datum.type == 'HOUSEKEEPER') {
+    //   orderType = 'Premium House Keeper';
+    //   displayOrderId = datum.houseKeeperBookingId ?? 'N/A';
+    //   orderIdForNavigation = datum.houseKeeperBookingId ?? '';
+    // } else if (datum.type == 'ORDER') {
+    //   orderType = 'Grocery Order';
+    //   displayOrderId = datum.orderId ?? 'N/A';
+    //   orderIdForNavigation = datum.orderId ?? '';
+    // }
+
+
+
     return GestureDetector(
       onTap: () {
         // Handle notification tap - navigate to actionUrl if available
@@ -276,6 +297,27 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
           // TODO: Navigate to the action URL
           debugPrint('Navigate to: ${notification.actionUrl}');
         }
+
+        // if (datum.type == 'ORDER') {
+        //   // For grocery orders
+        //   if (isStatus=="Pneding"|| "Running") {
+        //     Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': orderIdForNavigation});
+        //   } else {
+        //     Navigator.pushNamed(context, RoutesName.completeOrdersDetailsScreen, arguments: {'orderId': orderIdForNavigation});
+        //   }
+        // } else if (datum.type == 'HOUSEKEEPER') {
+        //   Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': orderIdForNavigation});
+        // } else if (datum.type == 'BEAUTY_SALON') {
+        //   Navigator.pushNamed(
+        //     context,
+        //     RoutesName.beautyConfirmedScreen,
+        //     arguments: {'trackingId': orderIdForNavigation},
+        //   );
+        // }
+
+
+
+
       },
       child: Container(
         decoration: BoxDecoration(

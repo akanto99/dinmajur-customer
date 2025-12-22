@@ -1,8 +1,8 @@
 // notifications_list_screen.dart
+import 'package:dinmajur_customer/configs/services/sse_notification_services/notificationscreen_with_sse/sse_notification_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
-import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification/sse_notification_view_model.dart';
 
 class NotificationsListScreenOld extends StatefulWidget {
   const NotificationsListScreenOld({Key? key}) : super(key: key);
