@@ -294,7 +294,7 @@ class ErrorStateEmptyHeaderWidget extends StatelessWidget {
         errorMessage.toLowerCase().contains('timeout');
 
     return  Container(
-      height: 60,
+      height: 75,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(24),
@@ -318,8 +318,8 @@ class ErrorStateEmptyHeaderWidget extends StatelessWidget {
                         Scaffold.of(context).openDrawer();
                       },
                       child: Container(
-                        height: 48,
-                        width: 48,
+                        height: 45,
+                        width: 45,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppColors.appBackground(context),
@@ -342,6 +342,7 @@ class ErrorStateEmptyHeaderWidget extends StatelessWidget {
                         );
                       },
                       child: Container(height: 30, width: 30,  padding: const EdgeInsets.all(2),child: SvgPicture.asset('assets/images/home/email.svg', color: AppColors.textPrimary(context)))),
+
                   SizedboxSpaccing.width02(context),
                   GestureDetector(
                     onTap: (){

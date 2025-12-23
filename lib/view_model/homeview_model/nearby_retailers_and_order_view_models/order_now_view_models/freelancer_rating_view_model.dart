@@ -1,11 +1,8 @@
 import 'dart:convert';
-import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/respository/home_repositories/nearby_retailers_and_order_repository/order_now_repository/freelancer_rating_repository.dart';
-import 'package:dinmajur_customer/respository/home_repositories/post_change_password/post_change_password_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class PatchFreelancerRatingViewModel with ChangeNotifier {
   final _myRepo = PatchFreelancerRatingRepository();

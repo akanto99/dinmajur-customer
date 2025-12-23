@@ -7,7 +7,6 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class PatchprofileImageUpdateViewModel with ChangeNotifier {
   final _myRepo = PatchprofileImageUpdateRepository();
@@ -23,16 +22,7 @@ class PatchprofileImageUpdateViewModel with ChangeNotifier {
   Future<void> profileImageUpdatePatchApi(Uint8List imageBytes, String fileName, String imageTypes, int routeCount, BuildContext context) async {
     setprofileImageUpdateLoading(true);
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? accessToken = prefs.getString('accessToken');
-
-      if (accessToken == null || accessToken.isEmpty) {
-        Utils.flushBarErrorMessage('Invalid token', context);
-        setprofileImageUpdateLoading(false);
-        return;
-      }
-
-      final value = await _myRepo.profileImageUpdatePatchApi(imageBytes, accessToken, imageTypes, fileName);
+      final value = await _myRepo.profileImageUpdatePatchApi(imageBytes, imageTypes, fileName);
       setprofileImageUpdateLoading(false);
 
       if (kDebugMode) {
@@ -72,16 +62,7 @@ class PatchprofileImageUpdateViewModel with ChangeNotifier {
   Future<void> uploadImageCoverPatch(Uint8List imageBytes, String fileName, String imageTypes, int routesCount, BuildContext context) async {
     setImageAndCoverUpdateLoading(true);
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? accessToken = prefs.getString('accessToken');
-
-      if (accessToken == null || accessToken.isEmpty) {
-        Utils.flushBarErrorMessage('Invalid token', context);
-        setImageAndCoverUpdateLoading(false);
-        return;
-      }
-
-      final value = await _myRepo.imageAndCoverUploadPatchApi(imageBytes, accessToken, imageTypes, fileName);
+      final value = await _myRepo.imageAndCoverUploadPatchApi(imageBytes, imageTypes, fileName);
       setImageAndCoverUpdateLoading(false);
 
       if (kDebugMode) {

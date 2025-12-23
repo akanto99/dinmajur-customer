@@ -193,7 +193,7 @@ class AddNewLocationController {
       };
 
       final addLocationViewModel = context.read<AddLocationViewModel>();
-      await addLocationViewModel.addLocationPostApi(context, locationData);
+      await addLocationViewModel.addLocationPostApi(context, locationData,true);
 
       debugPrint('Location data to post: $locationData');
     } catch (e) {

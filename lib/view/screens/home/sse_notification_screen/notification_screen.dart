@@ -4,8 +4,9 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
-import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_count/notification_count_view_model.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/notification_model/get_notificationlist_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/notification_view_model/notification_view_model.dart';
@@ -247,7 +248,7 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                             separatorBuilder: (context, index) => const SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               final notification = notifications[index];
-                              return _buildNotificationCard(notification,screenHeight);
+                              return _buildNotificationCard(notification,screenHeight,screenWidth);
                             },
                           ),
                         ),
@@ -266,15 +267,39 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
     );
   }
 
-  Widget _buildNotificationCard(Datum notification, double screenHeight) {
+  Widget _buildNotificationCard(Datum notification, double screenWidth, double screenHeight) {
     final isUnread = notification.read == false;
+    String orderIdForNavigation = '';
+    String? status;
+
+    if (notification.source == 'DELIVERY') {
+      orderIdForNavigation = notification.data?.params?.orderId ?? '';
+      status = notification.data?.status;
+    } else if (notification.source == 'BEAUTY_SALON') {
+      orderIdForNavigation = notification.data?.params?.beautySalonBookingId ?? '';
+      status = notification.data?.status;
+    } else if (notification.source == 'HOUSE_KEEPER') {
+      orderIdForNavigation = notification.data?.params?.houseKeeperBookingId ?? '';
+      status = notification.data?.status;
+    }
 
     return GestureDetector(
       onTap: () {
-        // Handle notification tap - navigate to actionUrl if available
-        if (notification.actionUrl != null && notification.actionUrl!.isNotEmpty) {
-          // TODO: Navigate to the action URL
-          debugPrint('Navigate to: ${notification.actionUrl}');
+        if (notification.source == 'DELIVERY') {
+          // For grocery orders
+          if (status == 'PENDING' || status == 'RUNNING' || status == 'ARRIVED_DESTINATION' || status == 'PICKED_UP') {
+            Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': orderIdForNavigation});
+          } else {
+            Navigator.pushNamed(context, RoutesName.completeOrdersDetailsScreen, arguments: {'orderId': orderIdForNavigation});
+          }
+        } else if (notification.source == 'HOUSE_KEEPER') {
+          Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': orderIdForNavigation});
+        } else if (notification.source == 'BEAUTY_SALON') {
+          Navigator.pushNamed(
+            context,
+            RoutesName.beautyConfirmedScreen,
+            arguments: {'trackingId': orderIdForNavigation},
+          );
         }
       },
       child: Container(
@@ -287,14 +312,14 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
           border: Border.all(color: isUnread ? Colors.blue.shade100 : AppColors.border(context), width: 1),
         ),
         child: Padding(
-          padding:  EdgeInsets.symmetric(horizontal:screenHeight*0.02, vertical:screenHeight*0.01),
+          padding:  EdgeInsets.symmetric(horizontal:screenHeight*0.02, vertical:screenHeight*0.02),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _getNotificationIcon(notification.type ?? ''),
+                  _getNotificationIcon(notification.source ?? ''),
                    SizedboxSpaccing.width03(context),
                   Expanded(
                     child: Column(
@@ -305,7 +330,7 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                             Expanded(
                               child:
                               Text(
-                                _getNotificationTitle(notification.type ?? ''),
+                                notification.data?.title ?? '',
                                 style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
                               ),
                             ),
@@ -330,15 +355,29 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                         ),
 
                         Text(notification.message ?? 'No message',
-                          style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w400),
+                          style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context), weight: FontWeight.w400),
                         ),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
-                            const SizedBox(width: 4),
-                            Text(notification.createdAt != null ? timeago.format(notification.createdAt!) : 'Unknown time',
-                              style: AppTextStyles.textSize12(context, color: Colors.grey.shade600, weight: FontWeight.w500),
+                            Row(
+                              children: [
+                                Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
+                                const SizedBox(width: 4),
+                                Text(notification.createdAt != null ? timeago.format(notification.createdAt!) : 'Unknown time',
+                                  style: AppTextStyles.textSize12(context, color: Colors.grey.shade600, weight: FontWeight.w500),
+                                ),
+                              ],
                             ),
+                            Text(
+                              _formatStatus(notification.data?.status ?? ''),
+                              style: AppTextStyles.textSize12(
+                                  context,
+                                  color: _getStatusColor(notification.data?.status ?? ''),
+                                  weight: FontWeight.w400
+                              ),
+                            ),
+
                           ],
                         ),
                       ],
@@ -352,34 +391,69 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
       ),
     );
   }
+  String _formatStatus(String status) {
+    if (status.isEmpty) return '';
 
-  Widget _getNotificationIcon(String type) {
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return 'Pending';
+      case 'ARRIVED_DESTINATION':
+        return 'Arrived';
+      case 'CONFIRMED':
+        return 'Confirmed';
+      case 'PICKED_UP':
+        return 'Picked Up';
+      case 'DELIVERED':
+        return 'Delivered';
+      case 'COMPLETED':
+        return 'Completed';
+      default:
+        return '';
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return Colors.orange;
+      case 'ARRIVED_DESTINATION':
+        return Colors.blue;
+      case 'CONFIRMED':
+        return Colors.green;
+      case 'PICKED_UP':
+        return Colors.purple;
+      case 'DELIVERED':
+        return Colors.teal;
+      case 'COMPLETED':
+        return Colors.green.shade700;
+      default:
+        return Colors.grey;
+    }
+  }
+  Widget _getNotificationIcon(String source) {
     IconData icon;
     Color color;
 
-    switch (type.toLowerCase()) {
-      case 'new_order':
-      case 'order_placed':
-      case 'order_confirmed':
+    switch (source.toUpperCase()) {
+      case 'DELIVERY':
         icon = Icons.shopping_bag;
         color = AppColors.textPrimary(context);
         break;
-      case 'order_delivered':
-        icon = Icons.check_circle;
-        color = Colors.blue;
+      case 'HOUSE_KEEPER':
+        icon = Icons.cleaning_services;
+        color = AppColors.textPrimary(context);
         break;
-      case 'order_cancelled':
-        icon = Icons.cancel;
-        color = Colors.red;
+      case 'BEAUTY_SALON':
+        icon = Icons.spa;
+        color = AppColors.textPrimary(context);
         break;
-      case 'delivery_update':
-        icon = Icons.local_shipping;
-        color = Colors.orange;
-        break;
-      case 'promotion':
-      case 'offer':
+      case 'PROMOTION':
         icon = Icons.local_offer;
         color = Colors.purple;
+        break;
+      case 'OFFER':
+        icon = Icons.discount;
+        color = Colors.orange;
         break;
       default:
         icon = Icons.notifications;
@@ -388,32 +462,12 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
 
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(5),
+      ),
       child: Icon(icon, size: 24, color: color),
     );
-  }
-
-  String _getNotificationTitle(String type) {
-    switch (type.toLowerCase()) {
-      case 'new_order':
-        return 'New Order';
-      case 'order_placed':
-        return 'Order Placed';
-      case 'order_confirmed':
-        return 'Order Confirmed';
-      case 'order_delivered':
-        return 'Order Delivered';
-      case 'order_cancelled':
-        return 'Order Cancelled';
-      case 'delivery_update':
-        return 'Delivery Update';
-      case 'promotion':
-        return 'Promotion';
-      case 'offer':
-        return 'Special Offer';
-      default:
-        return 'Notification';
-    }
   }
 
   Color _getPriorityColor(String priority) {

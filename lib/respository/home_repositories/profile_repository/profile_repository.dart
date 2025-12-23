@@ -20,4 +20,19 @@ class ProfileRepository {
       throw e;
     }
   }
+
+
+  Future<dynamic> profileUpdatePatchAPI(dynamic data) async {
+    try {
+      dynamic response = await _apiServices.getPatchApiResponse(
+        AppUrl.profileUpdateFullNamePatchAPI,
+        data,
+      );
+      return response;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+
 }

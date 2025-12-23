@@ -120,9 +120,21 @@ class _OffersScreenState extends State<OffersScreen> {
                   _buildPromoInputSection(screenWidth, screenHeight),
 
                   SizedboxSpaccing.height03(context),
+                  Row(
+                    children: [
+                      Text('Available Promos', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                      Text(
+                        ' (0)',
+                        style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
+                      ),
+                    ],
+                  ),
+                  SizedboxSpaccing.height01(context),
+                  Divider(height: 1, color: AppColors.border(context)),
+                  SizedboxSpaccing.height03(context),
 
                   // Available Promos Section
-                  _buildAvailablePromosSection(screenWidth, screenHeight),
+                  // _buildAvailablePromosSection(screenWidth, screenHeight),
                 ],
               ),
             ),

@@ -1,10 +1,12 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/configs/widgets/datetime_formatter.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/order_models/get_all_order_model.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -35,6 +37,7 @@ class _OrderScreenState extends State<OrderScreen> {
       runningOrderViewModel.fetchPendingOrdersGetDataApi();
     });
   }
+
   Future<void> _handleRefresh() async {
     try {
       debugPrint('🔄 OrderScreen: Pull to refresh triggered');
@@ -51,8 +54,7 @@ class _OrderScreenState extends State<OrderScreen> {
         final runningOrderViewModel = Provider.of<RunningOrdersViewModel>(context, listen: false);
         await runningOrderViewModel.fetchRunningOrdersGetDataApi();
         debugPrint('🔄 OrderScreen: Running orders refreshed');
-      }
-      else if (_selectedTabIndex == 2) {
+      } else if (_selectedTabIndex == 2) {
         // Completed orders tab
         final completeOrderViewModel = Provider.of<CompleteOrdersViewModel>(context, listen: false);
         await completeOrderViewModel.fetchCompleteOrdersGetDataApi();
@@ -60,8 +62,6 @@ class _OrderScreenState extends State<OrderScreen> {
       }
 
       debugPrint('🔄 OrderScreen: Refresh completed successfully');
-
-
     } catch (e) {
       debugPrint('🔄 OrderScreen: Refresh failed - $e');
       if (mounted) {
@@ -69,6 +69,7 @@ class _OrderScreenState extends State<OrderScreen> {
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -87,22 +88,16 @@ class _OrderScreenState extends State<OrderScreen> {
       children: [
         // Header AppBar
         GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0))),
-            child: AppBarHeader("Orders")),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0))),
+          child: AppBarHeader("Orders"),
+        ),
 
         /// Tabs
         Container(
           width: screenWidth,
           height: 50,
           color: AppColors.containerBackground(context),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTab("Pending", 0),
-              _buildTab("Running", 1),
-              _buildTab("Completed", 2)
-            ],
-          ),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildTab("Pending", 0), _buildTab("Running", 1), _buildTab("Completed", 2)]),
         ),
         SizedboxSpaccing.height015(context),
 
@@ -114,10 +109,7 @@ class _OrderScreenState extends State<OrderScreen> {
             backgroundColor: AppColors.containerBackground(context),
             displacement: 40,
             strokeWidth: 2.0,
-            child: Container(
-              width: screenWidth * 0.9,
-              child: _getSelectedWidget(),
-            ),
+            child: Container(width: screenWidth * 0.9, child: _getSelectedWidget()),
           ),
         ),
       ],
@@ -145,8 +137,7 @@ class _OrderScreenState extends State<OrderScreen> {
           // Running tab clicked - reload running orders
           final runningOrderViewModel = Provider.of<RunningOrdersViewModel>(context, listen: false);
           runningOrderViewModel.fetchRunningOrdersGetDataApi();
-        }
-        else if (index == 2) {
+        } else if (index == 2) {
           // Complete tab clicked - reload completed orders
           final completeOrderViewModel = Provider.of<CompleteOrdersViewModel>(context, listen: false);
           completeOrderViewModel.fetchCompleteOrdersGetDataApi();
@@ -156,12 +147,7 @@ class _OrderScreenState extends State<OrderScreen> {
         width: screenWidth * 0.3,
         decoration: BoxDecoration(
           color: Colors.transparent,
-          border: Border(
-            bottom: BorderSide(
-              color: AppColors.border(context),
-              width: 1.0,
-            ),
-          ),
+          border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -169,21 +155,9 @@ class _OrderScreenState extends State<OrderScreen> {
             SizedBox(height: 2),
             Text(
               title,
-              style: AppTextStyles.textSize16(
-                context,
-                color: isSelected
-                    ? AppColors.button(context)
-                    : AppColors.form_hover(context),
-                weight: FontWeight.w500,
-              ),
+              style: AppTextStyles.textSize16(context, color: isSelected ? AppColors.button(context) : AppColors.form_hover(context), weight: FontWeight.w500),
             ),
-            Container(
-              width: screenWidth * 0.4,
-              height: 2,
-              color: isSelected
-                  ? AppColors.button(context)
-                  : AppColors.containerBackground(context),
-            ),
+            Container(width: screenWidth * 0.4, height: 2, color: isSelected ? AppColors.button(context) : AppColors.containerBackground(context)),
           ],
         ),
       ),
@@ -211,51 +185,51 @@ class _OrderScreenState extends State<OrderScreen> {
       builder: (context, viewModel, child) {
         switch (viewModel.pendingOrdersData.status) {
           case Status.LOADING:
-            return  Container(height: screenHeight,
-                color: AppColors.containerBackground(context),
-                child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
-          case Status.ERROR:
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 60,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Error loading orders',
-                    style: AppTextStyles.textSize16(context),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    viewModel.pendingOrdersData.message.toString(),
-                    style: AppTextStyles.textSize12(
-                      context,
-                      color: AppColors.subtitle(context),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      viewModel.fetchPendingOrdersGetDataApi();
-                    },
-                    child: Text('Retry'),
-                  ),
-                ],
+            return Container(
+              height: screenHeight,
+              color: AppColors.containerBackground(context),
+              child: Center(
+                child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45)),
               ),
             );
+          case Status.ERROR:
+            return Container(
+              height: screenHeight,
+              child: ErrorStateWidget(
+                errorMessage: viewModel.pendingOrdersData.message.toString(),
+                onRetry: () {
+                  viewModel.fetchPendingOrdersGetDataApi();              },
+              ),
+            );
+            //
+            //   Center(
+            //   child: Column(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: [
+            //       Icon(Icons.error_outline, color: Colors.red, size: 60),
+            //       SizedBox(height: 16),
+            //       Text('Error loading orders', style: AppTextStyles.textSize16(context)),
+            //       SizedBox(height: 8),
+            //       Text(
+            //         viewModel.pendingOrdersData.message.toString(),
+            //         style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+            //         textAlign: TextAlign.center,
+            //       ),
+            //       SizedBox(height: 16),
+            //       ElevatedButton(
+            //         onPressed: () {
+            //           viewModel.fetchPendingOrdersGetDataApi();
+            //         },
+            //         child: Text('Retry'),
+            //       ),
+            //     ],
+            //   ),
+            // );
 
           case Status.COMPLETED:
             final orderData = viewModel.pendingOrdersData.data;
 
-            if (orderData == null ||
-                orderData.data == null ||
-                orderData.data!.data == null ||
-                orderData.data!.data!.isEmpty) {
+            if (orderData == null || orderData.data == null || orderData.data!.data == null || orderData.data!.data!.isEmpty) {
               // ✅ IMPORTANT: Wrap empty state with ListView to enable pull-to-refresh
               return ListView(
                 physics: AlwaysScrollableScrollPhysics(),
@@ -266,23 +240,13 @@ class _OrderScreenState extends State<OrderScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            FontAwesomeIcons.boxOpen,
-                            color: AppColors.subtitle(context),
-                            size: 50,
-                          ),
+                          Icon(FontAwesomeIcons.boxOpen, color: AppColors.subtitle(context), size: 50),
                           SizedBox(height: 16),
-                          Text(
-                            'No Pending Orders',
-                            style: AppTextStyles.textSize16(context),
-                          ),
+                          Text('No Pending Orders', style: AppTextStyles.textSize16(context)),
                           SizedBox(height: 8),
                           Text(
                             'You don\'t have any pending orders at the moment',
-                            style: AppTextStyles.textSize12(
-                              context,
-                              color: AppColors.subtitle(context),
-                            ),
+                            style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -312,6 +276,7 @@ class _OrderScreenState extends State<OrderScreen> {
       },
     );
   }
+
   Widget WidgetRunningOrder() {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -320,51 +285,28 @@ class _OrderScreenState extends State<OrderScreen> {
       builder: (context, viewModel, child) {
         switch (viewModel.runningOrdersData.status) {
           case Status.LOADING:
-            return  Container(height: screenHeight,
-                color: AppColors.containerBackground(context),
-                child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
+            return Container(
+              height: screenHeight,
+              color: AppColors.containerBackground(context),
+              child: Center(
+                child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45)),
+              ),
+            );
           case Status.ERROR:
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 60,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Error loading orders',
-                    style: AppTextStyles.textSize16(context),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    viewModel.runningOrdersData.message.toString(),
-                    style: AppTextStyles.textSize12(
-                      context,
-                      color: AppColors.subtitle(context),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      viewModel.fetchRunningOrdersGetDataApi();
-                    },
-                    child: Text('Retry'),
-                  ),
-                ],
+            return Container(
+              height: screenHeight,
+              child: ErrorStateWidget(
+                errorMessage: viewModel.runningOrdersData.message.toString(),
+                onRetry: () {
+                  viewModel.fetchRunningOrdersGetDataApi();
+                  },
               ),
             );
 
           case Status.COMPLETED:
             final orderData = viewModel.runningOrdersData.data;
 
-            if (orderData == null ||
-                orderData.data == null ||
-                orderData.data!.data == null ||
-                orderData.data!.data!.isEmpty) {
+            if (orderData == null || orderData.data == null || orderData.data!.data == null || orderData.data!.data!.isEmpty) {
               // ✅ IMPORTANT: Wrap empty state with ListView to enable pull-to-refresh
               return ListView(
                 physics: AlwaysScrollableScrollPhysics(),
@@ -375,23 +317,13 @@ class _OrderScreenState extends State<OrderScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            FontAwesomeIcons.boxOpen,
-                            color: AppColors.subtitle(context),
-                            size: 50,
-                          ),
+                          Icon(FontAwesomeIcons.boxOpen, color: AppColors.subtitle(context), size: 50),
                           SizedBox(height: 16),
-                          Text(
-                            'No Running Orders',
-                            style: AppTextStyles.textSize16(context),
-                          ),
+                          Text('No Running Orders', style: AppTextStyles.textSize16(context)),
                           SizedBox(height: 8),
                           Text(
                             'You don\'t have any running orders at the moment',
-                            style: AppTextStyles.textSize12(
-                              context,
-                              color: AppColors.subtitle(context),
-                            ),
+                            style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -430,53 +362,28 @@ class _OrderScreenState extends State<OrderScreen> {
       builder: (context, viewModel, child) {
         switch (viewModel.completeOrdersData.status) {
           case Status.LOADING:
-            return  Container(height: screenHeight,
-                color: AppColors.containerBackground(context),
-                child: Center(child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45))));
-
-
-          case Status.ERROR:
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 60,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Error loading orders',
-                    style: AppTextStyles.textSize16(context),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    viewModel.completeOrdersData.message.toString(),
-                    style: AppTextStyles.textSize12(
-                      context,
-                      color: AppColors.subtitle(context),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      viewModel.fetchCompleteOrdersGetDataApi();
-                    },
-                    child: Text('Retry'),
-                  ),
-                ],
+            return Container(
+              height: screenHeight,
+              color: AppColors.containerBackground(context),
+              child: Center(
+                child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45)),
               ),
             );
 
+          case Status.ERROR:
+            return Container(
+              height: screenHeight,
+              child: ErrorStateWidget(
+                errorMessage: viewModel.completeOrdersData.message.toString(),
+                onRetry: () {
+                  viewModel.fetchCompleteOrdersGetDataApi();
+                },
+              ),
+            );
           case Status.COMPLETED:
             final orderData = viewModel.completeOrdersData.data;
 
-            if (orderData == null ||
-                orderData.data == null ||
-                orderData.data!.data == null ||
-                orderData.data!.data!.isEmpty) {
+            if (orderData == null || orderData.data == null || orderData.data!.data == null || orderData.data!.data!.isEmpty) {
               // ✅ IMPORTANT: Wrap empty state with ListView to enable pull-to-refresh
               return ListView(
                 physics: AlwaysScrollableScrollPhysics(),
@@ -487,23 +394,13 @@ class _OrderScreenState extends State<OrderScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            FontAwesomeIcons.checkCircle,
-                            color: AppColors.subtitle(context),
-                            size: 50,
-                          ),
+                          Icon(FontAwesomeIcons.checkCircle, color: AppColors.subtitle(context), size: 50),
                           SizedBox(height: 16),
-                          Text(
-                            'No Completed Orders',
-                            style: AppTextStyles.textSize16(context),
-                          ),
+                          Text('No Completed Orders', style: AppTextStyles.textSize16(context)),
                           SizedBox(height: 8),
                           Text(
                             'You don\'t have any completed orders yet',
-                            style: AppTextStyles.textSize12(
-                              context,
-                              color: AppColors.subtitle(context),
-                            ),
+                            style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -534,119 +431,168 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  Widget _buildOrderCard(
-      Datum datum,
-      double screenWidth,
-      double screenHeight, {
-        bool isPendingTab = false,
-        bool isRunningTab = false,
-      }) {
+  Widget _buildOrderCard(Datum datum, double screenWidth, double screenHeight, {bool isPendingTab = false, bool isRunningTab = false}) {
+    // Extract data based on type
+    String orderType = '';
+    String displayOrderId = '';
+    String orderIdForNavigation = '';
 
-    final order = datum.order;
-    final retailer = datum.retailer;
+    if (datum.type == 'BEAUTY_SALON') {
+      orderType = 'Premium Beauty Salon';
+      displayOrderId = datum.beautySalonBookingId ?? 'N/A';
+      orderIdForNavigation = datum.beautySalonBookingId ?? '';
+    } else if (datum.type == 'HOUSEKEEPER') {
+      orderType = 'Premium House Keeper';
+      displayOrderId = datum.houseKeeperBookingId ?? 'N/A';
+      orderIdForNavigation = datum.houseKeeperBookingId ?? '';
+    } else if (datum.type == 'ORDER') {
+      orderType = 'Grocery Order';
+      displayOrderId = datum.orderId ?? 'N/A';
+      orderIdForNavigation = datum.orderId ?? '';
+    }
+
+    // Get last 6 characters of order ID for display
+    String shortOrderId = displayOrderId.length > 6 ? displayOrderId.substring(displayOrderId.length - 6) : displayOrderId;
 
     return Container(
       margin: EdgeInsets.only(bottom: screenHeight * 0.02),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(8),
+      decoration: BoxDecoration(color: AppColors.containerBackground(context),
+          borderRadius: BorderRadius.circular(8),
+        border: Border.all(width: 1, color: AppColors.border(context)),
       ),
       child: GestureDetector(
         onTap: () {
-          if (isPendingTab) {
+          // Navigate based on type
+          if (datum.type == 'ORDER') {
+            // For grocery orders
+            if (isPendingTab || isRunningTab) {
+              Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': orderIdForNavigation});
+            } else {
+              Navigator.pushNamed(context, RoutesName.completeOrdersDetailsScreen, arguments: {'orderId': orderIdForNavigation});
+            }
+          } else if (datum.type == 'HOUSEKEEPER') {
+            Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': orderIdForNavigation});
+
+            // Navigate to House Keeper screen
+            // Navigator.pushNamed(
+            //   context,
+            //   RoutesName.houseKeeperOrderDetailsScreen, // Replace with your actual route
+            //   arguments: {'bookingId': orderIdForNavigation},
+            // );
+          } else if (datum.type == 'BEAUTY_SALON') {
             Navigator.pushNamed(
               context,
-              RoutesName.trackOrderViewdetailsSocketScreen,
-              arguments: {'orderId': order?.id ?? ''},
+              RoutesName.beautyConfirmedScreen,
+              arguments: {'trackingId': orderIdForNavigation},
             );
-          } else if (isRunningTab) {
-            Navigator.pushNamed(
-              context,
-              RoutesName.trackOrderViewdetailsSocketScreen,
-              arguments: {'orderId': order?.id ?? ''},
-            );
-          } else {
-            Navigator.pushNamed(
-              context,
-              RoutesName.completeOrdersDetailsScreen,
-              arguments: {'orderId': order?.id ?? ''},
-            );
+            // Navigate to Beauty Salon screen
+            // Navigator.pushNamed(
+            //   context,
+            //   RoutesName.beautySalonOrderDetailsScreen, // Replace with your actual route
+            //   arguments: {'bookingId': orderIdForNavigation},
+            // );
           }
         },
         child: Container(
           padding: EdgeInsets.all(screenHeight * 0.02),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(width: 1, color: AppColors.border(context)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          color: Colors.transparent,
+          child: Column(
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(color: AppColors.hintColor(context).withOpacity(0.5), borderRadius: BorderRadius.circular(8)),
+                          child: Icon(_getIconForType(datum.type), color: AppColors.textPrimary(context), size: 16),
+                        ),
+                        SizedboxSpaccing.width03(context),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                orderType,
+                                style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                "Order #$shortOrderId",
+                                style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                              ),
+                              if (datum.createdAt != null)
+                                Text(
+                                  DateTimeFormatter.formatRelativeDateTime(datum.createdAt!),
+                                  style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context), weight: FontWeight.w400),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.textPrimary(context),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.store,
-                      color: AppColors.containerBackground(context),
-                      size: 16,
-                    ),
-                  ),
-                  SizedboxSpaccing.width03(context),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Order #${order?.id?.substring(order!.id!.length - 6) ?? 'N/A'}",
-                        style: AppTextStyles.textSize14(
-                          context,
-                          weight: FontWeight.w400,
-                          color: AppColors.textPrimary(context),
-                        ),
-                      ),
-                      Text(
-                        retailer?.businessName ?? 'Unknown Store',
-                        style: AppTextStyles.textSize12(
-                          context,
-                          color: AppColors.subtitle(context),
-                          weight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    "৳${order?.budget ?? 0}",
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    order?.status ?? 'Unknown',
-                    style: AppTextStyles.textSize10(
-                      context,
-                      color: AppColors.textPrimary(context),
-                      weight: FontWeight.w400,
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: _getStatusColor(datum.status ?? '').withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                    child: Text(
+                      datum.status ?? 'Unknown',
+                      style: AppTextStyles.textSize10(context, color: _getStatusColor(datum.status ?? ''), weight: FontWeight.w500),
                     ),
                   ),
                 ],
               ),
+              SizedboxSpaccing.height015(context),
+              Divider(height: 1,color: AppColors.border(context),),
+
+              Container(
+                height: screenHeight * 0.04,
+                color: Colors.transparent,
+                alignment: Alignment.bottomCenter,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("৳${datum.total ?? 0}", style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                    Row(
+                      children: [
+                        Text("View Details ", style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                     SizedboxSpaccing.width01(context),
+                        Icon(FontAwesomeIcons.arrowRight, size: 15,)
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
             ],
           ),
         ),
       ),
     );
   }
+
+  // Helper method to get icon based on type
+  IconData _getIconForType(String? type) {
+    switch (type) {
+      case 'BEAUTY_SALON':
+        return FontAwesomeIcons.scissors; // or FontAwesomeIcons.spa
+      case 'HOUSEKEEPER':
+        return FontAwesomeIcons.broom; // or FontAwesomeIcons.home
+      case 'ORDER':
+        return FontAwesomeIcons.store;
+      default:
+        return FontAwesomeIcons.fileInvoice;
+    }
+  }
+
+
+
 
   Color _getStatusColor(String status) {
     switch (status.toUpperCase()) {

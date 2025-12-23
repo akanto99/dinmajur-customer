@@ -594,7 +594,9 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
               width: screenWidth * 0.42,
               child: RoundButtonFlexible(
                 title: "edit",
-                onPress: () {},
+                onPress: () {
+                  Navigator.pop(context);
+                },
                 showLeftIcon: true,
                 showRightIcon: false,
                 leftIcon: FontAwesomeIcons.edit,

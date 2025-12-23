@@ -1,12 +1,8 @@
 import 'dart:convert';
-import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/respository/home_repositories/dropdown_categories_selection_repositories/beauty_and_salon_repository/book_premium_home_beauty_salon_repository.dart';
-import 'package:dinmajur_customer/respository/home_repositories/dropdown_categories_selection_repositories/premium_house_keeper_repository/book_premium_house_keeper_repository.dart';
-import 'package:dinmajur_customer/respository/home_repositories/post_change_password/post_change_password_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class PostBookPremiumHomeBeautySalonViewModel with ChangeNotifier {
   final _myRepo = BookPremiumHomeBeautySalonRepository();

@@ -7,6 +7,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/socket_home_model/socket_get_all_orders_model/socket_orderdetails_model.dart';
 import 'package:dinmajur_customer/socket_connection_model/screens_sockets/home_sceens_socket/get_all_orders_socket/socket_order_view_details.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
+import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -431,7 +432,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0))),
           child: Container(height: 60, child: AppBarHeader("Track Order Details")),
         ),
         Expanded(child: _buildContent()),

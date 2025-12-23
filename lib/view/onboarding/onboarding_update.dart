@@ -368,11 +368,11 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
     prefs.setBool("showHome", true);
 
     if (mounted) {
-      Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
+      Navigator.pushNamed(context, RoutesName.authLoginWelcome);
     }
   }
 
-  /// Navigate to login
+  /// Navigate to auth_login
   void _goToHome() async {
     _pageTransitionController.reverse();
 
@@ -380,7 +380,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
     prefs.setBool('showHome', true);
 
     if (mounted) {
-      Navigator.pushNamed(context, RoutesName.welcomeLoginSignup);
+      Navigator.pushNamed(context, RoutesName.authLoginWelcome);
     }
   }
 
