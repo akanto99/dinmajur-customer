@@ -74,10 +74,12 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
           height: screenHeight,
           alignment: Alignment.topCenter,
           child: Container(
-            height: screenHeight * 0.48,
+            height: screenHeight * 0.5,
+            padding: EdgeInsets.symmetric(horizontal: screenWidth*0.01),
             width: screenWidth,
             color: AppColors.border(context),
-            child: SvgPicture.asset("assets/images/login/welcome.svg", fit: BoxFit.cover),
+            // child: SvgPicture.asset("assets/images/login/welcome.svg", fit: BoxFit.cover),
+            child: SvgPicture.asset("assets/images/login/din_wel.svg", fit: BoxFit.cover),
           ),
         ),
         Positioned(
@@ -86,7 +88,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
             color: AppColors.border(context),
             child: Center(
               child: Container(
-                height: screenHeight * 0.49,
+                height: screenHeight * 0.5,
                 width: screenWidth,
                 decoration: BoxDecoration(
                   // color: AppColors.darkRedColor,
