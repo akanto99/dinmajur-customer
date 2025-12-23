@@ -97,6 +97,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
         upgrader: Upgrader(
           // debugLogging: true,
           // debugDisplayAlways: true
+          countryCode: 'BD',
+          languageCode: 'en',
         ),
         child: WillPopScope(
           onWillPop: () async {

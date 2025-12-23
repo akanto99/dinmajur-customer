@@ -24,6 +24,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:dinmajur_customer/view_model/order_view_models/complete_orders_view_model.dart';
 import 'package:dinmajur_customer/view_model/order_view_models/running_orders_view_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -64,6 +65,7 @@ void main() async {
   final languageProvider = LanguageChangeProvider();
   await languageProvider.getLanguage();
 
+  await Upgrader.clearSavedSettings();
 
   ///SOCKET.IO
   final socketProvider = SocketProvider();
