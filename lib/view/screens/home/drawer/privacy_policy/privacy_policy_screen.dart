@@ -176,7 +176,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                                   _buildPrivacySection(
                                     'Security',
                                     [
-                                      'We apply industry-standard safeguards (encryption, secure storage, restricted access). However, no system is 100% secure. Please keep your login OTP/private details confidential.',
+                                      'We apply industry-standard safeguards (encryption, secure storage, restricted access). However, no system is 100% secure. Please keep your auth_login OTP/private details confidential.',
                                     ],
                                   ),
 

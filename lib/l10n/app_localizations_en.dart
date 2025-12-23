@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phone_hint => '01XXXXXXXXX';
 
   @override
+  String get phone_hint_new => '1XXXXXXXXX';
+
+  @override
   String get password => 'Password';
 
   @override
@@ -52,6 +55,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sign_in => 'Sign In';
+
+  @override
+  String get login_with_otp => 'Login with OTP';
 
   @override
   String get new_user => 'New user?';
@@ -319,6 +325,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get select_store_type_hint => 'Select';
+
+  @override
+  String get select_dropdown_hint => 'Primium House Keeper';
 
   @override
   String nearby_stores(Object count) {

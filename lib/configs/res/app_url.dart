@@ -1,19 +1,27 @@
 class AppUrl {
 
-  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
-  // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
+  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
 
-  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
-  static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+  // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
-  static var loginEndPint = baseUrl + '/auth/login';
+  static var loginEndPint = baseUrl + '/auth/auth_login';
   static var emailCheckEndPoint = baseUrl + '/auth/check-email';
 
+
+  ///New
+  static var customerAuthSendOtpApi = baseUrl + '/auth/login-customer';
+  static var customerAuthOtpVeryfyApi = baseUrl + '/auth/verify-customer-otp';
+  static var resendOtpApi = baseUrl + '/auth/resend-otp';
+
+
+
+
   ///Multisteps
-  static var otpApi = baseUrl + '/users/create';
-  static var otpVerify = baseUrl + '/auth/verify-otp';
+
   // static var imageApi= baseUrl + '/users/upload-profile-picture';
   static var imageApi= baseUrl + '/files/images/upload-image';
 
@@ -32,10 +40,10 @@ class AppUrl {
   static var notificationGetAPI = baseUrl +'/notifications/get-all';
 
   ///=========>
+  static var profileUpdateFullNamePatchAPI = baseUrl + '/customers';
   static var profileHeaderUpdatePatchAPI = baseUrl + '/users/update-me';
   static var patchImageUpdateApi= baseUrl + '/files/images/update-image';
   static var uploadThumnailPostApi= baseUrl + '/files/images/upload-image';
-  static var changePasswordPostAPI = baseUrl + "/auth/change-password";//Change Password
   //=====>----------------------------Payment method
   static var paymentMethodBkashNagadGetAPI = baseUrl + '/payment-methods?provider=';
   static var bkashNagadGetAPI = baseUrl + '/payment-methods';

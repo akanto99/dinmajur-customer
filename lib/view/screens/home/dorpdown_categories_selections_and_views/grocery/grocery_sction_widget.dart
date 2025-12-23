@@ -73,29 +73,29 @@ class GroceryStoresSection extends StatelessWidget {
           ),
 
         // Header section - only show when not loading and stores exist
-        if (!isLoading && stores.isNotEmpty)
-          Container(
-            width: screenWidth * 0.9,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(AppLocalizations.of(context)!.nearby_stores(stores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-                    GestureDetector(
-                      onTap: () {
-                        // Navigate to see all retail stores
-                      },
-                      child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-                    ),
-                  ],
-                ),
-                Divider(height: 1, color: AppColors.border(context)),
-              ],
-            ),
-          ),
+        // if (!isLoading && stores.isNotEmpty)
+        //   Container(
+        //     width: screenWidth * 0.9,
+        //     child: Column(
+        //       children: [
+        //         Row(
+        //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //           children: [
+        //             Text(AppLocalizations.of(context)!.nearby_stores(stores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+        //             GestureDetector(
+        //               onTap: () {
+        //                 // Navigate to see all retail stores
+        //               },
+        //               child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+        //             ),
+        //           ],
+        //         ),
+        //         Divider(height: 1, color: AppColors.border(context)),
+        //       ],
+        //     ),
+        //   ),
 
-        if (!isLoading && stores.isNotEmpty) SizedboxSpaccing.height02(context),
+        // if (!isLoading && stores.isNotEmpty) SizedboxSpaccing.height02(context),
 
         // Stores list
         if (!isLoading && stores.isNotEmpty) _buildRetailStoresList(context),
@@ -262,7 +262,9 @@ class GroceryStoresSection extends StatelessWidget {
               ),
             ],
           ),
-          SizedboxSpaccing.height02(context),
+          SizedboxSpaccing.height012(context),
+          Divider(height: 1,color: AppColors.border(context),),
+          SizedboxSpaccing.height012(context),
           RoundButton(
             title: AppLocalizations.of(context)!.order_now,
             onPress: () => _navigateToOrderScreen(context, store, distanceText, durationText, businessName, isAvailable, businessType, userID, logoUrl, fullAddress, storeLatitude, storeLongitude),

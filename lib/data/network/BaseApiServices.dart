@@ -5,7 +5,7 @@ abstract class BaseApiServices {
   Future<dynamic> getGetApiResponse(String url);
   Future<dynamic> getGetApiWithHeaderResponse(String url, {Map<String, String>? headers});
 
-  ///All Post Api Response {login, otpApi, emailvalidation}
+  ///All Post Api Response {auth_login, otpApi, emailvalidation}
   Future<dynamic> getPostApiResponse(String url, dynamic data);
   Future<dynamic> getPostApiWithOutBodyresponse(String url,{Map<String, String>? headers});
   Future<dynamic> gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers});

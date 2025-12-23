@@ -44,7 +44,7 @@ class OrderSocketProvider with ChangeNotifier {
     // _userId = sp.getString('userId');
     //
     // if (_userId == null || _userId!.isEmpty) {
-    //   _ordersError = 'User ID not found. Please login again.';
+    //   _ordersError = 'User ID not found. Please auth_login again.';
     //   _isLoadingOrders = false;
     //   notifyListeners();
     //   if (kDebugMode) print('📦 Get All Order: ❌ No userId found in SharedPreferences');

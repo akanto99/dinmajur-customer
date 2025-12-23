@@ -148,7 +148,9 @@ class PremiumHouseKeeperCoverageWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedboxSpaccing.height02(context),
+              SizedboxSpaccing.height012(context),
+              Divider(height: 1,color: AppColors.border(context),),
+              SizedboxSpaccing.height012(context),
               // Book Now Button
               RoundButton(
                 title: "Book Now",

@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'01XXXXXXXXX'**
   String get phone_hint;
 
+  /// No description provided for @phone_hint_new.
+  ///
+  /// In en, this message translates to:
+  /// **'1XXXXXXXXX'**
+  String get phone_hint_new;
+
   /// No description provided for @password.
   ///
   /// In en, this message translates to:
@@ -187,6 +193,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign In'**
   String get sign_in;
+
+  /// No description provided for @login_with_otp.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with OTP'**
+  String get login_with_otp;
 
   /// No description provided for @new_user.
   ///
@@ -685,6 +697,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select'**
   String get select_store_type_hint;
+
+  /// No description provided for @select_dropdown_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Primium House Keeper'**
+  String get select_dropdown_hint;
 
   /// No description provided for @nearby_stores.
   ///

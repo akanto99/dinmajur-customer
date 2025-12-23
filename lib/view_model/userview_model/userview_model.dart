@@ -3,6 +3,7 @@ import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+
 class UserViewModel with ChangeNotifier {
   String? _accessToken;
   String? get accessToken => _accessToken;
@@ -59,17 +60,16 @@ class UserViewModel with ChangeNotifier {
     await sp.setString('phone', userModel.data?.user?.phone ?? '');
     await sp.setString('role', userModel.data?.user?.role ?? '');
     await sp.setString('userStatus', userModel.data?.user?.userStatus ?? '');
-    await sp.setBool('isRegistered', userModel.data?.user?.isRegistered ?? false);
-    await sp.setBool('isPhoneVerified', userModel.data?.user?.isPhoneVerified ?? false);
-    await sp.setString('firstName', userModel.data?.user?.firstName ?? '');
-    await sp.setString('lastName', userModel.data?.user?.lastName ?? '');
+    await sp.setString('fullName', userModel.data?.user?.fullName ?? '');
 
     // Handle ProfilePicture object properly
     String profilePictureUrl = userModel.data?.user?.profilePicture?.url ?? '';
     String profilePictureAltText = userModel.data?.user?.profilePicture?.altText ?? '';
+    String profilePictureKey = userModel.data?.user?.profilePicture?.key ?? '';
 
     await sp.setString('profilePictureUrl', profilePictureUrl);
     await sp.setString('profilePictureAltText', profilePictureAltText);
+    await sp.setString('profilePictureKey', profilePictureKey);
     await sp.setString('message', userModel.message ?? '');
 
     // Update local state
@@ -92,11 +92,13 @@ class UserViewModel with ChangeNotifier {
     ProfilePicture? profilePicture;
     final profilePictureUrl = sp.getString('profilePictureUrl');
     final profilePictureAltText = sp.getString('profilePictureAltText');
+    final profilePictureKey = sp.getString('profilePictureKey');
 
     if (profilePictureUrl != null && profilePictureUrl.isNotEmpty) {
       profilePicture = ProfilePicture(
         url: profilePictureUrl,
         altText: profilePictureAltText,
+        key: profilePictureKey,
       );
     }
 
@@ -112,15 +114,8 @@ class UserViewModel with ChangeNotifier {
           phone: sp.getString('phone'),
           role: sp.getString('role'),
           userStatus: sp.getString('userStatus'),
-          isRegistered: sp.getBool('isRegistered') ?? false,
-          isPhoneVerified: sp.getBool('isPhoneVerified') ?? false,
-          firstName: sp.getString('firstName'),
-          lastName: sp.getString('lastName'),
+          fullName: sp.getString('fullName'),
           profilePicture: profilePicture,
-          isDeliveryPerson: sp.getBool('isDeliveryPerson') ?? false,
-          checkedJoinUs: sp.getBool('checkedJoinUs') ?? false,
-          checkedSelectServices: sp.getBool('checkedSelectServices') ?? false,
-          checkedSelectArea: sp.getBool('checkedSelectArea') ?? false,
         ),
       ),
     );
@@ -140,16 +135,10 @@ class UserViewModel with ChangeNotifier {
     await sp.remove('phone');
     await sp.remove('role');
     await sp.remove('userStatus');
-    await sp.remove('isRegistered');
-    await sp.remove('isPhoneVerified');
-    await sp.remove('firstName');
-    await sp.remove('lastName');
+    await sp.remove('fullName');
     await sp.remove('profilePictureUrl');
     await sp.remove('profilePictureAltText');
-    await sp.remove('isDeliveryPerson');
-    await sp.remove('checkedJoinUs');
-    await sp.remove('checkedSelectServices');
-    await sp.remove('checkedSelectArea');
+    await sp.remove('profilePictureKey');
     await sp.remove('message');
 
     // Clear local state
@@ -205,25 +194,20 @@ class UserViewModel with ChangeNotifier {
   // Helper method to get user's full name
   String? getFullName() {
     final user = _currentUser?.data?.user;
-    if (user?.firstName != null || user?.lastName != null) {
-      return '${user?.firstName ?? ''} ${user?.lastName ?? ''}'.trim();
+    // Return fullName directly from API if available
+    if (user?.fullName != null && user!.fullName!.isNotEmpty) {
+      return user.fullName;
     }
     return null;
   }
 
-  // Helper method to check if user has completed registration steps
-  bool get hasCompletedRegistration {
-    final user = _currentUser?.data?.user;
-    return user?.checkedJoinUs == true &&
-        user?.checkedSelectServices == true &&
-        user?.checkedSelectArea == true;
+  // Helper method to get user's phone number
+  String? getPhoneNumber() {
+    return _currentUser?.data?.user?.phone;
+  }
+
+  // Helper method to get user's status
+  String? getUserStatus() {
+    return _currentUser?.data?.user?.userStatus;
   }
 }
-
-
-
-
-
-
-//
-

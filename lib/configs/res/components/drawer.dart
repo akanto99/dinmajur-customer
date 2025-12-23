@@ -190,19 +190,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
               child: _buildDrawerItem(CupertinoIcons.person, AppLocalizations.of(context)!.view_profile),
             ),
 
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, RoutesName.passwordChange);
-              },
-              child: _buildDrawerItem(Icons.lock_outline, AppLocalizations.of(context)!.change_password),
-            ),
-
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, RoutesName.paymentMethod);
-              },
-              child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     Navigator.pushNamed(context, RoutesName.paymentMethod);
+            //   },
+            //   child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
+            // ),
             GestureDetector(
               onTap: () {
                 Navigator.pushNamed(context, RoutesName.addlocation);

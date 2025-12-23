@@ -1,11 +1,6 @@
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
-import 'package:dinmajur_customer/view/autentication/authentication_screen.dart';
-import 'package:dinmajur_customer/view/autentication/otp_screen.dart';
-import 'package:dinmajur_customer/view/autentication/verification_success_dialouge.dart';
-import 'package:dinmajur_customer/view/forgot_password/forgot_password.dart';
-import 'package:dinmajur_customer/view/forgot_password/new_password.dart';
-import 'package:dinmajur_customer/view/forgot_password/otp_verify.dart';
-import 'package:dinmajur_customer/view/login/login_screen.dart';
+import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
+import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
@@ -14,7 +9,6 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/drawer/password/password_change.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/privacy_policy/privacy_policy_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/promo_codes/promo_code_screen.dart';
@@ -33,12 +27,12 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
 import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/notification_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/unified_seeall_screen/unified_seeall_screen.dart';
 // import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/sse_notification_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/pending_orders/pending_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
-import 'package:dinmajur_customer/view/welcome_loginsignup/welcome_loginsignup.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
@@ -46,30 +40,24 @@ class Routes {
     switch (settings.name) {
       case RoutesName.splash:
         return MaterialPageRoute(builder: (BuildContext context) => const SplashScreen());
-      case RoutesName.welcomeLoginSignup:
-        return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginSignup());
-      case RoutesName.login:
-        return MaterialPageRoute(builder: (BuildContext context) => const LoginScreen());
-      // case RoutesName.onBoard:
-      // return MaterialPageRoute(builder: (BuildContext context) => const OnboardingScreen());
       case RoutesName.onBoardUpdated:
         return MaterialPageRoute(builder: (BuildContext context) => const OnboardingScreenUpdated());
+
+
+        ///New
+         case RoutesName.authLoginWelcome:
+         return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginScreen());
+        case RoutesName.authOtp:
+        return MaterialPageRoute(builder: (BuildContext context) => const CustomerAuthOtpScreen(), settings: settings);
+    // case RoutesName.verificationSuccessScreen:
+    //     return MaterialPageRoute(builder: (BuildContext context) => const ());
+
+
+
+
       case RoutesName.navigationBar:
         return MaterialPageRoute(builder: (BuildContext context) => const NavigationScreen());
-      case RoutesName.register:
-        return MaterialPageRoute(builder: (BuildContext context) => const AuthenticationScreen());
-      case RoutesName.otp:
-        return MaterialPageRoute(builder: (BuildContext context) => const OtpScreen(), settings: settings);
-      case RoutesName.verificationSuccessScreen:
-        return MaterialPageRoute(builder: (BuildContext context) => const VerificationSuccessScreen());
 
-      ///Forgot Password
-      case RoutesName.forgotPassword:
-        return MaterialPageRoute(builder: (BuildContext context) => const ForgotPassword());
-      case RoutesName.forgot_otpVerify:
-        return MaterialPageRoute(builder: (BuildContext context) => const OtpVerify(), settings: settings);
-      case RoutesName.newPassword:
-        return MaterialPageRoute(builder: (BuildContext context) => const NewPassword(), settings: settings);
 
       ///Home
       case RoutesName.home:
@@ -77,7 +65,27 @@ class Routes {
         case RoutesName.notificationsListScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
         //  case RoutesName.notificationsListScreen:
-        // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
+        // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just//
+      case RoutesName.unifiedSeeAllScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => UnifiedSeeAllScreen(
+              storeType: args['storeType'],
+              stores: args['stores'],
+              storeTypes: args['storeTypes'],
+              currentPosition: args['currentPosition'],
+              currentAddress: args['currentAddress'],
+              isCheckingCoverage: args['isCheckingCoverage'],
+              isInsideServiceArea: args['isInsideServiceArea'],
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
       case RoutesName.orderDetailsSocketScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
@@ -182,8 +190,6 @@ class Routes {
     //drawer===========>
         case RoutesName.viewProfile:
         return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());
-      case RoutesName.passwordChange:
-        return MaterialPageRoute(builder: (BuildContext context) => const PasswordChange());
       case RoutesName.paymentMethod:
         return MaterialPageRoute(builder: (BuildContext context) => const PaymentMethod());
       case RoutesName.saveAddress:

@@ -54,88 +54,108 @@ class NotificationListModelData {
 
 class Datum {
   String? id;
+  String? user;
+  String? source;
   String? type;
   String? message;
   DatumData? data;
   bool? read;
   bool? delivered;
-  dynamic deliveredAt;
-  String? actionUrl;
   String? priority;
   DateTime? createdAt;
   DateTime? updatedAt;
-  int? v;
 
   Datum({
     this.id,
+    this.user,
+    this.source,
     this.type,
     this.message,
     this.data,
     this.read,
     this.delivered,
-    this.deliveredAt,
-    this.actionUrl,
     this.priority,
     this.createdAt,
     this.updatedAt,
-    this.v,
   });
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     id: json["_id"],
+    user: json["user"],
+    source: json["source"],
     type: json["type"],
     message: json["message"],
     data: json["data"] == null ? null : DatumData.fromJson(json["data"]),
     read: json["read"],
     delivered: json["delivered"],
-    deliveredAt: json["deliveredAt"],
-    actionUrl: json["actionUrl"],
     priority: json["priority"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
-    v: json["__v"],
   );
 
   Map<String, dynamic> toJson() => {
     "_id": id,
+    "user": user,
+    "source": source,
     "type": type,
     "message": message,
     "data": data?.toJson(),
     "read": read,
     "delivered": delivered,
-    "deliveredAt": deliveredAt,
-    "actionUrl": actionUrl,
     "priority": priority,
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
-    "__v": v,
   };
 }
 
 class DatumData {
-  String? orderId;
-  String? customerId;
-  String? retailerId;
-  String? deliveryId;
+  String? title;
+  Params? params;
+  String? status;
 
   DatumData({
-    this.orderId,
-    this.customerId,
-    this.retailerId,
-    this.deliveryId,
+    this.title,
+    this.params,
+    this.status,
   });
 
   factory DatumData.fromJson(Map<String, dynamic> json) => DatumData(
+    title: json["title"],
+    params: json["params"] == null ? null : Params.fromJson(json["params"]),
+    status: json["status"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "title": title,
+    "params": params?.toJson(),
+    "status": status,
+  };
+}
+
+class Params {
+  String? beautySalonBookingId;
+  String? houseKeeperBookingId;
+  String? orderId;
+  String? deliveryId;
+
+  Params({
+    this.beautySalonBookingId,
+    this.houseKeeperBookingId,
+    this.orderId,
+    this.deliveryId,
+  });
+
+  factory Params.fromJson(Map<String, dynamic> json) => Params(
+    beautySalonBookingId: json["beautySalonBookingId"],
+    houseKeeperBookingId: json["houseKeeperBookingId"],
     orderId: json["orderId"],
-    customerId: json["customerId"],
-    retailerId: json["retailerId"],
     deliveryId: json["deliveryId"],
   );
 
   Map<String, dynamic> toJson() => {
+    "beautySalonBookingId": beautySalonBookingId,
+    "houseKeeperBookingId": houseKeeperBookingId,
     "orderId": orderId,
-    "customerId": customerId,
-    "retailerId": retailerId,
     "deliveryId": deliveryId,
   };
 }

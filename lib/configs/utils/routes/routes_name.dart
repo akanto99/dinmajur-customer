@@ -1,23 +1,17 @@
 class RoutesName {
   static const String splash = 'splash_view';
-  static const String welcomeLoginSignup = 'welcomeLoginSignup_view';
-  static const String login = 'login_view';
-  // static const String onBoard = 'onBoarding_view';
   static const String onBoardUpdated = 'onBoardUpdated_view';
-  static const String navigationBar = 'navigationBar_view';
-  static const String register = 'register_view';
-  static const String otp = 'otp_view';
+
+  ///new
+  static const String authLoginWelcome = 'welcomeLoginScreen_view';
+  static const String authOtp = 'authOtp_view';
   static const String verificationSuccessScreen = 'verificationSuccessScreen_view';
-  ///Forgot Password
-  static const String forgotPassword = 'forgotPassword_view';
-  static const String forgot_otpVerify = 'forgot_otpVerify_view';
-  static const String newPassword = 'newPassword_view';
 
-
-
+  static const String navigationBar = 'navigationBar_view';
   ///home
   static const String home = 'home_view';
   static const String notificationsListScreen = 'notificationsListScreen_view'; //Notifications ListScreen SSE Just
+  static const String unifiedSeeAllScreen = 'unifiedSeeAllScreen_view';
   static const String orderDetailsSocketScreen = 'orderDetailsSocketScreen_view';
   //-----------location_screens
   static const String addlocation = 'addLocation_view';
@@ -30,7 +24,6 @@ class RoutesName {
   static const String trackOrderViewdetailsSocketScreen = 'trackOrderViewdetailsSocketScreen_view';//SOCKET GET VIEW DETAILS
   static const String deliverdScreen = 'deliverdScreen_view';//delivered screen get api
   //drawer===========>
-  static const String passwordChange = 'passwordChange_view';
   static const String paymentMethod = 'paymentMethod_view';
   static const String review = 'review_view';
   static const String support = 'support_view';

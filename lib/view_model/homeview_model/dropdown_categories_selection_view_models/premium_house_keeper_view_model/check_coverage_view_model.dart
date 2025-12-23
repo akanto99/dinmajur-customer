@@ -63,4 +63,7 @@ class CheckCoverageViewModel with ChangeNotifier {
       NetworkApiService.clearRetryAttempts();
     }
   }
+
+
+
 }
