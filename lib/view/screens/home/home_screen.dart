@@ -360,6 +360,8 @@ class _HomeScreenState extends State<HomeScreen> {
       upgrader: Upgrader(
         // debugLogging: true,
         // debugDisplayAlways: true
+        countryCode: 'BD',
+        languageCode: 'en',
       ),
       child: Scaffold(
         key: widget.scaffoldKey,

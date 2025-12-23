@@ -118,7 +118,7 @@ class _CustomeMobileTextfieldState extends State<CustomeMobileTextfield> {
                         child: Center(
                             child: Text(
                                 "+880",
-                                style: widget.titleTextStyle ?? AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.form_hover(context))
+                                style: widget.titleTextStyle ?? AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context))
                             )
                         ),
                       ),

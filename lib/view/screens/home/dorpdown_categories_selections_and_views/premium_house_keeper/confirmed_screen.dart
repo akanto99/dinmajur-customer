@@ -38,15 +38,9 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.containerBackground(context),
-        body: SafeArea(child: _body()),
-      ),
+    return Scaffold(
+      backgroundColor: AppColors.containerBackground(context),
+      body: SafeArea(child: _body()),
     );
   }
 
@@ -58,7 +52,9 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
       children: [
         GestureDetector(
           onTap: () {
-            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
+            Navigator.pop(context);
+
+            // Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
           },
           child: Container(height: 60, child: AppBarHeader("Booking Confirmation")),
         ),

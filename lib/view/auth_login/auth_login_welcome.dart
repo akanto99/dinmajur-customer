@@ -7,11 +7,8 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
-import 'package:dinmajur_customer/configs/validations/authentication_validation/authentication_validation.dart';
 import 'package:dinmajur_customer/configs/validations/authentication_validation/welcome_login_validation.dart';
 import 'package:dinmajur_customer/configs/widgets/customemobile_textfield.dart';
-import 'package:dinmajur_customer/configs/widgets/custometext_formfield.dart';
-import 'package:dinmajur_customer/configs/widgets/customtext_with_formfield.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view_model/auth_view_model_new/customer_authlogin_view_model.dart';
 import 'package:flutter/foundation.dart';
@@ -53,10 +50,10 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
       showIgnore: false,
       showReleaseNotes: false,
       upgrader: Upgrader(
-        // debugDisplayAlways: true,
-        // debugLogging: true,
         // debugDisplayAlways: kDebugMode,
         // debugLogging: kDebugMode,
+        countryCode: 'BD',
+        languageCode: 'en',
       ),
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),
