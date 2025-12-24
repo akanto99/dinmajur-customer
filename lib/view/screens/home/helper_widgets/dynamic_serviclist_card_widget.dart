@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 /// Dynamic Service List Widget
@@ -177,6 +178,30 @@ class DynamicServiceCard extends StatelessWidget {
     );
   }
 
+  // Widget _buildImage(BuildContext context) {
+  //   return Container(
+  //     width: 70,
+  //     height: 70,
+  //     decoration: BoxDecoration(
+  //       borderRadius: BorderRadius.circular(8),
+  //       color: Colors.grey[200],
+  //     ),
+  //     child: imageUrl != null
+  //         ? ClipRRect(
+  //       borderRadius: BorderRadius.circular(8),
+  //       child: Image.network(
+  //         imageUrl!,
+  //         fit: BoxFit.cover,
+  //         errorBuilder: (context, error, stackTrace) => Icon(
+  //           defaultIcon,
+  //           size: 40,
+  //           color: Colors.grey,
+  //         ),
+  //       ),
+  //     )
+  //         : Icon(defaultIcon, size: 40, color: Colors.grey),
+  //   );
+  // }
   Widget _buildImage(BuildContext context) {
     return Container(
       width: 70,
@@ -185,22 +210,46 @@ class DynamicServiceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         color: Colors.grey[200],
       ),
-      child: imageUrl != null
+      child: imageUrl != null && imageUrl!.isNotEmpty
           ? ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          imageUrl!,
+        child: CachedNetworkImage(
+          imageUrl: imageUrl!,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Icon(
+          // Placeholder যখন image load হচ্ছে
+          placeholder: (context, url) => Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.grey.shade400,
+                ),
+              ),
+            ),
+          ),
+          // Error widget যদি image load না হয়
+          errorWidget: (context, url, error) => Icon(
             defaultIcon,
             size: 40,
             color: Colors.grey,
           ),
+          // Cache configuration
+          memCacheHeight: 200, // Memory এ cache করার height
+          memCacheWidth: 200,  // Memory এ cache করার width
+          maxHeightDiskCache: 400, // Disk এ cache করার max height
+          maxWidthDiskCache: 400,  // Disk এ cache করার max width
+
+          // Optional: Fade in animation
+          fadeInDuration: Duration(milliseconds: 300),
+          fadeOutDuration: Duration(milliseconds: 100),
         ),
       )
           : Icon(defaultIcon, size: 40, color: Colors.grey),
     );
   }
+
   Widget _buildDetails(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
