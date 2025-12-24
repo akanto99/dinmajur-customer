@@ -134,10 +134,10 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.containerBackground(context),
-        body: ResPonsiveUi(
+    return Scaffold(
+      backgroundColor: AppColors.containerBackground(context),
+      body: SafeArea(
+        child: ResPonsiveUi(
           mobile: _body(),
           desktop: _body(),
           tablet: _body(),

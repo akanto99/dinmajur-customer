@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -40,7 +41,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(child: _body()),
+      body: SafeArea(child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body())),
     );
   }
 

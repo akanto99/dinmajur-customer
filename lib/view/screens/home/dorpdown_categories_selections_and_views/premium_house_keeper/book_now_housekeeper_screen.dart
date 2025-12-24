@@ -9,6 +9,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/cart_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/taskdetails_showdialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
@@ -212,11 +213,9 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.containerBackground(context),
-        body: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
-      ),
+    return Scaffold(
+      backgroundColor: AppColors.containerBackground(context),
+      body: SafeArea(child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body())),
     );
   }
 
@@ -727,32 +726,55 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           });
         },
         onProceedToCheckout: () {
-          _showCheckoutDialog();
+          _showCheckoutScreen();
         },
       ),
     );
   }
 
   ///3
-  void _showCheckoutDialog() {
-    showDialog(
-      context: context,
-      barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => CheckoutDialog(
-        serviceQuantities: _serviceQuantities,
-        selectedTaskItems: _selectedTaskItems,
-        selectedFrequency: _selectedFrequency,
-        selectedDate: _dateController.text,
-        selectedTime: _selectedTime!,
-        customerName: widget.customerName,
-        customerPhone: widget.customerPhone,
-        customerAddress: widget.customerAddress,
-        onSuccess: () {
-          setState(() {
-            _serviceQuantities.clear();
-            _selectedTaskItems.clear();
-          });
-        },
+  // void _showCheckoutDialog() {
+  //   showDialog(
+  //     context: context,
+  //     barrierColor: AppColors.showDialougeBackground(context),
+  //     builder: (context) => CheckoutDialog(
+  //       serviceQuantities: _serviceQuantities,
+  //       selectedTaskItems: _selectedTaskItems,
+  //       selectedFrequency: _selectedFrequency,
+  //       selectedDate: _dateController.text,
+  //       selectedTime: _selectedTime!,
+  //       customerName: widget.customerName,
+  //       customerPhone: widget.customerPhone,
+  //       customerAddress: widget.customerAddress,
+  //       onSuccess: () {
+  //         setState(() {
+  //           _serviceQuantities.clear();
+  //           _selectedTaskItems.clear();
+  //         });
+  //       },
+  //     ),
+  //   );
+  // }
+  void _showCheckoutScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CheckoutScreen(
+          serviceQuantities: _serviceQuantities,
+          selectedTaskItems: _selectedTaskItems,
+          selectedFrequency: _selectedFrequency,
+          selectedDate: _dateController.text,
+          selectedTime: _selectedTime!,
+          customerName: widget.customerName,
+          customerPhone: widget.customerPhone,
+          customerAddress: widget.customerAddress,
+          onSuccess: () {
+            setState(() {
+              _serviceQuantities.clear();
+              _selectedTaskItems.clear();
+            });
+          },
+        ),
       ),
     );
   }
