@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -17,6 +18,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
   String? get selectedPaymentMethod => _selectedPaymentMethod;
   DateTime? get selectedDate => _selectedDate;
   bool get isProcessing => _isProcessing;
+  final SSLCommerzPaymentService _paymentService = SSLCommerzPaymentService();
 
   // Available service time slots
   final List<String> serviceTimeSlots = [
@@ -218,62 +220,72 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
   }
 
   // Initiate SSL Commerz payment
-  Future<SSLPaymentResult> initiateSSLCommerzPayment({
+  // Future<SSLPaymentResult> initiateSSLCommerzPayment({
+  //   required String trackingId,
+  //   required double totalAmount,
+  // }) async {
+  //   try {
+  //     Sslcommerz sslcommerz = Sslcommerz(
+  //       initializer: SSLCommerzInitialization(
+  //         multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay",
+  //         currency: SSLCurrencyType.BDT,
+  //         product_category: "Service",
+  //         sdkType: SSLCSdkType.TESTBOX,
+  //         store_id: dotenv.env['SSL_STORE_ID']!,
+  //         store_passwd: dotenv.env['SSL_STORE_PASSWORD']!,
+  //         total_amount: totalAmount,
+  //         tran_id: trackingId,
+  //       ),
+  //     );
+  //
+  //     var result = await sslcommerz.payNow();
+  //
+  //     if (result is PlatformException) {
+  //       return SSLPaymentResult(
+  //         success: false,
+  //         status: 'FAILED',
+  //         errorMessage: result.toString(),
+  //       );
+  //     } else {
+  //       // Extract payment details
+  //       String? status = result.status;
+  //       String? amount = result.amount;
+  //       String? cardType = result.cardType;
+  //
+  //       print("✅ Payment Response Received!");
+  //       print("Status: $status");
+  //       print("Amount: $amount");
+  //       print("Card Type: $cardType");
+  //
+  //       return SSLPaymentResult(
+  //         success: status == 'VALID' || status == 'VALIDATED',
+  //         status: status ?? 'UNKNOWN',
+  //         amount: amount,
+  //         cardType: cardType,
+  //         transactionId: result.tranId,
+  //         validationId: result.valId,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print("💥 SSL Commerz Error: $e");
+  //     return SSLPaymentResult(
+  //       success: false,
+  //       status: 'ERROR',
+  //       errorMessage: e.toString(),
+  //     );
+  //   }
+  // }
+  /// Initiate payment using centralized service
+  Future<SSLPaymentResult> initiatePayment({
     required String trackingId,
     required double totalAmount,
   }) async {
-    try {
-      Sslcommerz sslcommerz = Sslcommerz(
-        initializer: SSLCommerzInitialization(
-          multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay",
-          currency: SSLCurrencyType.BDT,
-          product_category: "Service",
-          sdkType: SSLCSdkType.TESTBOX,
-          store_id: dotenv.env['SSL_STORE_ID']!,
-          store_passwd: dotenv.env['SSL_STORE_PASSWORD']!,
-          total_amount: totalAmount,
-          tran_id: trackingId,
-        ),
-      );
-
-      var result = await sslcommerz.payNow();
-
-      if (result is PlatformException) {
-        return SSLPaymentResult(
-          success: false,
-          status: 'FAILED',
-          errorMessage: result.toString(),
-        );
-      } else {
-        // Extract payment details
-        String? status = result.status;
-        String? amount = result.amount;
-        String? cardType = result.cardType;
-
-        print("✅ Payment Response Received!");
-        print("Status: $status");
-        print("Amount: $amount");
-        print("Card Type: $cardType");
-
-        return SSLPaymentResult(
-          success: status == 'VALID' || status == 'VALIDATED',
-          status: status ?? 'UNKNOWN',
-          amount: amount,
-          cardType: cardType,
-          transactionId: result.tranId,
-          validationId: result.valId,
-        );
-      }
-    } catch (e) {
-      print("💥 SSL Commerz Error: $e");
-      return SSLPaymentResult(
-        success: false,
-        status: 'ERROR',
-        errorMessage: e.toString(),
-      );
-    }
+    return await _paymentService.initiatePayment(
+      trackingId: trackingId,
+      totalAmount: totalAmount,
+      productCategory: "Beauty Service",
+    );
   }
-
   void reset() {
     _selectedServiceTime = null;
     _selectedPaymentMethod = null;
@@ -281,25 +293,4 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     _isProcessing = false;
     notifyListeners();
   }
-}
-
-// Payment result model
-class SSLPaymentResult {
-  final bool success;
-  final String status;
-  final String? amount;
-  final String? cardType;
-  final String? transactionId;
-  final String? validationId;
-  final String? errorMessage;
-
-  SSLPaymentResult({
-    required this.success,
-    required this.status,
-    this.amount,
-    this.cardType,
-    this.transactionId,
-    this.validationId,
-    this.errorMessage,
-  });
 }
