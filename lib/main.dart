@@ -40,6 +40,7 @@ import 'configs/services/navigator_services/navigator_services_refreshToken.dart
 import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
 import 'l10n/app_localizations.dart';
+import 'view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
 import 'view_model/auth_view_model_new/customer_authlogin_view_model.dart';
 import 'view_model/auth_view_model_new/customer_otp_view_model.dart';
 import 'view_model/auth_view_model_new/resend_otp_view_model.dart';
@@ -143,6 +144,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GetallPremiumHomeBeautySalonViewModel()),
         ChangeNotifierProvider(create: (_) => PostBookPremiumHomeBeautySalonViewModel()),
         ChangeNotifierProvider(create: (_) => GetBeautySalonViewModel()),
+                              //notifier
+        ChangeNotifierProvider(create: (_) => CheckoutBeautySalonViewModel()),
+
 
 
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),

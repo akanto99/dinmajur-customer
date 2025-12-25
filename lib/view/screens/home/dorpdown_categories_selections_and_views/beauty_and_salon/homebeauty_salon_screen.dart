@@ -9,6 +9,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart' hide Image;
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/cart_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/checkout_dialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/servicedetails_dialouge_widget.dart';
@@ -358,7 +359,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                 Navigator.pop(context);
               }
             },
-            onProceedToCheckout: _showCheckoutDialog,
+            onProceedToCheckout: _navigateCheckOutScreen,
           );
         },
       ),
@@ -385,7 +386,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     );
   }
 
-  void _showCheckoutDialog() async {
+  void _navigateCheckOutScreen() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId') ?? '';
 
@@ -394,51 +395,32 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
       return;
     }
 
-    showDialog(
-      context: context,
-      barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => Consumer<PostBookPremiumHomeBeautySalonViewModel>(
-        builder: (context, bookingViewModel, _) {
-          return CheckoutDialog(
-            customerName: widget.customerName,
-            customerPhone: widget.customerPhone,
-            customerAddress: widget.customerAddress,
-            userId: userId,
-            categories: Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false)
-                .getAllPremiumHomeBeautySalonData
-                .data
-                ?.data ??
-                [],
-            serviceQuantities: _serviceQuantities,
-            totalPrice: _calculateTotal(),
-            transportFee: 80.0,
-            isLoading: bookingViewModel.createBookPremiumHomeBeautySalonLoading,
-            onConfirmBooking: (bookingData) async {
-              print('Booking Data: ${json.encode(bookingData)}');
+    // Get the data before navigation
+    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
+    final categories = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
 
-              await bookingViewModel.bookPremiumHomeBeautySalonPostApi(
-                context,
-                bookingData,
-                    (String trackingId) {
-                  print('Success! TrackingId: $trackingId');
-
-                  Navigator.pop(context);
-
-                  setState(() {
-                    _serviceQuantities.clear();
-                  });
-
-                  Navigator.pushNamed(
-                    context,
-                    RoutesName.beautyConfirmedScreen,
-                    arguments: {'trackingId': trackingId},
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
+    // Navigate to CheckoutScreen using named route
+    final result = await Navigator.pushNamed(
+      context,
+      RoutesName.beautyCheckoutScreen,
+      arguments: {
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': widget.customerAddress,
+        'userId': userId,
+        'categories': categories,
+        'serviceQuantities': _serviceQuantities,
+        'totalPrice': _calculateTotal(),
+        'transportFee': 80.0,
+      },
     );
+
+    // If booking was successful, clear the cart
+    if (result == true) {
+      setState(() {
+        _serviceQuantities.clear();
+      });
+    }
   }
+
 }

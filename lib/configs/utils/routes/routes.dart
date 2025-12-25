@@ -1,8 +1,10 @@
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/widgets/failedorder_screen_widget.dart';
 import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
 import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/homebeauty_salon_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
@@ -101,7 +103,20 @@ class Routes {
       case RoutesName.mapLocationScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const MapLocationScreen());
 
-
+      case RoutesName.failedOrderScreenWidget:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => FailedOrderScreenWidget(
+              trackingId: args['trackingId'] ?? 'N/A',
+              valId: args['valId'] ?? 'N/A',
+              reason: args['reason'],
+              errorMessage: args['errorMessage'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
 
         ///order Now Screen For Retail after clicking Grocerry in HOME SCreen- DropDown 1
       case RoutesName.orderNow:
@@ -180,7 +195,28 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => BeautyConfirmedScreen(trackingId: args['trackingId']),
+            builder: (BuildContext context) => BeautyConfirmedScreen(
+                trackingId: args['trackingId'],
+              valId: args['valId'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.beautyCheckoutScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CheckoutScreen(
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+              userId: args['userId'],
+              categories: args['categories'],
+              serviceQuantities: args['serviceQuantities'],
+              totalPrice: args['totalPrice'],
+              transportFee: args['transportFee'],
+            ),
             settings: settings,
           );
         }

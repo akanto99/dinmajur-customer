@@ -5,16 +5,30 @@ import 'package:flutter_sslcommerz/model/SSLCSdkType.dart';
 import 'package:flutter_sslcommerz/model/SSLCommerzInitialization.dart';
 import 'package:flutter_sslcommerz/model/SSLCurrencyType.dart';
 import 'package:flutter_sslcommerz/sslcommerz.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
-class CheckoutViewModel extends ChangeNotifier {
-  String? _selectedHouseSize;
+class CheckoutBeautySalonViewModel extends ChangeNotifier {
+  String? _selectedServiceTime;
   String? _selectedPaymentMethod;
+  DateTime? _selectedDate;
   bool _isProcessing = false;
 
-  String? get selectedHouseSize => _selectedHouseSize;
+  String? get selectedServiceTime => _selectedServiceTime;
   String? get selectedPaymentMethod => _selectedPaymentMethod;
+  DateTime? get selectedDate => _selectedDate;
   bool get isProcessing => _isProcessing;
+
+  // Available service time slots
+  final List<String> serviceTimeSlots = [
+    '09:30 - 10:00 am',
+    '10:30 - 11:00 am',
+    '11:30 - 12:00 pm',
+    '02:00 - 02:30 pm',
+    '03:00 - 03:30 pm',
+    '04:00 - 04:30 pm',
+    '05:00 - 05:30 pm',
+    '06:00 - 06:30 pm',
+  ];
 
   // Payment methods data
   final List<Map<String, dynamic>> paymentMethods = [
@@ -32,8 +46,8 @@ class CheckoutViewModel extends ChangeNotifier {
     },
   ];
 
-  void setHouseSize(String size) {
-    _selectedHouseSize = size;
+  void setServiceTime(String time) {
+    _selectedServiceTime = time;
     notifyListeners();
   }
 
@@ -42,85 +56,56 @@ class CheckoutViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSelectedDate(DateTime date) {
+    _selectedDate = date;
+    notifyListeners();
+  }
+
   void setProcessing(bool value) {
     _isProcessing = value;
     notifyListeners();
   }
 
-  // Calculate total price - FIXED: Added explicit type casting
+  // Calculate total price
   double calculateTotal({
     required Map<String, int> serviceQuantities,
-    required Map<String, Set<String>> selectedTaskItems,
-    required List<dynamic> services,
+    required List<dynamic> categories,
   }) {
     double total = 0;
 
-    for (var service in services) {
-      int qty = serviceQuantities[service.id ?? ''] ?? 0;
-      if (qty > 0 && service.houseKeeperTaskItems?.isNotEmpty == true) {
-        // FIX: Properly handle dynamic list casting
-        Set<String> selectedItems = selectedTaskItems[service.id ?? '']?.cast<String>() ??
-            (service.houseKeeperTaskItems as List<dynamic>)
-                .map((item) => (item.id ?? '') as String)
-                .toSet();
-
-        double price = 0;
-        for (var item in service.houseKeeperTaskItems!) {
-          if (selectedItems.contains(item.id ?? '')) {
-            price += item.price?.toDouble() ?? 0;
+    for (var category in categories) {
+      if (category.items != null) {
+        for (var service in category.items!) {
+          int qty = serviceQuantities[service.id ?? ''] ?? 0;
+          if (qty > 0) {
+            double price = service.salePrice?.toDouble() ??
+                service.originalPrice?.toDouble() ?? 0;
+            total += price * qty;
           }
         }
-
-        if (service.discountType != null &&
-            service.discountValue != null &&
-            price > 0) {
-          if (service.discountType == 'PERCENTAGE') {
-            price = price - (price * service.discountValue! / 100);
-          } else if (service.discountType == 'FIXED') {
-            price = price - service.discountValue!.toDouble();
-          }
-        }
-
-        total += price * qty;
       }
     }
     return total;
   }
 
-  // Calculate saved amount - FIXED: Added explicit type casting
+  // Calculate saved amount
   double calculateSaved({
     required Map<String, int> serviceQuantities,
-    required Map<String, Set<String>> selectedTaskItems,
-    required List<dynamic> services,
+    required List<dynamic> categories,
   }) {
     double saved = 0;
 
-    for (var service in services) {
-      int qty = serviceQuantities[service.id ?? ''] ?? 0;
-      if (qty > 0 &&
-          service.houseKeeperTaskItems?.isNotEmpty == true &&
-          service.discountValue != null) {
-        // FIX: Properly handle dynamic list casting
-        Set<String> selectedItems = selectedTaskItems[service.id ?? '']?.cast<String>() ??
-            (service.houseKeeperTaskItems as List<dynamic>)
-                .map((item) => (item.id ?? '') as String)
-                .toSet();
-
-        double originalPrice = 0;
-        for (var item in service.houseKeeperTaskItems!) {
-          if (selectedItems.contains(item.id ?? '')) {
-            originalPrice += item.price?.toDouble() ?? 0;
+    for (var category in categories) {
+      if (category.items != null) {
+        for (var service in category.items!) {
+          int qty = serviceQuantities[service.id ?? ''] ?? 0;
+          if (qty > 0 && service.discountValue != null) {
+            double originalPrice = service.originalPrice?.toDouble() ?? 0;
+            double salePrice = service.salePrice?.toDouble() ?? originalPrice;
+            double discount = originalPrice - salePrice;
+            saved += discount * qty;
           }
         }
-
-        double discount = 0;
-        if (service.discountType == 'PERCENTAGE') {
-          discount = originalPrice * service.discountValue! / 100;
-        } else if (service.discountType == 'FIXED') {
-          discount = service.discountValue!.toDouble();
-        }
-
-        saved += discount * qty;
       }
     }
     return saved;
@@ -133,19 +118,27 @@ class CheckoutViewModel extends ChangeNotifier {
 
   // Validate form fields
   String? validateCheckoutForm({
+    required String fullName,
     required String phone,
     required String address,
-    required String? houseSize,
+    required DateTime? selectedDate,
+    required String? serviceTime,
     required String? paymentMethod,
   }) {
-    if (phone.isEmpty) {
-      return "Phone number is required";
+    if (fullName.trim().isEmpty) {
+      return "Please enter your full name";
     }
-    if (address.isEmpty) {
-      return "Service address is required";
+    if (phone.trim().isEmpty) {
+      return "Please enter your phone number";
     }
-    if (houseSize == null) {
-      return "Please select house size";
+    if (selectedDate == null) {
+      return "Please select a date";
+    }
+    if (serviceTime == null) {
+      return "Please select a service time";
+    }
+    if (address.trim().isEmpty) {
+      return "Please enter your address";
     }
     if (paymentMethod == null) {
       return "Please select a payment method";
@@ -165,31 +158,28 @@ class CheckoutViewModel extends ChangeNotifier {
     }
   }
 
-  // Prepare tasks data for booking - FIXED: Added explicit type casting
+  // Prepare tasks data for booking
   List<Map<String, dynamic>> prepareTasksData({
     required Map<String, int> serviceQuantities,
-    required Map<String, Set<String>> selectedTaskItems,
-    required List<dynamic> services,
+    required List<dynamic> categories,
   }) {
     List<Map<String, dynamic>> tasks = [];
 
-    for (var service in services) {
-      int qty = serviceQuantities[service.id ?? ''] ?? 0;
-      if (qty > 0) {
-        // FIX: Properly handle dynamic list casting
-        Set<String> selectedItems = selectedTaskItems[service.id ?? '']?.cast<String>() ??
-            (service.houseKeeperTaskItems != null
-                ? (service.houseKeeperTaskItems as List<dynamic>)
-                .map((item) => (item.id ?? '') as String)
-                .toSet()
-                : <String>{});
-
-        if (selectedItems.isNotEmpty) {
-          tasks.add({
-            "houseKeeperTaskId": service.id,
-            "totalRooms": qty,
-            "houseKeeperTaskItemIds": selectedItems.toList()
-          });
+    for (var category in categories) {
+      if (category.items != null) {
+        for (var service in category.items!) {
+          int qty = serviceQuantities[service.id ?? ''] ?? 0;
+          if (qty > 0) {
+            tasks.add({
+              'beautySalonTaskId': category.id,
+              'quantity': qty,
+              'subTasks': [
+                {
+                  'beautySalonTaskItemId': service.id,
+                },
+              ],
+            });
+          }
         }
       }
     }
@@ -197,54 +187,33 @@ class CheckoutViewModel extends ChangeNotifier {
     return tasks;
   }
 
-  // Get shift ID from selected time
-  String? getShiftId({
-    required String selectedTime,
-    required List<dynamic> shiftTimes,
-  }) {
-    for (var shift in shiftTimes) {
-      String displayText =
-          '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
-      if (displayText == selectedTime) {
-        return shift.shiftId;
-      }
-    }
-    return null;
-  }
-
   // Prepare complete booking data
-  Future<Map<String, dynamic>> prepareBookingData({
+  Map<String, dynamic> prepareBookingData({
+    required String userId,
     required String fullName,
     required String phone,
     required String address,
-    required String? houseSize,
     required String? specialRequest,
-    required String selectedFrequency,
-    required String selectedDate,
-    required String? shiftId,
+    required DateTime selectedDate,
+    required String serviceTime,
     required List<Map<String, dynamic>> tasks,
     required String? paymentMethod,
-  }) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId');
-
+  }) {
+    String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
     Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
 
     return {
-      "userId": userId.toString(),
-      "district": "Chittagong",
-      "area": "N/A",
-      "planType": selectedFrequency.toUpperCase(),
-      "fullName": fullName.trim(),
-      "phone": phone.trim(),
-      "fullAddress": address.trim(),
-      "houseSize": houseSize,
-      "notes": specialRequest?.trim().isEmpty == true ? null : specialRequest?.trim(),
-      "tasks": tasks,
-      "couponCode": null,
-      "shiftId": shiftId,
-      "date": selectedDate,
-      "payment": paymentData,
+      'userId': userId,
+      'fullName': fullName.trim(),
+      'time': serviceTime,
+      'phone': phone.trim(),
+      'fullAddress': address.trim(),
+      'notes': specialRequest?.trim().isEmpty == true
+          ? null
+          : specialRequest?.trim(),
+      'date': formattedDate,
+      'tasks': tasks,
+      'payment': paymentData,
     };
   }
 
@@ -306,8 +275,9 @@ class CheckoutViewModel extends ChangeNotifier {
   }
 
   void reset() {
-    _selectedHouseSize = null;
+    _selectedServiceTime = null;
     _selectedPaymentMethod = null;
+    _selectedDate = null;
     _isProcessing = false;
     notifyListeners();
   }
