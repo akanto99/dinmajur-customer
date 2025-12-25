@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dinmajur_customer/configs/res/components/cached_image/cached_image.dart';
 import 'package:flutter/material.dart';
 
 /// Dynamic Service List Widget
@@ -42,12 +43,7 @@ class DynamicServiceList<T, S> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (categories.isEmpty) {
-      return Center(
-        child: Text(
-          'No services available',
-          style: emptyStateStyle(context),
-        ),
-      );
+      return Center(child: Text('No services available', style: emptyStateStyle(context)));
     }
 
     return Container(
@@ -61,10 +57,7 @@ class DynamicServiceList<T, S> extends StatelessWidget {
 
           if (isSimpleList) {
             // Simple list mode (House Keeper) - each category IS a service
-            return Container(
-              key: categoryKeys[index],
-              child: buildServiceCard(category as S, screenWidth, screenHeight),
-            );
+            return Container(key: categoryKeys[index], child: buildServiceCard(category as S, screenWidth, screenHeight));
           } else {
             // Grouped list mode (Beauty Salon) - categories contain items
             final items = getItems?.call(category) ?? [];
@@ -78,16 +71,11 @@ class DynamicServiceList<T, S> extends StatelessWidget {
                   // Category Header
                   Padding(
                     padding: EdgeInsets.only(bottom: 10),
-                    child: Text(
-                      categoryName,
-                      style: categoryHeaderStyle(context),
-                    ),
+                    child: Text(categoryName, style: categoryHeaderStyle(context)),
                   ),
 
                   // Services under this category
-                  ...items.map((service) =>
-                      buildServiceCard(service, screenWidth, screenHeight)
-                  ),
+                  ...items.map((service) => buildServiceCard(service, screenWidth, screenHeight)),
 
                   emptyStateSpacing(context),
                 ],
@@ -164,13 +152,33 @@ class DynamicServiceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Image
-          _buildImage(context),
+          DynamicCachedImage(
+            imageUrl: imageUrl,
+            width: 70,
+            height: 70,
+            borderRadius: 8,
+            defaultIcon: defaultIcon,
+            iconSize: 40,
+            backgroundColor: Colors.grey[200],
+            fit: BoxFit.cover,
+            loadingColor: getButtonColor(context),
+            iconColor: Colors.grey,
+            showLoadingIndicator: true,
+
+            // Cache optimization
+            memCacheHeight: 200,
+            memCacheWidth: 200,
+            maxHeightDiskCache: 400,
+            maxWidthDiskCache: 400,
+
+            // Smooth animations
+            fadeInDuration: Duration(milliseconds: 300),
+            fadeOutDuration: Duration(milliseconds: 100),
+          ),
           getSpacing(context),
 
           // Details
-          Expanded(
-            child: _buildDetails(context),
-          ),
+          Expanded(child: _buildDetails(context)),
 
           // Quantity Controls
         ],
@@ -202,53 +210,6 @@ class DynamicServiceCard extends StatelessWidget {
   //         : Icon(defaultIcon, size: 40, color: Colors.grey),
   //   );
   // }
-  Widget _buildImage(BuildContext context) {
-    return Container(
-      width: 70,
-      height: 70,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.grey[200],
-      ),
-      child: imageUrl != null && imageUrl!.isNotEmpty
-          ? ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: CachedNetworkImage(
-          imageUrl: imageUrl!,
-          fit: BoxFit.cover,
-          // Placeholder যখন image load হচ্ছে
-          placeholder: (context, url) => Center(
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.grey.shade400,
-                ),
-              ),
-            ),
-          ),
-          // Error widget যদি image load না হয়
-          errorWidget: (context, url, error) => Icon(
-            defaultIcon,
-            size: 40,
-            color: Colors.grey,
-          ),
-          // Cache configuration
-          memCacheHeight: 200, // Memory এ cache করার height
-          memCacheWidth: 200,  // Memory এ cache করার width
-          maxHeightDiskCache: 400, // Disk এ cache করার max height
-          maxWidthDiskCache: 400,  // Disk এ cache করার max width
-
-          // Optional: Fade in animation
-          fadeInDuration: Duration(milliseconds: 300),
-          fadeOutDuration: Duration(milliseconds: 100),
-        ),
-      )
-          : Icon(defaultIcon, size: 40, color: Colors.grey),
-    );
-  }
 
   Widget _buildDetails(BuildContext context) {
     return Column(
@@ -276,11 +237,7 @@ class DynamicServiceCard extends StatelessWidget {
                       children: [
                         Text(
                           viewDetailsText!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: getButtonColor(context),
-                          ),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: getButtonColor(context)),
                         ),
                         Icon(Icons.chevron_right, size: 16, color: getButtonColor(context)),
                       ],
@@ -292,21 +249,13 @@ class DynamicServiceCard extends StatelessWidget {
                   children: [
                     Text(
                       '৳${discountedPrice.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: getButtonColor(context),
-                      ),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: getButtonColor(context)),
                     ),
                     if (showDiscount && originalPrice > discountedPrice) ...[
                       SizedBox(width: 8),
                       Text(
                         '৳${originalPrice.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: getSubtitleColor(context),
-                          decoration: TextDecoration.lineThrough,
-                        ),
+                        style: TextStyle(fontSize: 14, color: getSubtitleColor(context), decoration: TextDecoration.lineThrough),
                       ),
                     ],
                   ],
@@ -327,18 +276,11 @@ class DynamicServiceCard extends StatelessWidget {
         child: Container(
           width: 70,
           height: 25,
-          decoration: BoxDecoration(
-            color: getButtonColor(context),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          decoration: BoxDecoration(color: getButtonColor(context), borderRadius: BorderRadius.circular(8)),
           child: Center(
             child: Text(
               'ADD +',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
             ),
           ),
         ),
@@ -349,14 +291,7 @@ class DynamicServiceCard extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (roomNumberLabel != null)
-            Text(
-              roomNumberLabel!,
-              style: TextStyle(
-                fontSize: 10,
-                color: getButtonColor(context),
-              ),
-            ),
+          if (roomNumberLabel != null) Text(roomNumberLabel!, style: TextStyle(fontSize: 10, color: getButtonColor(context))),
           SizedBox(height: 4),
           Row(
             children: [
@@ -364,13 +299,7 @@ class DynamicServiceCard extends StatelessWidget {
               Container(
                 width: 30,
                 child: Center(
-                  child: Text(
-                    quantity.toString(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: Text(quantity.toString(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
               ),
               _buildQuantityButton(context, Icons.add, onIncrease),
@@ -386,13 +315,7 @@ class DynamicServiceCard extends StatelessWidget {
         Container(
           width: 30,
           child: Center(
-            child: Text(
-              quantity.toString(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: Text(quantity.toString(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ),
         ),
         _buildQuantityButton(context, Icons.add, onIncrease),
