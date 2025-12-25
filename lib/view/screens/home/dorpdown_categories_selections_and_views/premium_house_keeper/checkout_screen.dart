@@ -75,7 +75,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
     if (paymentResult.success) {
       _clearAllData();
-      Navigator.pop(context);
+      // Navigator.pop(context);
       Navigator.pushReplacementNamed(
         context,
         RoutesName.confirmedScreen,
