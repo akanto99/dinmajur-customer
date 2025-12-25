@@ -19,7 +19,11 @@ import 'package:provider/provider.dart';
 
 class ConfirmedScreen extends StatefulWidget {
   final String trackingId;
-  const ConfirmedScreen({Key? key, required this.trackingId}) : super(key: key);
+  final String valId;
+  const ConfirmedScreen({Key? key,
+    required this.trackingId,
+    required this.valId,
+  }) : super(key: key);
 
   @override
   State<ConfirmedScreen> createState() => _ConfirmedScreenState();

@@ -51,6 +51,7 @@ class RoutesName {
   ///In HOME Screen- DropDown 2 Premium House Keeper
   static const String bookNowPremiumHouseKeeper = 'bookNowPremiumHouseKeeper_view';
   static const String confirmedScreen = 'confirmedScreen_view';
+  static const String checkoutHouseKeeperScreen = 'checkoutHouseKeeperScreen_view';
   ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
   static const String bookNowHomeBeautySalonScreen = 'bookNowHomeBeautySalonScreen_view';
   static const String beautyConfirmedScreen = 'beautyConfirmedScreen_view';

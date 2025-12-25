@@ -15,7 +15,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 
-class CheckoutScreen extends StatefulWidget {
+class CheckoutHouseKeeperScreen extends StatefulWidget {
   final Map<String, int> serviceQuantities;
   final Map<String, Set<String>> selectedTaskItems;
   final String selectedFrequency;
@@ -26,7 +26,7 @@ class CheckoutScreen extends StatefulWidget {
   final String customerAddress;
   final VoidCallback onSuccess;
 
-  const CheckoutScreen({
+  const CheckoutHouseKeeperScreen({
     Key? key,
     required this.serviceQuantities,
     required this.selectedTaskItems,
@@ -40,10 +40,10 @@ class CheckoutScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  State<CheckoutHouseKeeperScreen> createState() => _CheckoutHouseKeeperScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
+class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
@@ -74,16 +74,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!mounted) return;
 
     if (paymentResult.success) {
+      _clearAllData();
+      Navigator.pop(context);
       Navigator.pushReplacementNamed(
         context,
         RoutesName.confirmedScreen,
-        arguments: {'trackingId': trackingId},
+        arguments: {
+          'trackingId': trackingId,
+          'valId': paymentResult.validationId ?? 'N/A',
+        },
       );
     } else if (paymentResult.status == 'FAILED') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Utils.flushBarErrorMessage("Payment failed", context);
-          Navigator.pop(context);
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {
+              'trackingId': trackingId,
+              'valId': paymentResult.validationId ?? 'N/A',
+              'reason': 'Payment transaction failed',
+              'errorMessage': paymentResult.errorMessage ?? 'The payment could not be completed. Please try again.',
+            },
+          );
         }
       });
     } else if (paymentResult.status == 'CANCELLED') {
@@ -191,20 +204,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             trackingId: trackingId,
           );
         } else if (checkoutViewModel.selectedPaymentMethod == 'cash') {
-          // Cash on delivery
+          _clearAllData();
           Navigator.pop(context);
           widget.onSuccess();
 
           Navigator.pushNamed(
             context,
             RoutesName.confirmedScreen,
-            arguments: {'trackingId': trackingId ?? ''},
+            arguments: {
+              'trackingId': trackingId ?? '',
+              'valId': "COD",
+            },
           );
         } else {
-          Utils.flushBarErrorMessage("Payment initialization failed", context);
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {
+              'trackingId': trackingId,
+              'valId': 'N/A',
+              'reason': 'Invalid payment method',
+              'errorMessage': 'The selected payment method is not available.',
+            },
+          );
         }
       },
     );
+  }
+  void _clearAllData() {
+    final checkoutViewModel = Provider.of<CheckoutViewModel>(context, listen: false);
+    checkoutViewModel.reset();
+
+    _fullNameController.clear();
+    _phoneController.clear();
+    _addressController.clear();
+    _specialRequestController.clear();
   }
 
   @override
