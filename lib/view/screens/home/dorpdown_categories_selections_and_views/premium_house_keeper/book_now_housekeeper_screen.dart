@@ -756,31 +756,9 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   //     ),
   //   );
   // }
-  // void _showCheckoutScreen() {
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => CheckoutScreen(
-  //         serviceQuantities: _serviceQuantities,
-  //         selectedTaskItems: _selectedTaskItems,
-  //         selectedFrequency: _selectedFrequency,
-  //         selectedDate: _dateController.text,
-  //         selectedTime: _selectedTime!,
-  //         customerName: widget.customerName,
-  //         customerPhone: widget.customerPhone,
-  //         customerAddress: widget.customerAddress,
-  //         onSuccess: () {
-  //           setState(() {
-  //             _serviceQuantities.clear();
-  //             _selectedTaskItems.clear();
-  //           });
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
-  void _showCheckoutScreen() {
-    Navigator.pushNamed(
+
+  void _showCheckoutScreen() async {
+    final result = await Navigator.pushNamed(
       context,
       RoutesName.checkoutHouseKeeperScreen,
       arguments: {
@@ -793,12 +771,14 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         'customerPhone': widget.customerPhone,
         'customerAddress': widget.customerAddress,
       },
-    ).then((_) {
-      // This runs when returning from checkout screen
+    );
+
+    // Clear data if checkout was successful
+    if (result == true) {
       setState(() {
         _serviceQuantities.clear();
         _selectedTaskItems.clear();
       });
-    });
+    }
   }
 }
