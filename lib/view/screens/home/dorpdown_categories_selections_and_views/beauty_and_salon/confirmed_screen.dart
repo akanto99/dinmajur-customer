@@ -19,7 +19,8 @@ import 'package:provider/provider.dart';
 
 class BeautyConfirmedScreen extends StatefulWidget {
   final String trackingId;
-  const BeautyConfirmedScreen({Key? key, required this.trackingId}) : super(key: key);
+  final String valId;
+  const BeautyConfirmedScreen({Key? key, required this.trackingId,required this.valId}) : super(key: key);
 
   @override
   State<BeautyConfirmedScreen> createState() => _BeautyConfirmedScreenState();
@@ -31,6 +32,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
   @override
   void initState() {
     super.initState();
+    print("--------------------------------------${widget.valId}");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final getBeautySalonViewModel = Provider.of<GetBeautySalonViewModel>(context, listen: false);
       getBeautySalonViewModel.fetchGetBeautySalonDataApi(widget.trackingId);
@@ -41,7 +43,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body())),
+      body: SafeArea(child: ResPonsiveUi(mobile: _body(),  desktop: _body(), tablet: _body())),
     );
   }
 

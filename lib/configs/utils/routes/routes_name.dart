@@ -36,6 +36,8 @@ class RoutesName {
   static const String privacyPolicy = 'privacyPolicy_view';
 
 
+
+  static const String failedOrderScreenWidget = 'failedOrderScreenWidget_view';
   ///Order Now DropDown- 1
   static const String orderScreen = 'orderScreen_view';
   static const String orderDetailsScreen = 'orderDetailsScreen_view';
@@ -52,6 +54,8 @@ class RoutesName {
   ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
   static const String bookNowHomeBeautySalonScreen = 'bookNowHomeBeautySalonScreen_view';
   static const String beautyConfirmedScreen = 'beautyConfirmedScreen_view';
+  static const String beautyCheckoutScreen = 'beautyCheckoutScreen_view';
+
 
 
 
