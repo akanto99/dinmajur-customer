@@ -2,6 +2,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
@@ -201,11 +202,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           if (checkoutVM.selectedPaymentMethod == 'online') {
             // Initiate SSL Commerz payment
-            final paymentResult = await checkoutVM.initiateSSLCommerzPayment(
+            final paymentResult = await checkoutVM.initiatePayment(
               trackingId: trackingId,
               totalAmount: totalAmount,
             );
-
             await _handlePaymentResult(
               viewModel: checkoutVM,
               paymentResult: paymentResult,
