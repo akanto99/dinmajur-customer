@@ -10,6 +10,7 @@ import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
 import 'package:dinmajur_customer/socket_connection_model/screens_sockets/home_sceens_socket/get_all_orders_socket/socket_order_view_details.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/get_confirmedbooking_view_model.dart';
@@ -134,6 +135,10 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GetallShifttimeViewModel()),
         ChangeNotifierProvider(create: (_) => PostBookPremiumHouseKeeperViewModel()),
         ChangeNotifierProvider(create: (_) => GetConfirmedbookingViewModel()),
+                                // notifier
+        ChangeNotifierProvider(create: (_) => CheckoutViewModel()),
+
+
         //==============>Premium Home Beauty Salon
         ChangeNotifierProvider(create: (_) => GetallPremiumHomeBeautySalonViewModel()),
         ChangeNotifierProvider(create: (_) => PostBookPremiumHomeBeautySalonViewModel()),

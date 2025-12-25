@@ -22,7 +22,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
   double _progress = 0.0;
-  bool _hasNavigatedBack = false; // Prevent multiple navigations
+  bool _hasNavigatedBack = false;
 
   @override
   void initState() {
@@ -38,35 +38,39 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int progress) {
-            setState(() {
-              _progress = progress / 100;
-            });
+            if (!_hasNavigatedBack) {
+              setState(() {
+                _progress = progress / 100;
+              });
+            }
           },
           onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-            });
-            print('Page started loading: $url');
+            if (!_hasNavigatedBack) {
+              setState(() {
+                _isLoading = true;
+              });
+              print('Page started loading: $url');
+            }
           },
           onPageFinished: (String url) {
+            if (_hasNavigatedBack) return;
+
             setState(() {
               _isLoading = false;
             });
             print('Page finished loading: $url');
-            // Check payment status after page loads
             _checkPaymentStatus(url);
           },
           onWebResourceError: (WebResourceError error) {
             print('WebView error: ${error.description}');
-            setState(() {
-              _isLoading = false;
-            });
+            if (!_hasNavigatedBack) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
           },
           onNavigationRequest: (NavigationRequest request) {
             print('Navigation request: ${request.url}');
-
-            // Allow navigation but don't check status here
-            // Status will be checked in onPageFinished
             return NavigationDecision.navigate;
           },
         ),
@@ -75,102 +79,79 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   }
 
   void _checkPaymentStatus(String url) {
-    // Prevent multiple navigation callbacks
     if (_hasNavigatedBack) return;
 
     print('Checking payment status for URL: $url');
 
-    // More specific URL pattern matching for SSL Commerz
-    // Adjust these patterns based on your actual callback URLs
-
-    // Success patterns - be very specific
     if (url.contains('/payment-success') ||
         url.contains('/success?') ||
         url.contains('status=success') ||
         url.contains('payment_status=success')) {
       _handlePaymentSuccess();
-    }
-    // Failure patterns
-    else if (url.contains('/payment-failed') ||
+    } else if (url.contains('/payment-failed') ||
         url.contains('/fail?') ||
         url.contains('status=failed') ||
         url.contains('payment_status=failed')) {
       _handlePaymentFailure();
-    }
-    // Cancel patterns
-    else if (url.contains('/payment-cancel') ||
+    } else if (url.contains('/payment-cancel') ||
         url.contains('/cancel?') ||
         url.contains('status=cancel') ||
         url.contains('payment_status=cancel')) {
       _handlePaymentCancel();
     }
-
-    // Don't navigate back for intermediate pages like:
-    // - SSL Commerz payment selection page
-    // - bKash login/payment page
-    // - Card input pages
-    // These should be allowed to load normally
   }
 
   void _handlePaymentSuccess() {
     if (_hasNavigatedBack) return;
-
     _hasNavigatedBack = true;
-    print('Payment Success!');
 
-    // Add a small delay to ensure the page has fully loaded
-    Future.delayed(Duration(milliseconds: 500), () {
-      if (mounted) {
-        print("A --------------${widget.trackingId}");
-        Navigator.pop(context, {
-          'status': 'success',
-          'trackingId': widget.trackingId
-        });
-      }
-    });
+    print('Payment Success!');
+    print("A --------------${widget.trackingId}");
+
+    if (mounted) {
+      Navigator.pop(context, {
+        'status': 'success',
+        'trackingId': widget.trackingId
+      });
+    }
   }
 
   void _handlePaymentFailure() {
     if (_hasNavigatedBack) return;
-
     _hasNavigatedBack = true;
-    print('Payment Failed!');
 
-    Future.delayed(Duration(milliseconds: 500), () {
-      if (mounted) {
-        print("B --------------${widget.trackingId}");
-        Navigator.pop(context, {
-          'status': 'failed',
-          'trackingId': widget.trackingId
-        });
-      }
-    });
+    print('Payment Failed!');
+    print("B --------------${widget.trackingId}");
+
+    if (mounted) {
+      Navigator.pop(context, {
+        'status': 'failed',
+        'trackingId': widget.trackingId
+      });
+    }
   }
 
   void _handlePaymentCancel() {
     if (_hasNavigatedBack) return;
-
     _hasNavigatedBack = true;
-    print('Payment Cancelled!');
 
-    Future.delayed(Duration(milliseconds: 500), () {
-      print("C --------------${widget.trackingId}");
-      if (mounted) {
-        Navigator.pop(context, {
-          'status': 'cancelled',
-          'trackingId': widget.trackingId
-        });
-      }
-    });
+    print('Payment Cancelled!');
+    print("C --------------${widget.trackingId}");
+
+    if (mounted) {
+      Navigator.pop(context, {
+        'status': 'cancelled',
+        'trackingId': widget.trackingId
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // Handle Android back button
         _showExitConfirmation();
-        return false; // Prevent default back behavior
+        return false;
       },
       child: SafeArea(
         child: Scaffold(
@@ -188,7 +169,6 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   Widget _buildBody() {
     return Column(
       children: [
-        // Header
         GestureDetector(
           onTap: () {
             _showExitConfirmation();
@@ -198,22 +178,16 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
             child: AppBarHeader("Payment Gateway"),
           ),
         ),
-
-        // Progress indicator
         if (_isLoading)
           LinearProgressIndicator(
             value: _progress,
             backgroundColor: Colors.grey[200],
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.button(context)),
           ),
-
-        // WebView
         Expanded(
           child: Stack(
             children: [
               WebViewWidget(controller: _controller),
-
-              // Loading overlay
               if (_isLoading)
                 Center(
                   child: Column(
@@ -277,9 +251,9 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close dialog
+                Navigator.pop(context);
                 _hasNavigatedBack = true;
-                Navigator.pop(context, {'status': 'cancelled'}); // Close webview
+                Navigator.pop(context, {'status': 'cancelled'});
               },
               child: Text(
                 'Exit',

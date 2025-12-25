@@ -91,6 +91,7 @@ dependencies:
 
   webview_flutter: ^4.13.0
   cached_network_image: ^3.4.1
+  flutter_sslcommerz: ^3.0.1
 
 
   flutter_localizations:
