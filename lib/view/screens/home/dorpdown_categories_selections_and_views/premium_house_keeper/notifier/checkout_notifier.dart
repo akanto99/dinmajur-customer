@@ -1,11 +1,5 @@
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_sslcommerz/model/SSLCSdkType.dart';
-import 'package:flutter_sslcommerz/model/SSLCommerzInitialization.dart';
-import 'package:flutter_sslcommerz/model/SSLCurrencyType.dart';
-import 'package:flutter_sslcommerz/sslcommerz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckoutViewModel extends ChangeNotifier {

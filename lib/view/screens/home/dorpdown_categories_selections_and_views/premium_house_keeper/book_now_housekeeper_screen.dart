@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
@@ -755,27 +756,49 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   //     ),
   //   );
   // }
+  // void _showCheckoutScreen() {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => CheckoutScreen(
+  //         serviceQuantities: _serviceQuantities,
+  //         selectedTaskItems: _selectedTaskItems,
+  //         selectedFrequency: _selectedFrequency,
+  //         selectedDate: _dateController.text,
+  //         selectedTime: _selectedTime!,
+  //         customerName: widget.customerName,
+  //         customerPhone: widget.customerPhone,
+  //         customerAddress: widget.customerAddress,
+  //         onSuccess: () {
+  //           setState(() {
+  //             _serviceQuantities.clear();
+  //             _selectedTaskItems.clear();
+  //           });
+  //         },
+  //       ),
+  //     ),
+  //   );
+  // }
   void _showCheckoutScreen() {
-    Navigator.push(
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => CheckoutScreen(
-          serviceQuantities: _serviceQuantities,
-          selectedTaskItems: _selectedTaskItems,
-          selectedFrequency: _selectedFrequency,
-          selectedDate: _dateController.text,
-          selectedTime: _selectedTime!,
-          customerName: widget.customerName,
-          customerPhone: widget.customerPhone,
-          customerAddress: widget.customerAddress,
-          onSuccess: () {
-            setState(() {
-              _serviceQuantities.clear();
-              _selectedTaskItems.clear();
-            });
-          },
-        ),
-      ),
-    );
+      RoutesName.checkoutHouseKeeperScreen,
+      arguments: {
+        'serviceQuantities': _serviceQuantities,
+        'selectedTaskItems': _selectedTaskItems,
+        'selectedFrequency': _selectedFrequency,
+        'selectedDate': _dateController.text,
+        'selectedTime': _selectedTime!,
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': widget.customerAddress,
+      },
+    ).then((_) {
+      // This runs when returning from checkout screen
+      setState(() {
+        _serviceQuantities.clear();
+        _selectedTaskItems.clear();
+      });
+    });
   }
 }

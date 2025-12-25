@@ -8,6 +8,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/homebeauty_salon_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
@@ -171,12 +172,36 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => ConfirmedScreen(trackingId: args['trackingId']),
+            builder: (BuildContext context) => ConfirmedScreen(
+                trackingId: args['trackingId'],
+              valId: args['valId'],
+            ),
             settings: settings,
           );
         }
         return _errorRoute();
 
+        case RoutesName.checkoutHouseKeeperScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CheckoutHouseKeeperScreen(
+              serviceQuantities: args['serviceQuantities'] ,
+              selectedTaskItems: args['selectedTaskItems'] ,
+              selectedFrequency: args['selectedFrequency'] ,
+              selectedDate: args['selectedDate'],
+              selectedTime: args['selectedTime'] ,
+              customerName: args['customerName'] ,
+              customerPhone: args['customerPhone'] ,
+              customerAddress: args['customerAddress'] ,
+              onSuccess: () {
+                // This callback will be called from checkout screen
+              },
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
     ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
       case RoutesName.bookNowHomeBeautySalonScreen:
         final args = settings.arguments as Map<String, dynamic>?;
