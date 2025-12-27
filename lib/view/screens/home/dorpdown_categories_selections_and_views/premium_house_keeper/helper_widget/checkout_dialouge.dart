@@ -288,7 +288,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomTextFieldWithFormFieldPoppins(
+            CustomTextFieldWithFormField(
               titleText: "Full Name",
               placeholder: 'Enter your name',
               controller: _fullNameController,
@@ -302,7 +302,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
             _buildInfoRow('Enter your full legal name', context),
             SizedboxSpaccing.height015(context),
 
-            CustomTextFieldWithFormFieldPoppins(
+            CustomTextFieldWithFormField(
               titleText: 'Phone Number',
               placeholder: 'Enter your number',
               controller: _phoneController,

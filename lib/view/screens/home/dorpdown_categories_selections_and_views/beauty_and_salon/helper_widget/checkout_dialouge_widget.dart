@@ -181,7 +181,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                     SizedboxSpaccing.height02(context),
 
                     // Full Name
-                    CustomTextFieldWithFormFieldPoppins(
+                    CustomTextFieldWithFormField(
                       titleText: "Full Name",
                       placeholder: 'Enter your name',
                       controller: _fullNameController,
@@ -196,7 +196,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                     SizedboxSpaccing.height015(context),
 
                     // Phone Number
-                    CustomTextFieldWithFormFieldPoppins(
+                    CustomTextFieldWithFormField(
                       titleText: 'Phone Number',
                       placeholder: 'Enter your number',
                       controller: _phoneController,

@@ -333,8 +333,18 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
             children: [
               Text('Customer Details',
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-              Text('Edit',
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+              GestureDetector(
+                onTap: (){
+                  Navigator.pushNamed(context, RoutesName.addLocationScreenWidget);
+                },
+                child: Container(
+                  width: 80,
+                  color: Colors.transparent,
+                  alignment: Alignment.centerRight,
+                  child: Text('Edit',
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                ),
+              ),
             ],
           ),
           SizedboxSpaccing.height01(context),
