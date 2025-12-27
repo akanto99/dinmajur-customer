@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:dinmajur_customer/respository/auth_repository/login_logout_repository.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart'; // ✅ Add SSE import
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -173,7 +174,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       final socketProvider = Provider.of<SocketProvider>(context, listen: false);
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       final sseService = Provider.of<SSENotificationService>(context, listen: false); // ✅ Get SSE service
-
+      final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
       // Get accessToken from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken') ?? '';
@@ -253,6 +254,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       print("🗑️ Clearing local data...");
       await userPreference.remove();
       profileViewModel.clearCache();
+      locationListViewModel.clearCache();
 
       setLoggingOut(false);
 
