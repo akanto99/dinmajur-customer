@@ -10,6 +10,7 @@ class RoutesName {
   static const String navigationBar = 'navigationBar_view';
   ///home
   static const String home = 'home_view';
+  static const String addLocationScreenWidget = 'addLocationScreenWidget_view';
   static const String notificationsListScreen = 'notificationsListScreen_view'; //Notifications ListScreen SSE Just
   static const String unifiedSeeAllScreen = 'unifiedSeeAllScreen_view';
   static const String orderDetailsSocketScreen = 'orderDetailsSocketScreen_view';

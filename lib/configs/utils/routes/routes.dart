@@ -20,6 +20,7 @@ import 'package:dinmajur_customer/view/screens/home/drawer/save_address/save_add
 import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/terms_conditions/terms_conditions_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/view_edit_profile/view_profile.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/location_screens/add_newlocation_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/location_screens/map_location_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
@@ -65,6 +66,8 @@ class Routes {
       ///Home
       case RoutesName.home:
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
+        case RoutesName.addLocationScreenWidget:
+        return MaterialPageRoute(builder: (BuildContext context) => const AddLocationScreenWidget());
         case RoutesName.notificationsListScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
         //  case RoutesName.notificationsListScreen:
