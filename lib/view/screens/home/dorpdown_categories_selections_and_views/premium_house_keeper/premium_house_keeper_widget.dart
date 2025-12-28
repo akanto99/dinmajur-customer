@@ -159,6 +159,7 @@ class PremiumHouseKeeperCoverageWidget extends StatelessWidget {
                     'customerName': customerName,
                     'customerPhone': customerPhone,
                     'customerAddress': customerAddress,
+                    'isFromHome': true,
                   });
 
 

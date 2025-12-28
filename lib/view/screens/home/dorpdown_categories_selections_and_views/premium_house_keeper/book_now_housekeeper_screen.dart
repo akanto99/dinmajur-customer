@@ -29,7 +29,15 @@ class BookNowHousekeeperScreen extends StatefulWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
-  const BookNowHousekeeperScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress}) : super(key: key);
+  final bool isFromHome;
+
+  const BookNowHousekeeperScreen({Key? key,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+    this.isFromHome = false,
+
+  }) : super(key: key);
 
   @override
   State<BookNowHousekeeperScreen> createState() => _BookNowHousekeeperScreenState();
@@ -40,6 +48,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   final TextEditingController _dateController = TextEditingController();
   String? _selectedTime;
   int _selectedTabIndex = 0;
+  late String _currentCustomerAddress;
 
   // Map to store quantities for each service
   Map<String, int> _serviceQuantities = {};
@@ -57,6 +66,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   @override
   void initState() {
     super.initState();
+    _currentCustomerAddress = widget.customerAddress;
+
     _dateController.text = DateFormat('MMMM dd, yyyy').format(DateTime.now());
     _pageController = PageController(viewportFraction: 0.3);
 
@@ -214,9 +225,15 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body())),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, null);
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.containerBackground(context),
+        body: SafeArea(child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body())),
+      ),
     );
   }
 
@@ -227,7 +244,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () => Navigator.pop(context, null),
           child: Container(height: 60, child: AppBarHeader("Premium House Keeper")),
         ),
         Expanded(
@@ -769,7 +786,12 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         'selectedTime': _selectedTime!,
         'customerName': widget.customerName,
         'customerPhone': widget.customerPhone,
-        'customerAddress': widget.customerAddress,
+        'customerAddress': _currentCustomerAddress,
+        'onAddressUpdate': (String newAddress) {
+          setState(() {
+            _currentCustomerAddress = newAddress;
+          });
+        },
       },
     );
 

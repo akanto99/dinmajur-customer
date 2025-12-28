@@ -166,6 +166,7 @@ class Routes {
                 customerName: args['customerName'],
                 customerPhone: args['customerPhone'],
                 customerAddress: args['customerAddress'],
+              isFromHome: args['isFromHome'] ?? false,
             ),
             settings: settings,
           );
@@ -197,6 +198,7 @@ class Routes {
               customerName: args['customerName'] ,
               customerPhone: args['customerPhone'] ,
               customerAddress: args['customerAddress'] ,
+              onAddressUpdate: args['onAddressUpdate'],
               onSuccess: () {
                 // This callback will be called from checkout screen
               },
@@ -214,6 +216,7 @@ class Routes {
               customerName: args['customerName'],
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
+              isFromHome: args['isFromHome'] ?? false,
             ),
             settings: settings,
           );
@@ -244,6 +247,7 @@ class Routes {
               serviceQuantities: args['serviceQuantities'],
               totalPrice: args['totalPrice'],
               transportFee: args['transportFee'],
+              onAddressUpdate: args['onAddressUpdate'],
             ),
             settings: settings,
           );
