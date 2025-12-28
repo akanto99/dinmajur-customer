@@ -24,6 +24,7 @@ class CheckoutScreen extends StatefulWidget {
   final Map<String, int> serviceQuantities;
   final double totalPrice;
   final double transportFee;
+  final Function(String)? onAddressUpdate;
 
   const CheckoutScreen({
     Key? key,
@@ -35,6 +36,7 @@ class CheckoutScreen extends StatefulWidget {
     required this.serviceQuantities,
     required this.totalPrice,
     required this.transportFee,
+    required this.onAddressUpdate,
   }) : super(key: key);
 
   @override
@@ -327,6 +329,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+// Add this method inside _CheckoutScreenState class
+
+// ✅ Handle Edit Address Navigation
+  Future<void> _handleEditAddress() async {
+    final result = await Navigator.pushNamed(
+      context,
+      RoutesName.addLocationScreenWidget,
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        String newAddress = '';
+
+        if (result['addressType'] == 'saved') {
+          newAddress = result['fullAddress'] ?? '';
+          print('✅ Updated with saved address: $newAddress');
+        } else if (result['addressType'] == 'new') {
+          newAddress = result['fullAddress'] ?? '';
+          print('✅ Updated with new address: $newAddress');
+        }
+
+        _addressController.text = newAddress;
+
+        // ✅ Notify parent (BookNowScreen) about address update
+        if (widget.onAddressUpdate != null && newAddress.isNotEmpty) {
+          widget.onAddressUpdate!(newAddress);
+        }
+      });
+    }
+  }
+
+// ✅ Update the Edit button in _buildCustomerDetailsCard method
   Widget _buildCustomerDetailsCard() {
     return Container(
       padding: EdgeInsets.all(10),
@@ -342,8 +376,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               Text('Customer Details',
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-              Text('Edit',
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+              GestureDetector(
+                onTap: _handleEditAddress, // ✅ Updated
+                child: Container(
+                  width: 80,
+                  color: Colors.transparent,
+                  alignment: Alignment.centerRight,
+                  child: Text('Edit',
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                ),
+              ),
             ],
           ),
           SizedboxSpaccing.height01(context),
@@ -351,7 +393,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedboxSpaccing.height01(context),
           _buildDetailRow('Phone', widget.customerPhone),
           SizedboxSpaccing.height01(context),
-          _buildDetailRow('Address', widget.customerAddress, isMultiline: true),
+          _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true), // ✅ Use controller text if available
         ],
       ),
     );

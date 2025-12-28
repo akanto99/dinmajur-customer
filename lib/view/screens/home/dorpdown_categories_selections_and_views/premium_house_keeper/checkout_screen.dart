@@ -25,7 +25,7 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
   final String customerPhone;
   final String customerAddress;
   final VoidCallback onSuccess;
-
+  final Function(String)? onAddressUpdate;
   const CheckoutHouseKeeperScreen({
     Key? key,
     required this.serviceQuantities,
@@ -37,6 +37,7 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
     required this.customerPhone,
     required this.customerAddress,
     required this.onSuccess,
+    this.onAddressUpdate,
   }) : super(key: key);
 
   @override
@@ -318,6 +319,38 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     );
   }
 
+// Add this method inside _CheckoutHouseKeeperScreenState class
+
+// ✅ Handle Edit Address Navigation
+  Future<void> _handleEditAddress() async {
+    final result = await Navigator.pushNamed(
+      context,
+      RoutesName.addLocationScreenWidget,
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        String newAddress = '';
+
+        if (result['addressType'] == 'saved') {
+          newAddress = result['fullAddress'] ?? '';
+          print('✅ Updated with saved address: $newAddress');
+        } else if (result['addressType'] == 'new') {
+          newAddress = result['fullAddress'] ?? '';
+          print('✅ Updated with new address: $newAddress');
+        }
+
+        _addressController.text = newAddress;
+
+        // ✅ Notify parent (BookNowScreen) about address update
+        if (widget.onAddressUpdate != null && newAddress.isNotEmpty) {
+          widget.onAddressUpdate!(newAddress);
+        }
+      });
+    }
+  }
+
+// ✅ Update the Edit button in _buildCustomerDetailsCard method
   Widget _buildCustomerDetailsCard() {
     return Container(
       padding: EdgeInsets.all(10),
@@ -334,9 +367,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               Text('Customer Details',
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
               GestureDetector(
-                onTap: (){
-                  Navigator.pushNamed(context, RoutesName.addLocationScreenWidget);
-                },
+                onTap: _handleEditAddress, // ✅ Updated
                 child: Container(
                   width: 80,
                   color: Colors.transparent,
@@ -352,7 +383,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
           SizedboxSpaccing.height01(context),
           _buildDetailRow('Phone', widget.customerPhone),
           SizedboxSpaccing.height01(context),
-          _buildDetailRow('Address', widget.customerAddress, isMultiline: true),
+          _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true), // ✅ Use controller text if available
         ],
       ),
     );

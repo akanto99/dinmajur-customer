@@ -27,12 +27,15 @@ class BookNowHomeBeautySalonScreen extends StatefulWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
+  final bool isFromHome;
 
   const BookNowHomeBeautySalonScreen({
     Key? key,
     required this.customerName,
     required this.customerPhone,
     required this.customerAddress,
+    this.isFromHome = false,
+
   }) : super(key: key);
 
   @override
@@ -45,9 +48,16 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
   final Map<int, GlobalKey> _categoryKeys = {};
   Map<String, int> _serviceQuantities = {};
 
+  late String _currentCustomerAddress;
+
+
   @override
   void initState() {
     super.initState();
+    _currentCustomerAddress = widget.customerAddress;
+
+
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false)
           .fetchGetAllPermiumHomeBeautySalonGetDataApi();
@@ -135,13 +145,20 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: _body(),
-          desktop: _body(),
-          tablet: _body(),
+    return WillPopScope(
+      onWillPop: () async {
+        // ✅ Return null to indicate user backed out
+        Navigator.pop(context, null);
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.containerBackground(context),
+        body: SafeArea(
+          child: ResPonsiveUi(
+            mobile: _body(),
+            desktop: _body(),
+            tablet: _body(),
+          ),
         ),
       ),
     );
@@ -154,7 +171,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () =>Navigator.pop(context, null),
           child: Container(
             height: 60,
             child: AppBarHeader("Beauty & Salon"),
@@ -406,12 +423,17 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
       arguments: {
         'customerName': widget.customerName,
         'customerPhone': widget.customerPhone,
-        'customerAddress': widget.customerAddress,
+        'customerAddress': _currentCustomerAddress,
         'userId': userId,
         'categories': categories,
         'serviceQuantities': _serviceQuantities,
         'totalPrice': _calculateTotal(),
         'transportFee': 80.0,
+        'onAddressUpdate': (String newAddress) {
+          setState(() {
+            _currentCustomerAddress = newAddress;
+          });
+        },
       },
     );
 
