@@ -131,7 +131,7 @@ class CheckoutViewModel extends ChangeNotifier {
   String? validateCheckoutForm({
     required String phone,
     required String address,
-    required String? houseSize,
+    // required String? houseSize,
     required String? paymentMethod,
   }) {
     if (phone.isEmpty) {
@@ -140,9 +140,9 @@ class CheckoutViewModel extends ChangeNotifier {
     if (address.isEmpty) {
       return "Service address is required";
     }
-    if (houseSize == null) {
-      return "Please select house size";
-    }
+    // if (houseSize == null) {
+    //   return "Please select house size";
+    // }
     if (paymentMethod == null) {
       return "Please select a payment method";
     }
@@ -150,14 +150,25 @@ class CheckoutViewModel extends ChangeNotifier {
   }
 
   // Get payment method data for API
-  Map<String, dynamic> getPaymentMethodData(String? method) {
+  // Map<String, dynamic> getPaymentMethodData(String? method) {
+  //   switch (method) {
+  //     case 'online':
+  //       return {"type": "WALLET", "provider": "online"};
+  //     case 'cash':
+  //       return {"type": "OTHER", "provider": "cash_on_delivery"};
+  //     default:
+  //       return {"type": "OTHER", "provider": "cash_on_delivery"};
+  //   }
+  // }
+  // Get payment method data for API
+  String getPaymentMethodData(String? method) {
     switch (method) {
       case 'online':
-        return {"type": "WALLET", "provider": "online"};
+        return "ONLINE";
       case 'cash':
-        return {"type": "OTHER", "provider": "cash_on_delivery"};
+        return "CASH_ON_DELIVERY";
       default:
-        return {"type": "OTHER", "provider": "cash_on_delivery"};
+        return "OTHERS";
     }
   }
 
@@ -224,7 +235,8 @@ class CheckoutViewModel extends ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userId = prefs.getString('userId');
 
-    Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
+    // Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
+    String paymentData = getPaymentMethodData(paymentMethod);
 
     return {
       "userId": userId.toString(),
@@ -240,7 +252,7 @@ class CheckoutViewModel extends ChangeNotifier {
       "couponCode": null,
       "shiftId": shiftId,
       "date": selectedDate,
-      "payment": paymentData,
+      "paymentType": paymentData,
     };
   }
 

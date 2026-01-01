@@ -13,12 +13,14 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/cart_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/checkout_dialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/servicedetails_dialouge_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/book_premium_home_beauty_salon_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -355,6 +357,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
   }
   void _showCartDialog() {
     final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
+    final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
     final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
 
     showDialog(
@@ -371,12 +374,26 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
               });
               setDialogState(() {});
 
-              // Close dialog if cart is empty
               if (_getTotalItems() == 0) {
                 Navigator.pop(context);
               }
             },
             onProceedToCheckout: _navigateCheckOutScreen,
+            selectedDate: checkoutVM.selectedDate,
+            selectedServiceTime: checkoutVM.selectedServiceTime,
+            onDateSelected: (DateTime selectedDate) {
+              checkoutVM.setSelectedDate(selectedDate);
+              setDialogState(() {});
+            },
+            onTimeSelected: (String time) {
+              checkoutVM.setServiceTime(time);
+              setDialogState(() {});
+            },
+            dateController: TextEditingController(
+              text: checkoutVM.selectedDate != null
+                  ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!)
+                  : '',
+            ),
           );
         },
       ),

@@ -37,7 +37,7 @@ class NavigationService {
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           title: const Text('Session Expired'),
-          content: const Text('Your session has expired. Please auth_login again.'),
+          content: const Text('Your session has expired. Please login again.'),
           actions: [
             TextButton(
               onPressed: () {
