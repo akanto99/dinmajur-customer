@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
@@ -12,6 +13,7 @@ import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/cart_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/select_time_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/taskdetails_showdialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
@@ -19,6 +21,7 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_servi
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -284,60 +287,41 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                 controller: _mainScrollController,
                 child: Column(
                   children: [
-                    SizedboxSpaccing.height015(context),
+                    SizedboxSpaccing.height03(context),
+                    Container(
+                      width: screenWidth * 0.9,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.freequencyColor(context)),
+                      child: Row(
+                        children: [
+                          Expanded(child: _frequencyButton('Daily', screenWidth)),
+                          Expanded(child: _frequencyButton('Monthly', screenWidth)),
+                        ],
+                      ),
+                    ),
+                    SizedboxSpaccing.height03(context),
                     Container(
                       width: screenWidth * 0.9,
                       child: Text(
                         "Two highly-trained housekeepers will work together",
-                        style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.subtitle(context)),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w400,),
                         textAlign: TextAlign.center,
                       ),
                     ),
+                    SizedboxSpaccing.height03(context),
+
+                    SectionHeader(title: 'Choose Date & Time', titleWidth: screenWidth * 0.9, showSeeAll: false),
                     SizedboxSpaccing.height02(context),
-
-                    // Frequency Selection
-                    Container(
-                      width: screenWidth * 0.9,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Frequency',
-                            style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
-                          ),
-                          SizedboxSpaccing.height01(context),
-                          Container(
-                            width: screenWidth * 0.9,
-                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.border(context).withOpacity(0.5)),
-                            padding: EdgeInsets.all(6),
-                            child: Row(
-                              children: [
-                                Expanded(child: _frequencyButton('Daily', screenWidth)),
-                                Expanded(child: _frequencyButton('Monthly', screenWidth)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedboxSpaccing.height02(context),
-
                     // Date Selection
-                    Container(
-                      width: screenWidth * 0.9,
-                      child: CustomDatePickerFormField(
-                        title: 'Choose Date',
-                        controller: _dateController,
-                        onDateSelected: (DateTime selectedDate) {
-                          // Format and set the date
-                          String formattedDate = DateFormat('MMMM dd, yyyy').format(selectedDate);
-                          _dateController.text = formattedDate;
-
-                          // Fetch shifts for the new date
-                          _onDateChanged(formattedDate);
-                        },
-                      ),
+                    CustomDatePickerFormField(
+                      controller: _dateController,
+                      borderRadius: 6,
+                      inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                      hintTextStyle: AppTextStyles.textSize14(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
+                      onDateSelected: (DateTime selectedDate) {
+                        String formattedDate = DateFormat('MMMM dd, yyyy').format(selectedDate);
+                        _dateController.text = formattedDate;
+                        _onDateChanged(formattedDate);
+                      },
                     ),
 
                     SizedboxSpaccing.height02(context),
@@ -502,19 +486,167 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
+  // Widget _buildTimeSelection(double screenWidth) {
+  //   return Consumer<GetallShifttimeViewModel>(
+  //     builder: (context, shiftTimeViewModel, child) {
+  //       // Get all shift times from the view model
+  //       final allShiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
+  //
+  //       // Filter available shifts for default selection
+  //       final availableShiftTimes = allShiftTimes.where((shift) => shift.isBooked == false).toList();
+  //
+  //       // Check if we're still loading
+  //       final isLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
+  //
+  //       // Set default selected time if not already set and available data exists
+  //       if (availableShiftTimes.isNotEmpty && _selectedTime == null) {
+  //         WidgetsBinding.instance.addPostFrameCallback((_) {
+  //           if (mounted && _selectedTime == null) {
+  //             setState(() {
+  //               final firstShift = availableShiftTimes.first;
+  //               _selectedTime = '${firstShift.type ?? ''} (${firstShift.startTime ?? ''}-${firstShift.endTime ?? ''})';
+  //             });
+  //           }
+  //         });
+  //       }
+  //
+  //       return Container(
+  //         width: screenWidth * 0.9,
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Text('Choose Time', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+  //             SizedboxSpaccing.height01(context),
+  //
+  //             // Show loading indicator while fetching
+  //             if (isLoading)
+  //               Container(
+  //                 height: 42,
+  //                 padding: EdgeInsets.symmetric(horizontal: 10),
+  //                 decoration: BoxDecoration(
+  //                   color: AppColors.textFieldFill(context),
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(color: AppColors.border(context)),
+  //                 ),
+  //                 child: Row(
+  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                   children: [
+  //                     Text('Updating...', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+  //                     Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
+  //                   ],
+  //                 ),
+  //               )
+  //             // Show dropdown with all shifts (both available and booked)
+  //             else if (allShiftTimes.isNotEmpty)
+  //               Container(
+  //                 height: 42,
+  //                 padding: EdgeInsets.symmetric(horizontal: 10),
+  //                 decoration: BoxDecoration(
+  //                   color: AppColors.textFieldFill(context),
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(color: AppColors.border(context)),
+  //                 ),
+  //                 child: DropdownButtonHideUnderline(
+  //                   child: DropdownButton<String>(
+  //                     value: _selectedTime,
+  //                     isExpanded: true,
+  //                     icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
+  //                     dropdownColor: AppColors.containerBackground(context),
+  //                     menuMaxHeight: 300,
+  //                     borderRadius: BorderRadius.circular(8),
+  //                     hint: availableShiftTimes.isEmpty
+  //                         ? Row(
+  //                             children: [
+  //                               Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
+  //                               SizedBox(width: 8),
+  //                               Expanded(
+  //                                 child: Text(
+  //                                   'All time slots are booked',
+  //                                   style: AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
+  //                                 ),
+  //                               ),
+  //                             ],
+  //                           )
+  //                         : null,
+  //                     items: allShiftTimes.map((shift) {
+  //                       String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
+  //                       bool isBooked = shift.isBooked ?? false;
+  //
+  //                       return DropdownMenuItem<String>(
+  //                         value: displayText,
+  //                         enabled: !isBooked,
+  //                         child: Container(
+  //                           padding: EdgeInsets.symmetric(vertical: 8),
+  //                           decoration: BoxDecoration(
+  //                             border: Border(bottom: BorderSide(color: AppColors.border(context).withOpacity(0.3), width: 0.5)),
+  //                           ),
+  //                           child: Row(
+  //                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                             children: [
+  //                               Expanded(
+  //                                 child: Text(
+  //                                   displayText,
+  //                                   style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: isBooked ? AppColors.subtitle(context).withOpacity(0.5) : AppColors.textPrimary(context)),
+  //                                 ),
+  //                               ),
+  //                               if (isBooked)
+  //                                 Container(
+  //                                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+  //                                   decoration: BoxDecoration(
+  //                                     color: Colors.red.withOpacity(0.1),
+  //                                     borderRadius: BorderRadius.circular(4),
+  //                                     border: Border.all(color: Colors.red.withOpacity(0.3)),
+  //                                   ),
+  //                                   child: Text(
+  //                                     'Booked',
+  //                                     style: AppTextStyles.textSize10(context, color: Colors.red, weight: FontWeight.w600),
+  //                                   ),
+  //                                 ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       );
+  //                     }).toList(),
+  //                     onChanged: (String? newValue) {
+  //                       if (newValue != null) {
+  //                         final selectedShift = allShiftTimes.firstWhere((shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue);
+  //
+  //                         if (selectedShift.isBooked != true) {
+  //                           setState(() => _selectedTime = newValue);
+  //                         }
+  //                       }
+  //                     },
+  //                   ),
+  //                 ),
+  //               )
+  //             else
+  //               Container(
+  //                 height: 42,
+  //                 padding: EdgeInsets.symmetric(horizontal: 10),
+  //                 decoration: BoxDecoration(
+  //                   color: AppColors.textFieldFill(context),
+  //                   borderRadius: BorderRadius.circular(12),
+  //                   border: Border.all(color: AppColors.border(context)),
+  //                 ),
+  //                 child: Center(
+  //                   child: Text('No shift times available', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+  //                 ),
+  //               ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
   Widget _buildTimeSelection(double screenWidth) {
     return Consumer<GetallShifttimeViewModel>(
       builder: (context, shiftTimeViewModel, child) {
-        // Get all shift times from the view model
         final allShiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
-
-        // Filter available shifts for default selection
         final availableShiftTimes = allShiftTimes.where((shift) => shift.isBooked == false).toList();
-
-        // Check if we're still loading
         final isLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
 
-        // Set default selected time if not already set and available data exists
+        // Set default selected time
         if (availableShiftTimes.isNotEmpty && _selectedTime == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && _selectedTime == null) {
@@ -526,135 +658,40 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           });
         }
 
-        return Container(
-          width: screenWidth * 0.9,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Choose Time', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-              SizedboxSpaccing.height01(context),
+        return DynamicTimeSelectionWidget(
+          context: context,
+          items: allShiftTimes,
+          selectedValue: _selectedTime,
+          isLoading: isLoading,
+          getDisplayText: (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' ,
+          isItemBooked: (shift) => shift.isBooked ?? false,
+          titleSpacing: (ctx) => SizedboxSpaccing.height01(ctx),
+          showPrefixIcon: true,
+          prefixIcon: Icons.access_time,
+            iconSize:20,
+          // selectedTextStyle: AppTextStyles.textSize16(context,weight: FontWeight.w400),
+            itemTextStyle:AppTextStyles.textSize14(context,weight: FontWeight.w400),
+          // selectedTextStyle,
+          // TextStyle? itemTextStyle,
+          // TextStyle? loadingTextStyle,
+          // TextStyle? emptyTextStyle,
+          // TextStyle? hintTextStyle,
+          // TextStyle? badgeTextStyle,
 
-              // Show loading indicator while fetching
-              if (isLoading)
-                Container(
-                  height: 42,
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border(context)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Updating...', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                      Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
-                    ],
-                  ),
-                )
-              // Show dropdown with all shifts (both available and booked)
-              else if (allShiftTimes.isNotEmpty)
-                Container(
-                  height: 42,
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border(context)),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedTime,
-                      isExpanded: true,
-                      icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
-                      dropdownColor: AppColors.containerBackground(context),
-                      menuMaxHeight: 300,
-                      borderRadius: BorderRadius.circular(8),
-                      hint: availableShiftTimes.isEmpty
-                          ? Row(
-                              children: [
-                                Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'All time slots are booked',
-                                    style: AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : null,
-                      items: allShiftTimes.map((shift) {
-                        String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
-                        bool isBooked = shift.isBooked ?? false;
-
-                        return DropdownMenuItem<String>(
-                          value: displayText,
-                          enabled: !isBooked,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: AppColors.border(context).withOpacity(0.3), width: 0.5)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    displayText,
-                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: isBooked ? AppColors.subtitle(context).withOpacity(0.5) : AppColors.textPrimary(context)),
-                                  ),
-                                ),
-                                if (isBooked)
-                                  Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: Colors.red.withOpacity(0.3)),
-                                    ),
-                                    child: Text(
-                                      'Booked',
-                                      style: AppTextStyles.textSize10(context, color: Colors.red, weight: FontWeight.w600),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          final selectedShift = allShiftTimes.firstWhere((shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue);
-
-                          if (selectedShift.isBooked != true) {
-                            setState(() => _selectedTime = newValue);
-                          }
-                        }
-                      },
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  height: 42,
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border(context)),
-                  ),
-                  child: Center(
-                    child: Text('No shift times available', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
-                  ),
-                ),
-            ],
-          ),
+          onChanged: (String? newValue) {
+            if (newValue != null) {
+              final selectedShift = allShiftTimes.firstWhere(
+                      (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue
+              );
+              if (selectedShift.isBooked != true) {
+                setState(() => _selectedTime = newValue);
+              }
+            }
+          },
         );
       },
     );
   }
-
   void _proceedToCart() {
     // Check if time slot is available
     final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
