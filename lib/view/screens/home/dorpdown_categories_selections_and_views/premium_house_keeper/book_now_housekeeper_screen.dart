@@ -429,7 +429,9 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                         );
                       },
                     ),
+                    // SizedboxSpaccing.height015(context),
 
+                    _buildImportantNotes(context, screenWidth),
                     SizedboxSpaccing.height045(context),
                   ],
                 ),
@@ -802,5 +804,53 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         _selectedTaskItems.clear();
       });
     }
+  }
+
+  Widget _buildImportantNotes(BuildContext context, double screenWidth) {
+    return Container(
+      width:screenWidth*0.9 ,
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.textFieldFill(context).withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.description_outlined, size: 20, color: AppColors.textPrimary(context)),
+              SizedBox(width: 8),
+              Text('Important Notes', style: AppTextStyles.textSize16(context, weight: FontWeight.w700)),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            'আমরা হাউসকিপিং এর প্রয়োজনীয় উপকরণ সরবরাহ করব। তবে, কিছু বিষয় আমাদের কাস্টম সেবা দ্বারা পরিচালিত হবে:',
+            style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context)),
+          ),
+          SizedBox(height: 8),
+          _buildBulletPoint('ঝাড়ু এবং ফ্যান মুছার সিঁড়ি ব্যবস্থা ক্লায়েন্টদের নিজেই করতে হবে।'),
+          _buildBulletPoint('আমরা ভারী জিনিসপত্র স্থানান্তর করতে পারব না এবং শোকেসের জিনিসপত্রও সরাতে পারব না।'),
+          _buildBulletPoint('সকল প্রয়োজনীয় জিনিসপত্র ক্লায়েন্টদের নিজেরাই সরিয়ে রাখতে হবে।'),
+          _buildBulletPoint('আমরা শুধুমাত্র ক্লায়েন্টদের নির্বাচিত আইটেম এবং কাজ অনুযায়ী সেবা প্রদান করব।'),
+        ],
+      ),
+    );
+  }
+  Widget _buildBulletPoint(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4, left: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('• ', style: AppTextStyles.textSize14(context)),
+          Expanded(
+            child: Text(text, style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context))),
+          ),
+        ],
+      ),
+    );
   }
 }

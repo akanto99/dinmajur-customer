@@ -118,13 +118,27 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     return serviceQuantities.entries.where((entry) => entry.value > 0).length;
   }
 
-  // Validate form fields
-  String? validateCheckoutForm({
+  // In checkout_notifier.dart
+
+// Validation for cart dialog (date & time only)
+  String? validateCartForm({
+    required DateTime? selectedDate,
+    required String? serviceTime,
+  }) {
+    if (selectedDate == null) {
+      return "Please select a date";
+    }
+    if (serviceTime == null || serviceTime.isEmpty) {
+      return "Please select a service time";
+    }
+    return null;
+  }
+
+// Validation for checkout screen (name, phone, address, payment)
+  String? validateCheckoutDetails({
     required String fullName,
     required String phone,
     required String address,
-    required DateTime? selectedDate,
-    required String? serviceTime,
     required String? paymentMethod,
   }) {
     if (fullName.trim().isEmpty) {
@@ -133,30 +147,23 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     if (phone.trim().isEmpty) {
       return "Please enter your phone number";
     }
-    if (selectedDate == null) {
-      return "Please select a date";
-    }
-    if (serviceTime == null) {
-      return "Please select a service time";
-    }
     if (address.trim().isEmpty) {
       return "Please enter your address";
     }
-    if (paymentMethod == null) {
+    if (paymentMethod == null || paymentMethod.isEmpty) {
       return "Please select a payment method";
     }
     return null;
   }
-
   // Get payment method data for API
-  Map<String, dynamic> getPaymentMethodData(String? method) {
+  String getPaymentMethodData(String? method) {
     switch (method) {
       case 'online':
-        return {"type": "WALLET", "provider": "online"};
+        return "ONLINE";
       case 'cash':
-        return {"type": "OTHER", "provider": "cash_on_delivery"};
+        return "CASH_ON_DELIVERY";
       default:
-        return {"type": "OTHER", "provider": "cash_on_delivery"};
+        return "OTHERS";
     }
   }
 
@@ -202,7 +209,8 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     required String? paymentMethod,
   }) {
     String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-    Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
+    // Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
+     String paymentData = getPaymentMethodData(paymentMethod);
 
     return {
       'userId': userId,
@@ -215,7 +223,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
           : specialRequest?.trim(),
       'date': formattedDate,
       'tasks': tasks,
-      'payment': paymentData,
+         "paymentType": paymentData,
     };
   }
 

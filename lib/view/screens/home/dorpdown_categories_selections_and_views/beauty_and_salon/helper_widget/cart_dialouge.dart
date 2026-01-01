@@ -2,14 +2,22 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CartDialogWidget extends StatelessWidget {
   final List<Datum> categories;
   final Map<String, int> serviceQuantities;
   final Function(String serviceId, int newQuantity) onQuantityUpdate;
   final VoidCallback onProceedToCheckout;
+  final DateTime? selectedDate;
+  final String? selectedServiceTime;
+  final Function(DateTime) onDateSelected;
+  final Function(String) onTimeSelected;
+  final TextEditingController dateController;
 
   const CartDialogWidget({
     Key? key,
@@ -17,6 +25,11 @@ class CartDialogWidget extends StatelessWidget {
     required this.serviceQuantities,
     required this.onQuantityUpdate,
     required this.onProceedToCheckout,
+    required this.selectedDate,
+    required this.selectedServiceTime,
+    required this.onDateSelected,
+    required this.onTimeSelected,
+    required this.dateController,
   }) : super(key: key);
 
   List<Map<String, dynamic>> _getCartItems() {
@@ -80,20 +93,20 @@ class CartDialogWidget extends StatelessWidget {
       ),
       child: Container(
         width: screenWidth,
-        constraints: BoxConstraints(maxHeight: screenHeight * 0.8),
+        constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildHeader(context, cartItems, total, originalTotal, saved),
             _buildCartItemsList(context, cartItems),
             _buildPriceSummary(context, subtotal, transport, saved, total),
+            _buildDateTimeSelection(context), // NEW
             _buildCheckoutButton(context, total, screenWidth),
           ],
         ),
       ),
     );
   }
-
   Widget _buildHeader(BuildContext context, List<Map<String, dynamic>> cartItems,
       double total, double originalTotal, double saved) {
     return Container(
@@ -334,7 +347,78 @@ class CartDialogWidget extends StatelessWidget {
       ),
     );
   }
+  Widget _buildDateTimeSelection(BuildContext context) {
+    final serviceTimeSlots = ['8am - 10am', '10am - 12pm', '12pm - 2pm', '2pm - 4pm', '4pm - 6pm', '6pm - 8pm'];
 
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Date Selection
+          CustomDatePickerFormField(
+            title: 'Choose Date',
+            controller: dateController,
+            onDateSelected: onDateSelected,
+            titleTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+            inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+            hintTextStyle: AppTextStyles.textSize14(
+              context,
+              weight: FontWeight.w400,
+              color: AppColors.subtitle(context),
+            ),
+          ),
+          SizedboxSpaccing.height015(context),
+
+          // Time Selection
+          Text('Select Service Time',
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+          SizedBox(height: 4),
+          Text('Select 1 out of ${serviceTimeSlots.length} options',
+              style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+          SizedboxSpaccing.height01(context),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: serviceTimeSlots
+                .map((time) => _serviceTimeButton(context, time))
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _serviceTimeButton(BuildContext context, String time) {
+    bool isSelected = selectedServiceTime == time;
+    return GestureDetector(
+      onTap: () => onTimeSelected(time),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.containerBackground(context),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? AppColors.button(context) : AppColors.border(context),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          time,
+          style: AppTextStyles.textSize12(
+            context,
+            weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: isSelected
+                ? AppColors.button(context)
+                : AppColors.textPrimary(context),
+          ),
+        ),
+      ),
+    );
+  }
   Widget _buildCheckoutButton(BuildContext context, double total, double screenWidth) {
     return Padding(
       padding: EdgeInsets.all(15),
@@ -348,6 +432,19 @@ class CartDialogWidget extends StatelessWidget {
             );
             return;
           }
+          final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
+
+          // Validate form
+          String? validationError = checkoutVM.validateCartForm(
+            selectedDate: checkoutVM.selectedDate,
+            serviceTime: checkoutVM.selectedServiceTime,
+          );
+
+          if (validationError != null) {
+            Utils.flushBarErrorMessage(validationError, context);
+            return;
+          }
+
           Navigator.pop(context);
           onProceedToCheckout();
         },
