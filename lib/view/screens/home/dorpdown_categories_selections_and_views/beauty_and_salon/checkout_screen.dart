@@ -543,21 +543,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _buildPriceRow('Transport', widget.transportFee),
               SizedboxSpaccing.height02(context),
               _buildPriceRow('Subtotal', subtotal),
-              if (saved > 0) ...[
-                SizedboxSpaccing.height02(context),
-                _buildPriceRow('Saved', saved, isGreen: true),
-              ],
-              Divider(height: 20, color: AppColors.border(context)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                  Text(
-                    '৳${total.toStringAsFixed(2)}',
-                    style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.button(context)),
-                  ),
-                ],
-              ),
+              // if (saved > 0) ...[
+              //   SizedboxSpaccing.height02(context),
+              //   _buildPriceRow('Saved', saved, isGreen: true),
+              // ],
+              // Divider(height: 20, color: AppColors.border(context)),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+              //     Text(
+              //       '৳${total.toStringAsFixed(2)}',
+              //       style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.button(context)),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),
@@ -627,7 +627,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             onTap: isLoading ? null : _handleConfirmBooking,
             child: Container(
               height: 40,
-              width: 120,
+              width: 140,
               decoration: BoxDecoration(
                 color: isLoading ? AppColors.blackColor.withOpacity(0.6) : AppColors.blackColor,
                 borderRadius: BorderRadius.circular(8),
@@ -641,7 +641,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Confirm', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white)),
+                    Text('Pay Now', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white)),
                     SizedBox(width: 8),
                     Icon(Icons.arrow_forward, color: Colors.white, size: 18),
                   ],
