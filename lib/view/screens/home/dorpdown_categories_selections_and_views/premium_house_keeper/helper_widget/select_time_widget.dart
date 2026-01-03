@@ -126,12 +126,7 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
             Text(title!, style: titleStyle ?? AppTextStyles.textSize18(context, weight: FontWeight.w500)),
             if (titleSpacing != null) titleSpacing!(context) else SizedBox(height: 8),
           ],
-          if (isLoading)
-            _buildLoadingContainer(context)
-          else if (items.isNotEmpty)
-            _buildDropdownContainer(context, availableItems)
-          else
-            _buildEmptyContainer(context),
+          if (isLoading) _buildLoadingContainer(context) else if (items.isNotEmpty) _buildDropdownContainer(context, availableItems) else _buildEmptyContainer(context),
         ],
       ),
     );
@@ -149,18 +144,11 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (showPrefixIcon && prefixIcon != null) ...[
-            Icon(prefixIcon, color: iconColor ?? AppColors.textPrimary(context), size: iconSize),
-            SizedBox(width: 20),
-          ],
+          if (showPrefixIcon && prefixIcon != null) ...[Icon(prefixIcon, color: iconColor ?? AppColors.textPrimary(context), size: iconSize), SizedBox(width: 20)],
           Expanded(
-            child: Text(
-              loadingText ?? 'Updating...',
-              style: loadingTextStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w400),
-            ),
+            child: Text(loadingText ?? 'Updating...', style: loadingTextStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w400)),
           ),
-          if (showSuffixIcon)
-            Icon(suffixIcon ?? Icons.keyboard_arrow_down, color: iconColor ?? AppColors.textPrimary(context), size: iconSize),
+          if (showSuffixIcon) Icon(suffixIcon ?? Icons.keyboard_arrow_down, color: iconColor ?? AppColors.textPrimary(context), size: iconSize),
         ],
       ),
     );
@@ -174,10 +162,7 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.containerBackground(context),
         borderRadius: BorderRadius.circular(borderRadius ?? 6),
-        border: Border.all(
-          color: borderColor ?? AppColors.border(context),
-          width: borderWidth ?? 1,
-        ),
+        border: Border.all(color: borderColor ?? AppColors.border(context), width: borderWidth ?? 1),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
@@ -188,31 +173,20 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
           hint: availableItems.isEmpty
               ? _buildAllBookedHint(context)
               : Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
-                child: Row(
-                            children: [
-                if (showPrefixIcon && prefixIcon != null) ...[
-                  Icon(
-                    prefixIcon,
-                    size: iconSize ?? 18,
-                    color: iconColor ?? AppColors.textPrimary(context),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Expanded(
-                  child: Text(
-                    'Select time',
-                    style: hintTextStyle ??
-                        AppTextStyles.textSize14(
-                          context,
-                          color: subtitleColor ?? AppColors.subtitle(context),
+                  padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(
+                    children: [
+                      if (showPrefixIcon && prefixIcon != null) ...[Icon(prefixIcon, size: iconSize ?? 18, color: iconColor ?? AppColors.textPrimary(context)), const SizedBox(width: 8)],
+                      Expanded(
+                        child: Text(
+                          'Select time',
+                          style: hintTextStyle ?? AppTextStyles.textSize14(context, color: subtitleColor ?? AppColors.subtitle(context)),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                            ],
-                          ),
-              ),
 
           /// ✅ KEEP PREFIX AFTER SELECTION
           selectedItemBuilder: (context) {
@@ -222,23 +196,11 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 15),
                 child: Row(
                   children: [
-                    if (showPrefixIcon && prefixIcon != null) ...[
-                      Icon(
-                        prefixIcon,
-                        size: iconSize ?? 20,
-                        color: iconColor ?? AppColors.textPrimary(context),
-                      ),
-                     SizedBox(width: 20,)
-                    ],
+                    if (showPrefixIcon && prefixIcon != null) ...[Icon(prefixIcon, size: iconSize ?? 20, color: iconColor ?? AppColors.textPrimary(context)), SizedBox(width: 20)],
                     Expanded(
                       child: Text(
                         text,
-                        style: selectedTextStyle ??
-                            AppTextStyles.textSize14(
-                              context,
-                              weight: FontWeight.w400,
-                              color: textPrimaryColor ?? AppColors.textPrimary(context),
-                            ),
+                        style: selectedTextStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w400, color: textPrimaryColor ?? AppColors.textPrimary(context)),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -252,60 +214,38 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
             final displayText = getDisplayText(item);
             final isBooked = isItemBooked(item);
 
-            return DropdownMenuItem<String>(
-              value: displayText,
-              enabled: !isBooked,
-              child: _buildDropdownItem(context, displayText, isBooked),
-            );
+            return DropdownMenuItem<String>(value: displayText, enabled: !isBooked, child: _buildDropdownItem(context, displayText, isBooked));
           }).toList(),
 
           onChanged: onChanged,
 
           /// ✅ SUFFIX ICON
           iconStyleData: IconStyleData(
-            icon: Icon(
-              suffixIcon ?? Icons.keyboard_arrow_down,
-              size: iconSize ?? 22,
-              color: iconColor ?? AppColors.textPrimary(context),
-            ),
+            icon: Icon(suffixIcon ?? Icons.keyboard_arrow_down, size: iconSize ?? 22, color: iconColor ?? AppColors.textPrimary(context)),
           ),
 
           buttonStyleData: ButtonStyleData(
             height: height ?? 42,
             width: screenWidth,
-            padding: const EdgeInsets.only(
-              left: 0,
-              right: 15,
-            ),
+            padding: const EdgeInsets.only(left: 0, right: 15),
             decoration: const BoxDecoration(color: Colors.transparent),
           ),
-          menuItemStyleData: const MenuItemStyleData(
-            height: 42,
-          ),
+          menuItemStyleData: const MenuItemStyleData(height: 42),
           dropdownStyleData: DropdownStyleData(
             maxHeight: menuMaxHeight ?? 200,
             width: screenWidth * 0.9,
-            decoration: BoxDecoration(
-              color: dropdownColor ?? AppColors.textFieldFill(context),
-              borderRadius: BorderRadius.circular(menuBorderRadius ?? 0),
-            ),
+            decoration: BoxDecoration(color: dropdownColor ?? AppColors.containerBackground(context), borderRadius: BorderRadius.circular(menuBorderRadius ?? 0)),
           ),
         ),
       ),
     );
   }
 
-
   Widget _buildDropdownItem(BuildContext context, String displayText, bool isBooked) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: (borderColor ?? AppColors.border(context)).withOpacity(0.3),
-            width: 0.5,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: (borderColor ?? AppColors.border(context)).withOpacity(0.3), width: 0.5)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -313,13 +253,12 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
           Expanded(
             child: Text(
               displayText,
-              style: itemTextStyle ??
+              style:
+                  itemTextStyle ??
                   AppTextStyles.textSize16(
                     context,
                     weight: FontWeight.w500,
-                    color: isBooked
-                        ? (subtitleColor ?? AppColors.subtitle(context)).withOpacity(0.5)
-                        : textPrimaryColor ?? AppColors.textPrimary(context),
+                    color: isBooked ? (subtitleColor ?? AppColors.subtitle(context)).withOpacity(0.5) : textPrimaryColor ?? AppColors.textPrimary(context),
                   ),
             ),
           ),
@@ -369,10 +308,7 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
         border: Border.all(color: borderColor ?? AppColors.border(context), width: borderWidth ?? 1),
       ),
       child: Center(
-        child: Text(
-          emptyText ?? 'No shift times available',
-          style: emptyTextStyle ?? AppTextStyles.textSize14(context, color: subtitleColor ?? AppColors.subtitle(context)),
-        ),
+        child: Text(emptyText ?? 'No shift times available', style: emptyTextStyle ?? AppTextStyles.textSize14(context, color: subtitleColor ?? AppColors.subtitle(context))),
       ),
     );
   }

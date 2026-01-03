@@ -3,6 +3,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Dynamic Cached Network Image Component
 /// Reusable widget for loading images with caching support and quantity controls
@@ -273,20 +274,17 @@ class DynamicCachedImage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildQuantityButton(context, Icons.remove, onRemove),
+            _buildQuantityButton(context,  FontAwesomeIcons.minus, onRemove),
             Container(
               // width: 30,
               child: Center(
                 child: Text(
                   quantity.toString(),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.textSize14(context,weight: FontWeight.w700),
                 ),
               ),
             ),
-            _buildQuantityButton(context, Icons.add, onIncrease),
+            _buildQuantityButton(context, FontAwesomeIcons.plus, onIncrease,),
           ],
         ),
       );
@@ -322,7 +320,7 @@ class DynamicCachedImage extends StatelessWidget {
         width: 25,
         height: 25,
         color: Colors.transparent,
-        child: Icon(icon, size: 16),
+        child: Icon(icon, size: 14),
       ),
     );
   }

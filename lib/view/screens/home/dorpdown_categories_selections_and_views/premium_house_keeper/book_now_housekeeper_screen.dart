@@ -851,7 +851,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       width:screenWidth*0.9 ,
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColors.textFieldFill(context).withOpacity(0.5),
+        color: AppColors.containerBackground(context),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.border(context)),
       ),
