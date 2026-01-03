@@ -359,8 +359,9 @@ class DynamicServiceList<T, S> extends StatelessWidget {
   // For simple list (House Keeper)
   final bool isSimpleList;
 
-  // Service card builder
-  final Widget Function(S service, double width, double height) buildServiceCard;
+  // Service card builder - UPDATED TO INCLUDE isLastItem
+  final Widget Function(S service, double width, double height, bool isLastItem) buildServiceCard;
+
 
   // Text styles
   final TextStyle Function(BuildContext) categoryHeaderStyle;
@@ -399,7 +400,10 @@ class DynamicServiceList<T, S> extends StatelessWidget {
 
           if (isSimpleList) {
             // Simple list mode (House Keeper) - each category IS a service
-            return Container(key: categoryKeys[index], child: buildServiceCard(category as S, screenWidth, screenHeight));
+            return Container(
+                key: categoryKeys[index],
+                child: buildServiceCard(category as S, screenWidth, screenHeight, false)
+            );
           } else {
             // Grouped list mode (Beauty Salon) - categories contain items
             final items = getItems?.call(category) ?? [];
@@ -411,13 +415,17 @@ class DynamicServiceList<T, S> extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Category Header
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 10),
-                    child: Text(categoryName, style: categoryHeaderStyle(context)),
-                  ),
+                  Text(categoryName, style: categoryHeaderStyle(context)),
+                  Divider(height: 20,color: AppColors.border(context),),
 
-                  // Services under this category
-                  ...items.map((service) => buildServiceCard(service, screenWidth, screenHeight)),
+                  // Services under this category - UPDATED TO PASS isLastItem
+                  ...items.asMap().entries.map((entry) {
+                    int itemIndex = entry.key;
+                    S service = entry.value;
+                    bool isLastItem = itemIndex == items.length - 1;
+
+                    return buildServiceCard(service, screenWidth, screenHeight, isLastItem);
+                  }),
 
                   emptyStateSpacing(context),
                 ],
@@ -454,6 +462,7 @@ class DynamicServiceCard extends StatelessWidget {
   final Color Function(BuildContext) getTextColor;
   final TextStyle Function(BuildContext, {FontWeight? weight, Color? color}) getTextStyle;
   final Widget Function(BuildContext) getSpacing;
+  final bool isLastItem;
 
   const DynamicServiceCard({
     Key? key,
@@ -478,6 +487,7 @@ class DynamicServiceCard extends StatelessWidget {
     required this.getTextColor,
     required this.getTextStyle,
     required this.getSpacing,
+    this.isLastItem = false,
   }) : super(key: key);
 
   @override
@@ -489,10 +499,12 @@ class DynamicServiceCard extends StatelessWidget {
         color: getBackgroundColor(context),
         // borderRadius: BorderRadius.circular(12),
         // border: Border.all(color: getBorderColor(context)
-        border: Border(
+        border: isLastItem
+            ? null
+            : Border(
           bottom: BorderSide(
             color: getBorderColor(context),
-            width: 1, // border width
+            width: 1,
           ),
         ),
       ),

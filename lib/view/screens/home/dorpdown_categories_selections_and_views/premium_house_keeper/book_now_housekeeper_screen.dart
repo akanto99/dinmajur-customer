@@ -364,7 +364,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                       categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
                       emptyStateStyle: (context) => AppTextStyles.textSize16(context),
                       emptyStateSpacing: (context) => SizedboxSpaccing.height02(context),
-                      buildServiceCard: (service, width, height) {
+                      buildServiceCard: (service, width, height, isLastItem) {
                         int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
 
                         // Calculate prices
@@ -405,6 +405,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                           },
                           showRoomNumber: quantity > 0,
                           roomNumberLabel: 'Room Number',
+                          isLastItem: isLastItem,
                           getButtonColor: (context) => AppColors.button(context),
                           getBackgroundColor: (context) => AppColors.containerBackground(context),
                           getBorderColor: (context) => AppColors.border(context),
