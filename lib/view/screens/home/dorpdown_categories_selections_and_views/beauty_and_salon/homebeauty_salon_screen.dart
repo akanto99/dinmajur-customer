@@ -227,7 +227,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                 controller: _mainScrollController,
                 child: Column(
                   children: [
-                    SizedboxSpaccing.height015(context),
+                    SizedboxSpaccing.height03(context),
                     Container(
                       width: screenWidth * 0.9,
                       child: Column(
@@ -236,24 +236,23 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "Premium Home",
-                                style: AppTextStyles.textSize20(context, weight: FontWeight.w400),
+                                "Premium",
+                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
                                 textAlign: TextAlign.center,
                               ),
                               Text(
-                                " Beauty & Salon",
-                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
+                                " Home Beauty & Salon",
+                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600,color: Color(0xffD78503)),
                                 textAlign: TextAlign.center,
                               ),
                             ],
                           ),
                           SizedboxSpaccing.height01(context),
                           Text(
-                            "Trained Beauticians • Premium Products • Salon Experience at Home",
+                            "Trained Beauticians • Premium Products Salon \n•  Experience at Home",
                             style: AppTextStyles.textSize14(
                               context,
                               weight: FontWeight.w400,
-                              color: AppColors.subtitle(context),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -293,10 +292,10 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                       isSimpleList: false,
                       getItems: (category) => category.items,
                       getCategoryName: (category) => category.name ?? '',
-                      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w500),
                       emptyStateStyle: (context) => AppTextStyles.textSize16(context),
                       emptyStateSpacing: (context) => SizedboxSpaccing.height01(context),
-                      buildServiceCard: (service, width, height) {
+                      buildServiceCard: (service, width, height, isLastItem) {
                         int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
                         double originalPrice = service.originalPrice?.toDouble() ?? 0;
                         double discountedPrice = service.salePrice?.toDouble() ?? originalPrice;
@@ -314,17 +313,14 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           onAdd: () => _updateQuantity(service.id ?? '', 1),
                           onRemove: () => _updateQuantity(service.id ?? '', -1),
                           onIncrease: () => _updateQuantity(service.id ?? '', 1),
-                          showRoomNumber: false,
+                          showRoomNumber: quantity > 0,
+                          isLastItem: isLastItem,
                           getButtonColor: (context) => AppColors.button(context),
                           getBackgroundColor: (context) => AppColors.containerBackground(context),
                           getBorderColor: (context) => AppColors.border(context),
                           getSubtitleColor: (context) => AppColors.subtitle(context),
                           getTextColor: (context) => AppColors.textPrimary(context),
-                          getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(
-                            context,
-                            weight: weight ?? FontWeight.normal,
-                            color: color ?? AppColors.textPrimary(context),
-                          ),
+                          getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.normal, color: color ?? AppColors.textPrimary(context)),
                           getSpacing: (context) => SizedboxSpaccing.width03(context),
                         );
                       },
