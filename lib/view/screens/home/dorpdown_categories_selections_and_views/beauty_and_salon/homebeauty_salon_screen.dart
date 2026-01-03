@@ -260,7 +260,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                         ],
                       ),
                     ),
-                    SizedboxSpaccing.height02(context),
+                    SizedboxSpaccing.height03(context),
                     DynamicCategoryTabs(
                       categories: data,
                       selectedIndex: _selectedTabIndex,
@@ -273,6 +273,8 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                       getButtonColor: (context) => AppColors.button(context),
                       getBackgroundColor: (context) => AppColors.border(context),
                       getBorderColor: (context) => AppColors.border(context),
+                      getSelectedIconColor: (context) => AppColors.whiteColor,
+                      getSelectedImageColor: (context) => AppColors.whiteColor,
                       getTextColor: (context) => AppColors.textPrimary(context),
                       getTextStyle: (context, isSelected) => AppTextStyles.textSize12(
                         context,
@@ -282,7 +284,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                       defaultIcon: Icons.spa,
                       supportSvg: false,
                     ),
-                    SizedboxSpaccing.height02(context),
+                    SizedboxSpaccing.height03(context),
                     DynamicServiceList<Datum, Item>(
                       categories: data,
                       categoryKeys: _categoryKeys,

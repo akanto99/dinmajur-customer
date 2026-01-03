@@ -328,7 +328,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
                     _buildTimeSelection(screenWidth),
 
-                    SizedboxSpaccing.height02(context),
+                    SizedboxSpaccing.height03(context),
 
                     // Category Tabs
                     DynamicCategoryTabs(
@@ -341,16 +341,18 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                       getName: (service) => service.name ?? '',
                       getImageUrl: (service) => service.icon?.url,
                       getButtonColor: (context) => AppColors.button(context),
-                      getBackgroundColor: (context) => AppColors.containerBackground(context),
+                      getBackgroundColor: (context) => AppColors.border(context),
                       getBorderColor: (context) => AppColors.border(context),
+                      getSelectedIconColor: (context) => AppColors.whiteColor,
+                      getSelectedImageColor: (context) => AppColors.whiteColor,
                       getTextColor: (context) => AppColors.textPrimary(context),
                       getTextStyle: (context, isSelected) =>
-                          AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
+                          AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w400 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
                       defaultIcon: Icons.cleaning_services,
                       supportSvg: true,
                     ),
 
-                    SizedboxSpaccing.height02(context),
+                    SizedboxSpaccing.height03(context),
 
                     // Services List
                     DynamicServiceList<Datum, Datum>(
@@ -413,7 +415,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                         );
                       },
                     ),
-                    // SizedboxSpaccing.height015(context),
+                    SizedboxSpaccing.height02(context),
 
                     _buildImportantNotes(context, screenWidth),
                     SizedboxSpaccing.height045(context),
