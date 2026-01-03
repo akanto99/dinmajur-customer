@@ -66,6 +66,11 @@ class AppColors {
   static Color button(BuildContext context) => const Color(0xff00424D);
 
   ///Global svgImages
+  static Color buttonTextColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ?  AppColors.whiteColor:Color(0xff00424D);
+
+  ///Global svgImages
   static Color svgImages(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
           ?   Colors.white :Color(0xff00424D);
