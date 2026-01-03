@@ -211,9 +211,9 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
           child: Scaffold(
             backgroundColor: AppColors.containerBackground(context),
             body: ResPonsiveUi(
-              mobile: _buildBody(context, checkoutVM, bookingVM, total, saved),
-              desktop: _buildBody(context, checkoutVM, bookingVM, total, saved),
-              tablet: _buildBody(context, checkoutVM, bookingVM, total, saved),
+              mobile: _buildBody(context, checkoutVM, bookingVM,total ,subtotal, saved),
+              desktop: _buildBody(context, checkoutVM, bookingVM, total,subtotal, saved),
+              tablet: _buildBody(context, checkoutVM, bookingVM, total,subtotal, saved),
             ),
           ),
         );
@@ -221,7 +221,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     );
   }
 
-  Widget _buildBody(BuildContext context, CheckoutViewModel viewModel, PostBookPremiumHouseKeeperViewModel bookingVM, double total, double saved) {
+  Widget _buildBody(BuildContext context, CheckoutViewModel viewModel, PostBookPremiumHouseKeeperViewModel bookingVM, double total,double subtotal, double saved) {
     final screenWidth = MediaQuery.of(context).size.width * 1;
     final screenHeight = MediaQuery.of(context).size.height * 1;
     return Column(
@@ -242,7 +242,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                 _buildCustomerDetailsCard(),
                 SizedboxSpaccing.height02(context),
 
-                _buildSelectedServicesList(total, saved),
+                _buildSelectedServicesList(subtotal, saved),
                 SizedboxSpaccing.height02(context),
 
                 _buildPaymentMethodSection(viewModel),
@@ -356,7 +356,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('$label :  ', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+        Text('$label', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
         Text(value, style: AppTextStyles.textSize14(context, weight: FontWeight.w400), maxLines: null, softWrap: true),
       ],
     );
@@ -480,19 +480,19 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               _buildPriceRow('Transport', transport),
               SizedboxSpaccing.height02(context),
               _buildPriceRow('Subtotal', subtotal),
-              SizedboxSpaccing.height02(context),
-              if (saved > 0) ...[SizedboxSpaccing.height005(context), _buildPriceRow('Saved', saved, isGreen: true)],
-              Divider(height: 20, color: AppColors.border(context)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                  Text(
-                    '৳${total.toStringAsFixed(2)}',
-                    style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.button(context)),
-                  ),
-                ],
-              ),
+              // SizedboxSpaccing.height02(context),
+              // if (saved > 0) ...[SizedboxSpaccing.height005(context), _buildPriceRow('Saved', saved, isGreen: true)],
+              // Divider(height: 20, color: AppColors.border(context)),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+              //     Text(
+              //       '৳${total.toStringAsFixed(2)}',
+              //       style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.button(context)),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),
@@ -551,7 +551,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
             onTap: _handleConfirm,
             child: Container(
               height: 40,
-              width: 120,
+              width: 140,
               decoration: BoxDecoration(
                 color: AppColors.blackColor,
                 borderRadius: BorderRadius.circular(8),
@@ -564,7 +564,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Confirm',
+                            'Pay Now',
                             style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
                           ),
                           SizedBox(width: 8),

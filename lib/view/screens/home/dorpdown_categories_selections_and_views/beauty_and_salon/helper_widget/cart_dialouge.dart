@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
-class CartDialogWidget extends StatelessWidget {
+class CartDialogWidget extends StatefulWidget {
   final List<Datum> categories;
   final Map<String, int> serviceQuantities;
   final Function(String serviceId, int newQuantity) onQuantityUpdate;
@@ -35,11 +35,24 @@ class CartDialogWidget extends StatelessWidget {
     required this.dateController,
   }) : super(key: key);
 
+  @override
+  State<CartDialogWidget> createState() => _CartDialogWidgetState();
+}
+
+class _CartDialogWidgetState extends State<CartDialogWidget> {
+  late Map<String, int> _localServiceQuantities;
+
+  @override
+  void initState() {
+    super.initState();
+    _localServiceQuantities = Map.from(widget.serviceQuantities);
+  }
+
   List<Map<String, dynamic>> _getCartItems() {
     List<Map<String, dynamic>> cartItems = [];
-    categories.forEach((category) {
+    widget.categories.forEach((category) {
       category.items?.forEach((service) {
-        int qty = serviceQuantities[service.id ?? ''] ?? 0;
+        int qty = _localServiceQuantities[service.id ?? ''] ?? 0;
         if (qty > 0) {
           cartItems.add({'service': service, 'quantity': qty});
         }
@@ -53,7 +66,7 @@ class CartDialogWidget extends StatelessWidget {
     final cartItems = _getCartItems();
     for (var item in cartItems) {
       Item service = item['service'];
-      int qty = serviceQuantities[service.id ?? ''] ?? 0;
+      int qty = _localServiceQuantities[service.id ?? ''] ?? 0;
       if (qty > 0) {
         double price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
         subtotal += price * qty;
@@ -67,12 +80,19 @@ class CartDialogWidget extends StatelessWidget {
     final cartItems = _getCartItems();
     for (var item in cartItems) {
       Item service = item['service'];
-      int qty = serviceQuantities[service.id ?? ''] ?? 0;
+      int qty = _localServiceQuantities[service.id ?? ''] ?? 0;
       if (qty > 0) {
         originalTotal += (service.originalPrice?.toDouble() ?? 0) * qty;
       }
     }
     return originalTotal;
+  }
+
+  void _handleQuantityUpdate(String serviceId, int newQuantity) {
+    setState(() {
+      _localServiceQuantities[serviceId] = newQuantity;
+    });
+    widget.onQuantityUpdate(serviceId, newQuantity);
   }
 
   @override
@@ -84,8 +104,8 @@ class CartDialogWidget extends StatelessWidget {
     double subtotal = _calculateSubtotal();
     double transport = 80.0;
     double total = subtotal + transport;
-    double originalTotal = _calculateOriginalTotal() + transport;
-    double saved = originalTotal - total;
+    double originalTotal = _calculateOriginalTotal();
+    double saved = originalTotal - subtotal; // Fixed: Don't include transport in savings
 
     return Dialog(
       backgroundColor: AppColors.containerBackground(context),
@@ -100,156 +120,44 @@ class CartDialogWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(context, cartItems, total, originalTotal, saved, screenWidth),
+            _buildHeader(context, cartItems, subtotal, originalTotal, saved, screenWidth),
             _buildCartItemsList(context, cartItems, screenWidth),
-            _buildPriceSummary(context, subtotal, transport, saved, total),
-            _buildDateTimeSelection(context), // NEW
+            _buildPriceSummary(context, subtotal, transport, saved, total, originalTotal, screenWidth),
+            _buildDateTimeSelection(context, screenWidth),
             _buildCheckoutButton(context, total, screenWidth),
           ],
         ),
       ),
     );
   }
+
   Widget _buildHeader(BuildContext context, List<Map<String, dynamic>> cartItems,
-      double total, double originalTotal, double saved, double screenWidth) {
+      double subtotal, double originalTotal, double saved, double screenWidth) {
     return DynamicCartHeader(
       itemCount: cartItems.length,
-      totalPrice: total,
+      totalPrice: subtotal,
       originalPrice: originalTotal,
       savedAmount: saved,
       onClose: () => Navigator.pop(context),
     );
   }
+
   Widget _buildCartItemsList(BuildContext context, List<Map<String, dynamic>> cartItems, double screenWidth) {
     return DynamicCartServicesList(
       cartItems: cartItems,
-      serviceQuantities: serviceQuantities,
-      onQuantityChanged: onQuantityUpdate,
+      serviceQuantities: _localServiceQuantities,
+      onQuantityChanged: _handleQuantityUpdate,
     );
   }
-  ///Beauty Salon
-  // Widget _buildCartItemsList(BuildContext context, List<Map<String, dynamic>> cartItems,  double screenWidth) {
-  //   return Flexible(
-  //     child: Container(
-  //       width: screenWidth*0.87,
-  //       child: ListView.separated(
-  //         shrinkWrap: true,
-  //         padding: EdgeInsets.symmetric(vertical: 10),
-  //         itemCount: cartItems.length,
-  //         separatorBuilder: (context, index) => SizedBox(height: 10),
-  //         itemBuilder: (context, index) {
-  //           final item = cartItems[index];
-  //           Item service = item['service'];
-  //           int qty = serviceQuantities[service.id ?? ''] ?? 0;
-  //
-  //           if (qty == 0) return SizedBox.shrink();
-  //
-  //           double price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
-  //           double originalPrice = service.originalPrice?.toDouble() ?? 0;
-  //
-  //           return Container(
-  //             padding: EdgeInsets.only(bottom: 10),
-  //             decoration: BoxDecoration(
-  //               border: Border(
-  //                   bottom: BorderSide(
-  //                       width: 1,
-  //                       color: AppColors.border(context)
-  //                   )
-  //               ),
-  //               // borderRadius: BorderRadius.circular(12),
-  //             ),
-  //             child: Row(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 Expanded(
-  //                   child: Column(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       Text(
-  //                         service.name ?? '',
-  //                         style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-  //                       ),
-  //                       SizedBox(height: 4),
-  //                       Row(
-  //                         children: [
-  //                           Text(
-  //                             '৳${price.toStringAsFixed(2)}',
-  //                             style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-  //                           ),
-  //                           if (service.discountValue != null && originalPrice > price) ...[
-  //                             SizedBox(width: 8),
-  //                             Text(
-  //                               '৳${originalPrice.toStringAsFixed(2)}',
-  //                               style: AppTextStyles.textSize12(
-  //                                 context,
-  //                                 color: AppColors.subtitle(context),
-  //                               ).copyWith(decoration: TextDecoration.lineThrough),
-  //                             ),
-  //                           ],
-  //                         ],
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ),
-  //                 _buildQuantityControls(context, service, qty),
-  //               ],
-  //             ),
-  //           );
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
-  //
-  // Widget _buildQuantityControls(BuildContext context, Item service, int qty) {
-  //   return Container(
-  //     decoration: BoxDecoration(
-  //         borderRadius: BorderRadius.circular(6),
-  //         border: Border.all(width: 1,
-  //             color: AppColors.border(context))
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         GestureDetector(
-  //           onTap: () {
-  //             if (qty > 1) {
-  //               onQuantityUpdate(service.id ?? '', qty - 1);
-  //             } else {
-  //               onQuantityUpdate(service.id ?? '', 0);
-  //             }
-  //           },
-  //           child: Container(
-  //             width: 25,
-  //             height: 25,
-  //             child: Icon(FontAwesomeIcons.minus, size: 14),
-  //           ),
-  //         ),
-  //         Container(
-  //           width: 30,
-  //           child: Center(
-  //             child: Text(
-  //               qty.toString(),
-  //               style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-  //             ),
-  //           ),
-  //         ),
-  //         GestureDetector(
-  //           onTap: () => onQuantityUpdate(service.id ?? '', qty + 1),
-  //           child: Container(
-  //             width: 25,
-  //             height: 25,
-  //                       child: Icon(FontAwesomeIcons.plus, size: 14),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _buildPriceSummary(BuildContext context, double subtotal,
-      double transport, double saved, double total) {
+      double transport, double saved, double total,
+      double originalTotal,
+      double screenWidth
+      ) {
     return Container(
-      padding: EdgeInsets.all(15),
+      width: screenWidth * 0.87,
+      padding: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
       ),
@@ -259,8 +167,33 @@ class CartDialogWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Subtotal', style: AppTextStyles.textSize14(context)),
+              Row(
+                children: [
+                  Text(
+                    '৳${subtotal.toStringAsFixed(2)}',
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                  ),
+                  if (saved > 0) ...[
+                    SizedBox(width: 8),
+                    Text(
+                      '৳${originalTotal.toStringAsFixed(2)}',
+                      style: AppTextStyles.textSize12(
+                        context,
+                        color: AppColors.subtitle(context),
+                      ).copyWith(decoration: TextDecoration.lineThrough),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Transport', style: AppTextStyles.textSize14(context)),
               Text(
-                '৳${subtotal.toStringAsFixed(2)}',
+                '৳${transport.toStringAsFixed(2)}',
                 style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
               ),
             ],
@@ -269,10 +202,10 @@ class CartDialogWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Transport Fee', style: AppTextStyles.textSize14(context)),
+              Text('Total', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
               Text(
-                '৳${transport.toStringAsFixed(2)}',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                '৳${total.toStringAsFixed(2)}',
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w700),
               ),
             ],
           ),
@@ -281,57 +214,45 @@ class CartDialogWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Saved', style: AppTextStyles.textSize14(context, color: Colors.green)),
                 Text(
-                  '- ৳${saved.toStringAsFixed(2)}',
-                  style: AppTextStyles.textSize14(
+                  'You Saved BDT ${saved.toStringAsFixed(2)} in This Order!',
+                  style: AppTextStyles.textSize12(
                     context,
-                    weight: FontWeight.w600,
-                    color: Colors.green,
+                    color: Colors.red,
+                    weight: FontWeight.w400,
+                  ).copyWith(
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.red,
                   ),
+                ),
+                Text(
+                  '৳${originalTotal.toStringAsFixed(2)}',
+                  style: AppTextStyles.textSize12(context, color: Colors.red)
+                      .copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red),
                 ),
               ],
             ),
           ],
-          Divider(height: 20, thickness: 1),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total Amount',
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-              ),
-              Text(
-                '৳${total.toStringAsFixed(2)}',
-                style: AppTextStyles.textSize18(
-                  context,
-                  weight: FontWeight.w700,
-                  color: AppColors.button(context),
-                ),
-              ),
-            ],
-          ),
+          SizedBox(height: 10),
+          Divider(color: AppColors.border(context)),
         ],
       ),
     );
   }
-  Widget _buildDateTimeSelection(BuildContext context) {
+
+  Widget _buildDateTimeSelection(BuildContext context, double screenWidth) {
     final serviceTimeSlots = ['8am - 10am', '10am - 12pm', '12pm - 2pm', '2pm - 4pm', '4pm - 6pm', '6pm - 8pm'];
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
-      ),
+      width: screenWidth * 0.87,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date Selection
           CustomDatePickerFormField(
-            title: 'Choose Date',
-            controller: dateController,
-            onDateSelected: onDateSelected,
-            titleTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+            title: 'Booking Date',
+            controller: widget.dateController,
+            onDateSelected: widget.onDateSelected,
+            titleTextStyle: AppTextStyles.textSize16(context, weight: FontWeight.w600),
             inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
             hintTextStyle: AppTextStyles.textSize14(
               context,
@@ -340,53 +261,63 @@ class CartDialogWidget extends StatelessWidget {
             ),
           ),
           SizedboxSpaccing.height015(context),
-
-          // Time Selection
-          Text('Select Service Time',
-              style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-          SizedBox(height: 4),
-          Text('Select 1 out of ${serviceTimeSlots.length} options',
-              style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
-          SizedboxSpaccing.height01(context),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: serviceTimeSlots
-                .map((time) => _serviceTimeButton(context, time))
-                .toList(),
-          ),
+          Text('Select Time Slot',
+              style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+          SizedboxSpaccing.height012(context),
+          Column(
+            children: [
+              for (int i = 0; i < serviceTimeSlots.length; i += 2)
+                Padding(
+                  padding: EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _serviceTimeButton(context, serviceTimeSlots[i]),
+                      if (i + 1 < serviceTimeSlots.length) ...[
+                        _serviceTimeButton(context, serviceTimeSlots[i + 1]),
+                      ] else
+                        Expanded(child: SizedBox()),
+                    ],
+                  ),
+                ),
+            ],
+          )
         ],
       ),
     );
   }
 
   Widget _serviceTimeButton(BuildContext context, String time) {
-    bool isSelected = selectedServiceTime == time;
+    bool isSelected = widget.selectedServiceTime == time;
     return GestureDetector(
-      onTap: () => onTimeSelected(time),
+      onTap: () => widget.onTimeSelected(time),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        height: 40,
+        width: 140,
         decoration: BoxDecoration(
-          color: AppColors.containerBackground(context),
-          borderRadius: BorderRadius.circular(6),
+          color: isSelected ? AppColors.button(context) : AppColors.containerBackground(context),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? AppColors.button(context) : AppColors.border(context),
             width: 1,
           ),
         ),
-        child: Text(
-          time,
-          style: AppTextStyles.textSize12(
-            context,
-            weight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected
-                ? AppColors.button(context)
-                : AppColors.textPrimary(context),
+        child: Center(
+          child: Text(
+            time,
+            style: AppTextStyles.textSize16(
+              context,
+              weight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected
+                  ? AppColors.whiteColor
+                  : AppColors.subtitle(context),
+            ),
           ),
         ),
       ),
     );
   }
+
   Widget _buildCheckoutButton(BuildContext context, double total, double screenWidth) {
     return Padding(
       padding: EdgeInsets.all(15),
@@ -402,7 +333,6 @@ class CartDialogWidget extends StatelessWidget {
           }
           final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
 
-          // Validate form
           String? validationError = checkoutVM.validateCartForm(
             selectedDate: checkoutVM.selectedDate,
             serviceTime: checkoutVM.selectedServiceTime,
@@ -414,7 +344,7 @@ class CartDialogWidget extends StatelessWidget {
           }
 
           Navigator.pop(context);
-          onProceedToCheckout();
+          widget.onProceedToCheckout();
         },
         child: Container(
           width: screenWidth,
@@ -423,18 +353,142 @@ class CartDialogWidget extends StatelessWidget {
             color: AppColors.button(context),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Center(
-            child: Text(
-              'Proceed to Checkout',
-              style: AppTextStyles.textSize16(
-                context,
-                weight: FontWeight.w600,
-                color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Proceed to Checkout',
+                style: AppTextStyles.textSize16(
+                  context,
+                  weight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
-            ),
+              SizedboxSpaccing.width02(context),
+              Icon(FontAwesomeIcons.arrowRight, color: AppColors.whiteColor, size: 12,)
+            ],
           ),
         ),
       ),
     );
   }
 }
+
+///Beauty Salon
+// Widget _buildCartItemsList(BuildContext context, List<Map<String, dynamic>> cartItems,  double screenWidth) {
+//   return Flexible(
+//     child: Container(
+//       width: screenWidth*0.87,
+//       child: ListView.separated(
+//         shrinkWrap: true,
+//         padding: EdgeInsets.symmetric(vertical: 10),
+//         itemCount: cartItems.length,
+//         separatorBuilder: (context, index) => SizedBox(height: 10),
+//         itemBuilder: (context, index) {
+//           final item = cartItems[index];
+//           Item service = item['service'];
+//           int qty = serviceQuantities[service.id ?? ''] ?? 0;
+//
+//           if (qty == 0) return SizedBox.shrink();
+//
+//           double price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
+//           double originalPrice = service.originalPrice?.toDouble() ?? 0;
+//
+//           return Container(
+//             padding: EdgeInsets.only(bottom: 10),
+//             decoration: BoxDecoration(
+//               border: Border(
+//                   bottom: BorderSide(
+//                       width: 1,
+//                       color: AppColors.border(context)
+//                   )
+//               ),
+//               // borderRadius: BorderRadius.circular(12),
+//             ),
+//             child: Row(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Expanded(
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Text(
+//                         service.name ?? '',
+//                         style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+//                       ),
+//                       SizedBox(height: 4),
+//                       Row(
+//                         children: [
+//                           Text(
+//                             '৳${price.toStringAsFixed(2)}',
+//                             style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+//                           ),
+//                           if (service.discountValue != null && originalPrice > price) ...[
+//                             SizedBox(width: 8),
+//                             Text(
+//                               '৳${originalPrice.toStringAsFixed(2)}',
+//                               style: AppTextStyles.textSize12(
+//                                 context,
+//                                 color: AppColors.subtitle(context),
+//                               ).copyWith(decoration: TextDecoration.lineThrough),
+//                             ),
+//                           ],
+//                         ],
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//                 _buildQuantityControls(context, service, qty),
+//               ],
+//             ),
+//           );
+//         },
+//       ),
+//     ),
+//   );
+// }
+//
+// Widget _buildQuantityControls(BuildContext context, Item service, int qty) {
+//   return Container(
+//     decoration: BoxDecoration(
+//         borderRadius: BorderRadius.circular(6),
+//         border: Border.all(width: 1,
+//             color: AppColors.border(context))
+//     ),
+//     child: Row(
+//       children: [
+//         GestureDetector(
+//           onTap: () {
+//             if (qty > 1) {
+//               onQuantityUpdate(service.id ?? '', qty - 1);
+//             } else {
+//               onQuantityUpdate(service.id ?? '', 0);
+//             }
+//           },
+//           child: Container(
+//             width: 25,
+//             height: 25,
+//             child: Icon(FontAwesomeIcons.minus, size: 14),
+//           ),
+//         ),
+//         Container(
+//           width: 30,
+//           child: Center(
+//             child: Text(
+//               qty.toString(),
+//               style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+//             ),
+//           ),
+//         ),
+//         GestureDetector(
+//           onTap: () => onQuantityUpdate(service.id ?? '', qty + 1),
+//           child: Container(
+//             width: 25,
+//             height: 25,
+//                       child: Icon(FontAwesomeIcons.plus, size: 14),
+//           ),
+//         ),
+//       ],
+//     ),
+//   );
+// }
