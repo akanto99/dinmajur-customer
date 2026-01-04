@@ -58,6 +58,10 @@ class RoutesName {
   static const String beautyConfirmedScreen = 'beautyConfirmedScreen_view';
   static const String beautyCheckoutScreen = 'beautyCheckoutScreen_view';
 
+  ///In HOME Screen- DropDown 4 Premium Home Beauty Salon
+  static const String familyEventCookingScreen= 'familyEventCookingScreen_view';
+
+
 
 
 

@@ -90,7 +90,7 @@ class PostBookPremiumHomeBeautySalonViewModel with ChangeNotifier {
   Future<void> bookPremiumHomeBeautySalonPostApi(
       BuildContext context,
       dynamic fields,
-      Function(String? paymentUrl, String? trackingId) onSuccess // CHANGED: Now receives both paymentUrl and trackingId
+      Function(String? trackingId) onSuccess // CHANGED: Now receives both paymentUrl and trackingId
       ) async {
     setBookPremiumHomeBeautySalonLoading(true);
     try {
@@ -105,23 +105,21 @@ class PostBookPremiumHomeBeautySalonViewModel with ChangeNotifier {
 
       // Extract trackingId and paymentUrl from response
       String? trackingId;
-      String? paymentUrl;
+
 
       if (response != null && response['data'] != null) {
         trackingId = response['data']['trackingId']?.toString();
-        paymentUrl = response['data']['paymentUrl']?.toString();
 
         if (kDebugMode) {
           print('Tracking ID: $trackingId');
-          print('Payment URL: $paymentUrl');
         }
 
         // Call the success callback with both paymentUrl and trackingId
-        onSuccess(paymentUrl, trackingId);
+        onSuccess(trackingId);
       } else {
         if (kDebugMode) print('Warning: trackingId not found in response');
         // Still call success but with null values
-        onSuccess(null, null);
+        onSuccess(null);
       }
 
     } catch (error) {

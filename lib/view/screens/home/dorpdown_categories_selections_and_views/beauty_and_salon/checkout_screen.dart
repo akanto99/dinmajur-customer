@@ -187,7 +187,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       await bookingViewModel.bookPremiumHomeBeautySalonPostApi(
         context,
         bookingData,
-            (String? paymentUrl, String? trackingId) async {
+            (String? trackingId) async {
           print('Success! TrackingId: $trackingId');
 
           if (trackingId == null || trackingId.isEmpty) {

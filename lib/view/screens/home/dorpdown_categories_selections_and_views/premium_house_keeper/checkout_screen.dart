@@ -77,6 +77,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       // Navigator.pop(context);
       Navigator.pushReplacementNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A'});
     } else if (paymentResult.status == 'FAILED') {
+      print("---------------------Handle Payment result -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
@@ -116,7 +117,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     String? validationError = checkoutViewModel.validateCheckoutForm(
       phone: _phoneController.text,
       address: _addressController.text,
-      // houseSize: checkoutViewModel.selectedHouseSize,
       paymentMethod: checkoutViewModel.selectedPaymentMethod,
     );
 
@@ -130,10 +130,17 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     final shiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
 
     // Prepare tasks
-    List<Map<String, dynamic>> tasks = checkoutViewModel.prepareTasksData(serviceQuantities: widget.serviceQuantities, selectedTaskItems: widget.selectedTaskItems, services: services);
+    List<Map<String, dynamic>> tasks = checkoutViewModel.prepareTasksData(
+        serviceQuantities: widget.serviceQuantities,
+        selectedTaskItems: widget.selectedTaskItems,
+        services: services
+    );
 
     // Get shift ID
-    String? shiftId = checkoutViewModel.getShiftId(selectedTime: widget.selectedTime, shiftTimes: shiftTimes);
+    String? shiftId = checkoutViewModel.getShiftId(
+        selectedTime: widget.selectedTime,
+        shiftTimes: shiftTimes
+    );
 
     if (shiftId == null) {
       Utils.flushBarErrorMessage("Invalid time selection", context);
@@ -141,7 +148,11 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     }
 
     // Calculate total
-    double subtotal = checkoutViewModel.calculateTotal(serviceQuantities: widget.serviceQuantities, selectedTaskItems: widget.selectedTaskItems, services: services);
+    double subtotal = checkoutViewModel.calculateTotal(
+        serviceQuantities: widget.serviceQuantities,
+        selectedTaskItems: widget.selectedTaskItems,
+        services: services
+    );
     double transport = 80.0;
     double totalAmount = subtotal + transport;
 
@@ -161,29 +172,55 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
     print('Booking Data: $bookingData');
 
-    // Call booking API
-    await bookingViewModel.bookPremiumHouseKeeperPostApi(context, bookingData, (String? paymentUrl, String? trackingId) async {
-      print('Success! TrackingId: $trackingId');
+    // ✅ UPDATED: Call booking API with simplified callback
+    await bookingViewModel.bookPremiumHouseKeeperPostApi(
+        context,
+        bookingData,
+            (String? trackingId) async {
+          print('Success! TrackingId: $trackingId');
 
-      if (checkoutViewModel.selectedPaymentMethod == 'online' && trackingId != null) {
-        // Initiate SSL Commerz payment
-        final paymentResult = await checkoutViewModel.initiatePayment(trackingId: trackingId, totalAmount: totalAmount);
+          if (checkoutViewModel.selectedPaymentMethod == 'online' && trackingId != null) {
+            print('---------------A----------------');
 
-        await _handlePaymentResult(viewModel: checkoutViewModel, paymentResult: paymentResult, trackingId: trackingId);
-      } else if (checkoutViewModel.selectedPaymentMethod == 'cash') {
-        _clearAllData();
-        Navigator.pop(context);
-        widget.onSuccess();
+            // ✅ Initiate SSL Commerz payment client-side
+            final paymentResult = await checkoutViewModel.initiatePayment(
+                trackingId: trackingId,
+                totalAmount: totalAmount
+            );
 
-        Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId ?? '', 'valId': "COD"});
-      } else {
-        Navigator.pushReplacementNamed(
-          context,
-          RoutesName.failedOrderScreenWidget,
-          arguments: {'trackingId': trackingId, 'valId': 'N/A', 'reason': 'Invalid payment method', 'errorMessage': 'The selected payment method is not available.'},
-        );
-      }
-    });
+            print('Payment Result: ${paymentResult.toString()}');
+
+            // await _handlePaymentResult(
+            //     viewModel: checkoutViewModel,
+            //     paymentResult: paymentResult,
+            //     trackingId: trackingId
+            // );
+
+          } else if (checkoutViewModel.selectedPaymentMethod == 'cash') {
+            // Cash on delivery flow
+            _clearAllData();
+            Navigator.pop(context);
+            widget.onSuccess();
+
+            Navigator.pushNamed(
+                context,
+                RoutesName.confirmedScreen,
+                arguments: {'trackingId': trackingId ?? '', 'valId': "COD"}
+            );
+          } else {
+            Navigator.pushReplacementNamed(
+              context,
+              RoutesName.failedOrderScreenWidget,
+              arguments: {
+                'trackingId': trackingId,
+                'valId': 'N/A',
+                'reason': 'Invalid payment method',
+                'errorMessage': 'The selected payment method is not available.'
+              },
+            );
+          }
+        }
+    );
   }
 
   void _clearAllData() {
