@@ -3,6 +3,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -33,7 +34,7 @@ class FamilyEventCardCoverageWidget extends StatelessWidget {
     if (isCheckingCoverage) {
       return _buildLoadingState(context, screenWidth);
     } else if (isInsideServiceArea == true) {
-      return _buildPremiumHouseKeeperSection(context, screenWidth, screenHeight);
+      return _buildFamilyEventCookingSection(context, screenWidth, screenHeight);
     } else if (isInsideServiceArea == false) {
       return _buildErrorState(context, screenWidth);
     } else {
@@ -91,7 +92,7 @@ class FamilyEventCardCoverageWidget extends StatelessWidget {
   }
 
   /// Family Event Cooking Section - Main content when service is available
-  Widget _buildPremiumHouseKeeperSection(BuildContext context, double screenWidth, double screenHeight) {
+  Widget _buildFamilyEventCookingSection(BuildContext context, double screenWidth, double screenHeight) {
     return Column(
       children: [
         // House Keeper Service Card
@@ -177,13 +178,13 @@ class FamilyEventCardCoverageWidget extends StatelessWidget {
               RoundButton(
                 title: "Book Now",
                 onPress: () {
-                  Navigator.pushNamed(context, RoutesName.bookNowHomeBeautySalonScreen, arguments: {
-                    'customerName': customerName,
-                    'customerPhone': customerPhone,
-                    'customerAddress': customerAddress,
-                    'isFromHome': true,
-                  });
-
+                  // Navigator.pushNamed(context, RoutesName.familyEventCookingScreen, arguments: {
+                  //   'customerName': customerName,
+                  //   'customerPhone': customerPhone,
+                  //   'customerAddress': customerAddress,
+                  //   'isFromHome': true,
+                  // });
+Utils.flushBarErrorMessage("Coming Soon", context);
 
                 },
                 iconData: Icons.arrow_forward_ios_rounded,
@@ -194,94 +195,6 @@ class FamilyEventCardCoverageWidget extends StatelessWidget {
 
         SizedboxSpaccing.height02(context),
 
-        // // Running Offer Card
-        // Container(
-        //   width: screenWidth * 0.9,
-        //   padding: EdgeInsets.all(screenHeight * 0.02),
-        //   decoration: BoxDecoration(
-        //     gradient: LinearGradient(colors: [AppColors.blackColor, AppColors.button(context)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        //     borderRadius: BorderRadius.circular(12),
-        //   ),
-        //   child: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       Row(
-        //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //         crossAxisAlignment: CrossAxisAlignment.start,
-        //         children: [
-        //           // Left side - Offer Details
-        //           Expanded(
-        //             child: Column(
-        //               crossAxisAlignment: CrossAxisAlignment.start,
-        //               children: [
-        //                 Text(
-        //                   "Running Offer!",
-        //                   style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.whiteColor),
-        //                 ),
-        //                 SizedboxSpaccing.height005(context),
-        //                 Text(
-        //                   "Get 70% discount on Premium House Keeper services",
-        //                   style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.whiteColor),
-        //                 ),
-        //               ],
-        //             ),
-        //           ),
-        //           // Right side - Discount Badge
-        //           Container(
-        //             height: 64,
-        //             width: 78,
-        //             decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(8)),
-        //             child: Column(
-        //               mainAxisAlignment: MainAxisAlignment.center,
-        //               children: [
-        //                 Text(
-        //                   "70%",
-        //                   style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
-        //                 ),
-        //                 Text(
-        //                   "OFF",
-        //                   style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
-        //                 ),
-        //               ],
-        //             ),
-        //           ),
-        //         ],
-        //       ),
-        //       SizedboxSpaccing.height02(context),
-        //       // Promo Code Section
-        //       Container(
-        //         padding: EdgeInsets.all(screenHeight * 0.01),
-        //         decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(12)),
-        //         child: Row(
-        //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //           children: [
-        //             Text(
-        //               "CLEANDAY",
-        //               style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.whiteColor),
-        //               textAlign: TextAlign.center,
-        //             ),
-        //             GestureDetector(
-        //               onTap: () => _copyPromoCode(context, "CLEANDAY"),
-        //               child: Container(
-        //                 height: 24,
-        //                 width: 89,
-        //                 decoration: BoxDecoration(color: AppColors.whiteColor, borderRadius: BorderRadius.circular(6)),
-        //                 child: Center(
-        //                   child: Text(
-        //                     "Copy Code",
-        //                     style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
-        //                   ),
-        //                 ),
-        //               ),
-        //             ),
-        //           ],
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
-        //
-        // SizedboxSpaccing.height02(context),
       ],
     );
   }

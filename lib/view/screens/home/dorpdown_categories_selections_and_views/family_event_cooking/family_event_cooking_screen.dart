@@ -1,0 +1,465 @@
+import 'dart:convert';
+import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
+import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/data/response/status.dart';
+import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart' hide Image;
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/cart_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/servicedetails_dialouge_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/cooking_cart_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class FamilyEventCookingScreen extends StatefulWidget {
+  final String customerName;
+  final String customerPhone;
+  final String customerAddress;
+  final bool isFromHome;
+
+  const FamilyEventCookingScreen({
+    Key? key,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+    this.isFromHome = false,
+
+  }) : super(key: key);
+
+  @override
+  State<FamilyEventCookingScreen> createState() => _FamilyEventCookingScreenState();
+}
+
+class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
+  final ScrollController _mainScrollController = ScrollController();
+  int _selectedTabIndex = 0;
+  final Map<int, GlobalKey> _categoryKeys = {};
+  Map<String, int> _serviceQuantities = {};
+
+  late String _currentCustomerAddress;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _currentCustomerAddress = widget.customerAddress;
+
+
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false)
+          .fetchGetAllPermiumHomeBeautySalonGetDataApi();
+    });
+  }
+
+  @override
+  void dispose() {
+    _mainScrollController.dispose();
+    super.dispose();
+  }
+
+  void _initializeCategoryKeys(List<Datum> data) {
+    if (_categoryKeys.isEmpty && data.isNotEmpty) {
+      for (int i = 0; i < data.length; i++) {
+        _categoryKeys[i] = GlobalKey();
+      }
+    }
+  }
+
+  void _scrollToCategory(int index) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_categoryKeys.containsKey(index)) {
+        final keyContext = _categoryKeys[index]?.currentContext;
+        if (keyContext != null) {
+          Scrollable.ensureVisible(
+            keyContext,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            alignment: 0.1,
+          );
+        }
+      }
+    });
+  }
+
+  void _updateQuantity(String serviceId, int change) {
+    setState(() {
+      int currentQty = _serviceQuantities[serviceId] ?? 0;
+      int newQty = currentQty + change;
+      if (newQty >= 0) {
+        _serviceQuantities[serviceId] = newQty;
+      }
+    });
+  }
+
+  double _calculateTotal() {
+    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
+    final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+
+    double total = 0;
+    data.forEach((category) {
+      category.items?.forEach((service) {
+        int qty = _serviceQuantities[service.id ?? ''] ?? 0;
+        if (qty > 0) {
+          double price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
+          total += price * qty;
+        }
+      });
+    });
+    return total;
+  }
+
+  double _calculateSaved() {
+    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
+    final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+
+    double saved = 0;
+    data.forEach((category) {
+      category.items?.forEach((service) {
+        int qty = _serviceQuantities[service.id ?? ''] ?? 0;
+        if (qty > 0 && service.discountValue != null) {
+          double originalPrice = service.originalPrice?.toDouble() ?? 0;
+          double salePrice = service.salePrice?.toDouble() ?? originalPrice;
+          saved += (originalPrice - salePrice) * qty;
+        }
+      });
+    });
+    return saved;
+  }
+
+  int _getTotalItems() {
+    return _serviceQuantities.entries.where((entry) => entry.value > 0).length;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        // ✅ Return null to indicate user backed out
+        Navigator.pop(context, null);
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.containerBackground(context),
+        body: SafeArea(
+          child: ResPonsiveUi(
+            mobile: _body(),
+            desktop: _body(),
+            tablet: _body(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _body() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () =>Navigator.pop(context, null),
+          child: Container(
+            height: 60,
+            child: AppBarHeader("Family Event Cooking"),
+          ),
+        ),
+        Expanded(
+          child: Consumer<GetallPremiumHomeBeautySalonViewModel>(
+            builder: (context, viewModel, _) {
+              final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+              final isLoading = viewModel.getAllPremiumHomeBeautySalonData.status == Status.LOADING;
+              final hasError = viewModel.getAllPremiumHomeBeautySalonData.status == Status.ERROR;
+
+              if (data.isNotEmpty) {
+                _initializeCategoryKeys(data);
+              }
+
+              if (isLoading) {
+                return Center(
+                  child: LoadingAnimationWidget.progressiveDots(
+                    color: AppColors.button(context),
+                    size: 50,
+                  ),
+                );
+              }
+
+              if (hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 48, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text(
+                        'Failed to load services',
+                        style: AppTextStyles.textSize16(context, color: Colors.red),
+                      ),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => viewModel.fetchGetAllPermiumHomeBeautySalonGetDataApi(),
+                        child: Text('Retry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.button(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return SingleChildScrollView(
+                controller: _mainScrollController,
+                child: Column(
+                  children: [
+                    SizedboxSpaccing.height03(context),
+                    Container(
+                      width: screenWidth * 0.9,
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Family",
+                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
+                                textAlign: TextAlign.center,
+                              ),
+                              Text(
+                                " Event Cooking",
+                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600,color: Color(0xffD78503)),
+                                textAlign: TextAlign.center,
+                              ),
+                              Text(
+                                " Service",
+                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                          SizedboxSpaccing.height01(context),
+                          Text(
+                            "Female Chef • Two Female Assistants • Home Event Experts",
+                            style: AppTextStyles.textSize14(
+                              context,
+                              weight: FontWeight.w400,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedboxSpaccing.height03(context),
+                    DynamicCategoryTabs(
+                      categories: data,
+                      selectedIndex: _selectedTabIndex,
+                      onCategoryTap: (index) {
+                        setState(() => _selectedTabIndex = index);
+                        _scrollToCategory(index);
+                      },
+                      getName: (category) => category.name ?? '',
+                      getImageUrl: (category) => category.image?.url,
+                      getButtonColor: (context) => AppColors.button(context),
+                      getBackgroundColor: (context) => AppColors.border(context),
+                      getBorderColor: (context) => AppColors.border(context),
+                      getSelectedIconColor: (context) => AppColors.whiteColor,
+                      getSelectedImageColor: (context) => AppColors.whiteColor,
+                      getTextColor: (context) => AppColors.textPrimary(context),
+                      getTextStyle: (context, isSelected) => AppTextStyles.textSize12(
+                        context,
+                        weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
+                      ),
+                      defaultIcon: Icons.spa,
+                      supportSvg: false,
+                    ),
+                    SizedboxSpaccing.height03(context),
+                    DynamicServiceList<Datum, Item>(
+                      categories: data,
+                      categoryKeys: _categoryKeys,
+                      screenWidth: screenWidth,
+                      screenHeight: screenHeight,
+                      isSimpleList: false,
+                      getItems: (category) => category.items,
+                      getCategoryName: (category) => category.name ?? '',
+                      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w500),
+                      emptyStateStyle: (context) => AppTextStyles.textSize16(context),
+                      emptyStateSpacing: (context) => SizedboxSpaccing.height01(context),
+                      buildServiceCard: (service, width, height, isLastItem) {
+                        int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
+                        double originalPrice = service.originalPrice?.toDouble() ?? 0;
+                        double discountedPrice = service.salePrice?.toDouble() ?? originalPrice;
+
+                        return DynamicServiceCard(
+                          imageUrl: service.image?.url,
+                          defaultIcon: Icons.spa,
+                          serviceName: service.name ?? '',
+                          viewDetailsText: 'View Task Details',
+                          onViewDetails: () => _showTaskDetailsDialog(service),
+                          discountedPrice: discountedPrice,
+                          originalPrice: originalPrice,
+                          showDiscount: service.discountValue != null && originalPrice > discountedPrice,
+                          quantity: quantity,
+                          onAdd: () => _updateQuantity(service.id ?? '', 1),
+                          onRemove: () => _updateQuantity(service.id ?? '', -1),
+                          onIncrease: () => _updateQuantity(service.id ?? '', 1),
+                          showRoomNumber: quantity > 0,
+                          isLastItem: isLastItem,
+                          getButtonColor: (context) => AppColors.button(context),
+                          getBackgroundColor: (context) => AppColors.containerBackground(context),
+                          getBorderColor: (context) => AppColors.border(context),
+                          getSubtitleColor: (context) => AppColors.subtitle(context),
+                          getTextColor: (context) => AppColors.textPrimary(context),
+                          getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.normal, color: color ?? AppColors.textPrimary(context)),
+                          getSpacing: (context) => SizedboxSpaccing.width03(context),
+                        );
+                      },
+                    ),
+                    SizedboxSpaccing.height045(context),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        if (_getTotalItems() > 0)
+          DynamicBottomCartBar(
+            totalServices: _getTotalItems(),
+            totalPrice: _calculateTotal(),
+            savedAmount: _calculateSaved(),
+            onCartTap: _showCartDialog,
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
+            getButtonColor: (context) => AppColors.button(context),
+            getBlackColor: (context) => AppColors.blackColor,
+            getWhiteColor: (context) => AppColors.whiteColor,
+            getTextStyle: (context, {weight, color}) {
+              if (weight == FontWeight.w700) {
+                return AppTextStyles.textSize20(context, weight: weight, color: color ?? Colors.white);
+              }
+              return AppTextStyles.textSize14(context, color: color ?? AppColors.whiteColor);
+            },
+          ),
+      ],
+    );
+  }
+  void _showCartDialog() {
+    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
+    final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
+    final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+
+    showDialog(
+      context: context,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return CookingCartDialouge(
+            categories: data,
+            serviceQuantities: _serviceQuantities,
+            onQuantityUpdate: (serviceId, newQuantity) {
+              setState(() {
+                _serviceQuantities[serviceId] = newQuantity;
+              });
+              setDialogState(() {});
+
+              if (_getTotalItems() == 0) {
+                Navigator.pop(context);
+              }
+            },
+            onProceedToCheckout: _navigateCheckOutScreen,
+            selectedDate: checkoutVM.selectedDate,
+            selectedServiceTime: checkoutVM.selectedServiceTime,
+            onDateSelected: (DateTime selectedDate) {
+              checkoutVM.setSelectedDate(selectedDate);
+              setDialogState(() {});
+            },
+            onTimeSelected: (String time) {
+              checkoutVM.setServiceTime(time);
+              setDialogState(() {});
+            },
+            dateController: TextEditingController(
+              text: checkoutVM.selectedDate != null
+                  ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!)
+                  : '',
+            ),
+          );
+        },
+      ),
+    );
+  }
+  void _showTaskDetailsDialog(Item service) {
+    showDialog(
+      context: context,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (context) => ServiceDetailsDialog(
+        imageUrl: service.image?.url,
+        serviceName: service.name ?? 'Service Details',
+        discountedPrice: service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0,
+        originalPrice: service.originalPrice?.toDouble() ?? 0,
+        showDiscount: service.discountValue != null &&
+            (service.originalPrice?.toDouble() ?? 0) > (service.salePrice?.toDouble() ?? 0),
+        details: service.details,
+        onClose: () => Navigator.pop(context),
+        getButtonColor: (context) => AppColors.button(context),
+        getBackgroundColor: (context) => AppColors.containerBackground(context),
+        getBorderColor: (context) => AppColors.border(context),
+        getTextColor: (context) => AppColors.textPrimary(context),
+      ),
+    );
+  }
+
+  void _navigateCheckOutScreen() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId') ?? '';
+
+    if (userId.isEmpty) {
+      Utils.flushBarErrorMessage('User ID not found. Please auth_login again.', context);
+      return;
+    }
+
+    // Get the data before navigation
+    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
+    final categories = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+
+    // Navigate to CheckoutScreen using named route
+    final result = await Navigator.pushNamed(
+      context,
+      RoutesName.beautyCheckoutScreen,
+      arguments: {
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': _currentCustomerAddress,
+        'userId': userId,
+        'categories': categories,
+        'serviceQuantities': _serviceQuantities,
+        'totalPrice': _calculateTotal(),
+        'transportFee': 80.0,
+        'onAddressUpdate': (String newAddress) {
+          setState(() {
+            _currentCustomerAddress = newAddress;
+          });
+        },
+      },
+    );
+
+    // If booking was successful, clear the cart
+    if (result == true) {
+      setState(() {
+        _serviceQuantities.clear();
+      });
+    }
+  }
+
+}

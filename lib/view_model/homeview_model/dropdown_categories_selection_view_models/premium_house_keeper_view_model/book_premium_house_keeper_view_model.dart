@@ -88,11 +88,11 @@ class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  // UPDATED: Now passes both paymentUrl and trackingId
+  // ✅ UPDATED: Only returns trackingId
   Future<void> bookPremiumHouseKeeperPostApi(
       BuildContext context,
       dynamic fields,
-      Function(String? paymentUrl, String? trackingId) onSuccess
+      Function(String? trackingId) onSuccess // ✅ Simplified callback
       ) async {
     setBookPremiumHouseKeeperLoading(true);
     try {
@@ -105,28 +105,20 @@ class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
 
       if (kDebugMode) print('API Response: ${response.toString()}');
 
-      // Extract payment URL and tracking ID from response
-      String? paymentUrl;
+      // Extract tracking ID from response
       String? trackingId;
 
       if (response != null && response['data'] != null) {
-        // Extract payment URL (GatewayPageURL from SSLCommerz)
-        if (response['data']['GatewayPageURL'] != null) {
-          paymentUrl = response['data']['GatewayPageURL'].toString();
-          if (kDebugMode) print('Payment URL: $paymentUrl');
-        }
-
-        // Extract tracking ID if available
         if (response['data']['trackingId'] != null) {
           trackingId = response['data']['trackingId'].toString();
           if (kDebugMode) print('Tracking ID: $trackingId');
         }
 
-        // Call the success callback with both values
-        onSuccess(paymentUrl, trackingId);
+        // Call the success callback with trackingId only
+        onSuccess(trackingId);
       } else {
         if (kDebugMode) print('Warning: No data found in response');
-        onSuccess(null, null);
+        onSuccess(null);
       }
 
     } catch (error) {
