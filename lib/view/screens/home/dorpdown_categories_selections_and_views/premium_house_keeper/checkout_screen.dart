@@ -190,11 +190,11 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
             print('Payment Result: ${paymentResult.toString()}');
 
-            // await _handlePaymentResult(
-            //     viewModel: checkoutViewModel,
-            //     paymentResult: paymentResult,
-            //     trackingId: trackingId
-            // );
+            await _handlePaymentResult(
+                viewModel: checkoutViewModel,
+                paymentResult: paymentResult,
+                trackingId: trackingId
+            );
 
           } else if (checkoutViewModel.selectedPaymentMethod == 'cash') {
             // Cash on delivery flow
