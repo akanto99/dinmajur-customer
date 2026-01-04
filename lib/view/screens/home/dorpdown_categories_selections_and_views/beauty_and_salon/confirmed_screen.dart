@@ -337,6 +337,170 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                     SizedboxSpaccing.height02(context),
 
                     // Download Receipt Button
+                    // GestureDetector(
+                    //   onTap: () async {
+                    //     final bookingData = Provider.of<GetBeautySalonViewModel>(context, listen: false).getBeautySalonData.data?.data;
+                    //
+                    //     if (bookingData == null) {
+                    //       Utils.flushBarErrorMessage("No booking data available to download", context);
+                    //       return;
+                    //     }
+                    //
+                    //     setState(() {
+                    //       _isDownloading = true;
+                    //     });
+                    //
+                    //     try {
+                    //       if (Platform.isAndroid) {
+                    //         bool hasPermission = false;
+                    //
+                    //         try {
+                    //           final androidInfo = await DeviceInfoPlugin().androidInfo;
+                    //           final sdkInt = androidInfo.version.sdkInt;
+                    //
+                    //           if (sdkInt >= 33) {
+                    //             hasPermission = true;
+                    //           } else if (sdkInt >= 30) {
+                    //             final status = await Permission.manageExternalStorage.request();
+                    //             hasPermission = status.isGranted;
+                    //
+                    //             if (!status.isGranted) {
+                    //               showDialog(
+                    //                 context: context,
+                    //                 builder: (context) => AlertDialog(
+                    //                   title: Text('Storage Permission Required'),
+                    //                   content: Text('Please grant storage permission in settings to save receipts.'),
+                    //                   actions: [
+                    //                     TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+                    //                     ElevatedButton(
+                    //                       onPressed: () async {
+                    //                         Navigator.pop(context);
+                    //                         await openAppSettings();
+                    //                       },
+                    //                       child: Text('Open Settings'),
+                    //                     ),
+                    //                   ],
+                    //                 ),
+                    //               );
+                    //             }
+                    //           } else {
+                    //             final status = await Permission.storage.request();
+                    //             hasPermission = status.isGranted;
+                    //           }
+                    //         } catch (e) {
+                    //           final status = await Permission.storage.request();
+                    //           hasPermission = status.isGranted;
+                    //         }
+                    //
+                    //         if (!hasPermission) {
+                    //           Utils.flushBarErrorMessage("Storage permission is required to download receipt", context);
+                    //           setState(() {
+                    //             _isDownloading = false;
+                    //           });
+                    //           return;
+                    //         }
+                    //       }
+                    //
+                    //       final file = await PDFReceiptGenerator.generateAndDownloadPDFReceipt(
+                    //           bookingData.toReceiptData()
+                    //       );
+                    //       setState(() {
+                    //         _isDownloading = false;
+                    //       });
+                    //
+                    //       if (file != null) {
+                    //         Utils.flushBarSuccessMessage("Receipt saved successfully!", context);
+                    //
+                    //         showDialog(
+                    //           context: context,
+                    //           barrierColor: AppColors.showDialougeBackground(context),
+                    //           builder: (BuildContext context) {
+                    //             return AlertDialog(
+                    //               backgroundColor: AppColors.containerBackground(context),
+                    //               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    //               title: Text('Download Complete', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+                    //               content: Column(
+                    //                 mainAxisSize: MainAxisSize.min,
+                    //                 crossAxisAlignment: CrossAxisAlignment.start,
+                    //                 children: [
+                    //                   Text('Receipt saved successfully!', style: AppTextStyles.textSize14(context)),
+                    //                   SizedBox(height: 12),
+                    //                   Container(
+                    //                     width: screenWidth,
+                    //                     padding: EdgeInsets.all(8),
+                    //                     decoration: BoxDecoration(color: AppColors.button(context).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                    //                     child: Column(
+                    //                       crossAxisAlignment: CrossAxisAlignment.start,
+                    //                       children: [
+                    //                         Text(
+                    //                           '📁 Location:',
+                    //                           style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
+                    //                         ),
+                    //                         SizedBox(height: 4),
+                    //                         Text('Downloads/Dinmajur_Bookings', style: AppTextStyles.textSize12(context)),
+                    //                       ],
+                    //                     ),
+                    //                   ),
+                    //                   SizedBox(height: 12),
+                    //                   Text('Would you like to open it now?', style: AppTextStyles.textSize14(context)),
+                    //                 ],
+                    //               ),
+                    //               actions: [
+                    //                 TextButton(
+                    //                   onPressed: () => Navigator.of(context).pop(),
+                    //                   child: Text('Later', style: TextStyle(color: Colors.grey[600])),
+                    //                 ),
+                    //                 ElevatedButton(
+                    //                   onPressed: () async {
+                    //                     Navigator.of(context).pop();
+                    //                     await OpenFile.open(file.path);
+                    //                   },
+                    //                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
+                    //                   child: Text(
+                    //                     'Open Now',
+                    //                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    //                   ),
+                    //                 ),
+                    //               ],
+                    //             );
+                    //           },
+                    //         );
+                    //       } else {
+                    //         Utils.flushBarErrorMessage("Failed to generate receipt", context);
+                    //       }
+                    //     } catch (e) {
+                    //       setState(() {
+                    //         _isDownloading = false;
+                    //       });
+                    //
+                    //       print('❌ PDF Generation Error: $e');
+                    //
+                    //       Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
+                    //     }
+                    //   },
+                    //   child: Container(
+                    //     width: screenWidth * 0.9,
+                    //     height: 50,
+                    //     decoration: BoxDecoration(
+                    //       color: Colors.transparent,
+                    //       borderRadius: BorderRadius.circular(12),
+                    //       border: Border.all(color: AppColors.button(context), width: 1),
+                    //     ),
+                    //     child: _isDownloading
+                    //         ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50))
+                    //         : Row(
+                    //             mainAxisAlignment: MainAxisAlignment.center,
+                    //             children: [
+                    //               Icon(Icons.download, color: AppColors.button(context), size: 20),
+                    //               SizedBox(width: 8),
+                    //               Text(
+                    //                 'Download Receipt',
+                    //                 style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.button(context)),
+                    //               ),
+                    //             ],
+                    //           ),
+                    //   ),
+                    // ),
                     GestureDetector(
                       onTap: () async {
                         final bookingData = Provider.of<GetBeautySalonViewModel>(context, listen: false).getBeautySalonData.data?.data;
@@ -351,53 +515,29 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                         });
 
                         try {
-                          if (Platform.isAndroid) {
-                            bool hasPermission = false;
 
+
+                          if (Platform.isAndroid) {
                             try {
                               final androidInfo = await DeviceInfoPlugin().androidInfo;
                               final sdkInt = androidInfo.version.sdkInt;
 
-                              if (sdkInt >= 33) {
-                                hasPermission = true;
-                              } else if (sdkInt >= 30) {
-                                final status = await Permission.manageExternalStorage.request();
-                                hasPermission = status.isGranted;
+                              // Only request permission for Android 12 and below (API ≤ 32)
+                              if (sdkInt <= 32) {
+                                final status = await Permission.storage.request();
 
                                 if (!status.isGranted) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: Text('Storage Permission Required'),
-                                      content: Text('Please grant storage permission in settings to save receipts.'),
-                                      actions: [
-                                        TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-                                        ElevatedButton(
-                                          onPressed: () async {
-                                            Navigator.pop(context);
-                                            await openAppSettings();
-                                          },
-                                          child: Text('Open Settings'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
+                                  Utils.flushBarErrorMessage("Storage permission is required to download receipt", context);
+                                  setState(() {
+                                    _isDownloading = false;
+                                  });
+                                  return;
                                 }
-                              } else {
-                                final status = await Permission.storage.request();
-                                hasPermission = status.isGranted;
                               }
+                              // Android 13+ (API 33+): No permission needed
                             } catch (e) {
-                              final status = await Permission.storage.request();
-                              hasPermission = status.isGranted;
-                            }
-
-                            if (!hasPermission) {
-                              Utils.flushBarErrorMessage("Storage permission is required to download receipt", context);
-                              setState(() {
-                                _isDownloading = false;
-                              });
-                              return;
+                              print('❌ Permission check error: $e');
+                              // Try to proceed anyway
                             }
                           }
 
@@ -489,16 +629,16 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                         child: _isDownloading
                             ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50))
                             : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.download, color: AppColors.button(context), size: 20),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Download Receipt',
-                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.button(context)),
-                                  ),
-                                ],
-                              ),
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.download, color: AppColors.button(context), size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'Download Receipt',
+                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.button(context)),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     SizedboxSpaccing.height02(context),
