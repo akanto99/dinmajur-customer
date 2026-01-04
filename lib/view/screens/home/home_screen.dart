@@ -13,6 +13,7 @@ import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beauty_and_salon_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cookingcard_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_service_widget.dart';
@@ -73,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'Premium House Keeper': AppLocalizations.of(context)!.storeType_housekeeper,
       'Premium Home Beauty & Salon': AppLocalizations.of(context)!.storeType_beauty_salon,
       'Retail': AppLocalizations.of(context)!.storeType_grocery,
+      'Family Event Cooking': AppLocalizations.of(context)!.storeType_family_event_cooking,
     };
   }
 
@@ -320,6 +322,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return "Premium Home Beauty & Salon";
       case "তাৎক্ষণিক বাজার":
         return "Retail";
+        case "Family Event Cooking":
+        return "Family Event Cooking";
       default:
         return serviceName;
     }
@@ -343,6 +347,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _checkCoverage();
     } else if (storeType == 'Retail') {
       _fetchNearbyRetailers(storeType);
+    }else if (storeType == 'Family Event Cooking') {
+      _checkCoverage();
     }
   }
 
@@ -417,6 +423,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             _checkCoverage();
                           } else if (newValue == 'Retail') {
                             _fetchNearbyRetailers(newValue);
+                          } else if (newValue == 'Family Event Cooking') {
+                            _checkCoverage();
                           }
                         }
                       },
@@ -427,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // ✅ Updated TrendingServicesWidget with callback
                   TrendingServicesWidget(
-                    services: ["House Keeper", "Home Beauty Parlour", "তাৎক্ষণিক বাজার"],
+                    services: ["House Keeper", "Home Beauty Parlour", "তাৎক্ষণিক বাজার","Family Event Cooking"],
                     onServiceTap: _handleTrendingServiceTap,
                     selectedService: selectedServiceFromTrending, // Pass the selected service
                   ),
@@ -504,7 +512,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       selectedStoreType: selectedStoreType,
                       currentPosition: _currentPosition,
                       currentAddress: _currentAddress,
-                    ),
+                    )
+                    else if (selectedStoreType == 'Family Event Cooking')
+                        Consumer<ProfileViewViewModel>(
+                          builder: (context, profileViewModel, _) {
+                            String customerName = '';
+                            String customerPhone = '';
+                            String customerAddress = '';
+
+                            if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                              final userData = profileViewModel.profileviewUserData.data?.data;
+
+                              if (userData?.user?.fullName != null) {
+                                customerName = userData!.user!.fullName!;
+                              }
+                              if (userData?.user?.phone != null) {
+                                customerPhone = userData!.user!.phone!;
+                              }
+                              if (userData?.addresses?.fullAddress != null) {
+                                customerAddress = userData!.addresses!.fullAddress!;
+                              }
+                            }
+
+                            return FamilyEventCardCoverageWidget(
+                              isCheckingCoverage: isCheckingCoverage,
+                              isInsideServiceArea: isInsideServiceArea,
+                              customerName: customerName,
+                              customerPhone: customerPhone,
+                              customerAddress: customerAddress,
+                            );
+                          },
+                        ),
+
 
                   SizedboxSpaccing.height02(context),
                 ],

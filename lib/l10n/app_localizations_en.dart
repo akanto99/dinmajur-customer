@@ -321,6 +321,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeType_beauty_salon => 'Premium Home Beauty & Salon';
 
   @override
+  String get storeType_family_event_cooking => 'Family Event Cooking';
+
+  @override
   String get select_store_type => 'What do you need?';
 
   @override

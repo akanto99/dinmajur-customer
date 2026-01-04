@@ -686,6 +686,12 @@ abstract class AppLocalizations {
   /// **'Premium Home Beauty & Salon'**
   String get storeType_beauty_salon;
 
+  /// No description provided for @storeType_family_event_cooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Event Cooking'**
+  String get storeType_family_event_cooking;
+
   /// No description provided for @select_store_type.
   ///
   /// In en, this message translates to:

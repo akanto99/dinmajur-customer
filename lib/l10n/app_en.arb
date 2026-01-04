@@ -100,6 +100,7 @@
     "storeType_clothing": "Clothing",
     "storeType_housekeeper": "Premium House Keeper",
     "storeType_beauty_salon": "Premium Home Beauty & Salon",
+    "storeType_family_event_cooking": "Family Event Cooking",
     "select_store_type": "What do you need?",
     "select_store_type_hint": "Select",
     "select_dropdown_hint": "Primium House Keeper",
