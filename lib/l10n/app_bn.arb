@@ -100,6 +100,7 @@
     "storeType_clothing": "পোশাক",
     "storeType_housekeeper": "প্রিমিয়াম হাউস কিপার",
     "storeType_beauty_salon": "প্রিমিয়াম হোম বিউটি ও সেলুন",
+    "storeType_family_event_cooking": "ফ্যামিলি ইভেন্ট কুকিং",
     "select_store_type": "কি লাগবে?",
     "select_store_type_hint": "নির্বাচন করুন",
     "select_dropdown_hint": "প্রিমিয়াম হাউস কিপার",

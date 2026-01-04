@@ -321,6 +321,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get storeType_beauty_salon => 'প্রিমিয়াম হোম বিউটি ও সেলুন';
 
   @override
+  String get storeType_family_event_cooking => 'ফ্যামিলি ইভেন্ট কুকিং';
+
+  @override
   String get select_store_type => 'কি লাগবে?';
 
   @override
