@@ -68,6 +68,9 @@ class AppUrl {
   static var getAllPremiumHomeBeautySalonGetAPI = baseUrl + '/beauty-salon-tasks';
   static var bookPremiumHomeBeautySalonPostAPI = baseUrl + '/beauty-salon-bookings/create';
   static var getBeautySalonByTrackingIdGetAPI = baseUrl + '/beauty-salon-bookings/tracking';
+  //========>Family Event Cooking
+  static var getAllFamilyEventCookingGetAPI = baseUrl + '/event-cooking-categories/get-all';
+
 
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';

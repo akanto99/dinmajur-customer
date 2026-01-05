@@ -1,26 +1,18 @@
-import 'dart:convert';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
-import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
-import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart' hide Image;
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/cart_dialouge.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/servicedetails_dialouge_widget.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/cooking_cart_dialouge.dart';
+import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/family_event_cooking_model/getall_family_event_cooking_model.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/familyevent_cooking_packageimage.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/getall_family_event_cooking_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class FamilyEventCookingScreen extends StatefulWidget {
   final String customerName;
@@ -34,7 +26,6 @@ class FamilyEventCookingScreen extends StatefulWidget {
     required this.customerPhone,
     required this.customerAddress,
     this.isFromHome = false,
-
   }) : super(key: key);
 
   @override
@@ -44,22 +35,23 @@ class FamilyEventCookingScreen extends StatefulWidget {
 class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   final ScrollController _mainScrollController = ScrollController();
   int _selectedTabIndex = 0;
+  int _selectedGuestRangeIndex = 0; // Default to 25-30
   final Map<int, GlobalKey> _categoryKeys = {};
-  Map<String, int> _serviceQuantities = {};
+
+  // Track selected packages per category (only one category can have selections)
+  Map<String, Set<String>> _selectedPackages = {}; // categoryId -> Set of packageIds
+  String? _activeCategoryId; // Track which category has active selections
 
   late String _currentCustomerAddress;
-
 
   @override
   void initState() {
     super.initState();
     _currentCustomerAddress = widget.customerAddress;
 
-
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false)
-          .fetchGetAllPermiumHomeBeautySalonGetDataApi();
+      Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false)
+          .fetchGetAllFamilyEventCookingGetDataApi();
     });
   }
 
@@ -93,60 +85,80 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     });
   }
 
-  void _updateQuantity(String serviceId, int change) {
+  void _togglePackageSelection(String categoryId, String packageId) {
+    // If trying to select from a different category, show warning and return
+    if (_activeCategoryId != null && _activeCategoryId != categoryId) {
+      Utils.flushBarErrorMessage('You can only select packages from one category at a time', context);
+      return;
+    }
+
     setState(() {
-      int currentQty = _serviceQuantities[serviceId] ?? 0;
-      int newQty = currentQty + change;
-      if (newQty >= 0) {
-        _serviceQuantities[serviceId] = newQty;
+      _activeCategoryId = categoryId;
+
+      // Initialize set if needed
+      if (!_selectedPackages.containsKey(categoryId)) {
+        _selectedPackages[categoryId] = {};
+      }
+
+      // Toggle selection
+      if (_selectedPackages[categoryId]!.contains(packageId)) {
+        _selectedPackages[categoryId]!.remove(packageId);
+        // If no more selections in this category, clear active category
+        if (_selectedPackages[categoryId]!.isEmpty) {
+          _activeCategoryId = null;
+        }
+      } else {
+        _selectedPackages[categoryId]!.add(packageId);
       }
     });
   }
 
+  bool _isPackageSelected(String categoryId, String packageId) {
+    return _selectedPackages[categoryId]?.contains(packageId) ?? false;
+  }
+
+  bool _canSelectFromCategory(String categoryId) {
+    return _activeCategoryId == null || _activeCategoryId == categoryId;
+  }
+
   double _calculateTotal() {
-    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
-    final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+    if (_activeCategoryId == null) return 0.0;
+
+    final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
+    final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
 
     double total = 0;
-    data.forEach((category) {
-      category.items?.forEach((service) {
-        int qty = _serviceQuantities[service.id ?? ''] ?? 0;
-        if (qty > 0) {
-          double price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
-          total += price * qty;
+
+    for (var category in data) {
+      if (category.id == _activeCategoryId) {
+        for (var package in category.packages ?? []) {
+          if (_isPackageSelected(category.id ?? '', package.id ?? '')) {
+            // Get price for selected guest range
+            if (_selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
+              total += package.prices![_selectedGuestRangeIndex].price?.toDouble() ?? 0;
+            }
+          }
         }
-      });
-    });
+        break;
+      }
+    }
+
     return total;
   }
 
   double _calculateSaved() {
-    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
-    final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
-
-    double saved = 0;
-    data.forEach((category) {
-      category.items?.forEach((service) {
-        int qty = _serviceQuantities[service.id ?? ''] ?? 0;
-        if (qty > 0 && service.discountValue != null) {
-          double originalPrice = service.originalPrice?.toDouble() ?? 0;
-          double salePrice = service.salePrice?.toDouble() ?? originalPrice;
-          saved += (originalPrice - salePrice) * qty;
-        }
-      });
-    });
-    return saved;
+    // You can implement discount logic here if needed
+    return 0.0;
   }
 
   int _getTotalItems() {
-    return _serviceQuantities.entries.where((entry) => entry.value > 0).length;
+    return _selectedPackages[_activeCategoryId]?.length ?? 0;
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // ✅ Return null to indicate user backed out
         Navigator.pop(context, null);
         return false;
       },
@@ -170,18 +182,18 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () =>Navigator.pop(context, null),
+          onTap: () => Navigator.pop(context, null),
           child: Container(
             height: 60,
             child: AppBarHeader("Family Event Cooking"),
           ),
         ),
         Expanded(
-          child: Consumer<GetallPremiumHomeBeautySalonViewModel>(
+          child: Consumer<GetAllFamilyEventCookingViewModel>(
             builder: (context, viewModel, _) {
-              final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
-              final isLoading = viewModel.getAllPremiumHomeBeautySalonData.status == Status.LOADING;
-              final hasError = viewModel.getAllPremiumHomeBeautySalonData.status == Status.ERROR;
+              final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
+              final isLoading = viewModel.getAllFamilyEventCookingData.status == Status.LOADING;
+              final hasError = viewModel.getAllFamilyEventCookingData.status == Status.ERROR;
 
               if (data.isNotEmpty) {
                 _initializeCategoryKeys(data);
@@ -209,7 +221,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                       ),
                       SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () => viewModel.fetchGetAllPermiumHomeBeautySalonGetDataApi(),
+                        onPressed: () => viewModel.fetchGetAllFamilyEventCookingGetDataApi(),
                         child: Text('Retry'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.button(context),
@@ -235,33 +247,29 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                               Text(
                                 "Family",
                                 style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
-                                textAlign: TextAlign.center,
                               ),
                               Text(
                                 " Event Cooking",
-                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600,color: Color(0xffD78503)),
-                                textAlign: TextAlign.center,
+                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: Color(0xffD78503)),
                               ),
                               Text(
                                 " Service",
                                 style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
-                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
                           SizedboxSpaccing.height01(context),
                           Text(
                             "Female Chef • Two Female Assistants • Home Event Experts",
-                            style: AppTextStyles.textSize14(
-                              context,
-                              weight: FontWeight.w400,
-                            ),
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                             textAlign: TextAlign.center,
                           ),
                         ],
                       ),
                     ),
                     SizedboxSpaccing.height03(context),
+
+                    // Category Tabs
                     DynamicCategoryTabs(
                       categories: data,
                       selectedIndex: _selectedTabIndex,
@@ -270,7 +278,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                         _scrollToCategory(index);
                       },
                       getName: (category) => category.name ?? '',
-                      getImageUrl: (category) => category.image?.url,
+                      getImageUrl: (category) => category.image,
                       getButtonColor: (context) => AppColors.button(context),
                       getBackgroundColor: (context) => AppColors.border(context),
                       getBorderColor: (context) => AppColors.border(context),
@@ -282,51 +290,52 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                         weight: isSelected ? FontWeight.w600 : FontWeight.w400,
                         color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
                       ),
-                      defaultIcon: Icons.spa,
+                      defaultIcon: Icons.restaurant,
                       supportSvg: false,
                     ),
-                    SizedboxSpaccing.height03(context),
-                    DynamicServiceList<Datum, Item>(
-                      categories: data,
-                      categoryKeys: _categoryKeys,
-                      screenWidth: screenWidth,
-                      screenHeight: screenHeight,
-                      isSimpleList: false,
-                      getItems: (category) => category.items,
-                      getCategoryName: (category) => category.name ?? '',
-                      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w500),
-                      emptyStateStyle: (context) => AppTextStyles.textSize16(context),
-                      emptyStateSpacing: (context) => SizedboxSpaccing.height01(context),
-                      buildServiceCard: (service, width, height, isLastItem) {
-                        int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
-                        double originalPrice = service.originalPrice?.toDouble() ?? 0;
-                        double discountedPrice = service.salePrice?.toDouble() ?? originalPrice;
+                    SizedboxSpaccing.height02(context),
 
-                        return DynamicServiceCard(
-                          imageUrl: service.image?.url,
-                          defaultIcon: Icons.spa,
-                          serviceName: service.name ?? '',
-                          viewDetailsText: 'View Task Details',
-                          onViewDetails: () => _showTaskDetailsDialog(service),
-                          discountedPrice: discountedPrice,
-                          originalPrice: originalPrice,
-                          showDiscount: service.discountValue != null && originalPrice > discountedPrice,
-                          quantity: quantity,
-                          onAdd: () => _updateQuantity(service.id ?? '', 1),
-                          onRemove: () => _updateQuantity(service.id ?? '', -1),
-                          onIncrease: () => _updateQuantity(service.id ?? '', 1),
-                          showRoomNumber: quantity > 0,
-                          isLastItem: isLastItem,
-                          getButtonColor: (context) => AppColors.button(context),
-                          getBackgroundColor: (context) => AppColors.containerBackground(context),
-                          getBorderColor: (context) => AppColors.border(context),
-                          getSubtitleColor: (context) => AppColors.subtitle(context),
-                          getTextColor: (context) => AppColors.textPrimary(context),
-                          getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.normal, color: color ?? AppColors.textPrimary(context)),
-                          getSpacing: (context) => SizedboxSpaccing.width03(context),
-                        );
-                      },
+                    // Guest Range Selector
+                    _buildGuestRangeSelector(screenWidth),
+
+                    SizedboxSpaccing.height02(context),
+
+                    // Info Banner
+                    Container(
+                      width: screenWidth * 0.9,
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.textFieldFill(context),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border(context)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            height: 34,
+                            width: 34,
+                            decoration: BoxDecoration(
+                              color: AppColors.containerBackground(context),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(Icons.info, size: 20, color: AppColors.textPrimary(context)),
+                          ),
+                          SizedboxSpaccing.width01(context),
+                          Expanded(
+                            child: Text(
+                              "Grocery/Bazar Not Included. We Do Cooking Only.",
+                              style: AppTextStyles.textSize12(context),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+
+                    SizedboxSpaccing.height02(context),
+
+                    // Package Lists
+                    _buildPackageLists(data, screenWidth),
+
                     SizedboxSpaccing.height045(context),
                   ],
                 ),
@@ -334,132 +343,180 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             },
           ),
         ),
-        if (_getTotalItems() > 0)
-          DynamicBottomCartBar(
-            totalServices: _getTotalItems(),
-            totalPrice: _calculateTotal(),
-            savedAmount: _calculateSaved(),
-            onCartTap: _showCartDialog,
-            screenWidth: screenWidth,
-            screenHeight: screenHeight,
-            getButtonColor: (context) => AppColors.button(context),
-            getBlackColor: (context) => AppColors.blackColor,
-            getWhiteColor: (context) => AppColors.whiteColor,
-            getTextStyle: (context, {weight, color}) {
-              if (weight == FontWeight.w700) {
-                return AppTextStyles.textSize20(context, weight: weight, color: color ?? Colors.white);
-              }
-              return AppTextStyles.textSize14(context, color: color ?? AppColors.whiteColor);
-            },
-          ),
+        if (_getTotalItems() > 0) DynamicBottomCartBar(
+          totalServices: _getTotalItems(),
+          totalPrice: _calculateTotal(),
+          savedAmount: _calculateSaved(),
+          onCartTap: _showCartDialog,
+          screenWidth: screenWidth,
+          screenHeight: screenHeight,
+          getButtonColor: (context) => AppColors.button(context),
+          getBlackColor: (context) => AppColors.blackColor,
+          getWhiteColor: (context) => AppColors.whiteColor,
+          getTextStyle: (context, {weight, color}) {
+            if (weight == FontWeight.w700) {
+              return AppTextStyles.textSize20(context, weight: weight, color: color ?? Colors.white);
+            }
+            return AppTextStyles.textSize14(context, color: color ?? AppColors.whiteColor);
+          },
+        ),
       ],
     );
   }
-  void _showCartDialog() {
-    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
-    final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
-    final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
 
-    showDialog(
-      context: context,
-      barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return CookingCartDialouge(
-            categories: data,
-            serviceQuantities: _serviceQuantities,
-            onQuantityUpdate: (serviceId, newQuantity) {
-              setState(() {
-                _serviceQuantities[serviceId] = newQuantity;
-              });
-              setDialogState(() {});
+  Widget _buildGuestRangeSelector(double screenWidth) {
+    final ranges = ['25-30', '30-35', '40-50'];
 
-              if (_getTotalItems() == 0) {
-                Navigator.pop(context);
-              }
-            },
-            onProceedToCheckout: _navigateCheckOutScreen,
-            selectedDate: checkoutVM.selectedDate,
-            selectedServiceTime: checkoutVM.selectedServiceTime,
-            onDateSelected: (DateTime selectedDate) {
-              checkoutVM.setSelectedDate(selectedDate);
-              setDialogState(() {});
-            },
-            onTimeSelected: (String time) {
-              checkoutVM.setServiceTime(time);
-              setDialogState(() {});
-            },
-            dateController: TextEditingController(
-              text: checkoutVM.selectedDate != null
-                  ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!)
-                  : '',
+    return Container(
+      width: screenWidth * 0.9,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Number of Guests',
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+          ),
+          SizedBox(height: 12),
+          Container(
+            height: 44,
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.button(context),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Row(
+              children: List.generate(ranges.length, (index) {
+                final isSelected = _selectedGuestRangeIndex == index;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedGuestRangeIndex = index);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.whiteColor : Colors.transparent,
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Center(
+                        child: Text(
+                          ranges[index],
+                          style: AppTextStyles.textSize14(
+                            context,
+                            weight: FontWeight.w600,
+                            color: isSelected ? AppColors.blackColor : AppColors.whiteColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPackageLists(List<Datum> data, double screenWidth) {
+    return Container(
+      width: screenWidth * 0.9,
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: data.length,
+        itemBuilder: (context, index) {
+          final category = data[index];
+          return Container(
+            key: _categoryKeys[index],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${category.name ?? ''} Package',
+                  style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
+                ),
+                SizedboxSpaccing.height015(context),
+                Divider(height: 1,color: AppColors.border(context),),
+                ...((category.packages ?? []).asMap().entries.map((entry) {
+                  final package = entry.value;
+                  final isLast = entry.key == (category.packages?.length ?? 0) - 1;
+                  return _buildPackageCard(category, package, screenWidth, isLast);
+                })),
+                SizedboxSpaccing.height03(context),
+              ],
             ),
           );
         },
       ),
     );
   }
-  void _showTaskDetailsDialog(Item service) {
-    showDialog(
-      context: context,
-      barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => ServiceDetailsDialog(
-        imageUrl: service.image?.url,
-        serviceName: service.name ?? 'Service Details',
-        discountedPrice: service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0,
-        originalPrice: service.originalPrice?.toDouble() ?? 0,
-        showDiscount: service.discountValue != null &&
-            (service.originalPrice?.toDouble() ?? 0) > (service.salePrice?.toDouble() ?? 0),
-        details: service.details,
-        onClose: () => Navigator.pop(context),
-        getButtonColor: (context) => AppColors.button(context),
-        getBackgroundColor: (context) => AppColors.containerBackground(context),
-        getBorderColor: (context) => AppColors.border(context),
-        getTextColor: (context) => AppColors.textPrimary(context),
+
+  Widget _buildPackageCard(Datum category, Package package, double screenWidth, bool isLast) {
+    final isSelected = _isPackageSelected(category.id ?? '', package.id ?? '');
+    final currentPrice = _selectedGuestRangeIndex < (package.prices?.length ?? 0)
+        ? package.prices![_selectedGuestRangeIndex].price?.toDouble() ?? 0
+        : 0.0;
+
+    final canSelect = _canSelectFromCategory(category.id ?? '');
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        border: isLast
+            ? null
+            : Border(
+          bottom: BorderSide(color: AppColors.border(context), width: 1),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  package.name ?? '',
+                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Price - ৳${currentPrice.toStringAsFixed(0)} টাকা',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                ),
+                if (package.items != null && package.items!.isNotEmpty) ...[
+                  SizedBox(height: 8),
+                  ...package.items!.map((item) => Padding(
+                    padding: EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      '${package.items!.indexOf(item) + 1}. ${item.name ?? ''}',
+                      style: AppTextStyles.textSize14(context),
+                    ),
+                  )),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(width: 12),
+
+          // Package Selection Image with ADD/ADDED button
+          FamilyEventCookingPackageImage(
+            imageUrl: package.image,
+            isSelected: isSelected,
+            canSelect: canSelect,
+            onToggle: () => _togglePackageSelection(category.id ?? '', package.id ?? ''),
+            getButtonColor: (context) => AppColors.button(context),
+            getBorderColor: (context) => AppColors.border(context),
+          ),
+        ],
       ),
     );
   }
 
-  void _navigateCheckOutScreen() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId') ?? '';
-
-    if (userId.isEmpty) {
-      Utils.flushBarErrorMessage('User ID not found. Please auth_login again.', context);
-      return;
-    }
-
-    // Get the data before navigation
-    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
-    final categories = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
-
-    // Navigate to CheckoutScreen using named route
-    final result = await Navigator.pushNamed(
-      context,
-      RoutesName.beautyCheckoutScreen,
-      arguments: {
-        'customerName': widget.customerName,
-        'customerPhone': widget.customerPhone,
-        'customerAddress': _currentCustomerAddress,
-        'userId': userId,
-        'categories': categories,
-        'serviceQuantities': _serviceQuantities,
-        'totalPrice': _calculateTotal(),
-        'transportFee': 80.0,
-        'onAddressUpdate': (String newAddress) {
-          setState(() {
-            _currentCustomerAddress = newAddress;
-          });
-        },
-      },
-    );
-
-    // If booking was successful, clear the cart
-    if (result == true) {
-      setState(() {
-        _serviceQuantities.clear();
-      });
-    }
+  void _showCartDialog() {
+    // Implement your cart dialog here
+    // You can show selected packages with their details
   }
-
 }
+
