@@ -233,13 +233,66 @@ class MapLocationController {
 
   // ============ PLACE SELECTION ============
 
+  // Future<void> onPlaceSelected(Prediction prediction) async {
+  //   try {
+  //     List<Location> locations = await locationFromAddress(prediction.description!);
+  //     if (locations.isNotEmpty) {
+  //       LatLng selectedLoc = LatLng(locations.first.latitude, locations.first.longitude);
+  //
+  //       await updateSelectedLocation(selectedLoc);
+  //
+  //       // Move camera to selected location
+  //       final GoogleMapController controller = await mapController.future;
+  //       controller.animateCamera(
+  //         CameraUpdate.newCameraPosition(
+  //           CameraPosition(target: selectedLoc, zoom: 16.0),
+  //         ),
+  //       );
+  //
+  //       // Unfocus the text field
+  //       addressFocusNode.unfocus();
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Error selecting place: $e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error selecting place: ${e.toString()}'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
+// ============ PLACE SELECTION ============
+
   Future<void> onPlaceSelected(Prediction prediction) async {
     try {
-      List<Location> locations = await locationFromAddress(prediction.description!);
+      // Use the description from prediction as it's already formatted nicely
+      String readableAddress = prediction.description ?? '';
+
+      List<Location> locations = await locationFromAddress(readableAddress);
       if (locations.isNotEmpty) {
         LatLng selectedLoc = LatLng(locations.first.latitude, locations.first.longitude);
 
-        await updateSelectedLocation(selectedLoc);
+        // Update location with the readable address from prediction
+        setState(() {
+          selectedLocation = selectedLoc;
+          selectedAddress = readableAddress; // Use prediction's description
+          addressController.text = readableAddress;
+          markers = {
+            Marker(
+              markerId: const MarkerId('selected-location'),
+              position: selectedLoc,
+              draggable: true,
+              onDragEnd: (LatLng newPosition) {
+                updateSelectedLocation(newPosition);
+              },
+              infoWindow: InfoWindow(
+                title: 'Selected Location',
+                snippet: readableAddress,
+              ),
+            ),
+          };
+        });
 
         // Move camera to selected location
         final GoogleMapController controller = await mapController.future;
@@ -262,7 +315,6 @@ class MapLocationController {
       );
     }
   }
-
   // ============ LOCATION CONFIRMATION ============
 
   Future<void> confirmLocation() async {
