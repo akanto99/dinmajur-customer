@@ -9,7 +9,7 @@ class GetAllFamilyEventCookingRepository {
   Future<GetAllFamilyEventCookingModel> fetchGetAllFamilyEventCookingGetApi() async {
     try {
       dynamic response = await _apiServices.getGetApiResponse(
-        AppUrl.getAllPremiumHomeBeautySalonGetAPI,
+        AppUrl.getAllFamilyEventCookingGetAPI,
         // headers: {
         //   'Content-Type': 'application/json',
         //   'Authorization': '$accessToken',

@@ -178,13 +178,13 @@ class FamilyEventCardCoverageWidget extends StatelessWidget {
               RoundButton(
                 title: "Book Now",
                 onPress: () {
-                  // Navigator.pushNamed(context, RoutesName.familyEventCookingScreen, arguments: {
-                  //   'customerName': customerName,
-                  //   'customerPhone': customerPhone,
-                  //   'customerAddress': customerAddress,
-                  //   'isFromHome': true,
-                  // });
-Utils.flushBarErrorMessage("Coming Soon", context);
+                  Navigator.pushNamed(context, RoutesName.familyEventCookingScreen, arguments: {
+                    'customerName': customerName,
+                    'customerPhone': customerPhone,
+                    'customerAddress': customerAddress,
+                    'isFromHome': true,
+                  });
+// Utils.flushBarErrorMessage("Coming Soon", context);
 
                 },
                 iconData: Icons.arrow_forward_ios_rounded,
