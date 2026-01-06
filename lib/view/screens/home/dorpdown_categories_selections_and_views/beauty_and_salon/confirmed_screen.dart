@@ -872,7 +872,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                 '${_formatDate(bookingData.date)}, ${bookingData.time ?? 'N/A'}',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
-                paymentMethod: '',
+                paymentMethod: bookingData.paymentType ?? 'N/A',
                 onDownloadReceipt: () => _handleDownloadReceipt(),
                 onTrackOrder: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 2,)));
