@@ -102,6 +102,8 @@ class BookingReceiptPdfGenerator {
           // _buildDetailRow('House Size:', bookingData.houseSize ?? 'N/A'),
           pw.SizedBox(height: 6),
           _buildDetailRow('Plan Type:', bookingData.serviceType ?? 'Premium Cleaning'),
+          pw.SizedBox(height: 6),
+          _buildDetailRow('Payment Method:', bookingData.paymentType ?? 'N/A',),
         ],
       ),
     );

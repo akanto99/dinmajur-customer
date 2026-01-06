@@ -37,6 +37,7 @@ class Data {
   dynamic userId;
   String? trackingId;
   String? serviceType;
+  String? paymentType;
   String? fullName;
   String? fullAddress;
   String? email;
@@ -63,6 +64,7 @@ class Data {
     this.userId,
     this.trackingId,
     this.serviceType,
+    this.paymentType,
     this.fullName,
     this.fullAddress,
     this.email,
@@ -90,6 +92,7 @@ class Data {
     userId: json["userId"],
     trackingId: json["trackingId"],
     serviceType: json["serviceType"],
+    paymentType: json["paymentType"],
     fullName: json["fullName"],
     fullAddress: json["fullAddress"],
     email: json["email"],
@@ -117,6 +120,7 @@ class Data {
     "userId": userId,
     "trackingId": trackingId,
     "serviceType": serviceType,
+    "paymentType": paymentType,
     "fullName": fullName,
     "fullAddress": fullAddress,
     "email": email,
