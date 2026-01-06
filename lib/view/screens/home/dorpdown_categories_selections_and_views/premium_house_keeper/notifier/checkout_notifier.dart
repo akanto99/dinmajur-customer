@@ -14,12 +14,12 @@ class CheckoutViewModel extends ChangeNotifier {
 
   // Payment methods data
   final List<Map<String, dynamic>> paymentMethods = [
-    {
-      'method': 'online',
-      'title': 'Online Payment',
-      'icon': 'wallet',
-      'color': 0xFFEE4237
-    },
+    // {
+    //   'method': 'online',
+    //   'title': 'Online Payment',
+    //   'icon': 'wallet',
+    //   'color': 0xFFEE4237
+    // },
     {
       'method': 'cash',
       'title': 'Hand Cash',

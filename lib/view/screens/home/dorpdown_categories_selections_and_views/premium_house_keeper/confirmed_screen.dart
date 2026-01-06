@@ -943,7 +943,9 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: '',
                 onDownloadReceipt: () => _handleDownloadReceipt(),
-                onTrackOrder: () => _handleTrackOrder(),
+                onTrackOrder: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 2,)));
+                },
                 isDownloading: _isDownloading,
               );
 

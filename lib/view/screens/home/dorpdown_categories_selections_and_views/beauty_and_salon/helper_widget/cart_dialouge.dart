@@ -241,7 +241,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
   }
 
   Widget _buildDateTimeSelection(BuildContext context, double screenWidth) {
-    final serviceTimeSlots = ['8am - 10am', '10am - 12pm', '12pm - 2pm', '2pm - 4pm', '4pm - 6pm', '6pm - 8pm'];
+    final serviceTimeSlots = ['09:00 am', '12:00 pm', '03:00 pm', '06:00 pm'];
 
     return Container(
       width: screenWidth * 0.87,

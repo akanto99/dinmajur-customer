@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/res/components/iagree_terms&condition/iagree_terms&condition.dart';
 import 'package:dinmajur_customer/configs/res/components/payment_method/payment_method_component.dart';
 import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -51,7 +52,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _specialRequestController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-
+  bool _isTermsAccepted = false;
   @override
   void initState() {
     super.initState();
@@ -135,6 +136,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.clear();
     _specialRequestController.clear();
     _dateController.clear();
+    setState(() {
+      _isTermsAccepted = false;
+    });
   }
 
   Future<void> _handleConfirmBooking() async {
@@ -160,7 +164,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       Utils.flushBarErrorMessage(validationError, context);
       return;
     }
-
+    if (!_isTermsAccepted) {
+      Utils.flushBarErrorMessage("Please accept the Terms & Conditions to proceed", context);
+      return;
+    }
     // Prepare tasks data
     List<Map<String, dynamic>> tasks = checkoutVM.prepareTasksData(
       serviceQuantities: widget.serviceQuantities,
@@ -301,6 +308,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           _buildSelectedServicesList(checkoutVM, subtotal, saved),
                           SizedboxSpaccing.height02(context),
                           _buildPaymentMethodSection(checkoutVM),
+                          SizedboxSpaccing.height01(context),
+                          DynamicTermsCheckbox(
+                            isAccepted: _isTermsAccepted,
+                            onChanged: (value) {
+                              setState(() {
+                                _isTermsAccepted = value;
+                              });
+                            },
+                            context: context,
+                            onTermsTap: () => Navigator.pushNamed(context, RoutesName.termsAndCondition),
+                            onPrivacyTap: () => Navigator.pushNamed(context, RoutesName.privacyPolicy),
+                            onRefundTap: () => Navigator.pushNamed(context, RoutesName.refundPolicyScreen),
+                            getButtonColor: (context) => AppColors.button(context),
+                            getBorderColor: (context) => AppColors.border(context),
+                            getWhiteColor: (context) => AppColors.whiteColor,
+                            getTextStyle: (context, {weight}) => AppTextStyles.textSize12(context, weight: weight ?? FontWeight.w400),
+                          ),
+                          SizedboxSpaccing.height03(context)
                         ],
                       ),
                     ),

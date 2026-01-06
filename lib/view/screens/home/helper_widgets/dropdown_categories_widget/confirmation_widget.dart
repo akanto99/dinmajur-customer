@@ -200,8 +200,11 @@ class BookingConfirmationUI extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Order Number
-          _buildDetailColumn('Order Number', data.orderId, context),
-
+          _buildDetailColumn(
+              'Order Number',
+              '#${data.orderId.length > 6 ? data.orderId.substring(data.orderId.length - 6) : data.orderId}',
+              context
+          ),
           SizedboxSpaccing.height01(context),
 
           // Services

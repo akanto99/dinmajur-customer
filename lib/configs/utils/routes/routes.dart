@@ -14,6 +14,9 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/policies/cooking_policy.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/policies/delivery_policy.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/policies/refund_policy.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/privacy_policy/privacy_policy_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/promo_codes/promo_code_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/review/review.dart';
@@ -294,6 +297,12 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const TermsConditionsScreen());
       case RoutesName.privacyPolicy:
         return MaterialPageRoute(builder: (BuildContext context) => const PrivacyPolicyScreen());
+        case RoutesName.cookiesPolicyScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const CookiesPolicyScreen());
+        case RoutesName.deliveryPolicyScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const DeliveryPolicyScreen());
+        case RoutesName.refundPolicyScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const RefundPolicyScreen());
 
       ///Task
       case RoutesName.orderScreen:
