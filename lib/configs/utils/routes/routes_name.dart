@@ -35,6 +35,9 @@ class RoutesName {
   static const String offers = 'offers_view';
   static const String termsAndCondition = 'termsAndCondition_view';
   static const String privacyPolicy = 'privacyPolicy_view';
+  static const String cookiesPolicyScreen = 'cookiesPolicy_view';
+  static const String deliveryPolicyScreen = 'deliveryPolicy_view';
+  static const String refundPolicyScreen = 'refundPolicy_view';
 
 
 

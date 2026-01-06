@@ -20,26 +20,14 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
   bool get isProcessing => _isProcessing;
   final SSLCommerzPaymentService _paymentService = SSLCommerzPaymentService();
 
-  // Available service time slots
-  final List<String> serviceTimeSlots = [
-    '09:30 - 10:00 am',
-    '10:30 - 11:00 am',
-    '11:30 - 12:00 pm',
-    '02:00 - 02:30 pm',
-    '03:00 - 03:30 pm',
-    '04:00 - 04:30 pm',
-    '05:00 - 05:30 pm',
-    '06:00 - 06:30 pm',
-  ];
-
   // Payment methods data
   final List<Map<String, dynamic>> paymentMethods = [
-    {
-      'method': 'online',
-      'title': 'Online Payment',
-      'icon': 'wallet',
-      'color': 0xFFEE4237
-    },
+    // {
+    //   'method': 'online',
+    //   'title': 'Online Payment',
+    //   'icon': 'wallet',
+    //   'color': 0xFFEE4237
+    // },
     {
       'method': 'cash',
       'title': 'Hand Cash',

@@ -191,6 +191,18 @@ class _CartDialogState extends State<CartDialog> {
       double total, double saved, double originalTotal,
       double screenWidth
       ) {
+
+    String timePeriod = '';
+    String timeRange = '';
+
+    if (widget.selectedTime.isNotEmpty) {
+      // Split by opening parenthesis
+      final parts = widget.selectedTime.split('(');
+      if (parts.length == 2) {
+        timePeriod = parts[0].trim(); // e.g., "MORNING"
+        timeRange = parts[1].replaceAll(')', '').trim(); // e.g., "8am-11am"
+      }
+    }
     return Container(
       width: screenWidth * 0.87,
       padding: EdgeInsets.symmetric(vertical: 10),
@@ -231,9 +243,10 @@ class _CartDialogState extends State<CartDialog> {
           SizedBox(height: 10),
           Divider(color: AppColors.border(context)),
           _buildDetailRow('Service Type', widget.selectedFrequency, context),
+          SizedBox(height: 4),
           _buildDetailRow('Date', widget.selectedDate, context),
-          _buildDetailRow('Morning', widget.selectedTime, context),
-        ],
+          SizedBox(height: 4),
+          _buildDetailRow(timePeriod, timeRange, context),        ],
       ),
     );
   }

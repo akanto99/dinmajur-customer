@@ -1,5 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
-import 'package:dinmajur_customer/configs/res/components/drawer.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/drawer.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/notifications/resuable_notifications.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';

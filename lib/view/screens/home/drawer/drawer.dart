@@ -12,6 +12,7 @@ import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/policies/cooking_policy.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
@@ -24,7 +25,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'header_appbar.dart';
+import '../../../../configs/res/components/header_appbar.dart';
 
 class CustomDrawer extends StatefulWidget {
   final double screenHeight;
@@ -281,14 +282,72 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
             ),
             SizedboxSpaccing.height025(context),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 0,
+              runSpacing: 8,
               children: [
                 GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, RoutesName.cookiesPolicyScreen);
+                  },
+                  child: Container(
+                   padding: EdgeInsets.symmetric(vertical: 5,),
+                    color: Colors.transparent,
+                    child: Text(
+                      "Cooking Policy",
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                    ),
+                  ),
+                ),
+                Text(
+                  " | ",
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, RoutesName.deliveryPolicyScreen);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 5,),
+                    color: Colors.transparent,
+                    child: Text(
+                      "Delivery Policy",
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                    ),
+                  ),
+                ),
+                Text(
+                  " | ",
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, RoutesName.refundPolicyScreen);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 5,),
+                    color: Colors.transparent,
+                    child: Text(
+                      "Refund Policy",
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                    ),
+                  ),
+                ),
+                Text(
+                  " | ",
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                ),
+                GestureDetector(
                   onTap: () => _launchURL('https://docs.google.com/document/d/157rhznRzYesD7MfCrKj_RGfTm77DxfciFKlEvr8p5Ro/edit?usp=sharing'),
-                  child: Text(
-                    "Terms & Conditions",
-                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 5,),
+                    color: Colors.transparent,
+                    child: Text(
+                      "Terms & Conditions",
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                    ),
                   ),
                 ),
                 Text(
@@ -297,9 +356,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ),
                 GestureDetector(
                   onTap: () => _launchURL('https://docs.google.com/document/d/1wrU4DFajwzoO3kE5BERxNSnotvuqMbVP_JLn7iNxgqc/edit?usp=sharing'),
-                  child: Text(
-                    "Privacy Policy",
-                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 5),
+                    color: Colors.transparent,
+                    child: Text(
+                      "Privacy Policy",
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                    ),
                   ),
                 ),
               ],

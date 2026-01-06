@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/res/components/iagree_terms&condition/iagree_terms&condition.dart';
 import 'package:dinmajur_customer/configs/res/components/payment_method/payment_method_component.dart';
 import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -51,6 +52,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _specialRequestController = TextEditingController();
+  bool _isTermsAccepted = false;
 
   @override
   void initState() {
@@ -124,7 +126,10 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       Utils.flushBarErrorMessage(validationError, context);
       return;
     }
-
+    if (!_isTermsAccepted) {
+      Utils.flushBarErrorMessage("Please accept the Terms & Conditions to proceed", context);
+      return;
+    }
     // Get services data
     final services = taskViewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
     final shiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
@@ -231,6 +236,9 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     _phoneController.clear();
     _addressController.clear();
     _specialRequestController.clear();
+    setState(() {
+      _isTermsAccepted = false;
+    });
   }
 
   @override
@@ -283,6 +291,24 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                 SizedboxSpaccing.height02(context),
 
                 _buildPaymentMethodSection(viewModel),
+                SizedboxSpaccing.height01(context),
+                DynamicTermsCheckbox(
+                  isAccepted: _isTermsAccepted,
+                  onChanged: (value) {
+                    setState(() {
+                      _isTermsAccepted = value;
+                    });
+                  },
+                  context: context,
+                  onTermsTap: () => Navigator.pushNamed(context, RoutesName.termsAndCondition),
+                  onPrivacyTap: () => Navigator.pushNamed(context, RoutesName.privacyPolicy),
+                  onRefundTap: () => Navigator.pushNamed(context, RoutesName.refundPolicyScreen),
+                  getButtonColor: (context) => AppColors.button(context),
+                  getBorderColor: (context) => AppColors.border(context),
+                  getWhiteColor: (context) => AppColors.whiteColor,
+                  getTextStyle: (context, {weight}) => AppTextStyles.textSize12(context, weight: weight ?? FontWeight.w400),
+                ),
+                SizedboxSpaccing.height03(context)
 
               ],
             ),
@@ -295,7 +321,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     );
   }
 
-  // Add this method inside _CheckoutHouseKeeperScreenState class
+
 
   // ✅ Handle Edit Address Navigation
   Future<void> _handleEditAddress() async {
