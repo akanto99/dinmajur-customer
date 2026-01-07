@@ -1,5 +1,253 @@
-///Customer
-
+// ///Customer
+//
+// import 'package:dinmajur_customer/configs/res/app_url.dart';
+// import 'package:socket_io_client/socket_io_client.dart' as IO;
+// import 'package:flutter/foundation.dart';
+//
+// class SocketService {
+//   static final SocketService _instance = SocketService._internal();
+//   factory SocketService() => _instance;
+//   SocketService._internal();
+//
+//   IO.Socket? _socket;
+//   bool _isConnected = false;
+//   String? _userId;
+//
+//   // Getters
+//   bool get isConnected => _isConnected;
+//   IO.Socket? get socket => _socket;
+//
+//   // Initialize socket connection
+//   Future<void> initializeSocket({required String userId}) async {
+//     try {
+//       _userId = userId;
+//
+//       // Disconnect existing connection if any
+//       if (_socket != null) {
+//         await disconnect();
+//       }
+//
+//       // Create socket connection
+//       _socket = IO.io(
+//         "${AppUrl.socketUrl}",
+//         IO.OptionBuilder()
+//             .setTransports(['websocket'])
+//             .enableAutoConnect()
+//             .disableForceNew()
+//             .setReconnectionAttempts(10)
+//             .setReconnectionDelay(1000)
+//             .setReconnectionDelayMax(5000)
+//             .enableReconnection()
+//             .setTimeout(20000)
+//             .setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
+//       );
+//
+//       _setupSocketListeners();
+//
+//       // Connect to socket
+//       _socket!.connect();
+//
+//       if (kDebugMode) {
+//         print('🔌 Socket initialization started for user: $userId');
+//       }
+//     } catch (e) {
+//       if (kDebugMode) {
+//         print('🔌 Socket initialization error: $e');
+//       }
+//     }
+//   }
+//
+//   // Setup socket event listeners
+//   void _setupSocketListeners() {
+//     _socket!.onConnect((data) {
+//       _isConnected = true;
+//       if (kDebugMode) {
+//         print('🔌 Socket connected successfully');
+//       }
+//       monitorConnection();
+//
+//       // Register user after connection
+//       if (_userId != null) {
+//         registerUser(_userId!);
+//       }
+//     });
+//
+//     _socket!.onDisconnect((data) {
+//       _isConnected = false;
+//       if (kDebugMode) {
+//         print('🔌 Socket disconnected: $data');
+//       }
+//     });
+//
+//     _socket!.onConnectError((error) {
+//       _isConnected = false;
+//       if (kDebugMode) {
+//         print('🔌 Socket connection error: $error');
+//       }
+//     });
+//
+//     _socket!.onError((error) {
+//       if (kDebugMode) {
+//         print('🔌 Socket error: $error');
+//       }
+//     });
+//   }
+//
+//   // Monitor connection with ping/pong
+//   void monitorConnection() {
+//     if (_socket != null) {
+//       _socket!.on('ping', (_) {
+//         if (kDebugMode) {
+//           print('🔌 Socket: Ping received - connection alive');
+//         }
+//       });
+//
+//       _socket!.on('pong', (_) {
+//         if (kDebugMode) {
+//           print('🔌 Socket: Pong sent - connection alive');
+//         }
+//       });
+//     }
+//   }
+//
+//   // Register user with the socket server
+//   void registerUser(String userId) {
+//     if (_socket != null && _isConnected) {
+//       _socket!.emit('register-user', {'userId': userId});
+//
+//       if (kDebugMode) {
+//         print('🔌 User registration sent - userId: $userId');
+//       }
+//     }
+//   }
+//
+//   // Custom event listener
+//   void on(String event, Function(dynamic) callback) {
+//     _socket?.on(event, callback);
+//   }
+//
+//   // Remove event listener
+//   void off(String event) {
+//     _socket?.off(event);
+//   }
+//
+//   // Emit custom events
+//   void emit(String event, dynamic data) {
+//     if (_socket != null && _isConnected) {
+//       _socket!.emit(event, data);
+//
+//       if (kDebugMode) {
+//         print('🔌 Emitted event: $event');
+//       }
+//     }
+//   }
+//
+//   // Disconnect socket - DETAILED VERSION
+//   Future<void> disconnect() async {
+//     try {
+//       if (kDebugMode) {
+//         print('🔌 SocketService: disconnect() called');
+//         print('🔌 SocketService: _socket is ${_socket == null ? 'NULL' : 'NOT NULL'}');
+//         print('🔌 SocketService: _isConnected = $_isConnected');
+//         print('🔌 SocketService: _userId = ${_userId ?? 'NULL'}');
+//       }
+//
+//       if (_socket != null) {
+//         if (kDebugMode) {
+//           print('🔌 SocketService: Calling socket.disconnect()...');
+//         }
+//
+//         // Disconnect the socket
+//         _socket!.disconnect();
+//
+//         if (kDebugMode) {
+//           print('🔌 SocketService: ✅ socket.disconnect() called successfully');
+//           print('🔌 SocketService: Calling socket.dispose()...');
+//         }
+//
+//         // Dispose the socket
+//         _socket!.dispose();
+//
+//         if (kDebugMode) {
+//           print('🔌 SocketService: ✅ socket.dispose() called successfully');
+//         }
+//
+//         // Clear socket reference
+//         _socket = null;
+//
+//         if (kDebugMode) {
+//           print('🔌 SocketService: ✅ Socket reference set to null');
+//         }
+//       } else {
+//         if (kDebugMode) {
+//           print('🔌 SocketService: Socket was already null, nothing to disconnect');
+//         }
+//       }
+//
+//       // Update connection state
+//       _isConnected = false;
+//
+//       if (kDebugMode) {
+//         print('🔌 SocketService: Connection state set to false');
+//         print('🔌 SocketService: ✅✅✅ Socket disconnected successfully');
+//       }
+//
+//     } catch (e) {
+//       if (kDebugMode) {
+//         print('🔌 SocketService: ⚠️ Error during disconnect: $e');
+//       }
+//     } finally {
+//       // Ensure state is cleared even if error occurs
+//       _isConnected = false;
+//       _userId = null;
+//
+//       if (kDebugMode) {
+//         print('🔌 SocketService: Cleanup completed in finally block');
+//         print('🔌 SocketService: Final state - _socket: ${_socket == null ? 'NULL' : 'NOT NULL'}, _isConnected: $_isConnected, _userId: ${_userId ?? 'NULL'}');
+//       }
+//     }
+//   }
+//
+//   // Reconnect to socket
+//   Future<void> reconnect() async {
+//     try {
+//       if (kDebugMode) {
+//         print('🔌 Attempting to reconnect socket...');
+//       }
+//
+//       // If socket exists but disconnected, try to connect
+//       if (_socket != null && !_isConnected) {
+//         _socket!.connect();
+//
+//         if (kDebugMode) {
+//           print('🔌 Reconnect initiated for existing socket');
+//         }
+//       }
+//       // If socket is null, reinitialize with previous credentials
+//       else if (_socket == null && _userId != null) {
+//         await initializeSocket(userId: _userId!);
+//
+//         if (kDebugMode) {
+//           print('🔌 Socket reinitialized with userId: $_userId');
+//         }
+//       } else {
+//         if (kDebugMode) {
+//           print('🔌 Cannot reconnect: Missing credentials or socket already connected');
+//         }
+//       }
+//     } catch (e) {
+//       if (kDebugMode) {
+//         print('🔌 Reconnect error: $e');
+//       }
+//       rethrow;
+//     }
+//   }
+//
+//   // Check if reconnection is possible
+//   bool canReconnect() {
+//     return _userId != null && !_isConnected;
+//   }
+// }
 import 'package:dinmajur_customer/configs/res/app_url.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart';
@@ -11,10 +259,12 @@ class SocketService {
 
   IO.Socket? _socket;
   bool _isConnected = false;
+  bool _isUserRegistered = false; // ✅ NEW: Track registration status
   String? _userId;
 
   // Getters
   bool get isConnected => _isConnected;
+  bool get isUserRegistered => _isUserRegistered; // ✅ NEW
   IO.Socket? get socket => _socket;
 
   // Initialize socket connection
@@ -39,7 +289,11 @@ class SocketService {
             .setReconnectionDelayMax(5000)
             .enableReconnection()
             .setTimeout(20000)
-            .setExtraHeaders({'Accept': 'application/json', 'Content-Type': 'application/json'}).build(),
+            .setExtraHeaders({
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        })
+            .build(),
       );
 
       _setupSocketListeners();
@@ -61,9 +315,12 @@ class SocketService {
   void _setupSocketListeners() {
     _socket!.onConnect((data) {
       _isConnected = true;
+      _isUserRegistered = false; // ✅ Reset registration status
+
       if (kDebugMode) {
         print('🔌 Socket connected successfully');
       }
+
       monitorConnection();
 
       // Register user after connection
@@ -74,6 +331,8 @@ class SocketService {
 
     _socket!.onDisconnect((data) {
       _isConnected = false;
+      _isUserRegistered = false; // ✅ Reset registration status
+
       if (kDebugMode) {
         print('🔌 Socket disconnected: $data');
       }
@@ -81,6 +340,8 @@ class SocketService {
 
     _socket!.onConnectError((error) {
       _isConnected = false;
+      _isUserRegistered = false;
+
       if (kDebugMode) {
         print('🔌 Socket connection error: $error');
       }
@@ -89,6 +350,29 @@ class SocketService {
     _socket!.onError((error) {
       if (kDebugMode) {
         print('🔌 Socket error: $error');
+      }
+    });
+
+    // ✅ NEW: Listen for register-success from server
+    _socket!.on('register-success', (data) {
+      _isUserRegistered = true;
+
+      if (kDebugMode) {
+        print('-----------------------------------');
+        print('🎉 Connection Established Successfully');
+        print('User ID: ${data['userId']}');
+        print('Status: ${data['status']}');
+        print('Message: ${data['message']}');
+        print('-----------------------------------');
+      }
+    });
+
+    // ✅ Optional: Listen for unregister confirmation
+    _socket!.on('unregister-success', (data) {
+      _isUserRegistered = false;
+
+      if (kDebugMode) {
+        print('✅ User unregistered successfully: $data');
       }
     });
   }
@@ -117,6 +401,7 @@ class SocketService {
 
       if (kDebugMode) {
         print('🔌 User registration sent - userId: $userId');
+        print('⏳ Waiting for register-success confirmation...');
       }
     }
   }
@@ -142,13 +427,14 @@ class SocketService {
     }
   }
 
-  // Disconnect socket - DETAILED VERSION
+  // Disconnect socket
   Future<void> disconnect() async {
     try {
       if (kDebugMode) {
         print('🔌 SocketService: disconnect() called');
         print('🔌 SocketService: _socket is ${_socket == null ? 'NULL' : 'NOT NULL'}');
         print('🔌 SocketService: _isConnected = $_isConnected');
+        print('🔌 SocketService: _isUserRegistered = $_isUserRegistered');
         print('🔌 SocketService: _userId = ${_userId ?? 'NULL'}');
       }
 
@@ -186,12 +472,12 @@ class SocketService {
 
       // Update connection state
       _isConnected = false;
+      _isUserRegistered = false;
 
       if (kDebugMode) {
         print('🔌 SocketService: Connection state set to false');
         print('🔌 SocketService: ✅✅✅ Socket disconnected successfully');
       }
-
     } catch (e) {
       if (kDebugMode) {
         print('🔌 SocketService: ⚠️ Error during disconnect: $e');
@@ -199,11 +485,12 @@ class SocketService {
     } finally {
       // Ensure state is cleared even if error occurs
       _isConnected = false;
+      _isUserRegistered = false;
       _userId = null;
 
       if (kDebugMode) {
         print('🔌 SocketService: Cleanup completed in finally block');
-        print('🔌 SocketService: Final state - _socket: ${_socket == null ? 'NULL' : 'NOT NULL'}, _isConnected: $_isConnected, _userId: ${_userId ?? 'NULL'}');
+        print('🔌 SocketService: Final state - _socket: ${_socket == null ? 'NULL' : 'NOT NULL'}, _isConnected: $_isConnected, _isUserRegistered: $_isUserRegistered, _userId: ${_userId ?? 'NULL'}');
       }
     }
   }
@@ -246,5 +533,10 @@ class SocketService {
   // Check if reconnection is possible
   bool canReconnect() {
     return _userId != null && !_isConnected;
+  }
+
+  // ✅ NEW: Check if socket is fully ready (connected AND registered)
+  bool isSocketReady() {
+    return _isConnected && _isUserRegistered;
   }
 }
