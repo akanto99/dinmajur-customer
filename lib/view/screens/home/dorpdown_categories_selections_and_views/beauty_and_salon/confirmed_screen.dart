@@ -741,12 +741,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class BeautyConfirmedScreen extends StatefulWidget {
-  final String trackingId;
-  final String valId;
+  final String ? trackingId;
+  final String? valId;
   const BeautyConfirmedScreen({
     Key? key,
-    required this.trackingId,
-    required this.valId,
+     this.trackingId,
+     this.valId,
   }) : super(key: key);
 
   @override
@@ -762,7 +762,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
     print("--------------------------------------${widget.valId}");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = Provider.of<GetBeautySalonViewModel>(context, listen: false);
-      viewModel.fetchGetBeautySalonDataApi(widget.trackingId);
+      viewModel.fetchGetBeautySalonDataApi(widget.trackingId!);
     });
   }
 
@@ -818,7 +818,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
-                          viewModel.fetchGetBeautySalonDataApi(widget.trackingId);
+                          viewModel.fetchGetBeautySalonDataApi(widget.trackingId!);
                         },
                         child: Text('Retry'),
                         style: ElevatedButton.styleFrom(

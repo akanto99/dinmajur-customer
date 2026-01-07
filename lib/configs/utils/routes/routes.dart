@@ -181,8 +181,10 @@ class Routes {
         if (args != null) {
           return MaterialPageRoute(
             builder: (BuildContext context) => ConfirmedScreen(
-                trackingId: args['trackingId'],
-              valId: args['valId'],
+              //   trackingId: args['trackingId'],
+              // valId: args['valId'],
+              trackingId: args['trackingId'] as String? ?? '',
+              valId: args['valId'] as String? ?? '',
             ),
             settings: settings,
           );
@@ -231,8 +233,10 @@ class Routes {
         if (args != null) {
           return MaterialPageRoute(
             builder: (BuildContext context) => BeautyConfirmedScreen(
-                trackingId: args['trackingId'],
-              valId: args['valId'],
+              //   trackingId: args['trackingId'],
+              // valId: args['valId'],
+              trackingId: args['trackingId'] as String? ?? '',
+              valId: args['valId'] as String? ?? '',
             ),
             settings: settings,
           );

@@ -817,12 +817,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class ConfirmedScreen extends StatefulWidget {
-  final String trackingId;
-  final String valId;
+  final String? trackingId;  // Made optional
+  final String? valId;
   const ConfirmedScreen({
     Key? key,
-    required this.trackingId,
-    required this.valId,
+     this.trackingId,
+     this.valId,
   }) : super(key: key);
 
   @override
@@ -836,8 +836,10 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = Provider.of<GetConfirmedbookingViewModel>(context, listen: false);
-      viewModel.fetchGetConfirmBookingDataApi(widget.trackingId);
+      if (widget.trackingId != null) {
+        final viewModel = Provider.of<GetConfirmedbookingViewModel>(context, listen: false);
+        viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!);
+      }
     });
   }
 
@@ -893,7 +895,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
-                          viewModel.fetchGetConfirmBookingDataApi(widget.trackingId);
+                          viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!);
                         },
                         child: Text('Retry'),
                         style: ElevatedButton.styleFrom(
