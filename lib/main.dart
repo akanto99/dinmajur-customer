@@ -32,6 +32,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
@@ -58,6 +59,7 @@ import 'view_model/homeview_model/dropdown_categories_selection_view_models/prem
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/freelancer_rating_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/order_confirmed_getorderdetails_view_model.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -67,6 +69,14 @@ void main() async {
 
   final languageProvider = LanguageChangeProvider();
   await languageProvider.getLanguage();
+
+
+   ///  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  // Initialize with your OneSignal App ID
+  /// OneSignal.initialize("cf138ba4-ec2a-4f56-b597-13620abc45f1");
+  // Use this method to prompt for push notifications.
+  // We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
+ /// OneSignal.Notifications.requestPermission(false);
 
   await Upgrader.clearSavedSettings();
 
