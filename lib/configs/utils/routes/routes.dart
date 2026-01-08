@@ -7,6 +7,7 @@ import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/homebeauty_salon_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cooking_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
@@ -273,6 +274,31 @@ class Routes {
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
               isFromHome: args['isFromHome'] ?? false,
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.cookingCheckoutScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CookingCheckoutScreen(
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+              userId: args['userId'],
+              categories: args['categories'],
+              selectedPackages: args['selectedPackages'],
+              selectedManualItems: args['selectedManualItems'],
+              activeCategoryId: args['activeCategoryId'],
+              selectedGuestRangeIndex: args['selectedGuestRangeIndex'],
+              totalPrice: args['totalPrice'],
+              savedAmount: args['savedAmount'],
+              transportFee: args['transportFee'],
+              selectedDate: args['selectedDate'],
+              selectedServiceTime: args['selectedServiceTime'],
+              onAddressUpdate: args['onAddressUpdate'],
             ),
             settings: settings,
           );

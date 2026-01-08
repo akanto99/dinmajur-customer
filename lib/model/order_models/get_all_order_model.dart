@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getAllOrderModel = getAllOrderModelFromJson(jsonString);
-
 import 'dart:convert';
 
 GetAllOrderModel getAllOrderModelFromJson(String str) => GetAllOrderModel.fromJson(json.decode(str));
@@ -33,21 +29,21 @@ class GetAllOrderModel {
 }
 
 class Data {
-  int? total;
+  Meta? meta;
   List<Datum>? data;
 
   Data({
-    this.total,
+    this.meta,
     this.data,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-    total: json["total"],
+    meta: json["meta"] == null ? null : Meta.fromJson(json["meta"]),
     data: json["data"] == null ? [] : List<Datum>.from(json["data"]!.map((x) => Datum.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
-    "total": total,
+    "meta": meta?.toJson(),
     "data": data == null ? [] : List<dynamic>.from(data!.map((x) => x.toJson())),
   };
 }
@@ -58,7 +54,7 @@ class Datum {
   String? beautySalonBookingId;
   String? type;
   String? status;
-  double? total; // ✅ Changed from int? to double?
+  double? total;
   DateTime? createdAt;
 
   Datum({
@@ -77,12 +73,7 @@ class Datum {
     beautySalonBookingId: json["beautySalonBookingId"],
     type: json["type"],
     status: json["status"],
-    // ✅ Handle both int and double values safely
-    total: json["total"] != null
-        ? (json["total"] is int
-        ? (json["total"] as int).toDouble()
-        : json["total"] as double)
-        : null,
+    total: json["total"]?.toDouble(),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
   );
 
@@ -95,10 +86,32 @@ class Datum {
     "total": total,
     "createdAt": createdAt?.toIso8601String(),
   };
+}
 
-  // ✅ Helper method to get formatted total with 2 decimal places
-  String get formattedTotal => total != null ? total!.toStringAsFixed(2) : '0.00';
+class Meta {
+  int? total;
+  int? page;
+  int? limit;
+  int? totalPages;
 
-  // ✅ Helper method to get total as integer (for backward compatibility)
-  int get totalAsInt => total?.toInt() ?? 0;
+  Meta({
+    this.total,
+    this.page,
+    this.limit,
+    this.totalPages,
+  });
+
+  factory Meta.fromJson(Map<String, dynamic> json) => Meta(
+    total: json["total"],
+    page: json["page"],
+    limit: json["limit"],
+    totalPages: json["totalPages"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "total": total,
+    "page": page,
+    "limit": limit,
+    "totalPages": totalPages,
+  };
 }

@@ -3,16 +3,21 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/family_event_cooking_model/getall_family_event_cooking_model.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/cooking_cart_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/familyevent_cooking_packageimage.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/notifier/cooking_checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/getall_family_event_cooking_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FamilyEventCookingScreen extends StatefulWidget {
   final String customerName;
@@ -38,8 +43,12 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   int _selectedGuestRangeIndex = 0; // Default to 25-30
   final Map<int, GlobalKey> _categoryKeys = {};
 
-  // Track selected packages per category (only one category can have selections)
-  Map<String, Set<String>> _selectedPackages = {}; // categoryId -> Set of packageIds
+  // Track selected packages per category for REGULAR type (only one category can have selections)
+  Map<String, String?> _selectedPackages = {}; // categoryId -> Set of packageIds
+
+  // Track selected items for MANUAL type (only one category can have selections)
+  Map<String, Set<String>> _selectedManualItems = {}; // categoryId -> Set of itemIds
+
   String? _activeCategoryId; // Track which category has active selections
 
   late String _currentCustomerAddress;
@@ -85,36 +94,60 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     });
   }
 
+  // For REGULAR type packages
   void _togglePackageSelection(String categoryId, String packageId) {
-    // If trying to select from a different category, show warning and return
     if (_activeCategoryId != null && _activeCategoryId != categoryId) {
-      Utils.flushBarErrorMessage('You can only select packages from one category at a time', context);
+      Utils.flushBarErrorMessage('You can only select from one category at a time', context);
       return;
     }
 
     setState(() {
       _activeCategoryId = categoryId;
 
-      // Initialize set if needed
-      if (!_selectedPackages.containsKey(categoryId)) {
-        _selectedPackages[categoryId] = {};
+      // Check if this package is already selected
+      if (_selectedPackages[categoryId] == packageId) {
+        // Deselect
+        _selectedPackages[categoryId] = null;
+        _activeCategoryId = null;
+      } else {
+        // Select this package (replaces any previously selected package in this category)
+        _selectedPackages[categoryId] = packageId;
+      }
+    });
+  }
+
+  // For MANUAL type items
+  void _toggleManualItemSelection(String categoryId, String packageId, String itemId) {
+    if (_activeCategoryId != null && _activeCategoryId != categoryId) {
+      Utils.flushBarErrorMessage('You can only select from one category at a time', context);
+      return;
+    }
+
+    setState(() {
+      _activeCategoryId = categoryId;
+
+      final key = '${packageId}_${itemId}';
+      if (!_selectedManualItems.containsKey(categoryId)) {
+        _selectedManualItems[categoryId] = {};
       }
 
-      // Toggle selection
-      if (_selectedPackages[categoryId]!.contains(packageId)) {
-        _selectedPackages[categoryId]!.remove(packageId);
-        // If no more selections in this category, clear active category
-        if (_selectedPackages[categoryId]!.isEmpty) {
+      if (_selectedManualItems[categoryId]!.contains(key)) {
+        _selectedManualItems[categoryId]!.remove(key);
+        if (_selectedManualItems[categoryId]!.isEmpty) {
           _activeCategoryId = null;
         }
       } else {
-        _selectedPackages[categoryId]!.add(packageId);
+        _selectedManualItems[categoryId]!.add(key);
       }
     });
   }
 
   bool _isPackageSelected(String categoryId, String packageId) {
-    return _selectedPackages[categoryId]?.contains(packageId) ?? false;
+    return _selectedPackages[categoryId] == packageId;
+  }
+  bool _isManualItemSelected(String categoryId, String packageId, String itemId) {
+    final key = '${packageId}_${itemId}';
+    return _selectedManualItems[categoryId]?.contains(key) ?? false;
   }
 
   bool _canSelectFromCategory(String categoryId) {
@@ -131,11 +164,28 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
 
     for (var category in data) {
       if (category.id == _activeCategoryId) {
-        for (var package in category.packages ?? []) {
-          if (_isPackageSelected(category.id ?? '', package.id ?? '')) {
-            // Get price for selected guest range
-            if (_selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
-              total += package.prices![_selectedGuestRangeIndex].price?.toDouble() ?? 0;
+        if (category.type == 'REGULAR') {
+          // Calculate for REGULAR packages (only one package selected)
+          final selectedPackageId = _selectedPackages[category.id];
+          if (selectedPackageId != null) {
+            for (var package in category.packages ?? []) {
+              if (package.id == selectedPackageId) {
+                if (_selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
+                  total += package.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
+                }
+                break;
+              }
+            }
+          }
+        } else if (category.type == 'MANUAL') {
+          // Calculate for MANUAL items (multiple items can be selected)
+          for (var package in category.packages ?? []) {
+            for (var item in package.items ?? []) {
+              if (_isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '')) {
+                if (_selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
+                  total += item.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
+                }
+              }
             }
           }
         }
@@ -146,13 +196,70 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     return total;
   }
 
+
   double _calculateSaved() {
-    // You can implement discount logic here if needed
-    return 0.0;
+    if (_activeCategoryId == null) return 0.0;
+
+    final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
+    final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
+
+    double totalSaved = 0;
+
+    for (var category in data) {
+      if (category.id == _activeCategoryId) {
+        if (category.type == 'REGULAR') {
+          final selectedPackageId = _selectedPackages[category.id];
+          if (selectedPackageId != null) {
+            for (var package in category.packages ?? []) {
+              if (package.id == selectedPackageId) {
+                if (_selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
+                  final priceInfo = package.prices![_selectedGuestRangeIndex];
+                  final originalPrice = priceInfo.originalPrice?.toDouble() ?? 0;
+                  final salePrice = priceInfo.salePrice?.toDouble() ?? 0;
+                  totalSaved += (originalPrice - salePrice);
+                }
+                break;
+              }
+            }
+          }
+        } else if (category.type == 'MANUAL') {
+          for (var package in category.packages ?? []) {
+            for (var item in package.items ?? []) {
+              if (_isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '')) {
+                if (_selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
+                  final priceInfo = item.prices![_selectedGuestRangeIndex];
+                  final originalPrice = priceInfo.originalPrice?.toDouble() ?? 0;
+                  final salePrice = priceInfo.salePrice?.toDouble() ?? 0;
+                  totalSaved += (originalPrice - salePrice);
+                }
+              }
+            }
+          }
+        }
+        break;
+      }
+    }
+
+    return totalSaved;
   }
 
   int _getTotalItems() {
-    return _selectedPackages[_activeCategoryId]?.length ?? 0;
+    if (_activeCategoryId == null) return 0;
+
+    final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
+    final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
+
+    for (var category in data) {
+      if (category.id == _activeCategoryId) {
+        if (category.type == 'REGULAR') {
+          return _selectedPackages[_activeCategoryId] != null ? 1 : 0;
+        } else if (category.type == 'MANUAL') {
+          return _selectedManualItems[_activeCategoryId]?.length ?? 0;
+        }
+      }
+    }
+
+    return 0;
   }
 
   @override
@@ -437,12 +544,20 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                   style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
                 ),
                 SizedboxSpaccing.height015(context),
-                Divider(height: 1,color: AppColors.border(context),),
-                ...((category.packages ?? []).asMap().entries.map((entry) {
-                  final package = entry.value;
-                  final isLast = entry.key == (category.packages?.length ?? 0) - 1;
-                  return _buildPackageCard(category, package, screenWidth, isLast);
-                })),
+                Divider(height: 1, color: AppColors.border(context)),
+
+                // Show packages based on category type
+                if (category.type == 'REGULAR')
+                  ...((category.packages ?? []).asMap().entries.map((entry) {
+                    final package = entry.value;
+                    final isLast = entry.key == (category.packages?.length ?? 0) - 1;
+                    return _buildRegularPackageCard(category, package, screenWidth, isLast);
+                  }))
+                else if (category.type == 'MANUAL')
+                  ...((category.packages ?? []).map((package) {
+                    return _buildManualPackageSection(category, package, screenWidth);
+                  })),
+
                 SizedboxSpaccing.height03(context),
               ],
             ),
@@ -452,10 +567,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     );
   }
 
-  Widget _buildPackageCard(Datum category, Package package, double screenWidth, bool isLast) {
+  // Build card for REGULAR type packages
+  Widget _buildRegularPackageCard(Datum category, Datum package, double screenWidth, bool isLast) {
     final isSelected = _isPackageSelected(category.id ?? '', package.id ?? '');
     final currentPrice = _selectedGuestRangeIndex < (package.prices?.length ?? 0)
-        ? package.prices![_selectedGuestRangeIndex].price?.toDouble() ?? 0
+        ? package.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0
         : 0.0;
 
     final canSelect = _canSelectFromCategory(category.id ?? '');
@@ -514,9 +630,232 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     );
   }
 
+  // Build section for MANUAL type packages with checkable items
+  Widget _buildManualPackageSection(Datum category, Datum package, double screenWidth) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            package.name ?? '',
+            style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+          ),
+          SizedBox(height: 8),
+
+          // List all items as checkable
+          ...((package.items ?? []).map((item) {
+            return _buildManualItemCard(category, package, item, screenWidth);
+          })),
+        ],
+      ),
+    );
+  }
+
+  // Build card for individual MANUAL items
+  Widget _buildManualItemCard(Datum category, Datum package, Datum item, double screenWidth) {
+    final isSelected = _isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '');
+    final canSelect = _canSelectFromCategory(category.id ?? '');
+
+    final currentPriceInfo = _selectedGuestRangeIndex < (item.prices?.length ?? 0)
+        ? item.prices![_selectedGuestRangeIndex]
+        : null;
+
+    final salePrice = currentPriceInfo?.salePrice?.toDouble() ?? 0;
+    final originalPrice = currentPriceInfo?.originalPrice?.toDouble() ?? 0;
+    final hasDiscount = originalPrice > salePrice;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? AppColors.button(context).withOpacity(0.1)
+            : AppColors.textFieldFill(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected
+              ? AppColors.button(context)
+              : AppColors.border(context),
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Checkbox
+          GestureDetector(
+            onTap: canSelect
+                ? () => _toggleManualItemSelection(category.id ?? '', package.id ?? '', item.id ?? '')
+                : () => Utils.flushBarErrorMessage('You can only select from one category at a time', context),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.button(context) : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: isSelected ? AppColors.button(context) : AppColors.border(context),
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? Icon(Icons.check, size: 16, color: AppColors.whiteColor)
+                  : null,
+            ),
+          ),
+
+          SizedBox(width: 12),
+
+          // Item details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name ?? '',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                ),
+                if (item.description != null && item.description!.isNotEmpty) ...[
+                  SizedBox(height: 4),
+                  Text(
+                    item.description!,
+                    style: AppTextStyles.textSize12(context,
+                        color: AppColors.textPrimary(context).withOpacity(0.7)),
+                  ),
+                ],
+                SizedBox(height: 4),
+
+                // Price display
+                Row(
+                  children: [
+                    Text(
+                      '৳${salePrice.toStringAsFixed(0)}',
+                      style: AppTextStyles.textSize14(context,
+                          weight: FontWeight.w600,
+                          color: AppColors.button(context)),
+                    ),
+                    if (hasDiscount) ...[
+                      SizedBox(width: 8),
+                      Text(
+                        '৳${originalPrice.toStringAsFixed(0)}',
+                        style: AppTextStyles.textSize12(context,
+                            color: AppColors.textPrimary(context).withOpacity(0.5),
+                            ).copyWith(decoration: TextDecoration.lineThrough)
+                      ),
+                      SizedBox(width: 8),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '-${currentPriceInfo?.discountValue ?? 0}%',
+                          style: AppTextStyles.textSize10(context,
+                              color: Colors.green,
+                              weight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showCartDialog() {
-    // Implement your cart dialog here
-    // You can show selected packages with their details
+    final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
+    final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
+    final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
+
+    showDialog(
+      context: context,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return FamilyEventCookingCartDialog(
+            categories: data,
+            selectedPackages: _selectedPackages,
+            selectedManualItems: _selectedManualItems,
+            activeCategoryId: _activeCategoryId,
+            selectedGuestRangeIndex: _selectedGuestRangeIndex,
+            selectedDate: checkoutVM.selectedDate,
+            selectedServiceTime: checkoutVM.selectedServiceTime,
+            onDateSelected: (DateTime selectedDate) {
+              checkoutVM.setSelectedDate(selectedDate);
+              setDialogState(() {});
+            },
+            onTimeSelected: (String time) {
+              checkoutVM.setServiceTime(time);
+              setDialogState(() {});
+            },
+            dateController: TextEditingController(
+              text: checkoutVM.selectedDate != null
+                  ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!)
+                  : '',
+            ),
+            onProceedToCheckout: _navigateCheckOutScreen,
+          );
+        },
+      ),
+    );
+  }
+
+
+  void _navigateCheckOutScreen() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId') ?? '';
+
+    if (userId.isEmpty) {
+      Utils.flushBarErrorMessage('User ID not found. Please auth_login again.', context);
+      return;
+    }
+
+    // Get checkout view model data
+    final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
+
+    // Get the data before navigation
+    final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
+    final categories = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
+
+    // Navigate to CheckoutScreen using named route
+    final result = await Navigator.pushNamed(
+      context,
+      RoutesName.cookingCheckoutScreen,
+      arguments: {
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': _currentCustomerAddress,
+        'userId': userId,
+        'categories': categories,
+        'selectedPackages': _selectedPackages,
+        'selectedManualItems': _selectedManualItems,
+        'activeCategoryId': _activeCategoryId,
+        'selectedGuestRangeIndex': _selectedGuestRangeIndex,
+        'totalPrice': _calculateTotal(),
+        'savedAmount': _calculateSaved(),
+        'transportFee': 80.0,
+        'selectedDate': checkoutVM.selectedDate,
+        'selectedServiceTime': checkoutVM.selectedServiceTime,
+        'onAddressUpdate': (String newAddress) {
+          setState(() {
+            _currentCustomerAddress = newAddress;
+          });
+        },
+      },
+    );
+
+    // If booking was successful, clear the selections
+    if (result == true) {
+      setState(() {
+        _selectedPackages.clear();
+        _selectedManualItems.clear();
+        _activeCategoryId = null;
+      });
+    }
   }
 }
-
