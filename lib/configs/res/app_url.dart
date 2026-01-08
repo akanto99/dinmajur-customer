@@ -70,6 +70,7 @@ class AppUrl {
   static var getBeautySalonByTrackingIdGetAPI = baseUrl + '/beauty-salon-bookings/tracking';
   //========>Family Event Cooking
   static var getAllFamilyEventCookingGetAPI = baseUrl + '/event-cooking-categories/get-all';
+  static var bookFamilyEventCookingPostAPI = baseUrl + '';
 
 
   ///Forgot Password
