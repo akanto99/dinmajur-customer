@@ -25,13 +25,7 @@ class FamilyEventCookingScreen extends StatefulWidget {
   final String customerAddress;
   final bool isFromHome;
 
-  const FamilyEventCookingScreen({
-    Key? key,
-    required this.customerName,
-    required this.customerPhone,
-    required this.customerAddress,
-    this.isFromHome = false,
-  }) : super(key: key);
+  const FamilyEventCookingScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress, this.isFromHome = false}) : super(key: key);
 
   @override
   State<FamilyEventCookingScreen> createState() => _FamilyEventCookingScreenState();
@@ -59,8 +53,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     _currentCustomerAddress = widget.customerAddress;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false)
-          .fetchGetAllFamilyEventCookingGetDataApi();
+      Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false).fetchGetAllFamilyEventCookingGetDataApi();
     });
   }
 
@@ -83,12 +76,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       if (_categoryKeys.containsKey(index)) {
         final keyContext = _categoryKeys[index]?.currentContext;
         if (keyContext != null) {
-          Scrollable.ensureVisible(
-            keyContext,
-            duration: Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            alignment: 0.1,
-          );
+          Scrollable.ensureVisible(keyContext, duration: Duration(milliseconds: 500), curve: Curves.easeInOut, alignment: 0.1);
         }
       }
     });
@@ -145,6 +133,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   bool _isPackageSelected(String categoryId, String packageId) {
     return _selectedPackages[categoryId] == packageId;
   }
+
   bool _isManualItemSelected(String categoryId, String packageId, String itemId) {
     final key = '${packageId}_${itemId}';
     return _selectedManualItems[categoryId]?.contains(key) ?? false;
@@ -195,7 +184,6 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
 
     return total;
   }
-
 
   double _calculateSaved() {
     if (_activeCategoryId == null) return 0.0;
@@ -272,11 +260,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),
         body: SafeArea(
-          child: ResPonsiveUi(
-            mobile: _body(),
-            desktop: _body(),
-            tablet: _body(),
-          ),
+          child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
         ),
       ),
     );
@@ -290,10 +274,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context, null),
-          child: Container(
-            height: 60,
-            child: AppBarHeader("Family Event Cooking"),
-          ),
+          child: Container(height: 60, child: AppBarHeader("Family Event Cooking")),
         ),
         Expanded(
           child: Consumer<GetAllFamilyEventCookingViewModel>(
@@ -307,12 +288,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
               }
 
               if (isLoading) {
-                return Center(
-                  child: LoadingAnimationWidget.progressiveDots(
-                    color: AppColors.button(context),
-                    size: 50,
-                  ),
-                );
+                return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
               }
 
               if (hasError) {
@@ -322,17 +298,12 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                     children: [
                       Icon(Icons.error_outline, size: 48, color: Colors.red),
                       SizedBox(height: 16),
-                      Text(
-                        'Failed to load services',
-                        style: AppTextStyles.textSize16(context, color: Colors.red),
-                      ),
+                      Text('Failed to load services', style: AppTextStyles.textSize16(context, color: Colors.red)),
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () => viewModel.fetchGetAllFamilyEventCookingGetDataApi(),
                         child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.button(context),
-                        ),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
                       ),
                     ],
                   ),
@@ -351,18 +322,12 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                "Family",
-                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
-                              ),
+                              Text("Family", style: AppTextStyles.textSize20(context, weight: FontWeight.w600)),
                               Text(
                                 " Event Cooking",
                                 style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: Color(0xffD78503)),
                               ),
-                              Text(
-                                " Service",
-                                style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
-                              ),
+                              Text(" Service", style: AppTextStyles.textSize20(context, weight: FontWeight.w600)),
                             ],
                           ),
                           SizedboxSpaccing.height01(context),
@@ -379,6 +344,8 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                     // Category Tabs
                     DynamicCategoryTabs(
                       categories: data,
+                      iconSize: 68,
+                      height: 130,
                       selectedIndex: _selectedTabIndex,
                       onCategoryTap: (index) {
                         setState(() => _selectedTabIndex = index);
@@ -392,15 +359,12 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                       getSelectedIconColor: (context) => AppColors.whiteColor,
                       getSelectedImageColor: (context) => AppColors.whiteColor,
                       getTextColor: (context) => AppColors.textPrimary(context),
-                      getTextStyle: (context, isSelected) => AppTextStyles.textSize12(
-                        context,
-                        weight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
-                      ),
+                      getTextStyle: (context, isSelected) =>
+                          AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
                       defaultIcon: Icons.restaurant,
                       supportSvg: false,
                     ),
-                    SizedboxSpaccing.height02(context),
+                    // SizedboxSpaccing.height005(context),
 
                     // Guest Range Selector
                     _buildGuestRangeSelector(screenWidth),
@@ -421,24 +385,16 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           Container(
                             height: 34,
                             width: 34,
-                            decoration: BoxDecoration(
-                              color: AppColors.containerBackground(context),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(8)),
                             child: Icon(Icons.info, size: 20, color: AppColors.textPrimary(context)),
                           ),
                           SizedboxSpaccing.width01(context),
-                          Expanded(
-                            child: Text(
-                              "Grocery/Bazar Not Included. We Do Cooking Only.",
-                              style: AppTextStyles.textSize12(context),
-                            ),
-                          ),
+                          Expanded(child: Text("Grocery/Bazar Not Included. We Do Cooking Only.", style: AppTextStyles.textSize12(context))),
                         ],
                       ),
                     ),
 
-                    SizedboxSpaccing.height02(context),
+                    SizedboxSpaccing.height03(context),
 
                     // Package Lists
                     _buildPackageLists(data, screenWidth),
@@ -450,23 +406,24 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             },
           ),
         ),
-        if (_getTotalItems() > 0) DynamicBottomCartBar(
-          totalServices: _getTotalItems(),
-          totalPrice: _calculateTotal(),
-          savedAmount: _calculateSaved(),
-          onCartTap: _showCartDialog,
-          screenWidth: screenWidth,
-          screenHeight: screenHeight,
-          getButtonColor: (context) => AppColors.button(context),
-          getBlackColor: (context) => AppColors.blackColor,
-          getWhiteColor: (context) => AppColors.whiteColor,
-          getTextStyle: (context, {weight, color}) {
-            if (weight == FontWeight.w700) {
-              return AppTextStyles.textSize20(context, weight: weight, color: color ?? Colors.white);
-            }
-            return AppTextStyles.textSize14(context, color: color ?? AppColors.whiteColor);
-          },
-        ),
+        if (_getTotalItems() > 0)
+          DynamicBottomCartBar(
+            totalServices: _getTotalItems(),
+            totalPrice: _calculateTotal(),
+            savedAmount: _calculateSaved(),
+            onCartTap: _showCartDialog,
+            screenWidth: screenWidth,
+            screenHeight: screenHeight,
+            getButtonColor: (context) => AppColors.button(context),
+            getBlackColor: (context) => AppColors.blackColor,
+            getWhiteColor: (context) => AppColors.whiteColor,
+            getTextStyle: (context, {weight, color}) {
+              if (weight == FontWeight.w700) {
+                return AppTextStyles.textSize20(context, weight: weight, color: color ?? Colors.white);
+              }
+              return AppTextStyles.textSize14(context, color: color ?? AppColors.whiteColor);
+            },
+          ),
       ],
     );
   }
@@ -479,18 +436,12 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Number of Guests',
-            style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-          ),
+          Text('Number of Guests', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
           SizedBox(height: 12),
           Container(
             height: 44,
             padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.button(context),
-              borderRadius: BorderRadius.circular(25),
-            ),
+            decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(25)),
             child: Row(
               children: List.generate(ranges.length, (index) {
                 final isSelected = _selectedGuestRangeIndex == index;
@@ -500,18 +451,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                       setState(() => _selectedGuestRangeIndex = index);
                     },
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.whiteColor : Colors.transparent,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
+                      decoration: BoxDecoration(color: isSelected ? AppColors.whiteColor : Colors.transparent, borderRadius: BorderRadius.circular(25)),
                       child: Center(
                         child: Text(
                           ranges[index],
-                          style: AppTextStyles.textSize14(
-                            context,
-                            weight: FontWeight.w600,
-                            color: isSelected ? AppColors.blackColor : AppColors.whiteColor,
-                          ),
+                          style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: isSelected ? AppColors.blackColor : AppColors.whiteColor),
                         ),
                       ),
                     ),
@@ -539,10 +483,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${category.name ?? ''} Package',
-                  style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-                ),
+                Text('${category.name ?? ''} Package', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
 
@@ -554,8 +495,10 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                     return _buildRegularPackageCard(category, package, screenWidth, isLast);
                   }))
                 else if (category.type == 'MANUAL')
-                  ...((category.packages ?? []).map((package) {
-                    return _buildManualPackageSection(category, package, screenWidth);
+                  ...((category.packages ?? []).asMap().entries.map((entry) {
+                    final package = entry.value;
+                    final isLast = entry.key == (category.packages?.length ?? 0) - 1;
+                    return _buildManualPackageSection(category, package, screenWidth, isLast);
                   })),
 
                 SizedboxSpaccing.height03(context),
@@ -570,20 +513,15 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   // Build card for REGULAR type packages
   Widget _buildRegularPackageCard(Datum category, Datum package, double screenWidth, bool isLast) {
     final isSelected = _isPackageSelected(category.id ?? '', package.id ?? '');
-    final currentPrice = _selectedGuestRangeIndex < (package.prices?.length ?? 0)
-        ? package.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0
-        : 0.0;
-
+    final currentPrice = _selectedGuestRangeIndex < (package.prices?.length ?? 0) ? package.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0 : 0.0;
+    final originalPrice = _selectedGuestRangeIndex < (package.prices?.length ?? 0) ? package.prices![_selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0 : 0.0;
+    final hasDiscount = originalPrice > currentPrice;
     final canSelect = _canSelectFromCategory(category.id ?? '');
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.only(top: 12,bottom:  isLast ?0:6),
       decoration: BoxDecoration(
-        border: isLast
-            ? null
-            : Border(
-          bottom: BorderSide(color: AppColors.border(context), width: 1),
-        ),
+        border: isLast ? null : Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,29 +530,32 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  package.name ?? '',
-                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-                ),
+                Text(package.name ?? '', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                 SizedBox(height: 4),
-                Text(
-                  'Price - ৳${currentPrice.toStringAsFixed(0)} টাকা',
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                Row(
+                  children: [
+                    Text('Price - ৳${currentPrice.toStringAsFixed(0)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                    if (hasDiscount) ...[
+                      SizedBox(width: 8),
+                      Text(
+                        '৳${originalPrice.toStringAsFixed(0)}',
+                        style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context).withOpacity(0.5)).copyWith(decoration: TextDecoration.lineThrough),
+                      ),
+                    ],
+                  ],
                 ),
                 if (package.items != null && package.items!.isNotEmpty) ...[
                   SizedBox(height: 8),
-                  ...package.items!.map((item) => Padding(
-                    padding: EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      '${package.items!.indexOf(item) + 1}. ${item.name ?? ''}',
-                      style: AppTextStyles.textSize14(context),
+                  ...package.items!.map(
+                    (item) => Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text('${package.items!.indexOf(item) + 1}. ${item.name ?? ''}', style: AppTextStyles.textSize14(context)),
                     ),
-                  )),
+                  ),
                 ],
               ],
             ),
           ),
-          SizedBox(width: 12),
 
           // Package Selection Image with ADD/ADDED button
           FamilyEventCookingPackageImage(
@@ -631,21 +572,20 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   }
 
   // Build section for MANUAL type packages with checkable items
-  Widget _buildManualPackageSection(Datum category, Datum package, double screenWidth) {
+  Widget _buildManualPackageSection(Datum category, Datum package, double screenWidth,bool isLast) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.only(top: 12,bottom:  isLast ?0:6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            package.name ?? '',
-            style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-          ),
+          Text(package.name ?? '', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
           SizedBox(height: 8),
 
           // List all items as checkable
-          ...((package.items ?? []).map((item) {
-            return _buildManualItemCard(category, package, item, screenWidth);
+          ...((package.items ?? []).asMap().entries.map((entry) {
+            final item = entry.value;
+            final isLastItem = entry.key == (package.items?.length ?? 0) - 1;
+            return _buildManualItemCard(category, package, item, screenWidth, isLastItem);
           })),
         ],
       ),
@@ -653,32 +593,23 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   }
 
   // Build card for individual MANUAL items
-  Widget _buildManualItemCard(Datum category, Datum package, Datum item, double screenWidth) {
+  Widget _buildManualItemCard(Datum category, Datum package, Datum item, double screenWidth, bool isLast) {
     final isSelected = _isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '');
     final canSelect = _canSelectFromCategory(category.id ?? '');
 
-    final currentPriceInfo = _selectedGuestRangeIndex < (item.prices?.length ?? 0)
-        ? item.prices![_selectedGuestRangeIndex]
-        : null;
+    final currentPriceInfo = _selectedGuestRangeIndex < (item.prices?.length ?? 0) ? item.prices![_selectedGuestRangeIndex] : null;
 
     final salePrice = currentPriceInfo?.salePrice?.toDouble() ?? 0;
     final originalPrice = currentPriceInfo?.originalPrice?.toDouble() ?? 0;
     final hasDiscount = originalPrice > salePrice;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isSelected
-            ? AppColors.button(context).withOpacity(0.1)
-            : AppColors.textFieldFill(context),
+        color: AppColors.containerBackground(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isSelected
-              ? AppColors.button(context)
-              : AppColors.border(context),
-          width: isSelected ? 2 : 1,
-        ),
+        border: Border.all(color: isSelected ? AppColors.buttonTextColor(context) : AppColors.border(context), width:  1),
       ),
       child: Row(
         children: [
@@ -688,79 +619,55 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 ? () => _toggleManualItemSelection(category.id ?? '', package.id ?? '', item.id ?? '')
                 : () => Utils.flushBarErrorMessage('You can only select from one category at a time', context),
             child: Container(
-              width: 24,
-              height: 24,
+              width: 20,
+              height: 20,
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.button(context) : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: isSelected ? AppColors.button(context) : AppColors.border(context),
-                  width: 2,
-                ),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
               ),
-              child: isSelected
-                  ? Icon(Icons.check, size: 16, color: AppColors.whiteColor)
-                  : null,
+              child: isSelected ? Icon(Icons.check, size: 14, color: AppColors.whiteColor) : null,
             ),
           ),
 
-          SizedBox(width: 12),
+          SizedboxSpaccing.width03(context),
 
           // Item details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.name ?? '',
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-                ),
+                Text(item.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                 if (item.description != null && item.description!.isNotEmpty) ...[
                   SizedBox(height: 4),
-                  Text(
-                    item.description!,
-                    style: AppTextStyles.textSize12(context,
-                        color: AppColors.textPrimary(context).withOpacity(0.7)),
-                  ),
+                  Text(item.description!, style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
                 ],
-                SizedBox(height: 4),
-
-                // Price display
-                Row(
-                  children: [
-                    Text(
-                      '৳${salePrice.toStringAsFixed(0)}',
-                      style: AppTextStyles.textSize14(context,
-                          weight: FontWeight.w600,
-                          color: AppColors.button(context)),
-                    ),
-                    if (hasDiscount) ...[
-                      SizedBox(width: 8),
-                      Text(
-                        '৳${originalPrice.toStringAsFixed(0)}',
-                        style: AppTextStyles.textSize12(context,
-                            color: AppColors.textPrimary(context).withOpacity(0.5),
-                            ).copyWith(decoration: TextDecoration.lineThrough)
-                      ),
-                      SizedBox(width: 8),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '-${currentPriceInfo?.discountValue ?? 0}%',
-                          style: AppTextStyles.textSize10(context,
-                              color: Colors.green,
-                              weight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
               ],
             ),
+          ),
+          Row(
+            children: [
+              Text(
+                '৳${salePrice.toStringAsFixed(0)}',
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.buttonTextColor(context)),
+              ),
+              if (hasDiscount) ...[
+                SizedBox(width: 8),
+                Text(
+                  '৳${originalPrice.toStringAsFixed(0)}',
+                  style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
+                ),
+                // SizedBox(width: 8),
+                // Container(
+                //   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                //   decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                //   child: Text(
+                //     '-${currentPriceInfo?.discountValue ?? 0}%',
+                //     style: AppTextStyles.textSize10(context, color: Colors.green, weight: FontWeight.w600),
+                //   ),
+                // ),
+              ],
+            ],
           ),
         ],
       ),
@@ -793,18 +700,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
               checkoutVM.setServiceTime(time);
               setDialogState(() {});
             },
-            dateController: TextEditingController(
-              text: checkoutVM.selectedDate != null
-                  ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!)
-                  : '',
-            ),
+            dateController: TextEditingController(text: checkoutVM.selectedDate != null ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!) : ''),
             onProceedToCheckout: _navigateCheckOutScreen,
           );
         },
       ),
     );
   }
-
 
   void _navigateCheckOutScreen() async {
     final prefs = await SharedPreferences.getInstance();

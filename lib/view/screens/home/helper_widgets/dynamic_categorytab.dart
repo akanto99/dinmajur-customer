@@ -72,7 +72,7 @@ class DynamicCategoryTabs<T> extends StatelessWidget {
               return GestureDetector(
                 onTap: () => onCategoryTap(index),
                 child: Container(
-                  margin: EdgeInsets.only(right: 10),
+                  margin: EdgeInsets.only(right: 15),
                   child: Column(
                     children: [
                       // Category Icon/Image
@@ -99,7 +99,7 @@ class DynamicCategoryTabs<T> extends StatelessWidget {
             },
           ),
         ),
-        Divider(height: 1,color: AppColors.border(context),)
+        // Divider(height: 1,color: AppColors.border(context),)
       ],
     );
   }
