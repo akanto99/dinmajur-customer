@@ -191,7 +191,106 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
 
     return tasks;
   }
+  Map<String, dynamic> _prepareBookingPayload() {
+    if (widget.activeCategoryId == null) {
+      throw Exception('No active category selected');
+    }
 
+    // Find the active category
+    Datum? activeCategory;
+    for (var category in widget.categories) {
+      if (category.id == widget.activeCategoryId) {
+        activeCategory = category;
+        break;
+      }
+    }
+
+    if (activeCategory == null) {
+      throw Exception('Active category not found');
+    }
+
+    final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
+
+    // Base booking data
+    Map<String, dynamic> bookingPayload = {
+      "booking": {
+        "paymentType": checkoutVM.getPaymentMethodData(checkoutVM.selectedPaymentMethod).toUpperCase(),
+        "fullAddress": _addressController.text,
+        "date": widget.selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
+        "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
+      }
+    };
+
+    if (activeCategory.type == 'REGULAR') {
+      // REGULAR type: Single package selection
+      final selectedPackageId = widget.selectedPackages[activeCategory.id];
+
+      if (selectedPackageId == null) {
+        throw Exception('No package selected');
+      }
+
+      // Find the selected package to get price ID
+      String? priceId;
+      for (var package in activeCategory.packages ?? []) {
+        if (package.id == selectedPackageId) {
+          if (widget.selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
+            priceId = package.prices![widget.selectedGuestRangeIndex].id;
+          }
+          break;
+        }
+      }
+
+      bookingPayload["packages"] = [
+        {
+          "eventCookingCategory": activeCategory.id,
+          "package": selectedPackageId,
+          "price": priceId,
+        }
+      ];
+    } else if (activeCategory.type == 'MANUAL') {
+      // MANUAL type: Multiple items selection
+      bookingPayload["eventCookingCategory"] = activeCategory.id;
+
+      // Group items by package
+      Map<String, List<Map<String, String>>> packageItemsMap = {};
+
+      for (var package in activeCategory.packages ?? []) {
+        for (var item in package.items ?? []) {
+          final key = '${package.id}_${item.id}';
+
+          if (widget.selectedManualItems[activeCategory.id]?.contains(key) ?? false) {
+            // Get the price ID for this item
+            String? priceId;
+            if (widget.selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
+              priceId = item.prices![widget.selectedGuestRangeIndex].id;
+            }
+
+            if (!packageItemsMap.containsKey(package.id)) {
+              packageItemsMap[package.id!] = [];
+            }
+
+            packageItemsMap[package.id]!.add({
+              "item": item.id!,
+              "price": priceId ?? item.id!, // Fallback to item.id if price not found
+            });
+          }
+        }
+      }
+
+      // Convert map to packages array
+      List<Map<String, dynamic>> packages = [];
+      packageItemsMap.forEach((packageId, items) {
+        packages.add({
+          "package": packageId,
+          "items": items,
+        });
+      });
+
+      bookingPayload["packages"] = packages;
+    }
+
+    return bookingPayload;
+  }
   Future<void> _handleConfirmBooking() async {
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookFamilyEventCookingViewModel>(context, listen: false);
@@ -217,38 +316,16 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       return;
     }
 
-    // Prepare tasks data
-    List<Map<String, dynamic>> tasks = _prepareTasksData();
-
-    if (tasks.isEmpty) {
-      Utils.flushBarErrorMessage("No items selected for booking", context);
-      return;
-    }
-
-    // Prepare booking data
-    Map<String, dynamic> bookingData = {
-      'userId': widget.userId,
-      'customerName': widget.customerName,
-      'customerPhone': widget.customerPhone,
-      'customerAddress': _addressController.text,
-      'bookingDate': DateFormat('yyyy-MM-dd').format(widget.selectedDate ?? DateTime.now()),
-      'serviceTime': widget.selectedServiceTime ?? '',
-      'guestRangeIndex': widget.selectedGuestRangeIndex,
-      'tasks': tasks,
-      'subtotal': widget.totalPrice,
-      'transportFee': widget.transportFee,
-      'totalAmount': totalAmount,
-      'savedAmount': widget.savedAmount,
-      'paymentMethod': checkoutVM.selectedPaymentMethod,
-    };
-
-    print('Booking Data: $bookingData');
-
     try {
+      // Prepare booking payload
+      Map<String, dynamic> bookingPayload = _prepareBookingPayload();
+
+      print('Booking Payload: $bookingPayload');
+
       // Call booking API
-      await bookingViewModel.bookPremiumHomeBeautySalonPostApi(
+      await bookingViewModel.bookFamilyEventCookingPostApi(
         context,
-        bookingData,
+        bookingPayload,
             (String? trackingId) async {
           print('Success! TrackingId: $trackingId');
 
@@ -281,7 +358,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             Navigator.pop(context);
             Navigator.pushNamed(
               context,
-              RoutesName.beautyConfirmedScreen,
+              RoutesName.cookingConfirmedScreen,
               arguments: {
                 'trackingId': trackingId,
                 'valId': "COD",

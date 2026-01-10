@@ -8,6 +8,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/homebeauty_salon_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_checkout_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cooking_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
@@ -299,6 +300,21 @@ class Routes {
               selectedDate: args['selectedDate'],
               selectedServiceTime: args['selectedServiceTime'],
               onAddressUpdate: args['onAddressUpdate'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+      case RoutesName.cookingConfirmedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CookingConfirmedScreen(
+              //   trackingId: args['trackingId'],
+              // valId: args['valId'],
+              trackingId: args['trackingId'] as String? ?? '',
+              valId: args['valId'] as String? ?? '',
             ),
             settings: settings,
           );
