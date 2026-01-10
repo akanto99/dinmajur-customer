@@ -483,7 +483,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${category.name ?? ''} Package', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                Text('${category.name ?? ''}', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
 
@@ -603,73 +603,75 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     final originalPrice = currentPriceInfo?.originalPrice?.toDouble() ?? 0;
     final hasDiscount = originalPrice > salePrice;
 
-    return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isSelected ? AppColors.buttonTextColor(context) : AppColors.border(context), width:  1),
-      ),
-      child: Row(
-        children: [
-          // Checkbox
-          GestureDetector(
-            onTap: canSelect
-                ? () => _toggleManualItemSelection(category.id ?? '', package.id ?? '', item.id ?? '')
-                : () => Utils.flushBarErrorMessage('You can only select from one category at a time', context),
-            child: Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.button(context) : Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
+    return GestureDetector(
+      onTap: canSelect
+          ? () => _toggleManualItemSelection(category.id ?? '', package.id ?? '', item.id ?? '')
+          : () => Utils.flushBarErrorMessage('You can only select from one category at a time', context),
+      child: Container(
+        margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.containerBackground(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppColors.buttonTextColor(context) : AppColors.border(context), width:  1),
+        ),
+        child: Row(
+          children: [
+            // Checkbox
+
+            Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.button(context) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
+                ),
+                child: isSelected ? Icon(Icons.check, size: 14, color: AppColors.whiteColor) : null,
               ),
-              child: isSelected ? Icon(Icons.check, size: 14, color: AppColors.whiteColor) : null,
+
+
+            SizedboxSpaccing.width03(context),
+
+            // Item details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                  if (item.description != null && item.description!.isNotEmpty) ...[
+                    SizedBox(height: 4),
+                    Text(item.description!, style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+                  ],
+                ],
+              ),
             ),
-          ),
-
-          SizedboxSpaccing.width03(context),
-
-          // Item details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text(item.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-                if (item.description != null && item.description!.isNotEmpty) ...[
-                  SizedBox(height: 4),
-                  Text(item.description!, style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+                Text(
+                  '৳${salePrice.toStringAsFixed(0)}',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.buttonTextColor(context)),
+                ),
+                if (hasDiscount) ...[
+                  SizedBox(width: 8),
+                  Text(
+                    '৳${originalPrice.toStringAsFixed(0)}',
+                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
+                  ),
+                  // SizedBox(width: 8),
+                  // Container(
+                  //   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  //   decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                  //   child: Text(
+                  //     '-${currentPriceInfo?.discountValue ?? 0}%',
+                  //     style: AppTextStyles.textSize10(context, color: Colors.green, weight: FontWeight.w600),
+                  //   ),
+                  // ),
                 ],
               ],
             ),
-          ),
-          Row(
-            children: [
-              Text(
-                '৳${salePrice.toStringAsFixed(0)}',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.buttonTextColor(context)),
-              ),
-              if (hasDiscount) ...[
-                SizedBox(width: 8),
-                Text(
-                  '৳${originalPrice.toStringAsFixed(0)}',
-                  style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
-                ),
-                // SizedBox(width: 8),
-                // Container(
-                //   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                //   decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                //   child: Text(
-                //     '-${currentPriceInfo?.discountValue ?? 0}%',
-                //     style: AppTextStyles.textSize10(context, color: Colors.green, weight: FontWeight.w600),
-                //   ),
-                // ),
-              ],
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -678,6 +680,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
     final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
+    final transportFeeValue = viewModel.getAllFamilyEventCookingData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
     showDialog(
       context: context,
@@ -692,6 +695,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             selectedGuestRangeIndex: _selectedGuestRangeIndex,
             selectedDate: checkoutVM.selectedDate,
             selectedServiceTime: checkoutVM.selectedServiceTime,
+            transportFee: transportFeeValue,
             onDateSelected: (DateTime selectedDate) {
               checkoutVM.setSelectedDate(selectedDate);
               setDialogState(() {});
@@ -723,6 +727,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     // Get the data before navigation
     final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
     final categories = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
+    final transportFeeValue = viewModel.getAllFamilyEventCookingData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
     // Navigate to CheckoutScreen using named route
     final result = await Navigator.pushNamed(
@@ -740,7 +745,8 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         'selectedGuestRangeIndex': _selectedGuestRangeIndex,
         'totalPrice': _calculateTotal(),
         'savedAmount': _calculateSaved(),
-        'transportFee': 80.0,
+        // 'transportFee': 80.0,
+        'transportFee': transportFeeValue, // Use value from model
         'selectedDate': checkoutVM.selectedDate,
         'selectedServiceTime': checkoutVM.selectedServiceTime,
         'onAddressUpdate': (String newAddress) {

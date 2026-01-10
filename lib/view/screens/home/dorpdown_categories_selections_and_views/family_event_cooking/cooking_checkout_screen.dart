@@ -59,7 +59,6 @@ class CookingCheckoutScreen extends StatefulWidget {
 
 class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _specialRequestController = TextEditingController();
   bool _isTermsAccepted = false;
 
   @override
@@ -71,7 +70,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   @override
   void dispose() {
     _addressController.dispose();
-    _specialRequestController.dispose();
     super.dispose();
   }
 
@@ -130,7 +128,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     checkoutVM.reset();
 
     _addressController.clear();
-    _specialRequestController.clear();
     setState(() {
       _isTermsAccepted = false;
     });
@@ -234,7 +231,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       'customerName': widget.customerName,
       'customerPhone': widget.customerPhone,
       'customerAddress': _addressController.text,
-      'specialRequest': _specialRequestController.text.trim(),
       'bookingDate': DateFormat('yyyy-MM-dd').format(widget.selectedDate ?? DateTime.now()),
       'serviceTime': widget.selectedServiceTime ?? '',
       'guestRangeIndex': widget.selectedGuestRangeIndex,
@@ -366,8 +362,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                           _buildCustomerDetailsCard(),
                           SizedboxSpaccing.height02(context),
                           _buildBookingSummary(),
-                          SizedboxSpaccing.height02(context),
-                          _buildSpecialRequestField(),
                           SizedboxSpaccing.height02(context),
                           _buildPaymentMethodSection(checkoutVM),
                           SizedboxSpaccing.height01(context),
@@ -508,36 +502,188 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSummaryRow('Booking Date', DateFormat('MMMM dd, yyyy').format(widget.selectedDate ?? DateTime.now())),
+              // Show selected package/items details
+              _buildSelectedItemsSection(),
               SizedboxSpaccing.height015(context),
-              _buildSummaryRow('Time Slot', widget.selectedServiceTime ?? 'Not selected'),
+              _buildSummaryRow('Date', DateFormat('MMMM dd, yyyy').format(widget.selectedDate ?? DateTime.now())),
               SizedboxSpaccing.height015(context),
               _buildSummaryRow('Number of Guests', _getGuestRangeText()),
-              SizedboxSpaccing.height02(context),
-              Divider(height: 1, color: AppColors.border(context)),
-              SizedboxSpaccing.height02(context),
+              SizedboxSpaccing.height015(context),
+              _buildSummaryRow('Slot', widget.selectedServiceTime ?? 'Not selected'),
+              SizedboxSpaccing.height015(context),
               _buildPriceRow('Subtotal', widget.totalPrice),
               SizedboxSpaccing.height015(context),
               _buildPriceRow('Transport', widget.transportFee),
-              if (widget.savedAmount > 0) ...[
-                SizedboxSpaccing.height015(context),
-                _buildPriceRow('You Saved', widget.savedAmount, isGreen: true),
-              ],
-              SizedboxSpaccing.height02(context),
-              Divider(height: 1, color: AppColors.border(context)),
-              SizedboxSpaccing.height02(context),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Total Amount', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                  Text(
-                    '৳${(widget.totalPrice + widget.transportFee).toStringAsFixed(0)}',
-                    style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.button(context)),
-                  ),
-                ],
-              ),
+              // if (widget.savedAmount > 0) ...[
+              //   SizedboxSpaccing.height015(context),
+              //   _buildPriceRow('You Saved', widget.savedAmount, isGreen: true),
+              // ],
+              // SizedboxSpaccing.height02(context),
+              // Divider(height: 1, color: AppColors.border(context)),
+              // SizedboxSpaccing.height02(context),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     Text('Total Amount', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+              //     Text(
+              //       '৳${(widget.totalPrice + widget.transportFee).toStringAsFixed(0)}',
+              //       style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.buttonTextColor(context)),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+
+// Build selected items section
+  Widget _buildSelectedItemsSection() {
+    if (widget.activeCategoryId == null) return SizedBox.shrink();
+
+    for (var category in widget.categories) {
+      if (category.id == widget.activeCategoryId) {
+        if (category.type == 'REGULAR') {
+          return _buildRegularPackageDetails(category);
+        } else if (category.type == 'MANUAL') {
+          return _buildManualItemsDetails(category);
+        }
+      }
+    }
+    return SizedBox.shrink();
+  }
+
+// Build REGULAR package details
+  Widget _buildRegularPackageDetails(Datum category) {
+    final selectedPackageId = widget.selectedPackages[category.id];
+    if (selectedPackageId == null) return SizedBox.shrink();
+
+    for (var package in category.packages ?? []) {
+      if (package.id == selectedPackageId) {
+        double salePrice = 0;
+        double originalPrice = 0;
+
+        if (widget.selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
+          salePrice = package.prices![widget.selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
+          originalPrice = package.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
+        }
+
+        double savedAmount = originalPrice - salePrice;
+
+        return       Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              package.name ?? '',
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+            ),
+            Row(
+              children: [
+                Text(
+                  '৳${salePrice.toStringAsFixed(0)}',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                ),
+                if (savedAmount > 0) ...[
+                  SizedBox(width: 8),
+                  Text(
+                    '৳${originalPrice.toStringAsFixed(0)}',
+                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))
+                        .copyWith(decoration: TextDecoration.lineThrough),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        );
+      }
+    }
+    return SizedBox.shrink();
+  }
+
+// Build MANUAL items details
+  Widget _buildManualItemsDetails(Datum category) {
+    List<Map<String, dynamic>> selectedItems = [];
+    double totalSalePrice = 0;
+    double totalOriginalPrice = 0;
+
+    for (var package in category.packages ?? []) {
+      for (var item in package.items ?? []) {
+        final key = '${package.id}_${item.id}';
+        if (widget.selectedManualItems[category.id]?.contains(key) ?? false) {
+          double salePrice = 0;
+          double originalPrice = 0;
+
+          if (widget.selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
+            salePrice = item.prices![widget.selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
+            originalPrice = item.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
+          }
+
+          totalSalePrice += salePrice;
+          totalOriginalPrice += originalPrice;
+
+          selectedItems.add({
+            'name': item.name ?? '',
+            'salePrice': salePrice,
+            'originalPrice': originalPrice,
+          });
+        }
+      }
+    }
+
+    if (selectedItems.isEmpty) return SizedBox.shrink();
+
+    double totalSaved = totalOriginalPrice - totalSalePrice;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${category.name ?? ''}',
+          style: AppTextStyles.textSize14(context, weight: FontWeight.w600,),
+        ),
+        SizedBox(height: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...selectedItems.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final isLast = index == selectedItems.length - 1;
+
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${item['name']}',
+                        style: AppTextStyles.textSize12(context, weight: FontWeight.w400),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          '৳${item['salePrice'].toStringAsFixed(0)}',
+                          style: AppTextStyles.textSize12(context, weight: FontWeight.w500),
+                        ),
+                        if (item['originalPrice'] > item['salePrice']) ...[
+                          SizedBox(width: 6),
+                          Text(
+                            '৳${item['originalPrice'].toStringAsFixed(0)}',
+                            style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context))
+                                .copyWith(decoration: TextDecoration.lineThrough),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
         ),
       ],
     );
@@ -572,35 +718,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             context,
             weight: FontWeight.w500,
             color: isGreen ? Colors.green : AppColors.textPrimary(context),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSpecialRequestField() {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Column(
-      children: [
-        SectionHeader(title: 'Special Request (Optional)', titleWidth: screenWidth * 0.7, showSeeAll: false),
-        SizedboxSpaccing.height02(context),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.textFieldFill(context),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border(context)),
-          ),
-          child: TextField(
-            controller: _specialRequestController,
-            maxLines: 3,
-            style: AppTextStyles.textSize14(context),
-            decoration: InputDecoration(
-              hintText: 'Add any special requests or notes here...',
-              hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(12),
-            ),
           ),
         ),
       ],
