@@ -97,7 +97,7 @@ class Price {
   int? originalPrice;
   DiscountType? discountType;
   int? discountValue;
-  double? salePrice;
+  int? salePrice;
   GuestRange? guestRange;
 
   Price({
@@ -114,7 +114,7 @@ class Price {
     originalPrice: json["originalPrice"],
     discountType: discountTypeValues.map[json["discountType"]]!,
     discountValue: json["discountValue"],
-    salePrice: json["salePrice"]?.toDouble(),
+    salePrice: json["salePrice"],
     guestRange: json["guestRange"] == null ? null : GuestRange.fromJson(json["guestRange"]),
   );
 
@@ -129,12 +129,10 @@ class Price {
 }
 
 enum DiscountType {
-  NONE,
   PERCENTAGE
 }
 
 final discountTypeValues = EnumValues({
-  "NONE": DiscountType.NONE,
   "PERCENTAGE": DiscountType.PERCENTAGE
 });
 
@@ -148,12 +146,12 @@ class GuestRange {
   });
 
   factory GuestRange.fromJson(Map<String, dynamic> json) => GuestRange(
-    id: idValues.map[json["id"]]!,
+    id: idValues.map[json["_id"]]!,
     label: labelValues.map[json["label"]]!,
   );
 
   Map<String, dynamic> toJson() => {
-    "id": idValues.reverse[id],
+    "_id": idValues.reverse[id],
     "label": labelValues.reverse[label],
   };
 }
