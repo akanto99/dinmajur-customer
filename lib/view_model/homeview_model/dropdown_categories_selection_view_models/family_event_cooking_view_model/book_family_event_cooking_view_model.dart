@@ -15,7 +15,7 @@ class PostBookFamilyEventCookingViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> bookPremiumHomeBeautySalonPostApi(
+  Future<void> bookFamilyEventCookingPostApi(
       BuildContext context,
       dynamic fields,
       Function(String? trackingId) onSuccess // CHANGED: Now receives both paymentUrl and trackingId
