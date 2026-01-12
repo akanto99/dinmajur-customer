@@ -216,9 +216,12 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       "booking": {
         "paymentType": checkoutVM.getPaymentMethodData(checkoutVM.selectedPaymentMethod).toUpperCase(),
         "fullAddress": _addressController.text,
+        "fullName":widget.customerName,
+        "phone":widget.customerPhone,
         "date": widget.selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
         "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
-      }
+      },
+      "eventCookingCategoryId": activeCategory.id,
     };
 
     if (activeCategory.type == 'REGULAR') {
@@ -240,16 +243,15 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         }
       }
 
-      bookingPayload["packages"] = [
+      bookingPayload["packages"] =[
         {
-          "eventCookingCategory": activeCategory.id,
-          "package": selectedPackageId,
-          "price": priceId,
+          "packageId": selectedPackageId,
+          "priceId": priceId,
         }
       ];
     } else if (activeCategory.type == 'MANUAL') {
       // MANUAL type: Multiple items selection
-      bookingPayload["eventCookingCategory"] = activeCategory.id;
+      bookingPayload["eventCookingCategoryId"] = activeCategory.id;
 
       // Group items by package
       Map<String, List<Map<String, String>>> packageItemsMap = {};
@@ -270,8 +272,8 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             }
 
             packageItemsMap[package.id]!.add({
-              "item": item.id!,
-              "price": priceId ?? item.id!, // Fallback to item.id if price not found
+              "itemId": item.id!,
+              "priceId": priceId ?? item.id!, // Fallback to item.id if price not found
             });
           }
         }
@@ -281,7 +283,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       List<Map<String, dynamic>> packages = [];
       packageItemsMap.forEach((packageId, items) {
         packages.add({
-          "package": packageId,
+          "packageId": packageId,
           "items": items,
         });
       });
@@ -659,7 +661,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             Row(
               children: [
                 Text(
-                  '৳${salePrice.toStringAsFixed(0)}',
+                  '৳${salePrice.toStringAsFixed(2)}',
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
                 ),
                 if (savedAmount > 0) ...[
@@ -743,7 +745,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                     Row(
                       children: [
                         Text(
-                          '৳${item['salePrice'].toStringAsFixed(0)}',
+                          '৳${item['salePrice'].toStringAsFixed(2)}',
                           style: AppTextStyles.textSize12(context, weight: FontWeight.w500),
                         ),
                         if (item['originalPrice'] > item['salePrice']) ...[
@@ -845,7 +847,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                 Row(
                   children: [
                     Text(
-                      '৳${total.toStringAsFixed(0)}',
+                      '৳${total.toStringAsFixed(2)}',
                       style: AppTextStyles.textSize20(context, weight: FontWeight.w700, color: AppColors.whiteColor),
                     ),
                     if (widget.savedAmount > 0) ...[

@@ -72,7 +72,7 @@ class AppUrl {
   //========>Family Event Cooking
   static var getAllFamilyEventCookingGetAPI = baseUrl + '/event-cooking-categories/get-all';
   static var bookFamilyEventCookingPostAPI = baseUrl + '/event-cooking-bookings';
-  static var getFamilyEventCookingGetAPI = baseUrl + '';
+  static var getFamilyEventCookingGetAPI = baseUrl + '/event-cooking-bookings';
 
 
 

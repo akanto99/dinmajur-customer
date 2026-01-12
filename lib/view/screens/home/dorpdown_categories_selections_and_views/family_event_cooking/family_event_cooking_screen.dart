@@ -541,11 +541,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 SizedBox(height: 4),
                 Row(
                   children: [
-                    Text('Price - ৳${currentPrice.toStringAsFixed(0)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                    Text('Price - ৳${currentPrice.toStringAsFixed(2)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                     if (hasDiscount) ...[
                       SizedBox(width: 8),
                       Text(
-                        '৳${originalPrice.toStringAsFixed(0)}',
+                        '৳${originalPrice.toStringAsFixed(2)}',
                         style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context).withOpacity(0.5)).copyWith(decoration: TextDecoration.lineThrough),
                       ),
                     ],
@@ -656,13 +656,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             Row(
               children: [
                 Text(
-                  '৳${salePrice.toStringAsFixed(0)}',
+                  '৳${salePrice.toStringAsFixed(2)}',
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.buttonTextColor(context)),
                 ),
                 if (hasDiscount) ...[
                   SizedBox(width: 8),
                   Text(
-                    '৳${originalPrice.toStringAsFixed(0)}',
+                    '৳${originalPrice.toStringAsFixed(2)}',
                     style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                   ),
                 ],
