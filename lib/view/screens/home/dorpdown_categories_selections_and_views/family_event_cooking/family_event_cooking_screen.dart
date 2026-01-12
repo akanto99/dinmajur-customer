@@ -38,7 +38,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   final Map<int, GlobalKey> _categoryKeys = {};
 
   // Track selected packages per category for REGULAR type (only one category can have selections)
-  Map<String, String?> _selectedPackages = {}; // categoryId -> Set of packageIds
+  Map<String, String?> _selectedPackages = {}; // categoryId -> packageId
 
   // Track selected items for MANUAL type (only one category can have selections)
   Map<String, Set<String>> _selectedManualItems = {}; // categoryId -> Set of itemIds
@@ -352,7 +352,15 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                         _scrollToCategory(index);
                       },
                       getName: (category) => category.name ?? '',
-                      getImageUrl: (category) => category.image,
+                      getImageUrl: (category) {
+                        // Handle both String and ImageClass types
+                        if (category.image is String) {
+                          return category.image;
+                        } else if (category.image is ImageClass) {
+                          return (category.image as ImageClass).url;
+                        }
+                        return null;
+                      },
                       getButtonColor: (context) => AppColors.button(context),
                       getBackgroundColor: (context) => AppColors.border(context),
                       getBorderColor: (context) => AppColors.border(context),
@@ -364,7 +372,6 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                       defaultIcon: Icons.restaurant,
                       supportSvg: false,
                     ),
-                    // SizedboxSpaccing.height005(context),
 
                     // Guest Range Selector
                     _buildGuestRangeSelector(screenWidth),
@@ -511,7 +518,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   }
 
   // Build card for REGULAR type packages
-  Widget _buildRegularPackageCard(Datum category, Datum package, double screenWidth, bool isLast) {
+  Widget _buildRegularPackageCard(Datum category, Package package, double screenWidth, bool isLast) {
     final isSelected = _isPackageSelected(category.id ?? '', package.id ?? '');
     final currentPrice = _selectedGuestRangeIndex < (package.prices?.length ?? 0) ? package.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0 : 0.0;
     final originalPrice = _selectedGuestRangeIndex < (package.prices?.length ?? 0) ? package.prices![_selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0 : 0.0;
@@ -519,7 +526,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     final canSelect = _canSelectFromCategory(category.id ?? '');
 
     return Container(
-      padding: EdgeInsets.only(top: 12,bottom:  isLast ?0:6),
+      padding: EdgeInsets.only(top: 12, bottom: isLast ? 0 : 6),
       decoration: BoxDecoration(
         border: isLast ? null : Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
       ),
@@ -547,9 +554,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 if (package.items != null && package.items!.isNotEmpty) ...[
                   SizedBox(height: 8),
                   ...package.items!.map(
-                    (item) => Padding(
+                        (item) => Padding(
                       padding: EdgeInsets.only(bottom: 4),
-                      child: Text('${package.items!.indexOf(item) + 1}. ${item.name ?? ''}', style: AppTextStyles.textSize14(context)),
+                      child: Text(
+                          // '${package.items!.indexOf(item) + 1}. '
+                          '${item.name ?? ''}', style: AppTextStyles.textSize14(context)),
                     ),
                   ),
                 ],
@@ -557,9 +566,9 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             ),
           ),
 
-          // Package Selection Image with ADD/ADDED button
+          // Package Selection Image - Pass Package instead of Datum
           FamilyEventCookingPackageImage(
-            imageUrl: package.image,
+            imageUrl: null, // REGULAR packages don't have images on the package items
             isSelected: isSelected,
             canSelect: canSelect,
             onToggle: () => _togglePackageSelection(category.id ?? '', package.id ?? ''),
@@ -572,9 +581,9 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   }
 
   // Build section for MANUAL type packages with checkable items
-  Widget _buildManualPackageSection(Datum category, Datum package, double screenWidth,bool isLast) {
+  Widget _buildManualPackageSection(Datum category, Package package, double screenWidth, bool isLast) {
     return Container(
-      padding: EdgeInsets.only(top: 12,bottom:  isLast ?0:6),
+      padding: EdgeInsets.only(top: 12, bottom: isLast ? 0 : 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -593,7 +602,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   }
 
   // Build card for individual MANUAL items
-  Widget _buildManualItemCard(Datum category, Datum package, Datum item, double screenWidth, bool isLast) {
+  Widget _buildManualItemCard(Datum category, Package package, Item item, double screenWidth, bool isLast) {
     final isSelected = _isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '');
     final canSelect = _canSelectFromCategory(category.id ?? '');
 
@@ -613,23 +622,21 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         decoration: BoxDecoration(
           color: AppColors.containerBackground(context),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? AppColors.buttonTextColor(context) : AppColors.border(context), width:  1),
+          border: Border.all(color: isSelected ? AppColors.buttonTextColor(context) : AppColors.border(context), width: 1),
         ),
         child: Row(
           children: [
             // Checkbox
-
             Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.button(context) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
-                ),
-                child: isSelected ? Icon(Icons.check, size: 14, color: AppColors.whiteColor) : null,
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.button(context) : Colors.transparent,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
               ),
-
+              child: isSelected ? Icon(Icons.check, size: 14, color: AppColors.whiteColor) : null,
+            ),
 
             SizedboxSpaccing.width03(context),
 
@@ -658,15 +665,6 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                     '৳${originalPrice.toStringAsFixed(0)}',
                     style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                   ),
-                  // SizedBox(width: 8),
-                  // Container(
-                  //   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  //   decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                  //   child: Text(
-                  //     '-${currentPriceInfo?.discountValue ?? 0}%',
-                  //     style: AppTextStyles.textSize10(context, color: Colors.green, weight: FontWeight.w600),
-                  //   ),
-                  // ),
                 ],
               ],
             ),
@@ -711,7 +709,6 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       ),
     );
   }
-
   void _navigateCheckOutScreen() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId') ?? '';

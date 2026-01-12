@@ -9,7 +9,6 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/cart_coponent
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class FamilyEventCookingCartDialog extends StatefulWidget {
   final List<Datum> categories;
@@ -19,7 +18,7 @@ class FamilyEventCookingCartDialog extends StatefulWidget {
   final int selectedGuestRangeIndex;
   final DateTime? selectedDate;
   final String? selectedServiceTime;
-  final double transportFee; // Added parameter
+  final double transportFee;
   final Function(DateTime) onDateSelected;
   final Function(String) onTimeSelected;
   final TextEditingController dateController;
@@ -34,7 +33,7 @@ class FamilyEventCookingCartDialog extends StatefulWidget {
     required this.selectedGuestRangeIndex,
     required this.selectedDate,
     required this.selectedServiceTime,
-    required this.transportFee, // Added required parameter
+    required this.transportFee,
     required this.onDateSelected,
     required this.onTimeSelected,
     required this.dateController,
@@ -67,7 +66,15 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   originalPrice = package.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
                 }
 
-                cartItems.add({'package': package, 'category': category, 'item': null, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'REGULAR'});
+                // Store Package object (not Datum)
+                cartItems.add({
+                  'package': package,
+                  'category': category,
+                  'item': null,
+                  'salePrice': salePrice,
+                  'originalPrice': originalPrice,
+                  'type': 'REGULAR'
+                });
                 break;
               }
             }
@@ -86,7 +93,15 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   originalPrice = item.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
                 }
 
-                cartItems.add({'package': package, 'category': category, 'item': item, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'MANUAL'});
+                // Store Package object and Item object
+                cartItems.add({
+                  'package': package,
+                  'category': category,
+                  'item': item,
+                  'salePrice': salePrice,
+                  'originalPrice': originalPrice,
+                  'type': 'MANUAL'
+                });
               }
             }
           }
@@ -202,8 +217,9 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
   }
 
   Widget _buildCartItem(BuildContext context, Map<String, dynamic> item, double screenWidth) {
-    final package = item['package'] as Datum;
-    final itemData = item['item'] as Datum?;
+    // FIXED: Cast to Package instead of Datum
+    final package = item['package'] as Package;
+    final itemData = item['item'] as Item?;
     final salePrice = item['salePrice'] as double;
     final originalPrice = item['originalPrice'] as double;
     final type = item['type'] as String;
@@ -211,8 +227,6 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
 
     // For MANUAL type, show the individual item; for REGULAR, show the package
     final displayName = type == 'MANUAL' ? (itemData?.name ?? '') : (package.name ?? '');
-    final displayImage = type == 'MANUAL' ? (itemData?.image ?? package.image) : package.image;
-    final displayDescription = type == 'MANUAL' ? (itemData?.description) : null;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -225,61 +239,20 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // // Item/Package Image
-          // ClipRRect(
-          //   borderRadius: BorderRadius.circular(8),
-          //   child: CachedNetworkImage(
-          //     imageUrl: displayImage ?? '',
-          //     width: 70,
-          //     height: 70,
-          //     fit: BoxFit.cover,
-          //     placeholder: (context, url) => Container(
-          //       width: 70,
-          //       height: 70,
-          //       color: AppColors.border(context),
-          //       child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.button(context))),
-          //     ),
-          //     errorWidget: (context, url, error) => Container(
-          //       width: 70,
-          //       height: 70,
-          //       color: AppColors.border(context),
-          //       child: Icon(Icons.restaurant, color: AppColors.subtitle(context)),
-          //     ),
-          //   ),
-          // ),
-          // SizedBox(width: 12),
           // Item/Package Details
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(displayName, style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-                // if (type == 'REGULAR' && package.items != null && package.items!.isNotEmpty) ...[
-                //   SizedBox(height: 4),
-                //   ...package.items!
-                //       .take(3)
-                //       .map(
-                //         (subItem) => Padding(
-                //           padding: EdgeInsets.only(bottom: 2),
-                //           child: Text(
-                //             '• ${subItem.name ?? ''}',
-                //             style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
-                //             maxLines: 1,
-                //             overflow: TextOverflow.ellipsis,
-                //           ),
-                //         ),
-                //       ),
-                //   if (package.items!.length > 3) Text('+${package.items!.length - 3} more items', style: AppTextStyles.textSize12(context, color: AppColors.button(context))),
-                // ],
-                // if (type == 'MANUAL' && displayDescription != null && displayDescription.isNotEmpty) ...[
-                //   SizedBox(height: 4),
-                //   Text(
-                //     displayDescription,
-                //     style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
-                //     maxLines: 2,
-                //     overflow: TextOverflow.ellipsis,
-                //   ),
-                // ],
+                Expanded(
+                  child: Text(
+                    displayName,
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(width: 8),
                 Row(
                   children: [
                     Text(
@@ -356,8 +329,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                 ),
                 Text(
                   '৳${originalTotal.toStringAsFixed(2)}',
-                  style: AppTextStyles.textSize12(context, color: Colors.red)
-                      .copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red),
+                  style: AppTextStyles.textSize12(context, color: Colors.red).copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red),
                 ),
               ],
             ),
@@ -393,12 +365,12 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             children: serviceTimeSlots
                 .map(
                   (time) => Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(right: time == serviceTimeSlots.first ? 5 : 0, left: time == serviceTimeSlots.last ? 5 : 0),
-                      child: _serviceTimeButton(context, time),
-                    ),
-                  ),
-                )
+                child: Padding(
+                  padding: EdgeInsets.only(right: time == serviceTimeSlots.first ? 5 : 0, left: time == serviceTimeSlots.last ? 5 : 0),
+                  child: _serviceTimeButton(context, time),
+                ),
+              ),
+            )
                 .toList(),
           ),
           SizedboxSpaccing.height015(context),
