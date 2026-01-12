@@ -56,6 +56,7 @@ import 'view_model/homeview_model/dropdown_categories_selection_view_models/beau
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_beautysalon_view_model.dart';
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/getall_family_event_cooking_view_model.dart';
+import 'view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/getdetails_event_cooking_view_model.dart';
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/freelancer_rating_view_model.dart';
@@ -154,6 +155,7 @@ void main() async {
         //==============>Family Event Cooking
         ChangeNotifierProvider(create: (_) => GetAllFamilyEventCookingViewModel()),
         ChangeNotifierProvider(create: (_) => PostBookFamilyEventCookingViewModel()),
+        ChangeNotifierProvider(create: (_) => GetDetailsEventCookingViewModel()),
                                // notifier
         ChangeNotifierProvider(create: (_) => CookingCheckoutViewModel()),
 

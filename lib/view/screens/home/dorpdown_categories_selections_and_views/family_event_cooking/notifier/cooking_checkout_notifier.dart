@@ -184,36 +184,7 @@ class CookingCheckoutViewModel extends ChangeNotifier {
     return tasks;
   }
 
-  // Prepare complete booking data
-  Map<String, dynamic> prepareBookingData({
-    required String userId,
-    required String fullName,
-    required String phone,
-    required String address,
-    required String? specialRequest,
-    required DateTime selectedDate,
-    required String serviceTime,
-    required List<Map<String, dynamic>> tasks,
-    required String? paymentMethod,
-  }) {
-    String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-    // Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
-    String paymentData = getPaymentMethodData(paymentMethod);
 
-    return {
-      'userId': userId,
-      'fullName': fullName.trim(),
-      'time': serviceTime,
-      'phone': phone.trim(),
-      'fullAddress': address.trim(),
-      'notes': specialRequest?.trim().isEmpty == true
-          ? null
-          : specialRequest?.trim(),
-      'date': formattedDate,
-      'tasks': tasks,
-      "paymentType": paymentData,
-    };
-  }
   /// Initiate payment using centralized service
   Future<SSLPaymentResult> initiatePayment({
     required String trackingId,

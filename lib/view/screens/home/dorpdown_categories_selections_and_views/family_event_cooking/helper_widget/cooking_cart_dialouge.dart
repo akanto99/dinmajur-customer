@@ -256,7 +256,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                 Row(
                   children: [
                     Text(
-                      '৳${salePrice.toStringAsFixed(0)}',
+                      '৳${salePrice.toStringAsFixed(2)}',
                       style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.button(context)),
                     ),
                     if (hasDiscount) ...[
@@ -289,7 +289,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Subtotal', style: AppTextStyles.textSize14(context)),
-              Text('৳${subtotal.toStringAsFixed(0)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+              Text('৳${subtotal.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
             ],
           ),
           SizedBox(height: 8),
@@ -306,7 +306,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             children: [
               Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
               Text(
-                '৳${total.toStringAsFixed(0)}',
+                '৳${total.toStringAsFixed(2)}',
                 style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.button(context)),
               ),
             ],

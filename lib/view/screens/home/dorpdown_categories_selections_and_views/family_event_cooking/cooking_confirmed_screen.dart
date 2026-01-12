@@ -18,8 +18,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class CookingConfirmedScreen extends StatefulWidget {
-  final String ? trackingId;
+  final String? trackingId;
   final String? valId;
+
   const CookingConfirmedScreen({
     Key? key,
     this.trackingId,
@@ -117,42 +118,60 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                 );
               }
 
-              // Prepare service items for beauty salon
+              // Prepare service items - handles both REGULAR and MANUAL
               List<ServiceItem> services = [];
-              if (bookingData.familyEventBookingItems != null &&
-                  bookingData.familyEventBookingItems!.isNotEmpty) {
-                for (var item in bookingData.familyEventBookingItems!) {
-                  if (item.eventTaskItemIds != null &&
-                      item.eventTaskItemIds!.isNotEmpty) {
-                    for (var taskItem in item.eventTaskItemIds!) {
-                      String additionalInfo = '';
-                      if (item.quantity != null && item.quantity! > 0) {
-                        additionalInfo = '(${item.quantity})';
-                      }
-                      services.add(ServiceItem(
-                        name: taskItem.name ?? 'Service',
-                        additionalInfo:
-                        additionalInfo.isEmpty ? null : additionalInfo,
-                      ));
+              if (bookingData.items != null && bookingData.items!.isNotEmpty) {
+                for (var item in bookingData.items!) {
+                  String serviceName = '';
+                  String? additionalInfo;
+
+                  if (item.isManual) {
+                    // MANUAL booking - get item name from nested structure
+                    serviceName = item.itemName ?? 'Item';
+
+                    // Add package name as additional info for manual items
+                    if (item.package?.name != null) {
+                      additionalInfo = 'Package: ${item.package!.name}';
                     }
+                  } else {
+                    // REGULAR booking - get package name
+                    serviceName = item.package?.name ?? 'Package';
                   }
+
+                  // Add price info if available
+                  final priceDetails = item.priceDetails;
+                  if (priceDetails?.salePrice != null) {
+                    String priceInfo = '৳${priceDetails!.salePrice!.toStringAsFixed(2)}';
+                    additionalInfo = additionalInfo == null
+                        ? priceInfo
+                        : '$additionalInfo - $priceInfo';
+                  }
+
+                  services.add(ServiceItem(
+                    name: serviceName,
+                    // additionalInfo: additionalInfo,
+                  ));
                 }
               }
 
               // Create confirmation data
               final confirmationData = BookingConfirmationData(
                 thankYouMessage:
-                "Thank you for choosing our beauty and salon service. We've received your order.",
+                "Thank you for choosing our event cooking service. We've received your order.",
                 orderId: bookingData.trackingId ?? 'N/A',
                 services: services,
-                dateTime:
-                '${_formatDate(bookingData.date)}, ${bookingData.time ?? 'N/A'}',
+                dateTime: _formatDate(bookingData.date),
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
                 onDownloadReceipt: () => _handleDownloadReceipt(),
                 onTrackOrder: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>NavigationScreen(initialIndex: 2,)));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NavigationScreen(initialIndex: 2),
+                    ),
+                  );
                 },
                 isDownloading: _isDownloading,
               );
@@ -176,67 +195,108 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
     );
   }
 
-  // KEY FIX: Fetch bookingData directly from Provider inside the function
   Future<void> _handleDownloadReceipt() async {
-    // // Get bookingData from Provider with correct type - THIS IS THE KEY!
-    // final bookingData = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false)
-    //     .getDetailsEventCookingData.data?.data;
-    //
-    // if (bookingData == null) {
-    //   Utils.flushBarErrorMessage("No booking data available to download", context);
-    //   return;
-    // }
-    //
-    // setState(() {
-    //   _isDownloading = true;
-    // });
-    //
-    // try {
-    //   if (Platform.isAndroid) {
-    //     try {
-    //       final androidInfo = await DeviceInfoPlugin().androidInfo;
-    //       final sdkInt = androidInfo.version.sdkInt;
-    //
-    //       if (sdkInt <= 32) {
-    //         final status = await Permission.storage.request();
-    //         if (!status.isGranted) {
-    //           Utils.flushBarErrorMessage(
-    //             "Storage permission is required to download receipt",
-    //             context,
-    //           );
-    //           setState(() {
-    //             _isDownloading = false;
-    //           });
-    //           return;
-    //         }
-    //       }
-    //     } catch (e) {
-    //       print('❌ Permission check error: $e');
-    //     }
-    //   }
-    //
-    //   // For beauty salon - call toReceiptData() on the correctly typed bookingData
-    //   final file = await PDFReceiptGenerator.generateAndDownloadPDFReceipt(
-    //       bookingData!.toReceiptData()
-    //   );
-    //
-    //   setState(() {
-    //     _isDownloading = false;
-    //   });
-    //
-    //   if (file != null) {
-    //     Utils.flushBarSuccessMessage("Receipt saved successfully!", context);
-    //     _showDownloadSuccessDialog(file.path);
-    //   } else {
-    //     Utils.flushBarErrorMessage("Failed to generate receipt", context);
-    //   }
-    // } catch (e) {
-    //   setState(() {
-    //     _isDownloading = false;
-    //   });
-    //   print('❌ PDF Generation Error: $e');
-    //   Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
-    // }
+    // Get bookingData from Provider
+  //   final bookingData = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false)
+  //       .getDetailsEventCookingData
+  //       .data
+  //       ?.data
+  //       ?.data;
+  //
+  //   if (bookingData == null) {
+  //     Utils.flushBarErrorMessage("No booking data available to download", context);
+  //     return;
+  //   }
+  //
+  //   setState(() {
+  //     _isDownloading = true;
+  //   });
+  //
+  //   try {
+  //     if (Platform.isAndroid) {
+  //       try {
+  //         final androidInfo = await DeviceInfoPlugin().androidInfo;
+  //         final sdkInt = androidInfo.version.sdkInt;
+  //
+  //         if (sdkInt <= 32) {
+  //           final status = await Permission.storage.request();
+  //           if (!status.isGranted) {
+  //             Utils.flushBarErrorMessage(
+  //               "Storage permission is required to download receipt",
+  //               context,
+  //             );
+  //             setState(() {
+  //               _isDownloading = false;
+  //             });
+  //             return;
+  //           }
+  //         }
+  //       } catch (e) {
+  //         print('❌ Permission check error: $e');
+  //       }
+  //     }
+  //
+  //     // Generate receipt data
+  //     final receiptData = _buildReceiptData(bookingData);
+  //
+  //     final file = await PDFReceiptGenerator.generateAndDownloadPDFReceipt(receiptData);
+  //
+  //     setState(() {
+  //       _isDownloading = false;
+  //     });
+  //
+  //     if (file != null) {
+  //       Utils.flushBarSuccessMessage("Receipt saved successfully!", context);
+  //       _showDownloadSuccessDialog(file.path);
+  //     } else {
+  //       Utils.flushBarErrorMessage("Failed to generate receipt", context);
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       _isDownloading = false;
+  //     });
+  //     print('❌ PDF Generation Error: $e');
+  //     Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
+  //   }
+  // }
+  //
+  // // Helper method to build receipt data
+  // Map<String, dynamic> _buildReceiptData(dynamic bookingData) {
+  //   List<Map<String, dynamic>> items = [];
+  //
+  //   if (bookingData.items != null) {
+  //     for (var item in bookingData.items!) {
+  //       String itemName = '';
+  //       num price = 0;
+  //
+  //       if (item.isManual) {
+  //         itemName = item.itemName ?? 'Item';
+  //         price = item.priceDetails?.salePrice ?? 0;
+  //       } else {
+  //         itemName = item.package?.name ?? 'Package';
+  //         price = item.priceDetails?.salePrice ?? 0;
+  //       }
+  //
+  //       items.add({
+  //         'name': itemName,
+  //         'price': price,
+  //       });
+  //     }
+  //   }
+  //
+  //   return {
+  //     'trackingId': bookingData.trackingId ?? 'N/A',
+  //     'date': _formatDate(bookingData.date),
+  //     'customerName': bookingData.fullName ?? 'N/A',
+  //     'customerPhone': bookingData.phone ?? 'N/A',
+  //     'address': bookingData.fullAddress ?? 'N/A',
+  //     'items': items,
+  //     'subTotal': bookingData.subTotal ?? 0,
+  //     'transportFee': bookingData.transportFee ?? 0,
+  //     'vat': bookingData.vat ?? 0,
+  //     'grandTotal': bookingData.grandTotal ?? 0,
+  //     'paymentMethod': bookingData.paymentType ?? 'N/A',
+  //   };
   }
 
   void _showDownloadSuccessDialog(String filePath) {
