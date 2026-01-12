@@ -37,136 +37,249 @@ class GetAllFamilyEventCookingModel {
 }
 
 class Datum {
+  List<Package>? packages;
   String? id;
   String? name;
-  String? image;
   String? type;
   int? position;
-  DateTime? createdAt;
-  DateTime? updatedAt;
-  List<Datum>? packages;
-  List<Price>? prices;
-  List<Datum>? items;
-  String? description;
+  dynamic image;
 
   Datum({
+    this.packages,
     this.id,
     this.name,
-    this.image,
     this.type,
     this.position,
-    this.createdAt,
-    this.updatedAt,
-    this.packages,
-    this.prices,
-    this.items,
-    this.description,
+    this.image,
   });
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
+    packages: json["packages"] == null ? [] : List<Package>.from(json["packages"]!.map((x) => Package.fromJson(x))),
     id: json["_id"],
     name: json["name"],
-    image: json["image"],
     type: json["type"],
     position: json["position"],
-    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
-    packages: json["packages"] == null ? [] : List<Datum>.from(json["packages"]!.map((x) => Datum.fromJson(x))),
+    image: json["image"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "packages": packages == null ? [] : List<dynamic>.from(packages!.map((x) => x.toJson())),
+    "_id": id,
+    "name": name,
+    "type": type,
+    "position": position,
+    "image": image,
+  };
+}
+
+class ImageClass {
+  String? url;
+  String? key;
+  String? altText;
+
+  ImageClass({
+    this.url,
+    this.key,
+    this.altText,
+  });
+
+  factory ImageClass.fromJson(Map<String, dynamic> json) => ImageClass(
+    url: json["url"],
+    key: json["key"],
+    altText: json["altText"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "url": url,
+    "key": key,
+    "altText": altText,
+  };
+}
+
+class Package {
+  String? id;
+  String? name;
+  int? position;
+  List<Price>? prices;
+  List<Item>? items;
+
+  Package({
+    this.id,
+    this.name,
+    this.position,
+    this.prices,
+    this.items,
+  });
+
+  factory Package.fromJson(Map<String, dynamic> json) => Package(
+    id: json["_id"],
+    name: json["name"],
+    position: json["position"],
     prices: json["prices"] == null ? [] : List<Price>.from(json["prices"]!.map((x) => Price.fromJson(x))),
-    items: json["items"] == null ? [] : List<Datum>.from(json["items"]!.map((x) => Datum.fromJson(x))),
-    description: json["description"],
+    items: json["items"] == null ? [] : List<Item>.from(json["items"]!.map((x) => Item.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
     "_id": id,
     "name": name,
-    "image": image,
-    "type": type,
     "position": position,
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "packages": packages == null ? [] : List<dynamic>.from(packages!.map((x) => x.toJson())),
     "prices": prices == null ? [] : List<dynamic>.from(prices!.map((x) => x.toJson())),
     "items": items == null ? [] : List<dynamic>.from(items!.map((x) => x.toJson())),
+  };
+}
+
+class Item {
+  String? id;
+  String? eventCookingPackage;
+  String? name;
+  String? description;
+  dynamic image;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  int? v;
+  List<Price>? prices;
+
+  Item({
+    this.id,
+    this.eventCookingPackage,
+    this.name,
+    this.description,
+    this.image,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+    this.prices,
+  });
+
+  factory Item.fromJson(Map<String, dynamic> json) => Item(
+    id: json["_id"],
+    eventCookingPackage: json["eventCookingPackage"],
+    name: json["name"],
+    description: json["description"],
+    image: json["image"],
+    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
+    v: json["__v"],
+    prices: json["prices"] == null ? [] : List<Price>.from(json["prices"]!.map((x) => Price.fromJson(x))),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "eventCookingPackage": eventCookingPackage,
+    "name": name,
     "description": description,
+    "image": image,
+    "createdAt": createdAt?.toIso8601String(),
+    "updatedAt": updatedAt?.toIso8601String(),
+    "__v": v,
+    "prices": prices == null ? [] : List<dynamic>.from(prices!.map((x) => x.toJson())),
   };
 }
 
 class Price {
   String? id;
+  ReferenceType? referenceType;
+  String? referenceId;
+  GuestRange? guestRange;
   int? originalPrice;
+  double? salePrice;
   DiscountType? discountType;
   int? discountValue;
-  int? salePrice;
-  GuestRange? guestRange;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  int? v;
 
   Price({
     this.id,
+    this.referenceType,
+    this.referenceId,
+    this.guestRange,
     this.originalPrice,
+    this.salePrice,
     this.discountType,
     this.discountValue,
-    this.salePrice,
-    this.guestRange,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
   });
 
   factory Price.fromJson(Map<String, dynamic> json) => Price(
     id: json["_id"],
+    referenceType: referenceTypeValues.map[json["referenceType"]]!,
+    referenceId: json["referenceId"],
+    guestRange: json["guestRange"] == null ? null : GuestRange.fromJson(json["guestRange"]),
     originalPrice: json["originalPrice"],
+    salePrice: json["salePrice"]?.toDouble(),
     discountType: discountTypeValues.map[json["discountType"]]!,
     discountValue: json["discountValue"],
-    salePrice: json["salePrice"],
-    guestRange: json["guestRange"] == null ? null : GuestRange.fromJson(json["guestRange"]),
+    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
+    v: json["__v"],
   );
 
   Map<String, dynamic> toJson() => {
     "_id": id,
+    "referenceType": referenceTypeValues.reverse[referenceType],
+    "referenceId": referenceId,
+    "guestRange": guestRange?.toJson(),
     "originalPrice": originalPrice,
+    "salePrice": salePrice,
     "discountType": discountTypeValues.reverse[discountType],
     "discountValue": discountValue,
-    "salePrice": salePrice,
-    "guestRange": guestRange?.toJson(),
+    "createdAt": createdAt?.toIso8601String(),
+    "updatedAt": updatedAt?.toIso8601String(),
+    "__v": v,
   };
 }
 
 enum DiscountType {
-  PERCENTAGE
+  NONE,
+  PERCENTAGE,
+  FLAT
 }
 
 final discountTypeValues = EnumValues({
-  "PERCENTAGE": DiscountType.PERCENTAGE
+  "NONE": DiscountType.NONE,
+  "PERCENTAGE": DiscountType.PERCENTAGE,
+  "FLAT": DiscountType.FLAT
 });
 
 class GuestRange {
-  Id? id;
+  String? id;
   Label? label;
+  bool? isActive;
+  int? v;
+  DateTime? createdAt;
+  DateTime? updatedAt;
 
   GuestRange({
     this.id,
     this.label,
+    this.isActive,
+    this.v,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory GuestRange.fromJson(Map<String, dynamic> json) => GuestRange(
-    id: idValues.map[json["_id"]]!,
+    id: json["_id"],
     label: labelValues.map[json["label"]]!,
+    isActive: json["isActive"],
+    v: json["__v"],
+    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
   );
 
   Map<String, dynamic> toJson() => {
-    "_id": idValues.reverse[id],
+    "_id": id,
     "label": labelValues.reverse[label],
+    "isActive": isActive,
+    "__v": v,
+    "createdAt": createdAt?.toIso8601String(),
+    "updatedAt": updatedAt?.toIso8601String(),
   };
 }
 
-enum Id {
-  THE_695_A3_E3_DC71508_DE1_D55_CBD8,
-  THE_695_A3_E3_DC71508_DE1_D55_CBD9,
-  THE_695_A3_E3_DC71508_DE1_D55_CBDA
-}
-
-final idValues = EnumValues({
-  "695a3e3dc71508de1d55cbd8": Id.THE_695_A3_E3_DC71508_DE1_D55_CBD8,
-  "695a3e3dc71508de1d55cbd9": Id.THE_695_A3_E3_DC71508_DE1_D55_CBD9,
-  "695a3e3dc71508de1d55cbda": Id.THE_695_A3_E3_DC71508_DE1_D55_CBDA
-});
 
 enum Label {
   THE_2530,
@@ -180,22 +293,28 @@ final labelValues = EnumValues({
   "40–50": Label.THE_4050
 });
 
+enum ReferenceType {
+  EVENT_COOKING_ITEM,
+  EVENT_COOKING_PACKAGE
+}
+
+final referenceTypeValues = EnumValues({
+  "EventCookingItem": ReferenceType.EVENT_COOKING_ITEM,
+  "EventCookingPackage": ReferenceType.EVENT_COOKING_PACKAGE
+});
+
 class Meta {
-  int? total;
   TransportFee? transportFee;
 
   Meta({
-    this.total,
     this.transportFee,
   });
 
   factory Meta.fromJson(Map<String, dynamic> json) => Meta(
-    total: json["total"],
     transportFee: json["transportFee"] == null ? null : TransportFee.fromJson(json["transportFee"]),
   );
 
   Map<String, dynamic> toJson() => {
-    "total": total,
     "transportFee": transportFee?.toJson(),
   };
 }
