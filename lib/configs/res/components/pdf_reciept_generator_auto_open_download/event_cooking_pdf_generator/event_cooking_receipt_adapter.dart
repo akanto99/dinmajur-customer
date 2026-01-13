@@ -1,8 +1,6 @@
 // File: lib/model/home_models/dropdown_categories_selection_models/family_event_cooking_model/event_cooking_receipt_adapter.dart
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/event_cooking_pdf_generator/event_cooking_generator.dart';
-
 import '../../../../../model/home_models/dropdown_categories_selection_models/family_event_cooking_model/getdetails_family_event_booking_model.dart';
-
 
 /// Adapter extension to convert Event Cooking booking data to Universal Receipt format
 extension EventCookingReceiptAdapter on Data {
@@ -17,7 +15,14 @@ extension EventCookingReceiptAdapter on Data {
     String? guestRange;
     if (items != null && items!.isNotEmpty) {
       final firstItem = items!.first;
-      guestRange = firstItem.priceDetails?.guestRange;
+
+      if (firstItem.isManual && firstItem.items != null && firstItem.items!.isNotEmpty) {
+        // For MANUAL, get from first item wrapper
+        guestRange = firstItem.items!.first.price?.guestRange?.label;
+      } else {
+        // For REGULAR, get from item's price
+        guestRange = firstItem.price?.guestRange?.label;
+      }
     }
 
     // Convert booking items to universal service format
@@ -56,62 +61,54 @@ extension EventCookingReceiptAdapter on Data {
       return [];
     }
 
-    // Group items for better presentation
-    Map<String, List<EventCookingItem>> groupedItems = {};
-
-    for (var item in items!) {
-      String groupKey;
-
-      if (item.isManual) {
-        // MANUAL: Group by package name
-        groupKey = item.package?.name ?? 'Unknown Package';
-      } else {
-        // REGULAR: Group by category name (if available) or package name
-        groupKey = eventCookingCategory ?? item.package?.name ?? 'Service';
-      }
-
-      if (!groupedItems.containsKey(groupKey)) {
-        groupedItems[groupKey] = [];
-      }
-      groupedItems[groupKey]!.add(item);
-    }
-
-    // Convert grouped items to UniversalServiceItem list
     List<UniversalServiceItem> services = [];
 
-    groupedItems.forEach((serviceName, itemsList) {
-      List<UniversalSubItem> subItems = [];
-      num totalPrice = 0;
+    for (var bookingItem in items!) {
+      if (bookingItem.isManual) {
+        // MANUAL booking - one service per package with multiple items
+        final packageName = bookingItem.package?.name ?? 'Unknown Package';
+        List<UniversalSubItem> subItems = [];
+        num totalPrice = 0;
 
-      for (var item in itemsList) {
-        String itemName;
-        num itemPrice = 0;
+        if (bookingItem.items != null && bookingItem.items!.isNotEmpty) {
+          for (var itemWrapper in bookingItem.items!) {
+            final itemName = itemWrapper.item?.name ?? 'Item';
+            final itemPrice = itemWrapper.price?.salePrice ?? 0;
 
-        if (item.isManual) {
-          // MANUAL: Item name from nested structure
-          itemName = item.item?.item?.name ?? 'Item';
-          itemPrice = item.priceDetails?.salePrice ?? 0;
-        } else {
-          // REGULAR: Package name
-          itemName = item.package?.name ?? 'Package';
-          itemPrice = item.priceDetails?.salePrice ?? 0;
+            subItems.add(UniversalSubItem(
+              name: itemName,
+              price: itemPrice,
+            ));
+
+            totalPrice += itemPrice;
+          }
         }
 
-        subItems.add(UniversalSubItem(
-          name: itemName,
-          price: itemPrice,
+        services.add(UniversalServiceItem(
+          serviceName: packageName,
+          items: subItems,
+          quantity: 1,
+          totalPrice: totalPrice,
         ));
+      } else {
+        // REGULAR booking - one service per package
+        final serviceName = categoryName ?? '';
+        final packageName = bookingItem.package?.name ?? 'Package';
+        final itemPrice = bookingItem.price?.salePrice ?? 0;
 
-        totalPrice += itemPrice;
+        services.add(UniversalServiceItem(
+          serviceName: serviceName,
+          items: [
+            UniversalSubItem(
+              name: packageName,
+              price: itemPrice,
+            ),
+          ],
+          quantity: 1,
+          totalPrice: itemPrice,
+        ));
       }
-
-      services.add(UniversalServiceItem(
-        serviceName: serviceName,
-        items: subItems,
-        quantity: 1, // Event cooking doesn't use quantity
-        totalPrice: totalPrice,
-      ));
-    });
+    }
 
     return services;
   }
