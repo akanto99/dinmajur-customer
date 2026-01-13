@@ -19,29 +19,13 @@ class GetDetailesFamilyEventBookingModel {
     this.data
   });
 
-  factory GetDetailesFamilyEventBookingModel.fromJson(Map<String, dynamic> json) {
-    // Handle both structures:
-    // REGULAR: { success, message, meta, data: { _id, trackingId, ... } }
-    // MANUAL: { success, message, meta, data: { success, message, data: { _id, trackingId, ... } } }
-
-    Data? parsedData;
-    if (json["data"] != null) {
-      // Check if data contains nested 'data' field (MANUAL structure)
-      if (json["data"]["data"] != null) {
-        parsedData = Data.fromJson(json["data"]["data"]);
-      } else {
-        // Direct data field (REGULAR structure)
-        parsedData = Data.fromJson(json["data"]);
-      }
-    }
-
-    return GetDetailesFamilyEventBookingModel(
-      success: json["success"],
-      message: json["message"],
-      meta: json["meta"],
-      data: parsedData,
-    );
-  }
+  factory GetDetailesFamilyEventBookingModel.fromJson(Map<String, dynamic> json) =>
+      GetDetailesFamilyEventBookingModel(
+        success: json["success"],
+        message: json["message"],
+        meta: json["meta"],
+        data: json["data"] == null ? null : Data.fromJson(json["data"]),
+      );
 
   Map<String, dynamic> toJson() => {
     "success": success,
@@ -53,6 +37,7 @@ class GetDetailesFamilyEventBookingModel {
 
 class Data {
   String? id;
+  String? customerId;
   String? trackingId;
   String? paymentType;
   String? fullName;
@@ -68,14 +53,15 @@ class Data {
   num? vat;
   num? transportFee;
   String? status;
-  String? eventCookingCategory;
-  List<EventCookingItem>? items;
+  dynamic eventCookingCategory; // Can be String (ID) or EventCookingCategory object
+  List<BookingItem>? items;
   DateTime? createdAt;
   DateTime? updatedAt;
   int? v;
 
   Data({
     this.id,
+    this.customerId,
     this.trackingId,
     this.paymentType,
     this.fullName,
@@ -98,104 +84,195 @@ class Data {
     this.v,
   });
 
-  factory Data.fromJson(Map<String, dynamic> json) => Data(
-    id: json["_id"],
-    trackingId: json["trackingId"],
-    paymentType: json["paymentType"],
-    fullName: json["fullName"],
-    fullAddress: json["fullAddress"],
-    email: json["email"],
-    phone: json["phone"],
-    date: json["date"] == null ? null : DateTime.parse(json["date"]),
-    discountType: json["discountType"],
-    discountValue: json["discountValue"],
-    total: json["total"],
-    subTotal: json["subTotal"],
-    grandTotal: json["grandTotal"],
-    vat: json["vat"],
-    transportFee: json["transport_fee"],
-    status: json["status"],
-    eventCookingCategory: json["eventCookingCategory"],
-    items: json["items"] == null
-        ? []
-        : List<EventCookingItem>.from(
-        json["items"].map((x) => EventCookingItem.fromJson(x))),
-    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
-    v: json["__v"],
-  );
+  // Helper to get category name safely
+  String? get categoryName {
+    if (eventCookingCategory == null) return null;
+    if (eventCookingCategory is String) return null; // Just an ID, no name available
+    if (eventCookingCategory is Map || eventCookingCategory is EventCookingCategory) {
+      try {
+        return eventCookingCategory is EventCookingCategory
+            ? eventCookingCategory.name
+            : eventCookingCategory['name'];
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  // Helper to get category ID safely
+  String? get categoryId {
+    if (eventCookingCategory == null) return null;
+    if (eventCookingCategory is String) return eventCookingCategory;
+    if (eventCookingCategory is Map) return eventCookingCategory['_id'];
+    if (eventCookingCategory is EventCookingCategory) return eventCookingCategory.id;
+    return null;
+  }
+
+  factory Data.fromJson(Map<String, dynamic> json) {
+    // Handle eventCookingCategory - can be String or Object
+    dynamic parsedCategory;
+    if (json["eventCookingCategory"] != null) {
+      if (json["eventCookingCategory"] is String) {
+        // It's just an ID string
+        parsedCategory = json["eventCookingCategory"];
+      } else if (json["eventCookingCategory"] is Map<String, dynamic>) {
+        // It's a full object
+        parsedCategory = EventCookingCategory.fromJson(json["eventCookingCategory"]);
+      }
+    }
+
+    return Data(
+      id: json["_id"],
+      customerId: json["customerId"],
+      trackingId: json["trackingId"],
+      paymentType: json["paymentType"],
+      fullName: json["fullName"],
+      fullAddress: json["fullAddress"],
+      email: json["email"],
+      phone: json["phone"],
+      date: json["date"] == null ? null : DateTime.parse(json["date"]),
+      discountType: json["discountType"],
+      discountValue: json["discountValue"],
+      total: json["total"],
+      subTotal: json["subTotal"],
+      grandTotal: json["grandTotal"],
+      vat: json["vat"],
+      transportFee: json["transport_fee"],
+      status: json["status"],
+      eventCookingCategory: parsedCategory,
+      items: json["items"] == null
+          ? []
+          : List<BookingItem>.from(
+          json["items"].map((x) => BookingItem.fromJson(x))),
+      createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+      updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
+      v: json["__v"],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    dynamic categoryJson;
+    if (eventCookingCategory != null) {
+      if (eventCookingCategory is String) {
+        categoryJson = eventCookingCategory;
+      } else if (eventCookingCategory is EventCookingCategory) {
+        categoryJson = eventCookingCategory.toJson();
+      }
+    }
+
+    return {
+      "_id": id,
+      "customerId": customerId,
+      "trackingId": trackingId,
+      "paymentType": paymentType,
+      "fullName": fullName,
+      "fullAddress": fullAddress,
+      "email": email,
+      "phone": phone,
+      "date": date?.toIso8601String(),
+      "discountType": discountType,
+      "discountValue": discountValue,
+      "total": total,
+      "subTotal": subTotal,
+      "grandTotal": grandTotal,
+      "vat": vat,
+      "transport_fee": transportFee,
+      "status": status,
+      "eventCookingCategory": categoryJson,
+      "items": items?.map((x) => x.toJson()).toList() ?? [],
+      "createdAt": createdAt?.toIso8601String(),
+      "updatedAt": updatedAt?.toIso8601String(),
+      "__v": v,
+    };
+  }
+}
+
+class EventCookingCategory {
+  String? id;
+  String? name;
+  dynamic image;
+  String? type;
+  int? position;
+
+  EventCookingCategory({
+    this.id,
+    this.name,
+    this.image,
+    this.type,
+    this.position,
+  });
+
+  factory EventCookingCategory.fromJson(Map<String, dynamic> json) =>
+      EventCookingCategory(
+        id: json["_id"],
+        name: json["name"],
+        image: json["image"],
+        type: json["type"],
+        position: json["position"],
+      );
 
   Map<String, dynamic> toJson() => {
     "_id": id,
-    "trackingId": trackingId,
-    "paymentType": paymentType,
-    "fullName": fullName,
-    "fullAddress": fullAddress,
-    "email": email,
-    "phone": phone,
-    "date": date?.toIso8601String(),
-    "discountType": discountType,
-    "discountValue": discountValue,
-    "total": total,
-    "subTotal": subTotal,
-    "grandTotal": grandTotal,
-    "vat": vat,
-    "transport_fee": transportFee,
-    "status": status,
-    "eventCookingCategory": eventCookingCategory,
-    "items": items?.map((x) => x.toJson()).toList() ?? [],
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "__v": v,
+    "name": name,
+    "image": image,
+    "type": type,
+    "position": position,
   };
 }
 
-class EventCookingItem {
+class BookingItem {
   String? id;
   String? eventCookingBooking;
   Package? package;
   Price? price; // For REGULAR bookings
-  ItemWrapper? item; // For MANUAL bookings
+  List<ItemWrapper>? items; // For MANUAL bookings (array of items)
   DateTime? createdAt;
   DateTime? updatedAt;
   int? v;
 
-  EventCookingItem({
+  BookingItem({
     this.id,
     this.eventCookingBooking,
     this.package,
     this.price,
-    this.item,
+    this.items,
     this.createdAt,
     this.updatedAt,
     this.v,
   });
 
   // Helper to determine if this is a manual booking
-  bool get isManual => item != null;
+  bool get isManual => items != null && items!.isNotEmpty;
 
-  // Helper to get the item name (works for both regular and manual)
-  String? get itemName {
+  // Helper to get all item details (works for both regular and manual)
+  List<String> get itemNames {
     if (isManual) {
-      return item?.item?.name;
+      return items?.map((e) => e.item?.name ?? '').where((n) => n.isNotEmpty).toList() ?? [];
     }
-    return package?.name;
+    return package?.name != null ? [package!.name!] : [];
   }
 
-  // Helper to get the price details (works for both regular and manual)
-  Price? get priceDetails {
+  // Helper to get the price details for regular bookings
+  Price? get regularPrice => price;
+
+  // Helper to get all prices for manual bookings
+  List<Price> get manualPrices {
     if (isManual) {
-      return item?.price;
+      return items?.map((e) => e.price).where((p) => p != null).cast<Price>().toList() ?? [];
     }
-    return price;
+    return [];
   }
 
-  factory EventCookingItem.fromJson(Map<String, dynamic> json) => EventCookingItem(
+  factory BookingItem.fromJson(Map<String, dynamic> json) => BookingItem(
     id: json["_id"],
     eventCookingBooking: json["eventCookingBooking"],
     package: json["package"] == null ? null : Package.fromJson(json["package"]),
     price: json["price"] == null ? null : Price.fromJson(json["price"]),
-    item: json["item"] == null ? null : ItemWrapper.fromJson(json["item"]),
+    items: json["items"] == null
+        ? null
+        : List<ItemWrapper>.from(
+        json["items"].map((x) => ItemWrapper.fromJson(x))),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
     v: json["__v"],
@@ -206,7 +283,7 @@ class EventCookingItem {
     "eventCookingBooking": eventCookingBooking,
     "package": package?.toJson(),
     "price": price?.toJson(),
-    "item": item?.toJson(),
+    "items": items?.map((x) => x.toJson()).toList(),
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
     "__v": v,
@@ -261,7 +338,7 @@ class Price {
   String? id;
   String? referenceType;
   String? referenceId;
-  String? guestRange;
+  GuestRange? guestRange;
   num? originalPrice;
   num? salePrice;
   String? discountType;
@@ -288,7 +365,9 @@ class Price {
     id: json["_id"],
     referenceType: json["referenceType"],
     referenceId: json["referenceId"],
-    guestRange: json["guestRange"],
+    guestRange: json["guestRange"] == null
+        ? null
+        : GuestRange.fromJson(json["guestRange"]),
     originalPrice: json["originalPrice"],
     salePrice: json["salePrice"],
     discountType: json["discountType"],
@@ -302,7 +381,7 @@ class Price {
     "_id": id,
     "referenceType": referenceType,
     "referenceId": referenceId,
-    "guestRange": guestRange,
+    "guestRange": guestRange?.toJson(),
     "originalPrice": originalPrice,
     "salePrice": salePrice,
     "discountType": discountType,
@@ -310,6 +389,20 @@ class Price {
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
     "__v": v,
+  };
+}
+
+class GuestRange {
+  String? label;
+
+  GuestRange({this.label});
+
+  factory GuestRange.fromJson(Map<String, dynamic> json) => GuestRange(
+    label: json["label"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "label": label,
   };
 }
 
