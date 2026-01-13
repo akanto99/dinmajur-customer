@@ -52,6 +52,7 @@ class Datum {
   String? orderId;
   String? houseKeeperBookingId;
   String? beautySalonBookingId;
+  String? eventCookingBookingId;
   String? type;
   String? status;
   double? total;
@@ -61,6 +62,7 @@ class Datum {
     this.orderId,
     this.houseKeeperBookingId,
     this.beautySalonBookingId,
+    this.eventCookingBookingId,
     this.type,
     this.status,
     this.total,
@@ -71,6 +73,7 @@ class Datum {
     orderId: json["orderId"],
     houseKeeperBookingId: json["houseKeeperBookingId"],
     beautySalonBookingId: json["beautySalonBookingId"],
+    eventCookingBookingId: json["eventCookingBookingId"],
     type: json["type"],
     status: json["status"],
     total: json["total"]?.toDouble(),
@@ -81,6 +84,7 @@ class Datum {
     "orderId": orderId,
     "houseKeeperBookingId": houseKeeperBookingId,
     "beautySalonBookingId": beautySalonBookingId,
+    "eventCookingBookingId": eventCookingBookingId,
     "type": type,
     "status": status,
     "total": total,
