@@ -181,25 +181,26 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
   }
 
   Widget _buildCartItemsList(BuildContext context, List<Map<String, dynamic>> cartItems, double screenWidth) {
-    return Expanded(
+    return Flexible(
+      fit: FlexFit.loose,  // This allows it to shrink to content size
       child: SingleChildScrollView(
         child: Container(
           width: screenWidth * 0.87,
-          padding: EdgeInsets.symmetric(vertical: 15),
+          padding: EdgeInsets.symmetric(vertical: 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text('Selected Items', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                  SizedBox(width: 8),
-                  Text(
-                    '${_getGuestRangeText()}',
-                    style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
-                  )
-                ],
-              ),
-              SizedBox(height: 12),
+              // Row(
+              //   children: [
+              //     Text('Selected Items', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+              //     SizedBox(width: 8),
+              //     Text(
+              //       '${_getGuestRangeText()}',
+              //       style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
+              //     )
+              //   ],
+              // ),
+              // SizedBox(height: 12),
               if (cartItems.isEmpty)
                 Center(
                   child: Padding(
@@ -215,7 +216,6 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       ),
     );
   }
-
   Widget _buildCartItem(BuildContext context, Map<String, dynamic> item, double screenWidth) {
     // FIXED: Cast to Package instead of Datum
     final package = item['package'] as Package;
@@ -229,12 +229,16 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
     final displayName = type == 'MANUAL' ? (itemData?.name ?? '') : (package.name ?? '');
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(12),
+      // margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border(context)),
+        border: Border(
+          bottom: BorderSide(
+            width: 1,
+              color: AppColors.border(context)
+          )
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,9 +284,9 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
     return Container(
       width: screenWidth * 0.87,
       padding: EdgeInsets.symmetric(vertical: 15),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
-      ),
+      // decoration: BoxDecoration(
+      //   border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
+      // ),
       child: Column(
         children: [
           Row(
@@ -328,7 +332,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   ),
                 ),
                 Text(
-                  '৳${originalTotal.toStringAsFixed(2)}',
+                  '৳${originalTotal.toStringAsFixed(0)}',
                   style: AppTextStyles.textSize12(context, color: Colors.red).copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red),
                 ),
               ],

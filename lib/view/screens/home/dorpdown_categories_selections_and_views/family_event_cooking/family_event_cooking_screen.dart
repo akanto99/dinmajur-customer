@@ -545,7 +545,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                     if (hasDiscount) ...[
                       SizedBox(width: 8),
                       Text(
-                        '৳${originalPrice.toStringAsFixed(2)}',
+                        '৳${originalPrice.toStringAsFixed(0)}',
                         style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context).withOpacity(0.5)).copyWith(decoration: TextDecoration.lineThrough),
                       ),
                     ],
@@ -662,7 +662,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 if (hasDiscount) ...[
                   SizedBox(width: 8),
                   Text(
-                    '৳${originalPrice.toStringAsFixed(2)}',
+                    '৳${originalPrice.toStringAsFixed(0)}',
                     style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                   ),
                 ],
