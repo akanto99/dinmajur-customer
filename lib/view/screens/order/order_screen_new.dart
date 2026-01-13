@@ -1091,6 +1091,10 @@ class _OrderScreenState extends State<OrderScreen> {
       orderType = 'Grocery Order';
       displayOrderId = datum.orderId ?? 'N/A';
       orderIdForNavigation = datum.orderId ?? '';
+    }else if (datum.type == 'EVENT_COOKING') {
+      orderType = 'Family Event Cooking';
+      displayOrderId = datum.eventCookingBookingId ?? 'N/A';
+      orderIdForNavigation = datum.eventCookingBookingId ?? '';
     }
 
     String shortOrderId = displayOrderId.length > 6 ? displayOrderId.substring(displayOrderId.length - 6) : displayOrderId;
@@ -1114,6 +1118,8 @@ class _OrderScreenState extends State<OrderScreen> {
             Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': orderIdForNavigation});
           } else if (datum.type == 'BEAUTY_SALON') {
             Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': orderIdForNavigation});
+          }else if (datum.type == 'EVENT_COOKING') {
+            Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': orderIdForNavigation});
           }
         },
         child: Container(
