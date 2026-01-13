@@ -118,7 +118,7 @@ class DynamicCartHeader extends StatelessWidget {
                       SizedboxSpaccing.width02(context),
                       if (savedAmount > 0)
                         Text(
-                          '${originalPrice.toStringAsFixed(2)}',
+                          '${originalPrice.toStringAsFixed(0)}',
                           style: (originalPriceStyle ??
                               AppTextStyles.textSize12(
                                 context,
