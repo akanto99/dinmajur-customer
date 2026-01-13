@@ -135,12 +135,14 @@ class DatumData {
 class Params {
   String? beautySalonBookingId;
   String? houseKeeperBookingId;
+  String? eventCookingBookingId;
   String? orderId;
   String? deliveryId;
 
   Params({
     this.beautySalonBookingId,
     this.houseKeeperBookingId,
+    this.eventCookingBookingId,
     this.orderId,
     this.deliveryId,
   });
@@ -148,6 +150,7 @@ class Params {
   factory Params.fromJson(Map<String, dynamic> json) => Params(
     beautySalonBookingId: json["beautySalonBookingId"],
     houseKeeperBookingId: json["houseKeeperBookingId"],
+    eventCookingBookingId: json["eventCookingBookingId"],
     orderId: json["orderId"],
     deliveryId: json["deliveryId"],
   );
@@ -155,6 +158,7 @@ class Params {
   Map<String, dynamic> toJson() => {
     "beautySalonBookingId": beautySalonBookingId,
     "houseKeeperBookingId": houseKeeperBookingId,
+    "eventCookingBookingId": eventCookingBookingId,
     "orderId": orderId,
     "deliveryId": deliveryId,
   };
