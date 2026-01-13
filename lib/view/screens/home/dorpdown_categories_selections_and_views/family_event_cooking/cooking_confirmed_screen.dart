@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/event_cooking_pdf_generator/event_cooking_generator.dart';
+import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/event_cooking_pdf_generator/event_cooking_receipt_adapter.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
@@ -194,109 +196,70 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
       ],
     );
   }
-
   Future<void> _handleDownloadReceipt() async {
     // Get bookingData from Provider
-  //   final bookingData = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false)
-  //       .getDetailsEventCookingData
-  //       .data
-  //       ?.data
-  //       ?.data;
-  //
-  //   if (bookingData == null) {
-  //     Utils.flushBarErrorMessage("No booking data available to download", context);
-  //     return;
-  //   }
-  //
-  //   setState(() {
-  //     _isDownloading = true;
-  //   });
-  //
-  //   try {
-  //     if (Platform.isAndroid) {
-  //       try {
-  //         final androidInfo = await DeviceInfoPlugin().androidInfo;
-  //         final sdkInt = androidInfo.version.sdkInt;
-  //
-  //         if (sdkInt <= 32) {
-  //           final status = await Permission.storage.request();
-  //           if (!status.isGranted) {
-  //             Utils.flushBarErrorMessage(
-  //               "Storage permission is required to download receipt",
-  //               context,
-  //             );
-  //             setState(() {
-  //               _isDownloading = false;
-  //             });
-  //             return;
-  //           }
-  //         }
-  //       } catch (e) {
-  //         print('❌ Permission check error: $e');
-  //       }
-  //     }
-  //
-  //     // Generate receipt data
-  //     final receiptData = _buildReceiptData(bookingData);
-  //
-  //     final file = await PDFReceiptGenerator.generateAndDownloadPDFReceipt(receiptData);
-  //
-  //     setState(() {
-  //       _isDownloading = false;
-  //     });
-  //
-  //     if (file != null) {
-  //       Utils.flushBarSuccessMessage("Receipt saved successfully!", context);
-  //       _showDownloadSuccessDialog(file.path);
-  //     } else {
-  //       Utils.flushBarErrorMessage("Failed to generate receipt", context);
-  //     }
-  //   } catch (e) {
-  //     setState(() {
-  //       _isDownloading = false;
-  //     });
-  //     print('❌ PDF Generation Error: $e');
-  //     Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
-  //   }
-  // }
-  //
-  // // Helper method to build receipt data
-  // Map<String, dynamic> _buildReceiptData(dynamic bookingData) {
-  //   List<Map<String, dynamic>> items = [];
-  //
-  //   if (bookingData.items != null) {
-  //     for (var item in bookingData.items!) {
-  //       String itemName = '';
-  //       num price = 0;
-  //
-  //       if (item.isManual) {
-  //         itemName = item.itemName ?? 'Item';
-  //         price = item.priceDetails?.salePrice ?? 0;
-  //       } else {
-  //         itemName = item.package?.name ?? 'Package';
-  //         price = item.priceDetails?.salePrice ?? 0;
-  //       }
-  //
-  //       items.add({
-  //         'name': itemName,
-  //         'price': price,
-  //       });
-  //     }
-  //   }
-  //
-  //   return {
-  //     'trackingId': bookingData.trackingId ?? 'N/A',
-  //     'date': _formatDate(bookingData.date),
-  //     'customerName': bookingData.fullName ?? 'N/A',
-  //     'customerPhone': bookingData.phone ?? 'N/A',
-  //     'address': bookingData.fullAddress ?? 'N/A',
-  //     'items': items,
-  //     'subTotal': bookingData.subTotal ?? 0,
-  //     'transportFee': bookingData.transportFee ?? 0,
-  //     'vat': bookingData.vat ?? 0,
-  //     'grandTotal': bookingData.grandTotal ?? 0,
-  //     'paymentMethod': bookingData.paymentType ?? 'N/A',
-  //   };
+    final bookingData = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false)
+        .getDetailsEventCookingData
+        .data
+        ?.data;
+
+    if (bookingData == null) {
+      Utils.flushBarErrorMessage("No booking data available to download", context);
+      return;
+    }
+
+    setState(() {
+      _isDownloading = true;
+    });
+
+    try {
+      // Check permissions for Android
+      if (Platform.isAndroid) {
+        try {
+          final androidInfo = await DeviceInfoPlugin().androidInfo;
+          final sdkInt = androidInfo.version.sdkInt;
+
+          if (sdkInt <= 32) {
+            final status = await Permission.storage.request();
+            if (!status.isGranted) {
+              Utils.flushBarErrorMessage(
+                "Storage permission is required to download receipt",
+                context,
+              );
+              setState(() {
+                _isDownloading = false;
+              });
+              return;
+            }
+          }
+        } catch (e) {
+          print('❌ Permission check error: $e');
+        }
+      }
+
+      // ✅ USE THE ADAPTER EXTENSION TO CONVERT TO UNIVERSAL FORMAT
+      final receiptData = bookingData.toUniversalReceiptData();
+
+      // ✅ GENERATE PDF USING UNIVERSAL GENERATOR
+      final file = await UniversalPDFReceiptGenerator.generateAndDownloadPDFReceipt(receiptData);
+
+      setState(() {
+        _isDownloading = false;
+      });
+
+      if (file != null) {
+        Utils.flushBarSuccessMessage("Receipt saved successfully!", context);
+        _showDownloadSuccessDialog(file.path);
+      } else {
+        Utils.flushBarErrorMessage("Failed to generate receipt", context);
+      }
+    } catch (e) {
+      setState(() {
+        _isDownloading = false;
+      });
+      print('❌ PDF Generation Error: $e');
+      Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
+    }
   }
 
   void _showDownloadSuccessDialog(String filePath) {
