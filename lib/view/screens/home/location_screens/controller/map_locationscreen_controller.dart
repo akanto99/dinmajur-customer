@@ -228,6 +228,8 @@ class MapLocationController {
   // ============ HANDLE MAP TAP ============
 
   void onMapTap(LatLng location) {
+    FocusScope.of(context).unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     updateSelectedLocation(location);
   }
 
@@ -318,6 +320,8 @@ class MapLocationController {
   // ============ LOCATION CONFIRMATION ============
 
   Future<void> confirmLocation() async {
+    FocusScope.of(context).unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     if (selectedLocation != null && selectedAddress.isNotEmpty) {
       try {
         final locationData = {
@@ -343,17 +347,19 @@ class MapLocationController {
     }
   }
 
-  // ============ CLEAR SELECTION ============
+// ============ CLEAR SELECTION ============
 
   void clearSelection() {
     addressController.clear();
+    addressFocusNode.unfocus(); // Add this
+    FocusScope.of(context).unfocus(); // Add this
+
     setState(() {
       selectedLocation = null;
       markers.clear();
       selectedAddress = '';
     });
   }
-
   // ============ CLEANUP (replaces dispose) ============
 
   void dispose() {
