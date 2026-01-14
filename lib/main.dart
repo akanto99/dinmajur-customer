@@ -39,6 +39,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
@@ -202,12 +203,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeNetworkMonitoring();
+     WakelockPlus.enable();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription.cancel();
+     WakelockPlus.disable();
     super.dispose();
   }
 
@@ -221,8 +224,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         print("🔌 MyApp: App resumed - checking connections");
         _handleAppResumed();
+        WakelockPlus.enable();
+
         break;
       case AppLifecycleState.paused:
+         WakelockPlus.disable();
+
         print("🔌 MyApp: App paused");
         break;
       case AppLifecycleState.inactive:
