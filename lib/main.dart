@@ -106,7 +106,7 @@ void main() async {
 
     // ✅ Wait for initial count and initialize listener
     await Future.delayed(Duration(milliseconds: 500));
-    notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
+    notificationCountViewModel.initializeCountListener(sseService.notificationCountStream,  sseService.notificationIncrementStream,);
     notificationCountViewModel.setInitialCount(sseService.currentCount);
     print("✅ Main: SSE listener initialized with count: ${sseService.currentCount}");
 
@@ -340,7 +340,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         // Re-initialize listener if needed
         if (!notificationCountViewModel.isInitialized) {
-          notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
+          notificationCountViewModel.initializeCountListener(sseService.notificationCountStream,      sseService.notificationIncrementStream,);
         }
         notificationCountViewModel.setInitialCount(sseService.currentCount);
 
@@ -492,7 +492,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
       // Re-initialize listener if needed
       if (!notificationCountViewModel.isInitialized) {
-        notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
+        notificationCountViewModel.initializeCountListener(sseService.notificationCountStream,      sseService.notificationIncrementStream,);
       }
 
       // Update with current count

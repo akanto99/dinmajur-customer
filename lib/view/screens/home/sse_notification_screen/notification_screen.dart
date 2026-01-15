@@ -1,3 +1,5 @@
+///Corrected
+
 // import 'package:dinmajur_customer/configs/res/color.dart';
 // import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 // import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
@@ -27,11 +29,15 @@
 //   bool _sseListenerInitialized = false;
 //   int _previousSSECount = 0;
 //   bool _showNewNotificationBanner = false;
+//   int _selectedTabIndex = 0;
+//
+//   NotificationCountViewModel? _countViewModel;
 //
 //   @override
 //   void didChangeDependencies() {
 //     super.didChangeDependencies();
 //     if (!_sseListenerInitialized) {
+//       _countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
 //       _initializeSSECountListener();
 //       _sseListenerInitialized = true;
 //     }
@@ -43,38 +49,52 @@
 //     WidgetsBinding.instance.addPostFrameCallback((_) {
 //       Provider.of<GetNotificationViewModel>(context, listen: false).fetchLocationListApi();
 //
-//       // Get initial count
-//       final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
+//       final countViewModel = _countViewModel ?? Provider.of<NotificationCountViewModel>(context, listen: false);
 //       _previousSSECount = countViewModel.notificationCount;
 //     });
 //   }
 //
 //   void _initializeSSECountListener() {
 //     try {
-//       final sseService = Provider.of<SSENotificationService>(context, listen: false);
-//       final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
+//       if (_countViewModel == null) {
+//         debugPrint('❌ NotificationScreen: ViewModel not initialized');
+//         return;
+//       }
 //
-//       // Connect only count stream
-//       countViewModel.initializeCountListener(sseService.notificationCountStream);
+//       if (!_countViewModel!.isInitialized) {
+//         final sseService = Provider.of<SSENotificationService>(context, listen: false);
+//         _countViewModel!.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
+//       }
 //
-//       // Listen to count changes
-//       countViewModel.addListener(_onSSECountChanged);
+//       _countViewModel!.addListener(_onSSECountChanged);
+//
+//       debugPrint('✅ NotificationScreen: SSE listener initialized');
 //     } catch (e) {
 //       debugPrint('❌ NotificationScreen: Error initializing count listener: $e');
 //     }
 //   }
 //
 //   void _onSSECountChanged() {
-//     final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
-//     final currentCount = countViewModel.notificationCount;
+//     if (!mounted) {
+//       debugPrint('⚠️ NotificationScreen: Widget disposed, ignoring count change');
+//       return;
+//     }
+//
+//     if (_countViewModel == null) {
+//       debugPrint('⚠️ NotificationScreen: ViewModel is null');
+//       return;
+//     }
+//
+//     final currentCount = _countViewModel!.notificationCount;
 //
 //     debugPrint('🔔 SSE Count changed: $_previousSSECount -> $currentCount');
 //
-//     // Show banner if count increased (new notification arrived)
 //     if (currentCount > _previousSSECount && currentCount > 0) {
-//       setState(() {
-//         _showNewNotificationBanner = true;
-//       });
+//       if (mounted) {
+//         setState(() {
+//           _showNewNotificationBanner = true;
+//         });
+//       }
 //     }
 //
 //     _previousSSECount = currentCount;
@@ -82,18 +102,48 @@
 //
 //   Future<void> _handleRefreshNotifications() async {
 //     final viewModel = Provider.of<GetNotificationViewModel>(context, listen: false);
-//     await viewModel.fetchLocationListApi();
+//     final type = _selectedTabIndex == 1 ? 'PROMOTION' : null;
+//     await viewModel.fetchLocationListApi(type: type);
 //
+//     if (mounted) {
+//       setState(() {
+//         _showNewNotificationBanner = false;
+//       });
+//     }
+//   }
+//
+//   void _onTabChanged(int index) {
 //     setState(() {
-//       _showNewNotificationBanner = false;
+//       _selectedTabIndex = index;
 //     });
+//
+//     final viewModel = Provider.of<GetNotificationViewModel>(context, listen: false);
+//     final type = index == 1 ? 'PROMOTION' : null;
+//     viewModel.fetchLocationListApi(type: type);
+//   }
+//
+//   String _getFilterType(int tabIndex) {
+//     switch (tabIndex) {
+//       case 1:
+//         return 'PROMOTION';
+//       default:
+//         return 'ALL';
+//     }
 //   }
 //
 //   @override
 //   void dispose() {
-//     final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
-//     countViewModel.removeListener(_onSSECountChanged);
+//     debugPrint('🔴 NotificationScreen: Disposing...');
+//
+//     if (_countViewModel != null) {
+//       _countViewModel!.removeListener(_onSSECountChanged);
+//       debugPrint('✅ NotificationScreen: Listener removed');
+//     }
+//
+//     _countViewModel = null;
+//
 //     super.dispose();
+//     debugPrint('✅ NotificationScreen: Disposed successfully');
 //   }
 //
 //   @override
@@ -109,13 +159,26 @@
 //   Widget body() {
 //     final screenWidth = MediaQuery.of(context).size.width * 1;
 //     final screenHeight = MediaQuery.of(context).size.height * 1;
+//
 //     return Column(
 //       children: [
-//         GestureDetector(
-//           onTap: () {
-//             Navigator.pop(context);
-//           },
-//           child: AppBarHeader("Notifications"),
+//         GestureDetector(onTap: () => Navigator.pop(context), child: AppBarHeader("Notifications")),
+//
+//         SizedboxSpaccing.height02(context),
+//
+//         Container(
+//           width: screenWidth * 0.9,
+//           alignment: Alignment.centerLeft,
+//           child: Container(
+//             width: screenWidth * 0.45,
+//             height: 35,
+//             decoration: BoxDecoration(
+//               color: AppColors.containerBackground(context),
+//               borderRadius: BorderRadius.circular(6),
+//               border: Border.all(color: AppColors.border(context), width: 1),
+//             ),
+//             child: Row(children: [_buildCustomTab('All', 0), _buildCustomTab('Promo', 1)]),
+//           ),
 //         ),
 //
 //         Expanded(
@@ -129,133 +192,16 @@
 //                   return ErrorStateWidget(
 //                     errorMessage: viewModel.notificationListData.message.toString(),
 //                     onRetry: () {
-//                       viewModel.fetchLocationListApi();
+//                       final type = _selectedTabIndex == 1 ? 'PROMOTION' : null;
+//                       viewModel.fetchLocationListApi(type: type);
 //                     },
 //                   );
 //
 //                 case Status.COMPLETED:
-//                   final notifications = viewModel.notificationListData.data?.data?.data ?? [];
-//                   final meta = viewModel.notificationListData.data?.data?.meta;
+//                   final allNotifications = viewModel.notificationListData.data?.data ?? [];
+//                   final meta = viewModel.notificationListData.data?.meta;
 //
-//                   if (notifications.isEmpty) {
-//                     return Column(
-//                       children: [
-//                         SizedBox(height: 20),
-//                         Container(
-//                           width: screenWidth * 0.9,
-//                           height: 190,
-//                           decoration: BoxDecoration(
-//                             borderRadius: BorderRadius.circular(24),
-//                             border: Border.all(width: 1, color: AppColors.border(context)),
-//                           ),
-//                           child: Column(
-//                             mainAxisAlignment: MainAxisAlignment.center,
-//                             children: [
-//                               Icon(Icons.notifications_none, size: 50, color: Colors.grey.shade400),
-//                               SizedboxSpaccing.height02(context),
-//                               Text(
-//                                 'No Notifications',
-//                                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary(context)),
-//                               ),
-//                               SizedboxSpaccing.width03(context),
-//                               Text('You\'re all caught up!', style: TextStyle(fontSize: 14, color: AppColors.textPrimary(context))),
-//                             ],
-//                           ),
-//                         ),
-//                       ],
-//                     );
-//                   }
-//
-//                   return RefreshIndicator(
-//                     onRefresh: () async {
-//                       await _handleRefreshNotifications();
-//                     },
-//                     child: Column(
-//                       children: [
-//                         SizedboxSpaccing.height025(context),
-//                         // New Notification Banner
-//                         Consumer<NotificationCountViewModel>(
-//                           builder: (context, countViewModel, _) {
-//                             if (_showNewNotificationBanner && countViewModel.hasNotifications) {
-//                               return Column(
-//                                 children: [
-//                                   GestureDetector(
-//                                     onTap: _handleRefreshNotifications,
-//                                     child: Container(
-//                                       width: screenWidth * 0.9,
-//                                       padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: 5),
-//                                       decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.button(context), AppColors.button(context).withOpacity(0.5)])),
-//                                       child: Row(
-//                                         mainAxisAlignment: MainAxisAlignment.center,
-//                                         children: [
-//                                           Container(
-//                                             padding: const EdgeInsets.all(5),
-//                                             decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-//                                             child: const Icon(Icons.notifications_active, color: Colors.white, size: 14),
-//                                           ),
-//                                           SizedboxSpaccing.width03(context),
-//                                           Expanded(
-//                                             child: Column(
-//                                               crossAxisAlignment: CrossAxisAlignment.start,
-//                                               children: [
-//                                                 Text(
-//                                                   'New Notifications',
-//                                                   style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
-//                                                 ),
-//                                                 const SizedBox(height: 2),
-//                                                 Text(
-//                                                   'Tap to refresh and see updates',
-//                                                   style: AppTextStyles.textSize12(context, color: AppColors.whiteColor, weight: FontWeight.w600),
-//                                                 ),
-//                                               ],
-//                                             ),
-//                                           ),
-//                                           const Icon(FontAwesomeIcons.arrowUp, color: AppColors.whiteColor, size: 18),
-//                                         ],
-//                                       ),
-//                                     ),
-//                                   ),
-//                                   SizedboxSpaccing.height02(context),
-//                                 ],
-//                               );
-//                             }
-//                             return const SizedBox.shrink();
-//                           },
-//                         ),
-//
-//                         // Unread Count Banner
-//                         if (meta?.unreadCount != null && meta!.unreadCount! > 0)
-//                           Container(
-//                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-//                             color: Colors.blue.shade50,
-//                             child: Row(
-//                               children: [
-//                                 Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
-//                                 const SizedBox(width: 8),
-//                                 Text(
-//                                   'You have ${meta.unreadCount} unread notification${meta.unreadCount! > 1 ? 's' : ''}',
-//                                   style: TextStyle(fontSize: 13, color: Colors.blue.shade700, fontWeight: FontWeight.w500),
-//                                 ),
-//                               ],
-//                             ),
-//                           ),
-//
-//                         // Notification List
-//                         Expanded(
-//                           child: ListView.separated(
-//                             padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
-//                             itemCount: notifications.length,
-//                             separatorBuilder: (context, index) => const SizedBox(height: 12),
-//                             itemBuilder: (context, index) {
-//                               final notification = notifications[index];
-//                               return _buildNotificationCard(notification, screenHeight, screenWidth);
-//                             },
-//                           ),
-//                         ),
-//                         SizedboxSpaccing.height025(context),
-//                       ],
-//                     ),
-//                   );
+//                   return _buildNotificationList(allNotifications, meta, screenWidth, screenHeight, _getFilterType(_selectedTabIndex));
 //
 //                 default:
 //                   return const SizedBox.shrink();
@@ -267,47 +213,186 @@
 //     );
 //   }
 //
-//   Widget _buildNotificationCard(Datum notification, double screenWidth, double screenHeight) {
-//     final isUnread = notification.read == false;
-//     String orderIdForNavigation = '';
-//     String? status;
+//   Widget _buildCustomTab(String title, int index) {
+//     final isSelected = _selectedTabIndex == index;
+//     return Expanded(
+//       child: GestureDetector(
+//         onTap: () => _onTabChanged(index),
+//         child: Container(
+//           decoration: BoxDecoration(color: isSelected ? AppColors.button(context) : Colors.transparent, borderRadius: BorderRadius.circular(6)),
+//           child: Center(
+//             child: Text(
+//               title,
+//               style: AppTextStyles.textSize14(context, weight: isSelected ? FontWeight.w600 : FontWeight.w500, color: isSelected ? Colors.white : AppColors.textPrimary(context)),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
 //
-//     if (notification.source == 'DELIVERY') {
-//       orderIdForNavigation = notification.data?.params?.orderId ?? '';
-//       status = notification.data?.status;
-//     } else if (notification.source == 'BEAUTY_SALON') {
-//       orderIdForNavigation = notification.data?.params?.beautySalonBookingId ?? '';
-//       status = notification.data?.status;
-//     } else if (notification.source == 'HOUSE_KEEPER') {
-//       orderIdForNavigation = notification.data?.params?.houseKeeperBookingId ?? '';
-//       status = notification.data?.status;
-//     } else if (notification.source == 'EVENT_COOKING') {
-//       orderIdForNavigation = notification.data?.params?.eventCookingBookingId ?? '';
-//       status = notification.data?.status;
+//   Widget _buildNotificationList(List<Datum> notifications, Meta? meta, double screenWidth, double screenHeight, String filterType) {
+//     if (notifications.isEmpty) {
+//       return Column(
+//         children: [
+//           SizedboxSpaccing.height02(context),
+//           Container(
+//             width: screenWidth * 0.9,
+//             height: 190,
+//             decoration: BoxDecoration(
+//               borderRadius: BorderRadius.circular(12),
+//               border: Border.all(width: 1, color: AppColors.border(context)),
+//             ),
+//             child: Column(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 Icon(filterType == 'PROMOTION' ? Icons.local_offer : Icons.notifications_none, size: 40, color: Colors.grey.shade400),
+//                 SizedboxSpaccing.height02(context),
+//                 Text(
+//                   filterType == 'ALL' ? 'No Notifications' : 'No Promotions',
+//                   style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
+//                 ),
+//                 SizedboxSpaccing.width03(context),
+//                 Text(
+//                   'You\'re all caught up!',
+//                   style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       );
 //     }
 //
+//     return RefreshIndicator(
+//       onRefresh: _handleRefreshNotifications,
+//       child: Column(
+//         children: [
+//           SizedboxSpaccing.height02(context),
+//
+//           // New Notification Banner (only show on "All" tab)
+//           if (filterType == 'ALL')
+//             Consumer<NotificationCountViewModel>(
+//               builder: (context, countViewModel, _) {
+//                 if (_showNewNotificationBanner && countViewModel.hasNotifications) {
+//                   return Column(
+//                     children: [
+//                       GestureDetector(
+//                         onTap: _handleRefreshNotifications,
+//                         child: Container(
+//                           width: screenWidth * 0.9,
+//                           padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: 5),
+//                           decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.button(context), AppColors.button(context).withOpacity(0.5)])),
+//                           child: Row(
+//                             mainAxisAlignment: MainAxisAlignment.center,
+//                             children: [
+//                               Container(
+//                                 padding: const EdgeInsets.all(5),
+//                                 decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+//                                 child: const Icon(Icons.notifications_active, color: Colors.white, size: 14),
+//                               ),
+//                               SizedboxSpaccing.width03(context),
+//                               Expanded(
+//                                 child: Column(
+//                                   crossAxisAlignment: CrossAxisAlignment.start,
+//                                   children: [
+//                                     Text(
+//                                       'New Notifications',
+//                                       style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+//                                     ),
+//                                     const SizedBox(height: 2),
+//                                     Text(
+//                                       'Tap to refresh and see updates',
+//                                       style: AppTextStyles.textSize12(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                               const Icon(FontAwesomeIcons.arrowUp, color: AppColors.whiteColor, size: 18),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+//                       SizedboxSpaccing.height02(context),
+//                     ],
+//                   );
+//                 }
+//                 return const SizedBox.shrink();
+//               },
+//             ),
+//           // if (filterType == 'ALL' && meta?.unreadCount != null && meta!.unreadCount! > 0)
+//           //   Container(
+//           //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+//           //     color: Colors.blue.shade50,
+//           //     child: Row(
+//           //       children: [
+//           //         Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
+//           //         const SizedBox(width: 8),
+//           //         Text(
+//           //           'You have ${meta.unreadCount} unread notification${meta.unreadCount! > 1 ? 's' : ''}',
+//           //           style: TextStyle(
+//           //             fontSize: 13,
+//           //             color: Colors.blue.shade700,
+//           //             fontWeight: FontWeight.w500,
+//           //           ),
+//           //         ),
+//           //       ],
+//           //     ),
+//           //   ),
+//           // Notification List
+//           Expanded(
+//             child: Container(
+//               width: screenWidth * 0.9,
+//               child: ListView.separated(
+//                 itemCount: notifications.length,
+//                 separatorBuilder: (context, index) => const SizedBox(height: 12),
+//                 itemBuilder: (context, index) {
+//                   final notification = notifications[index];
+//                   return _buildNotificationCard(notification, screenHeight, screenWidth);
+//                 },
+//               ),
+//             ),
+//           ),
+//           SizedboxSpaccing.height025(context),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   Widget _buildNotificationCard(Datum notification, double screenWidth, double screenHeight) {
+//     final isUnread = notification.read == false;
+//     String trackingId = notification.data?.trackingId ?? '';
+//     String? status = notification.data?.status;
+//
+//     // Check if notification is tappable
+//     final isTappable = notification.type == 'ORDER' || notification.type == 'HOUSE_KEEPER_BOOKING' || notification.type == 'BEAUTY_SALON_BOOKING' || notification.type == 'EVENT_COOKING_BOOKING';
 //     return GestureDetector(
-//       onTap: () {
-//         if (notification.source == 'DELIVERY') {
-//           // For grocery orders
-//           if (status == 'PENDING' || status == 'RUNNING' || status == 'ARRIVED_DESTINATION' || status == 'PICKED_UP') {
-//             Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': orderIdForNavigation});
-//           } else {
-//             Navigator.pushNamed(context, RoutesName.completeOrdersDetailsScreen, arguments: {'orderId': orderIdForNavigation});
-//           }
-//         } else if (notification.source == 'HOUSE_KEEPER') {
-//           Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': orderIdForNavigation});
-//         } else if (notification.source == 'BEAUTY_SALON') {
-//           Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': orderIdForNavigation});
-//         } else if (notification.source == 'EVENT_COOKING') {
-//           Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': orderIdForNavigation});
-//         }
-//       },
+//       onTap: isTappable
+//           ? () {
+//               if (notification.type == 'ORDER') {
+//                 if (status == 'PENDING' || status == 'RUNNING' || status == 'ARRIVED_DESTINATION' || status == 'PICKED_UP') {
+//                   Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': trackingId});
+//                 } else {
+//                   Navigator.pushNamed(context, RoutesName.completeOrdersDetailsScreen, arguments: {'orderId': trackingId});
+//                 }
+//               } else if (notification.type == 'HOUSE_KEEPER_BOOKING') {
+//                 Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId});
+//               } else if (notification.type == 'BEAUTY_SALON_BOOKING') {
+//                 Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId});
+//               } else if (notification.type == 'EVENT_COOKING_BOOKING') {
+//                 Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': trackingId});
+//               }
+//             }
+//           : null,
 //       child: Container(
 //         decoration: BoxDecoration(
 //           color: isUnread ? (Theme.of(context).brightness == Brightness.dark ? AppColors.button(context).withOpacity(0.5) : Colors.blue.shade50) : AppColors.containerBackground(context),
 //           borderRadius: BorderRadius.circular(12),
 //           border: Border.all(color: isUnread ? Colors.blue.shade100 : AppColors.border(context), width: 1),
+//           boxShadow: [
+//             BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.05), spreadRadius: 0, blurRadius: 8, offset: Offset(0, 2)),
+//             BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.2) : Colors.grey.withOpacity(0.08), spreadRadius: 0, blurRadius: 4, offset: Offset(0, 1)),
+//           ],
 //         ),
 //         child: Padding(
 //           padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.02),
@@ -317,43 +402,54 @@
 //               Row(
 //                 crossAxisAlignment: CrossAxisAlignment.start,
 //                 children: [
-//                   _getNotificationIcon(notification.source ?? ''),
+//                   _getNotificationIcon(notification.type ?? ''),
 //                   SizedboxSpaccing.width03(context),
 //                   Expanded(
 //                     child: Column(
 //                       crossAxisAlignment: CrossAxisAlignment.start,
 //                       children: [
+//                         if (notification.title != null && notification.title!.isNotEmpty)
+//                           Row(
+//                             children: [
+//                               Expanded(
+//                                 child: Text(
+//                                   notification.title!,
+//                                   style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
+//                                 ),
+//                               ),
+//                               if (_shouldShowViewBadge(notification.type)) ...[
+//                                 const SizedBox(width: 12),
+//                                 Container(
+//                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+//                                   decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
+//                                   child: Text(
+//                                     'VIEW',
+//                                     style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+//                                   ),
+//                                 ),
+//                               ],
+//                             ],
+//                           ),
 //                         Row(
 //                           children: [
 //                             Expanded(
 //                               child: Text(
-//                                 notification.data?.title ?? '',
-//                                 style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
+//                                 notification.message ?? 'No message',
+//                                 style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context), weight: FontWeight.w400),
 //                               ),
 //                             ),
-//                             // if (isUnread)
-//                             //   Container(
-//                             //     width: 8,
-//                             //     height: 8,
-//                             //     decoration: BoxDecoration(color: Colors.blue.shade600, shape: BoxShape.circle),
-//                             //   ),
-//                             if (notification.priority != null && notification.priority!.isNotEmpty) ...[
-//                               const SizedBox(width: 12),
+//                             if ((notification.title == null || notification.title!.isEmpty) && _shouldShowViewBadge(notification.type)) ...[
+//                               const SizedBox(width: 8),
 //                               Container(
 //                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-//                                 decoration: BoxDecoration(color: _getPriorityColor(notification.priority!), borderRadius: BorderRadius.circular(4)),
+//                                 decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
 //                                 child: Text(
-//                                   notification.priority!.toUpperCase(),
+//                                   'VIEW',
 //                                   style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w600),
 //                                 ),
 //                               ),
 //                             ],
 //                           ],
-//                         ),
-//
-//                         Text(
-//                           notification.message ?? 'No message',
-//                           style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context), weight: FontWeight.w400),
 //                         ),
 //                         Row(
 //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -367,10 +463,6 @@
 //                                   style: AppTextStyles.textSize12(context, color: Colors.grey.shade600, weight: FontWeight.w500),
 //                                 ),
 //                               ],
-//                             ),
-//                             Text(
-//                               _formatStatus(notification.data?.status ?? ''),
-//                               style: AppTextStyles.textSize12(context, color: _getStatusColor(notification.data?.status ?? ''), weight: FontWeight.w400),
 //                             ),
 //                           ],
 //                         ),
@@ -386,74 +478,55 @@
 //     );
 //   }
 //
-//   String _formatStatus(String status) {
-//     if (status.isEmpty) return '';
-//
-//     switch (status.toUpperCase()) {
-//       case 'PENDING':
-//         return 'Pending';
-//       case 'ARRIVED_DESTINATION':
-//         return 'Arrived';
-//       case 'CONFIRMED':
-//         return 'Confirmed';
-//       case 'PICKED_UP':
-//         return 'Picked Up';
-//       case 'DELIVERED':
-//         return 'Delivered';
-//       case 'COMPLETED':
-//         return 'Completed';
-//       default:
-//         return '';
-//     }
+//   bool _shouldShowViewBadge(String? type) {
+//     if (type == null) return false;
+//     return type == 'ORDER' || type == 'HOUSE_KEEPER_BOOKING' || type == 'BEAUTY_SALON_BOOKING' || type == 'EVENT_COOKING_BOOKING';
 //   }
 //
-//   Color _getStatusColor(String status) {
-//     switch (status.toUpperCase()) {
-//       case 'PENDING':
-//         return Colors.orange;
-//       case 'ARRIVED_DESTINATION':
-//         return Colors.blue;
-//       case 'CONFIRMED':
-//         return Colors.green;
-//       case 'PICKED_UP':
-//         return Colors.purple;
-//       case 'DELIVERED':
-//         return Colors.teal;
-//       case 'COMPLETED':
-//         return Colors.green.shade700;
-//       default:
-//         return Colors.grey;
-//     }
-//   }
-//
-//   Widget _getNotificationIcon(String source) {
+//   Widget _getNotificationIcon(String type) {
 //     IconData icon;
 //     Color color;
 //
-//     switch (source.toUpperCase()) {
-//       case 'DELIVERY':
+//     switch (type.toUpperCase()) {
+//       case 'SYSTEM':
+//         icon = Icons.settings;
+//         color = Colors.blueGrey;
+//         break;
+//       case 'ORDER':
 //         icon = Icons.shopping_bag;
-//         color = AppColors.textPrimary(context);
+//         color = Colors.blue;
 //         break;
-//       case 'HOUSE_KEEPER':
+//       case 'HOUSE_KEEPER_BOOKING':
 //         icon = Icons.cleaning_services;
-//         color = AppColors.textPrimary(context);
+//         color = Colors.teal;
 //         break;
-//       case 'BEAUTY_SALON':
+//       case 'BEAUTY_SALON_BOOKING':
 //         icon = Icons.spa;
-//         color = AppColors.textPrimary(context);
+//         color = Colors.pink;
 //         break;
-//       case 'EVENT_COOKING':
+//       case 'EVENT_COOKING_BOOKING':
 //         icon = Icons.restaurant_menu;
-//         color = AppColors.textPrimary(context);
+//         color = Colors.orange;
 //         break;
 //       case 'PROMOTION':
 //         icon = Icons.local_offer;
 //         color = Colors.purple;
 //         break;
-//       case 'OFFER':
+//       case 'SPECIAL_OFFER':
 //         icon = Icons.discount;
-//         color = Colors.orange;
+//         color = Colors.deepOrange;
+//         break;
+//       case 'ANNOUNCEMENT':
+//         icon = Icons.campaign;
+//         color = Colors.indigo;
+//         break;
+//       case 'REMINDER':
+//         icon = Icons.alarm;
+//         color = Colors.amber;
+//         break;
+//       case 'LIMITED_DISCOUNT':
+//         icon = Icons.local_fire_department;
+//         color = Colors.red;
 //         break;
 //       default:
 //         icon = Icons.notifications;
@@ -465,19 +538,6 @@
 //       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(5)),
 //       child: Icon(icon, size: 24, color: color),
 //     );
-//   }
-//
-//   Color _getPriorityColor(String priority) {
-//     switch (priority.toLowerCase()) {
-//       case 'high':
-//         return Colors.red;
-//       case 'medium':
-//         return Colors.orange;
-//       case 'low':
-//         return Colors.blue;
-//       default:
-//         return Colors.grey;
-//     }
 //   }
 // }
 import 'package:dinmajur_customer/configs/res/color.dart';
@@ -511,10 +571,13 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
   bool _showNewNotificationBanner = false;
   int _selectedTabIndex = 0;
 
+  NotificationCountViewModel? _countViewModel;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_sseListenerInitialized) {
+      _countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
       _initializeSSECountListener();
       _sseListenerInitialized = true;
     }
@@ -523,36 +586,61 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Clear data silently to prevent cached data display
+    final viewModel = Provider.of<GetNotificationViewModel>(context, listen: false);
+    viewModel.clearAllDataSilent();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Fetch fresh data for current tab
       Provider.of<GetNotificationViewModel>(context, listen: false).fetchLocationListApi();
 
-      final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
+      final countViewModel = _countViewModel ?? Provider.of<NotificationCountViewModel>(context, listen: false);
       _previousSSECount = countViewModel.notificationCount;
     });
   }
 
   void _initializeSSECountListener() {
     try {
-      final sseService = Provider.of<SSENotificationService>(context, listen: false);
-      final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
+      if (_countViewModel == null) {
+        debugPrint('❌ NotificationScreen: ViewModel not initialized');
+        return;
+      }
 
-      countViewModel.initializeCountListener(sseService.notificationCountStream);
-      countViewModel.addListener(_onSSECountChanged);
+      if (!_countViewModel!.isInitialized) {
+        final sseService = Provider.of<SSENotificationService>(context, listen: false);
+        _countViewModel!.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
+      }
+
+      _countViewModel!.addListener(_onSSECountChanged);
+
+      debugPrint('✅ NotificationScreen: SSE listener initialized');
     } catch (e) {
       debugPrint('❌ NotificationScreen: Error initializing count listener: $e');
     }
   }
 
   void _onSSECountChanged() {
-    final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
-    final currentCount = countViewModel.notificationCount;
+    if (!mounted) {
+      debugPrint('⚠️ NotificationScreen: Widget disposed, ignoring count change');
+      return;
+    }
+
+    if (_countViewModel == null) {
+      debugPrint('⚠️ NotificationScreen: ViewModel is null');
+      return;
+    }
+
+    final currentCount = _countViewModel!.notificationCount;
 
     debugPrint('🔔 SSE Count changed: $_previousSSECount -> $currentCount');
 
     if (currentCount > _previousSSECount && currentCount > 0) {
-      setState(() {
-        _showNewNotificationBanner = true;
-      });
+      if (mounted) {
+        setState(() {
+          _showNewNotificationBanner = true;
+        });
+      }
     }
 
     _previousSSECount = currentCount;
@@ -560,30 +648,33 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
 
   Future<void> _handleRefreshNotifications() async {
     final viewModel = Provider.of<GetNotificationViewModel>(context, listen: false);
-    await viewModel.fetchLocationListApi();
+    final type = _selectedTabIndex == 1 ? 'PROMOTION' : null;
+    await viewModel.fetchLocationListApi(type: type, isRefresh: true);
 
-    setState(() {
-      _showNewNotificationBanner = false;
-    });
+    if (mounted) {
+      setState(() {
+        _showNewNotificationBanner = false;
+      });
+    }
   }
 
-  List<Datum> _filterNotifications(List<Datum> notifications, int tabIndex) {
-    switch (tabIndex) {
-      case 1: // Promotions
-        return notifications.where((n) => n.source?.toUpperCase() == 'PROMOTION').toList();
-      case 2: // Offers
-        return notifications.where((n) => n.source?.toUpperCase() == 'OFFER').toList();
-      default: // All
-        return notifications;
-    }
+  void _onTabChanged(int index) {
+    setState(() {
+      _selectedTabIndex = index;
+    });
+
+    final viewModel = Provider.of<GetNotificationViewModel>(context, listen: false);
+    final type = index == 1 ? 'PROMOTION' : null;
+
+    // Reset and fetch new data for the selected tab
+    viewModel.resetNotifications();
+    viewModel.fetchLocationListApi(type: type);
   }
 
   String _getFilterType(int tabIndex) {
     switch (tabIndex) {
       case 1:
         return 'PROMOTION';
-      case 2:
-        return 'OFFER';
       default:
         return 'ALL';
     }
@@ -591,9 +682,17 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
 
   @override
   void dispose() {
-    final countViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
-    countViewModel.removeListener(_onSSECountChanged);
+    debugPrint('🔴 NotificationScreen: Disposing...');
+
+    if (_countViewModel != null) {
+      _countViewModel!.removeListener(_onSSECountChanged);
+      debugPrint('✅ NotificationScreen: Listener removed');
+    }
+
+    _countViewModel = null;
+
     super.dispose();
+    debugPrint('✅ NotificationScreen: Disposed successfully');
   }
 
   @override
@@ -612,31 +711,22 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
 
     return Column(
       children: [
-        GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: AppBarHeader("Notifications"),
-        ),
+        GestureDetector(onTap: () => Navigator.pop(context), child: AppBarHeader("Notifications")),
 
         SizedboxSpaccing.height02(context),
 
         Container(
-         width: screenWidth*0.9,
+          width: screenWidth * 0.9,
           alignment: Alignment.centerLeft,
           child: Container(
-            width: screenWidth*0.6,
+            width: screenWidth * 0.45,
             height: 35,
             decoration: BoxDecoration(
               color: AppColors.containerBackground(context),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: AppColors.border(context), width: 1),
             ),
-            child: Row(
-              children: [
-                _buildCustomTab('All', 0),
-                _buildCustomTab('Promo', 1),
-                _buildCustomTab('Offers', 2),
-              ],
-            ),
+            child: Row(children: [_buildCustomTab('All', 0), _buildCustomTab('Promo', 1)]),
           ),
         ),
 
@@ -645,35 +735,34 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
             builder: (context, viewModel, child) {
               switch (viewModel.notificationListData.status) {
                 case Status.LOADING:
-                  return Center(
-                    child: LoadingAnimationWidget.progressiveDots(
-                      color: AppColors.button(context),
-                      size: 45,
-                    ),
-                  );
+                  // Only show full screen loading for initial page
+                  if (viewModel.currentPage == 1) {
+                    return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
+                  }
+                  break;
 
                 case Status.ERROR:
                   return ErrorStateWidget(
                     errorMessage: viewModel.notificationListData.message.toString(),
-                    onRetry: () => viewModel.fetchLocationListApi(),
+                    onRetry: () {
+                      final type = _selectedTabIndex == 1 ? 'PROMOTION' : null;
+                      viewModel.resetNotifications();
+                      viewModel.fetchLocationListApi(type: type);
+                    },
                   );
 
                 case Status.COMPLETED:
-                  final allNotifications = viewModel.notificationListData.data?.data?.data ?? [];
-                  final meta = viewModel.notificationListData.data?.data?.meta;
-                  final filteredNotifications = _filterNotifications(allNotifications, _selectedTabIndex);
-
-                  return _buildNotificationList(
-                    filteredNotifications,
-                    meta,
-                    screenWidth,
-                    screenHeight,
-                    _getFilterType(_selectedTabIndex),
-                  );
+                  break;
 
                 default:
                   return const SizedBox.shrink();
               }
+
+              // Use the paginated notifications from viewModel
+              final allNotifications = viewModel.allNotifications;
+              final meta = viewModel.notificationListData.data?.meta;
+
+              return _buildNotificationList(allNotifications, meta, screenWidth, screenHeight, _getFilterType(_selectedTabIndex));
             },
           ),
         ),
@@ -685,24 +774,13 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
     final isSelected = _selectedTabIndex == index;
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedTabIndex = index;
-          });
-        },
+        onTap: () => _onTabChanged(index),
         child: Container(
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.button(context) : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-          ),
+          decoration: BoxDecoration(color: isSelected ? AppColors.button(context) : Colors.transparent, borderRadius: BorderRadius.circular(6)),
           child: Center(
             child: Text(
               title,
-              style: AppTextStyles.textSize14(
-                context,
-                weight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? Colors.white : AppColors.textPrimary(context),
-              ),
+              style: AppTextStyles.textSize14(context, weight: isSelected ? FontWeight.w600 : FontWeight.w500, color: isSelected ? Colors.white : AppColors.textPrimary(context)),
             ),
           ),
         ),
@@ -710,55 +788,40 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
     );
   }
 
-  Widget _buildNotificationList(
-      List<Datum> notifications,
-      Meta? meta,
-      double screenWidth,
-      double screenHeight,
-      String filterType,
-      ) {
+  Widget _buildNotificationList(List<Datum> notifications, Meta? meta, double screenWidth, double screenHeight, String filterType) {
     if (notifications.isEmpty) {
-      return Column(
-        children: [
-          SizedboxSpaccing.height02(context),
-          Container(
-            width: screenWidth * 0.9,
-            height: 190,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(width: 1, color: AppColors.border(context)),
+      return RefreshIndicator(
+        onRefresh: _handleRefreshNotifications,
+        child: ListView(
+          physics: AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedboxSpaccing.height02(context),
+            Container(
+              width: screenWidth * 0.9,
+              height: 190,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(width: 1, color: AppColors.border(context)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(filterType == 'PROMOTION' ? Icons.local_offer : Icons.notifications_none, size: 40, color: Colors.grey.shade400),
+                  SizedboxSpaccing.height02(context),
+                  Text(
+                    filterType == 'ALL' ? 'No Notifications' : 'No Promotions',
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
+                  ),
+                  SizedboxSpaccing.width03(context),
+                  Text(
+                    'You\'re all caught up!',
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  filterType == 'PROMOTION'
-                      ? Icons.local_offer
-                      : filterType == 'OFFER'
-                      ? Icons.discount
-                      : Icons.notifications_none,
-                  size: 40,
-                  color: Colors.grey.shade400,
-                ),
-                SizedboxSpaccing.height02(context),
-                Text(
-                  filterType == 'ALL'
-                      ? 'No Notifications'
-                      : filterType == 'PROMOTION'
-                      ? 'No Promotions'
-                      : 'No Offers',
-                  style: AppTextStyles.textSize16(context,weight: FontWeight.w600,   color: AppColors.textPrimary(context),),
-                ),
-                SizedboxSpaccing.width03(context),
-                Text(
-                  'You\'re all caught up!',
-                  style: AppTextStyles.textSize14(context,weight: FontWeight.w400,   color: AppColors.textPrimary(context),),
-
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       );
     }
 
@@ -779,32 +842,15 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                         onTap: _handleRefreshNotifications,
                         child: Container(
                           width: screenWidth * 0.9,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: screenHeight * 0.02,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.button(context),
-                                AppColors.button(context).withOpacity(0.5),
-                              ],
-                            ),
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: 5),
+                          decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.button(context), AppColors.button(context).withOpacity(0.5)])),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.notifications_active,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
+                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                                child: const Icon(Icons.notifications_active, color: Colors.white, size: 14),
                               ),
                               SizedboxSpaccing.width03(context),
                               Expanded(
@@ -813,29 +859,17 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                                   children: [
                                     Text(
                                       'New Notifications',
-                                      style: AppTextStyles.textSize14(
-                                        context,
-                                        color: AppColors.whiteColor,
-                                        weight: FontWeight.w600,
-                                      ),
+                                      style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       'Tap to refresh and see updates',
-                                      style: AppTextStyles.textSize12(
-                                        context,
-                                        color: AppColors.whiteColor,
-                                        weight: FontWeight.w600,
-                                      ),
+                                      style: AppTextStyles.textSize12(context, color: AppColors.whiteColor, weight: FontWeight.w600),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(
-                                FontAwesomeIcons.arrowUp,
-                                color: AppColors.whiteColor,
-                                size: 18,
-                              ),
+                              const Icon(FontAwesomeIcons.arrowUp, color: AppColors.whiteColor, size: 18),
                             ],
                           ),
                         ),
@@ -848,37 +882,35 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
               },
             ),
 
-          // Unread Count Banner (only show on "All" tab)
-          if (filterType == 'ALL' && meta?.unreadCount != null && meta!.unreadCount! > 0)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.blue.shade50,
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
-                  const SizedBox(width: 8),
-                  Text(
-                    'You have ${meta.unreadCount} unread notification${meta.unreadCount! > 1 ? 's' : ''}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.blue.shade700,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Notification List
+          // Notification List with Load More
           Expanded(
             child: Container(
-              width: screenWidth*0.9,
-              child: ListView.separated(
-                itemCount: notifications.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final notification = notifications[index];
-                  return _buildNotificationCard(notification, screenHeight, screenWidth);
+              width: screenWidth * 0.9,
+              child: Consumer<GetNotificationViewModel>(
+                builder: (context, viewModel, _) {
+                  return ListView.builder(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    itemCount: notifications.length + (viewModel.hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index < notifications.length) {
+                        return Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildNotificationCard(notifications[index], screenHeight, screenWidth));
+                      }
+
+                      // Load More Button
+                      if (viewModel.hasMore) {
+                        return Consumer<GetNotificationViewModel>(
+                          builder: (context, vm, _) {
+                            return _buildLoadMoreButton(context, () {
+                              final type = _selectedTabIndex == 1 ? 'PROMOTION' : null;
+                              vm.loadMoreNotifications(type: type);
+                            }, vm.loadingMore);
+                          },
+                        );
+                      }
+
+                      return SizedBox.shrink();
+                    },
+                  );
                 },
               ),
             ),
@@ -889,149 +921,124 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
     );
   }
 
-  Widget _buildNotificationCard(Datum notification, double screenWidth, double screenHeight) {
-    final isUnread = notification.read == false;
-    String orderIdForNavigation = '';
-    String? status;
+  Widget _buildLoadMoreButton(BuildContext context, VoidCallback onPressed, bool isLoading) {
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    if (notification.source == 'DELIVERY') {
-      orderIdForNavigation = notification.data?.params?.orderId ?? '';
-      status = notification.data?.status;
-    } else if (notification.source == 'BEAUTY_SALON') {
-      orderIdForNavigation = notification.data?.params?.beautySalonBookingId ?? '';
-      status = notification.data?.status;
-    } else if (notification.source == 'HOUSE_KEEPER') {
-      orderIdForNavigation = notification.data?.params?.houseKeeperBookingId ?? '';
-      status = notification.data?.status;
-    } else if (notification.source == 'EVENT_COOKING') {
-      orderIdForNavigation = notification.data?.params?.eventCookingBookingId ?? '';
-      status = notification.data?.status;
-    }
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: GestureDetector(
+          onTap: isLoading ? null : onPressed,
+          child: Container(
+            height: 50,
+            width: screenWidth * 0.8,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(width: 1, color: AppColors.border(context)),
+              color: AppColors.containerBackground(context),
+            ),
+            child: Center(
+              child: isLoading
+                  ? LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 40)
+                  : Text("Load More", style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationCard(Datum notification, double screenWidth, double screenHeight) {
+    final isUnread = notification.isNew == true;
+    String trackingId = notification.data?.trackingId ?? '';
+    String? status = notification.data?.status;
+
+    final isTappable = notification.type == 'ORDER' || notification.type == 'HOUSE_KEEPER_BOOKING' || notification.type == 'BEAUTY_SALON_BOOKING' || notification.type == 'EVENT_COOKING_BOOKING';
 
     return GestureDetector(
-      onTap: () {
-        if (notification.source == 'DELIVERY') {
-          if (status == 'PENDING' || status == 'RUNNING' || status == 'ARRIVED_DESTINATION' || status == 'PICKED_UP') {
-            Navigator.pushNamed(
-              context,
-              RoutesName.trackOrderViewdetailsSocketScreen,
-              arguments: {'orderId': orderIdForNavigation},
-            );
-          } else {
-            Navigator.pushNamed(
-              context,
-              RoutesName.completeOrdersDetailsScreen,
-              arguments: {'orderId': orderIdForNavigation},
-            );
-          }
-        } else if (notification.source == 'HOUSE_KEEPER') {
-          Navigator.pushNamed(
-            context,
-            RoutesName.confirmedScreen,
-            arguments: {'trackingId': orderIdForNavigation},
-          );
-        } else if (notification.source == 'BEAUTY_SALON') {
-          Navigator.pushNamed(
-            context,
-            RoutesName.beautyConfirmedScreen,
-            arguments: {'trackingId': orderIdForNavigation},
-          );
-        } else if (notification.source == 'EVENT_COOKING') {
-          Navigator.pushNamed(
-            context,
-            RoutesName.cookingConfirmedScreen,
-            arguments: {'trackingId': orderIdForNavigation},
-          );
-        }
-      },
+      onTap: isTappable
+          ? () {
+              if (notification.type == 'ORDER') {
+                if (status == 'PENDING' || status == 'RUNNING' || status == 'ARRIVED_DESTINATION' || status == 'PICKED_UP') {
+                  Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': trackingId});
+                } else {
+                  Navigator.pushNamed(context, RoutesName.completeOrdersDetailsScreen, arguments: {'orderId': trackingId});
+                }
+              } else if (notification.type == 'HOUSE_KEEPER_BOOKING') {
+                Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId});
+              } else if (notification.type == 'BEAUTY_SALON_BOOKING') {
+                Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId});
+              } else if (notification.type == 'EVENT_COOKING_BOOKING') {
+                Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': trackingId});
+              }
+            }
+          : null,
       child: Container(
         decoration: BoxDecoration(
-          color: isUnread
-              ? (Theme.of(context).brightness == Brightness.dark
-              ? AppColors.button(context).withOpacity(0.5)
-              : Colors.blue.shade50)
-              : AppColors.containerBackground(context),
+          color: isUnread ? (Theme.of(context).brightness == Brightness.dark ? AppColors.button(context).withOpacity(0.5) : Colors.blue.shade50) : AppColors.containerBackground(context),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isUnread ? Colors.blue.shade100 : AppColors.border(context),
-            width: 1,
-          ),
+          border: Border.all(color: isUnread ? Colors.blue.shade100 : AppColors.border(context), width: 1),
           boxShadow: [
-            BoxShadow(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.grey.withOpacity(0.05),
-              spreadRadius: 0,
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-            // Optional: Add a subtle second shadow for more depth
-            BoxShadow(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(0.2)
-                  : Colors.grey.withOpacity(0.08),
-              spreadRadius: 0,
-              blurRadius: 4,
-              offset: Offset(0, 1),
-            ),
+            BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.05), spreadRadius: 0, blurRadius: 8, offset: Offset(0, 2)),
+            BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.2) : Colors.grey.withOpacity(0.08), spreadRadius: 0, blurRadius: 4, offset: Offset(0, 1)),
           ],
         ),
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: screenHeight * 0.02,
-            vertical: screenHeight * 0.02,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.02),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _getNotificationIcon(notification.source ?? ''),
+                  _getNotificationIcon(notification.type ?? ''),
                   SizedboxSpaccing.width03(context),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (notification.title != null && notification.title!.isNotEmpty)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  notification.title!,
+                                  style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
+                                ),
+                              ),
+                              if (_shouldShowViewBadge(notification.type)) ...[
+                                const SizedBox(width: 12),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
+                                  child: Text(
+                                    'VIEW',
+                                    style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         Row(
                           children: [
                             Expanded(
                               child: Text(
-                                notification.data?.title ?? '',
-                                style: AppTextStyles.textSize14(
-                                  context,
-                                  color: AppColors.textPrimary(context),
-                                  weight: FontWeight.w500,
-                                ),
+                                notification.message ?? 'No message',
+                                style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context), weight: FontWeight.w400),
                               ),
                             ),
-                            if (notification.priority != null && notification.priority!.isNotEmpty) ...[
-                              const SizedBox(width: 12),
+                            if ((notification.title == null || notification.title!.isEmpty) && _shouldShowViewBadge(notification.type)) ...[
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: _getPriorityColor(notification.priority!),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
+                                decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
                                 child: Text(
-                                  notification.priority!.toUpperCase(),
-                                  style: AppTextStyles.textSize10(
-                                    context,
-                                    color: AppColors.whiteColor,
-                                    weight: FontWeight.w600,
-                                  ),
+                                  'VIEW',
+                                  style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w600),
                                 ),
                               ),
                             ],
                           ],
-                        ),
-                        Text(
-                          notification.message ?? 'No message',
-                          style: AppTextStyles.textSize12(
-                            context,
-                            color: AppColors.textPrimary(context),
-                            weight: FontWeight.w400,
-                          ),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1041,24 +1048,10 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                                 Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
                                 const SizedBox(width: 4),
                                 Text(
-                                  notification.createdAt != null
-                                      ? timeago.format(notification.createdAt!)
-                                      : 'Unknown time',
-                                  style: AppTextStyles.textSize12(
-                                    context,
-                                    color: Colors.grey.shade600,
-                                    weight: FontWeight.w500,
-                                  ),
+                                  notification.createdAt != null ? timeago.format(notification.createdAt!) : 'Unknown time',
+                                  style: AppTextStyles.textSize12(context, color: Colors.grey.shade600, weight: FontWeight.w500),
                                 ),
                               ],
-                            ),
-                            Text(
-                              _formatStatus(notification.data?.status ?? ''),
-                              style: AppTextStyles.textSize12(
-                                context,
-                                color: _getStatusColor(notification.data?.status ?? ''),
-                                weight: FontWeight.w400,
-                              ),
                             ),
                           ],
                         ),
@@ -1074,74 +1067,55 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
     );
   }
 
-  String _formatStatus(String status) {
-    if (status.isEmpty) return '';
-
-    switch (status.toUpperCase()) {
-      case 'PENDING':
-        return 'Pending';
-      case 'ARRIVED_DESTINATION':
-        return 'Arrived';
-      case 'CONFIRMED':
-        return 'Confirmed';
-      case 'PICKED_UP':
-        return 'Picked Up';
-      case 'DELIVERED':
-        return 'Delivered';
-      case 'COMPLETED':
-        return 'Completed';
-      default:
-        return '';
-    }
+  bool _shouldShowViewBadge(String? type) {
+    if (type == null) return false;
+    return type == 'ORDER' || type == 'HOUSE_KEEPER_BOOKING' || type == 'BEAUTY_SALON_BOOKING' || type == 'EVENT_COOKING_BOOKING';
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toUpperCase()) {
-      case 'PENDING':
-        return Colors.orange;
-      case 'ARRIVED_DESTINATION':
-        return Colors.blue;
-      case 'CONFIRMED':
-        return Colors.green;
-      case 'PICKED_UP':
-        return Colors.purple;
-      case 'DELIVERED':
-        return Colors.teal;
-      case 'COMPLETED':
-        return Colors.green.shade700;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  Widget _getNotificationIcon(String source) {
+  Widget _getNotificationIcon(String type) {
     IconData icon;
     Color color;
 
-    switch (source.toUpperCase()) {
-      case 'DELIVERY':
+    switch (type.toUpperCase()) {
+      case 'SYSTEM':
+        icon = Icons.settings;
+        color = Colors.blueGrey;
+        break;
+      case 'ORDER':
         icon = Icons.shopping_bag;
-        color = AppColors.textPrimary(context);
+        color = Colors.blue;
         break;
-      case 'HOUSE_KEEPER':
+      case 'HOUSE_KEEPER_BOOKING':
         icon = Icons.cleaning_services;
-        color = AppColors.textPrimary(context);
+        color = Colors.teal;
         break;
-      case 'BEAUTY_SALON':
+      case 'BEAUTY_SALON_BOOKING':
         icon = Icons.spa;
-        color = AppColors.textPrimary(context);
+        color = Colors.pink;
         break;
-      case 'EVENT_COOKING':
+      case 'EVENT_COOKING_BOOKING':
         icon = Icons.restaurant_menu;
-        color = AppColors.textPrimary(context);
+        color = Colors.orange;
         break;
       case 'PROMOTION':
         icon = Icons.local_offer;
         color = Colors.purple;
         break;
-      case 'OFFER':
+      case 'SPECIAL_OFFER':
         icon = Icons.discount;
-        color = Colors.orange;
+        color = Colors.deepOrange;
+        break;
+      case 'ANNOUNCEMENT':
+        icon = Icons.campaign;
+        color = Colors.indigo;
+        break;
+      case 'REMINDER':
+        icon = Icons.alarm;
+        color = Colors.amber;
+        break;
+      case 'LIMITED_DISCOUNT':
+        icon = Icons.local_fire_department;
+        color = Colors.red;
         break;
       default:
         icon = Icons.notifications;
@@ -1150,24 +1124,8 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
 
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(5),
-      ),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(5)),
       child: Icon(icon, size: 24, color: color),
     );
-  }
-
-  Color _getPriorityColor(String priority) {
-    switch (priority.toLowerCase()) {
-      case 'high':
-        return Colors.red;
-      case 'medium':
-        return Colors.orange;
-      case 'low':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
   }
 }

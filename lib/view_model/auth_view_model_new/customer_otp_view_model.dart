@@ -86,7 +86,7 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
             print("🔔 OTP Verify: Starting SSE connection with access token");
             await sseService.startListening();
             await Future.delayed(Duration(milliseconds: 500)); // Wait for initial count
-            notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
+            notificationCountViewModel.initializeCountListener(sseService.notificationCountStream,      sseService.notificationIncrementStream,);
             notificationCountViewModel.setInitialCount(sseService.currentCount);
             print("🔔 OTP Verify: ✅ SSE connection initiated successfully");
           } catch (sseError) {
