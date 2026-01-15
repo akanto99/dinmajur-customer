@@ -77,21 +77,21 @@ class RunningOrdersViewModel with ChangeNotifier {
 
   // Pagination state for pending orders
   int _pendingCurrentPage = 1;
-  int _pendingLimit = 2;
+  int _pendingLimit = 10;
   List<Datum> _pendingAllOrders = [];
   bool _pendingHasMore = true;
   bool _pendingLoadingMore = false;
 
   // Pagination state for running orders
   int _runningCurrentPage = 1;
-  int _runningLimit = 2;
+  int _runningLimit = 10;
   List<Datum> _runningAllOrders = [];
   bool _runningHasMore = true;
   bool _runningLoadingMore = false;
 
   // Pagination state for complete orders
   int _completeCurrentPage = 1;
-  int _completeLimit = 2;
+  int _completeLimit = 10;
   List<Datum> _completeAllOrders = [];
   bool _completeHasMore = true;
   bool _completeLoadingMore = false;
