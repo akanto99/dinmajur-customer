@@ -75,12 +75,14 @@ void main() async {
   await languageProvider.getLanguage();
 
 
-   ///  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+     OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   // Initialize with your OneSignal App ID
-  /// OneSignal.initialize("cf138ba4-ec2a-4f56-b597-13620abc45f1");
+  final oneSignalAppId = dotenv.env['ONESIGNAL_APP_ID'];
+  OneSignal.initialize(oneSignalAppId!);
   // Use this method to prompt for push notifications.
   // We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
- /// OneSignal.Notifications.requestPermission(false);
+  OneSignal.Notifications.requestPermission(false);
+     await Future.delayed(Duration(microseconds: 200));
 
   await Upgrader.clearSavedSettings();
 
@@ -96,6 +98,8 @@ void main() async {
   String? userId = prefs.getString('userId');
 
   if (userId != null && userId.isNotEmpty) {
+    ///OneSignal
+    await OneSignal.login(userId);
     ///SOCKET.IO
     print("🔌 Main: Auto-connecting socket for logged-in user: $userId");
     await socketProvider.connectWithUser(userId: userId);

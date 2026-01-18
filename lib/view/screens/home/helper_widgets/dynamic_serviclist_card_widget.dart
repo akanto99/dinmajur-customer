@@ -560,7 +560,7 @@ class DynamicServiceCard extends StatelessWidget {
       children: [
         Text(
           serviceName,
-          style: getTextStyle(context, weight: FontWeight.w600, color: getTextColor(context)),
+          style: getTextStyle(context, weight: FontWeight.w500, color: getTextColor(context)),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -570,7 +570,7 @@ class DynamicServiceCard extends StatelessWidget {
           children: [
             Text(
               '৳${discountedPrice.toStringAsFixed(2)}',
-              style: AppTextStyles.textSize14(context,weight: FontWeight.w600),
+              style: AppTextStyles.textSize14(context,weight: FontWeight.w500),
             ),
             if (showDiscount && originalPrice > discountedPrice) ...[
               SizedBox(width: 8),

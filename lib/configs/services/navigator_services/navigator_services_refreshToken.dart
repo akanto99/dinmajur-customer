@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 class NavigationService {
   static final NavigationService _instance = NavigationService._internal();
   factory NavigationService() => _instance;
@@ -40,8 +41,9 @@ class NavigationService {
           content: const Text('Your session has expired. Please login again.'),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: ()async {
                 Navigator.of(context).pop();
+                await OneSignal.logout();
                 // Navigate to login and clear all previous routes
                 navigateAndClearStack('/auth_login');
               },

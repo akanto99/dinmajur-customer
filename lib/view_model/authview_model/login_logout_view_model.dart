@@ -11,6 +11,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -184,6 +185,8 @@ class LoginLogoutViewModel with ChangeNotifier {
 
       // Fallback: try to get from userPreference if not in SharedPreferences
       if (userId.isEmpty) {
+        ///OneSignal
+        await OneSignal.logout();
         final currentUser = userPreference.currentUser;
         userId = currentUser?.data?.user?.userId ?? '';
       }
