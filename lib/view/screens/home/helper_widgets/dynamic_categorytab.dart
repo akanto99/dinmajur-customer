@@ -106,7 +106,7 @@ class DynamicCategoryTabs<T> extends StatelessWidget {
 
   Widget _buildCategoryIcon(BuildContext context, String? imageUrl, bool isSvg, bool isSelected) {
     if (imageUrl == null || imageUrl.isEmpty) {
-      return Icon(defaultIcon, color: getButtonColor(context));
+      return Icon(defaultIcon, color:isSelected? AppColors.whiteColor: AppColors.blackColor);
     }
 
     return ClipOval(
