@@ -9,6 +9,7 @@ import 'package:dinmajur_customer/configs/services/sse_notification_services/sse
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,7 +50,10 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
         await prefs.setString('accessToken', accessToken);
 
         if (userId != null && userId.isNotEmpty) {
-          await prefs.setString('userId', userId);}
+          ///One Signal
+          await OneSignal.login(userId);
+          await prefs.setString('userId', userId);
+        }
         ///SOCKET
         if (userId != null && userId.isNotEmpty) {
           try {

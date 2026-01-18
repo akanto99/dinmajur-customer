@@ -284,17 +284,20 @@ class DynamicTimeSelectionWidget<T> extends StatelessWidget {
   }
 
   Widget _buildAllBookedHint(BuildContext context) {
-    return Row(
-      children: [
-        Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
-        SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            allBookedHintText ?? 'All time slots are booked',
-            style: hintTextStyle ?? AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
+    return Padding(
+      padding:EdgeInsets.only(left: 15),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              allBookedHintText ?? 'All time slots are booked',
+              style: hintTextStyle ?? AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

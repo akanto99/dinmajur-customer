@@ -292,9 +292,9 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                       isSimpleList: false,
                       getItems: (category) => category.items,
                       getCategoryName: (category) => category.name ?? '',
-                      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w500),
+                      categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
                       emptyStateStyle: (context) => AppTextStyles.textSize16(context),
-                      emptyStateSpacing: (context) => SizedboxSpaccing.height01(context),
+                      emptyStateSpacing: (context) => SizedboxSpaccing.height015(context),
                       buildServiceCard: (service, width, height, isLastItem) {
                         int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
                         double originalPrice = service.originalPrice?.toDouble() ?? 0;

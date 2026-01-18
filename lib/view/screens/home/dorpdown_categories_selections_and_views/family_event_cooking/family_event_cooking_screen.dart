@@ -490,7 +490,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${category.name ?? ''}', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                Text('${category.name ?? ''}', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
 
@@ -508,7 +508,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                     return _buildManualPackageSection(category, package, screenWidth, isLast);
                   })),
 
-                SizedboxSpaccing.height03(context),
+                SizedboxSpaccing.height04(context),
               ],
             ),
           );
@@ -537,11 +537,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(package.name ?? '', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                Text(package.name ?? '', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
                 SizedBox(height: 4),
                 Row(
                   children: [
-                    Text('Price - ৳${currentPrice.toStringAsFixed(2)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                    Text('Price - ৳${currentPrice.toStringAsFixed(2)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                     if (hasDiscount) ...[
                       SizedBox(width: 8),
                       Text(
@@ -587,7 +587,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(package.name ?? '', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+          Text(package.name ?? '', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
           SizedBox(height: 8),
 
           // List all items as checkable
