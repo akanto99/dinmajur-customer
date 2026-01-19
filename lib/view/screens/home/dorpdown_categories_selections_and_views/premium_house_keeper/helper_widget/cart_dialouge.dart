@@ -159,7 +159,7 @@ class _CartDialogState extends State<CartDialog> {
             _buildHeader(context, cartItems, subtotal, originalTotal, saved, screenWidth),
             _buildCartItemsList(context, cartItems, screenWidth),
             _buildPriceBreakdown(context, subtotal, transport, total, saved, originalTotal, screenWidth),
-            _buildProceedButton(context, total),
+            _buildProceedButton(context, subtotal),
           ],
         ),
       ),
@@ -292,12 +292,13 @@ class _CartDialogState extends State<CartDialog> {
     );
   }
 
-  Widget _buildProceedButton(BuildContext context, double total) {
+  Widget _buildProceedButton(BuildContext context, double subtotal) {
     return Container(
       padding: EdgeInsets.all(15),
       child: GestureDetector(
         onTap: () {
-          if (total < 600) {
+          if (subtotal < 600) {
+            print(subtotal);
             Utils.flushBarExclamatoryMessage(
               title: "Warning",
               subtitle: " Minimum order amount is BDT 600 to proceed!",
