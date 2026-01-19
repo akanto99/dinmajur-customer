@@ -409,7 +409,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       padding: EdgeInsets.all(15),
       child: GestureDetector(
         onTap: () {
-          if (total < 1) {
+          if (total < 600) {
             Utils.flushBarExclamatoryMessage(title: "Warning", subtitle: "Minimum order amount is BDT 600 to proceed!", context: context);
             return;
           }

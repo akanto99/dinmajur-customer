@@ -309,7 +309,10 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                   ),
                 );
               }
-
+              // ADD THIS CHECK FOR EMPTY DATA
+              if (data.isEmpty) {
+                return _buildEmptyState();
+              }
               return SingleChildScrollView(
                 controller: _mainScrollController,
                 child: Column(
@@ -352,15 +355,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                         _scrollToCategory(index);
                       },
                       getName: (category) => category.name ?? '',
-                      getImageUrl: (category) {
-                        // Handle both String and ImageClass types
-                        if (category.image is String) {
-                          return category.image;
-                        } else if (category.image is ImageClass) {
-                          return (category.image as ImageClass).url;
-                        }
-                        return null;
-                      },
+                      getImageUrl: (category) => category.image?.url ?? null,
                       getButtonColor: (context) => AppColors.button(context),
                       getBackgroundColor: (context) => AppColors.border(context),
                       getBorderColor: (context) => AppColors.border(context),
@@ -568,7 +563,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
 
           // Package Selection Image - Pass Package instead of Datum
           FamilyEventCookingPackageImage(
-            imageUrl: null, // REGULAR packages don't have images on the package items
+            imageUrl:package.image?.url,
             isSelected: isSelected,
             canSelect: canSelect,
             onToggle: () => _togglePackageSelection(category.id ?? '', package.id ?? ''),
@@ -762,5 +757,35 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         _activeCategoryId = null;
       });
     }
+  }
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.restaurant_menu_outlined,
+            size: 60,
+            color: AppColors.textPrimary(context).withOpacity(0.3),
+          ),
+          SizedBox(height: 24),
+          Text(
+            'No Packages Available',
+            style: AppTextStyles.textSize18(context,
+                weight: FontWeight.w600,
+                color: AppColors.textPrimary(context)
+            ),
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Please check back later for cooking packages',
+            style: AppTextStyles.textSize14(context,
+                color: AppColors.subtitle(context)
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 }

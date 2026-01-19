@@ -42,7 +42,7 @@ class Datum {
   String? name;
   String? type;
   int? position;
-  dynamic image;
+  Image? image;
 
   Datum({
     this.packages,
@@ -59,7 +59,7 @@ class Datum {
     name: json["name"],
     type: json["type"],
     position: json["position"],
-    image: json["image"],
+    image: json["image"] == null ? null : Image.fromJson(json["image"]),
   );
 
   Map<String, dynamic> toJson() => {
@@ -68,22 +68,22 @@ class Datum {
     "name": name,
     "type": type,
     "position": position,
-    "image": image,
+    "image": image?.toJson(),
   };
 }
 
-class ImageClass {
+class Image {
   String? url;
   String? key;
   String? altText;
 
-  ImageClass({
+  Image({
     this.url,
     this.key,
     this.altText,
   });
 
-  factory ImageClass.fromJson(Map<String, dynamic> json) => ImageClass(
+  factory Image.fromJson(Map<String, dynamic> json) => Image(
     url: json["url"],
     key: json["key"],
     altText: json["altText"],
@@ -102,6 +102,7 @@ class Package {
   int? position;
   List<Price>? prices;
   List<Item>? items;
+  Image? image;
 
   Package({
     this.id,
@@ -109,6 +110,7 @@ class Package {
     this.position,
     this.prices,
     this.items,
+    this.image,
   });
 
   factory Package.fromJson(Map<String, dynamic> json) => Package(
@@ -117,6 +119,8 @@ class Package {
     position: json["position"],
     prices: json["prices"] == null ? [] : List<Price>.from(json["prices"]!.map((x) => Price.fromJson(x))),
     items: json["items"] == null ? [] : List<Item>.from(json["items"]!.map((x) => Item.fromJson(x))),
+    image: json["image"] == null ? null : Image.fromJson(json["image"]),
+
   );
 
   Map<String, dynamic> toJson() => {
@@ -125,6 +129,8 @@ class Package {
     "position": position,
     "prices": prices == null ? [] : List<dynamic>.from(prices!.map((x) => x.toJson())),
     "items": items == null ? [] : List<dynamic>.from(items!.map((x) => x.toJson())),
+    "image": image?.toJson(),
+
   };
 }
 
@@ -178,7 +184,7 @@ class Item {
 
 class Price {
   String? id;
-  ReferenceType? referenceType;
+  String? referenceType;
   String? referenceId;
   GuestRange? guestRange;
   int? originalPrice;
@@ -205,7 +211,7 @@ class Price {
 
   factory Price.fromJson(Map<String, dynamic> json) => Price(
     id: json["_id"],
-    referenceType: referenceTypeValues.map[json["referenceType"]]!,
+    referenceType:json["referenceType"],
     referenceId: json["referenceId"],
     guestRange: json["guestRange"] == null ? null : GuestRange.fromJson(json["guestRange"]),
     originalPrice: json["originalPrice"],
@@ -219,7 +225,7 @@ class Price {
 
   Map<String, dynamic> toJson() => {
     "_id": id,
-    "referenceType": referenceTypeValues.reverse[referenceType],
+    "referenceType": referenceType,
     "referenceId": referenceId,
     "guestRange": guestRange?.toJson(),
     "originalPrice": originalPrice,
@@ -246,7 +252,7 @@ final discountTypeValues = EnumValues({
 
 class GuestRange {
   String? id;
-  Label? label;
+  String? label;
   bool? isActive;
   int? v;
   DateTime? createdAt;
@@ -263,7 +269,7 @@ class GuestRange {
 
   factory GuestRange.fromJson(Map<String, dynamic> json) => GuestRange(
     id: json["_id"],
-    label: labelValues.map[json["label"]]!,
+    label: json["label"],
     isActive: json["isActive"],
     v: json["__v"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
@@ -272,7 +278,7 @@ class GuestRange {
 
   Map<String, dynamic> toJson() => {
     "_id": id,
-    "label": labelValues.reverse[label],
+    "label":label,
     "isActive": isActive,
     "__v": v,
     "createdAt": createdAt?.toIso8601String(),
@@ -280,28 +286,6 @@ class GuestRange {
   };
 }
 
-
-enum Label {
-  THE_2530,
-  THE_3035,
-  THE_4050
-}
-
-final labelValues = EnumValues({
-  "25–30": Label.THE_2530,
-  "30–35": Label.THE_3035,
-  "40–50": Label.THE_4050
-});
-
-enum ReferenceType {
-  EVENT_COOKING_ITEM,
-  EVENT_COOKING_PACKAGE
-}
-
-final referenceTypeValues = EnumValues({
-  "EventCookingItem": ReferenceType.EVENT_COOKING_ITEM,
-  "EventCookingPackage": ReferenceType.EVENT_COOKING_PACKAGE
-});
 
 class Meta {
   TransportFee? transportFee;
