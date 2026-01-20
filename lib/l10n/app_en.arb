@@ -115,10 +115,10 @@
 
    "drawer_screen":"--------------------Drawer Screen ------------------------",
    "profile_menu": "Profile Menu",
-      "order":"Order",
-          "wishlist":"Wishlist",
-          "review":"Reviews",
-          "account_settings":"Account Settings",
+   "order":"Order",
+   "wishlist":"Wishlist",
+   "review":"Reviews",
+   "account_settings":"Account Settings",
    "view_profile": "View Profile",
    "change_password": "Change Password",
    "payment_method": "Payment Method",
@@ -135,5 +135,8 @@
    "promo_codes": "Promo Codes",
    "offers": "Offers",
    "terms_conditions": "Terms & Condition",
-    "privacy_policy": "Privacy Policy"
+   "privacy_policy": "Privacy Policy",
+   "language": "Language",
+   "chooseYourLanguage": "Choose your language",
+   "selectLanguageDesc": "Select your preferred language to use\nDinmajur Customer app easily"
 }

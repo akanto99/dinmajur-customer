@@ -423,4 +423,14 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get privacy_policy => 'গোপনীয়তা নীতি';
+
+  @override
+  String get language => 'ভাষা';
+
+  @override
+  String get chooseYourLanguage => 'আপনার ভাষা নির্বাচন করুন';
+
+  @override
+  String get selectLanguageDesc =>
+      'সহজে Dinmajur Customer অ্যাপ ব্যবহার করার জন্য\nআপনার পছন্দের ভাষা নির্বাচন করুন';
 }

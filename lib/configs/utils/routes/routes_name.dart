@@ -38,6 +38,7 @@ class RoutesName {
   static const String cookiesPolicyScreen = 'cookiesPolicy_view';
   static const String deliveryPolicyScreen = 'deliveryPolicy_view';
   static const String refundPolicyScreen = 'refundPolicy_view';
+  static const String language = 'language_view';
 
 
 

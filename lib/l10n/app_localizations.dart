@@ -883,6 +883,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy Policy'**
   String get privacy_policy;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @chooseYourLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your language'**
+  String get chooseYourLanguage;
+
+  /// No description provided for @selectLanguageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your preferred language to use\nDinmajur Customer app easily'**
+  String get selectLanguageDesc;
 }
 
 class _AppLocalizationsDelegate
