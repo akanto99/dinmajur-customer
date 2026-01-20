@@ -21,6 +21,7 @@ class CartDialogWidget extends StatefulWidget {
   final Function(DateTime) onDateSelected;
   final Function(String) onTimeSelected;
   final TextEditingController dateController;
+  final double transportFee;
 
   const CartDialogWidget({
     Key? key,
@@ -33,6 +34,7 @@ class CartDialogWidget extends StatefulWidget {
     required this.onDateSelected,
     required this.onTimeSelected,
     required this.dateController,
+    required this.transportFee,
   }) : super(key: key);
 
   @override
@@ -102,7 +104,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
     final cartItems = _getCartItems();
 
     double subtotal = _calculateSubtotal();
-    double transport = 80.0;
+    double transport = widget.transportFee;
     double total = subtotal + transport;
     double originalTotal = _calculateOriginalTotal();
     double saved = originalTotal - subtotal; // Fixed: Don't include transport in savings

@@ -29,6 +29,7 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
   final String customerAddress;
   final VoidCallback onSuccess;
   final Function(String)? onAddressUpdate;
+    final double transportFee;
   const CheckoutHouseKeeperScreen({
     Key? key,
     required this.serviceQuantities,
@@ -41,6 +42,7 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
     required this.customerAddress,
     required this.onSuccess,
     this.onAddressUpdate,
+        required this.transportFee,
   }) : super(key: key);
 
   @override
@@ -158,7 +160,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         selectedTaskItems: widget.selectedTaskItems,
         services: services
     );
-    double transport = 80.0;
+    double transport = widget.transportFee;
     double totalAmount = subtotal + transport;
 
     // Prepare booking data
@@ -248,7 +250,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         final services = taskVM.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
 
         double subtotal = checkoutVM.calculateTotal(serviceQuantities: widget.serviceQuantities, selectedTaskItems: widget.selectedTaskItems, services: services);
-        double transport = 80.0;
+        double transport = widget.transportFee;
         double total = subtotal + transport;
         double saved = checkoutVM.calculateSaved(serviceQuantities: widget.serviceQuantities, selectedTaskItems: widget.selectedTaskItems, services: services);
 
@@ -453,7 +455,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     if (selectedServices.isEmpty) {
       return SizedBox.shrink();
     }
-    double transport = 80.0;
+    double transport = widget.transportFee;
     double total = subtotal + transport;
     final screenWidth = MediaQuery.of(context).size.width * 1;
     final screenHeight = MediaQuery.of(context).size.height * 1;

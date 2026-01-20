@@ -17,6 +17,7 @@ class CartDialog extends StatefulWidget {
   final String selectedTime;
   final Function(String serviceId, int newQuantity) onQuantityChanged;
   final VoidCallback onProceedToCheckout;
+    final double transportFee;
 
   const CartDialog({
     Key? key,
@@ -28,6 +29,7 @@ class CartDialog extends StatefulWidget {
     required this.selectedTime,
     required this.onQuantityChanged,
     required this.onProceedToCheckout,
+        required this.transportFee,
   }) : super(key: key);
 
   @override
@@ -138,7 +140,7 @@ class _CartDialogState extends State<CartDialog> {
     final cartItems = _prepareCartItems();
 
     double subtotal = _calculateSubtotal();
-    double transport = 80.0;
+    double transport =widget.transportFee;
     double total = subtotal + transport;
     double originalTotal = _calculateOriginalTotal();
     double saved = originalTotal - subtotal;

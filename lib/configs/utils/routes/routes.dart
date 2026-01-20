@@ -207,6 +207,7 @@ class Routes {
               customerPhone: args['customerPhone'] ,
               customerAddress: args['customerAddress'] ,
               onAddressUpdate: args['onAddressUpdate'],
+              transportFee: args['transportFee'],
               onSuccess: () {
                 // This callback will be called from checkout screen
               },

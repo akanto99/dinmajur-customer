@@ -283,7 +283,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                       defaultIcon: Icons.spa,
                       supportSvg: false,
                     ),
-                    SizedboxSpaccing.height03(context),
+                    SizedBox(height: 25,),
                     DynamicServiceList<Datum, Item>(
                       categories: data,
                       categoryKeys: _categoryKeys,
@@ -294,7 +294,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                       getCategoryName: (category) => category.name ?? '',
                       categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
                       emptyStateStyle: (context) => AppTextStyles.textSize16(context),
-                      emptyStateSpacing: (context) => SizedboxSpaccing.height015(context),
+                      emptyStateSpacing: (context) => SizedBox(height: 35,),
                       buildServiceCard: (service, width, height, isLastItem) {
                         int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
                         double originalPrice = service.originalPrice?.toDouble() ?? 0;
@@ -321,7 +321,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           getSubtitleColor: (context) => AppColors.subtitle(context),
                           getTextColor: (context) => AppColors.textPrimary(context),
                           getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.normal, color: color ?? AppColors.textPrimary(context)),
-                          getSpacing: (context) => SizedboxSpaccing.width03(context),
+                          getSpacing: (context) => SizedboxSpaccing.width01(context),
                         );
                       },
                     ),
@@ -357,6 +357,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
     final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
     final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+    final transportFeeValue = viewModel.getAllPremiumHomeBeautySalonData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
     showDialog(
       context: context,
@@ -379,6 +380,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
             onProceedToCheckout: _navigateCheckOutScreen,
             selectedDate: checkoutVM.selectedDate,
             selectedServiceTime: checkoutVM.selectedServiceTime,
+            transportFee: transportFeeValue,
             onDateSelected: (DateTime selectedDate) {
               checkoutVM.setSelectedDate(selectedDate);
               setDialogState(() {});
@@ -430,6 +432,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     // Get the data before navigation
     final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
     final categories = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+    final transportFeeValue = viewModel.getAllPremiumHomeBeautySalonData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
     // Navigate to CheckoutScreen using named route
     final result = await Navigator.pushNamed(
@@ -443,7 +446,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
         'categories': categories,
         'serviceQuantities': _serviceQuantities,
         'totalPrice': _calculateTotal(),
-        'transportFee': 80.0,
+        'transportFee': transportFeeValue,
         'onAddressUpdate': (String newAddress) {
           setState(() {
             _currentCustomerAddress = newAddress;

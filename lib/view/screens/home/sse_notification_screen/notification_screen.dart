@@ -993,41 +993,85 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                 children: [
                   _getNotificationIcon(notification.type ?? ''),
                   SizedboxSpaccing.width03(context),
+                  // Expanded(
+                  //   child: Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       if (notification.title != null && notification.title!.isNotEmpty)
+                  //         Row(
+                  //           children: [
+                  //             Expanded(
+                  //               child: Text(
+                  //                 notification.title!,
+                  //                 style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
+                  //               ),
+                  //             ),
+                  //             if (_shouldShowViewBadge(notification.type)) ...[
+                  //               const SizedBox(width: 12),
+                  //               Container(
+                  //                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  //                 decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
+                  //                 child: Text(
+                  //                   'VIEW',
+                  //                   style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                  //                 ),
+                  //               ),
+                  //             ],
+                  //           ],
+                  //         ),
+                  //       Row(
+                  //         children: [
+                  //           Expanded(
+                  //             child: Text(
+                  //               notification.message ?? 'No message',
+                  //               style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context), weight: FontWeight.w400),
+                  //             ),
+                  //           ),
+                  //           if ((notification.title == null || notification.title!.isEmpty) && _shouldShowViewBadge(notification.type)) ...[
+                  //             const SizedBox(width: 8),
+                  //             Container(
+                  //               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  //               decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
+                  //               child: Text(
+                  //                 'VIEW',
+                  //                 style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                  //               ),
+                  //             ),
+                  //           ],
+                  //         ],
+                  //       ),
+                  //       Row(
+                  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //         children: [
+                  //           Row(
+                  //             children: [
+                  //               Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
+                  //               const SizedBox(width: 4),
+                  //               Text(
+                  //                 notification.createdAt != null ? timeago.format(notification.createdAt!) : 'Unknown time',
+                  //                 style: AppTextStyles.textSize12(context, color: Colors.grey.shade600, weight: FontWeight.w500),
+                  //               ),
+                  //             ],
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (notification.title != null && notification.title!.isNotEmpty)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  notification.title!,
-                                  style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
-                                ),
-                              ),
-                              if (_shouldShowViewBadge(notification.type)) ...[
-                                const SizedBox(width: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(4)),
-                                  child: Text(
-                                    'VIEW',
-                                    style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w600),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
+                        // Message with VIEW badge
                         Row(
                           children: [
                             Expanded(
                               child: Text(
                                 notification.message ?? 'No message',
-                                style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context), weight: FontWeight.w400),
+                                style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
                               ),
                             ),
-                            if ((notification.title == null || notification.title!.isEmpty) && _shouldShowViewBadge(notification.type)) ...[
+                            if (_shouldShowViewBadge(notification.type)) ...[
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -1040,18 +1084,15 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                             ],
                           ],
                         ),
+                        const SizedBox(height: 4), // Add spacing between message and timestamp
+                        // Timestamp
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
-                                const SizedBox(width: 4),
-                                Text(
-                                  notification.createdAt != null ? timeago.format(notification.createdAt!) : 'Unknown time',
-                                  style: AppTextStyles.textSize12(context, color: Colors.grey.shade600, weight: FontWeight.w500),
-                                ),
-                              ],
+                            Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
+                            const SizedBox(width: 4),
+                            Text(
+                              notification.createdAt != null ? timeago.format(notification.createdAt!) : 'Unknown time',
+                              style: AppTextStyles.textSize12(context, color: Colors.grey.shade600, weight: FontWeight.w500),
                             ),
                           ],
                         ),

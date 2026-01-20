@@ -11,23 +11,27 @@ String getAllPermiumHomeBeautySalonModelToJson(GetAllPermiumHomeBeautySalonModel
 class GetAllPermiumHomeBeautySalonModel {
   bool? success;
   String? message;
+  Meta? meta;
   List<Datum>? data;
 
   GetAllPermiumHomeBeautySalonModel({
     this.success,
     this.message,
+    this.meta,
     this.data,
   });
 
   factory GetAllPermiumHomeBeautySalonModel.fromJson(Map<String, dynamic> json) => GetAllPermiumHomeBeautySalonModel(
     success: json["success"],
     message: json["message"],
+    meta: json["meta"] == null ? null : Meta.fromJson(json["meta"]),
     data: json["data"] == null ? [] : List<Datum>.from(json["data"]!.map((x) => Datum.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
     "success": success,
     "message": message,
+    "meta": meta?.toJson(),
     "data": data == null ? [] : List<dynamic>.from(data!.map((x) => x.toJson())),
   };
 }
@@ -167,4 +171,43 @@ class EnumValues<T> {
     reverseMap = map.map((k, v) => MapEntry(v, k));
     return reverseMap;
   }
+}
+class Meta {
+  TransportFee? transportFee;
+
+  Meta({
+    this.transportFee,
+  });
+
+  factory Meta.fromJson(Map<String, dynamic> json) => Meta(
+    transportFee: json["transportFee"] == null ? null : TransportFee.fromJson(json["transportFee"]),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "transportFee": transportFee?.toJson(),
+  };
+}
+
+class TransportFee {
+  String? name;
+  String? description;
+  int? value;
+
+  TransportFee({
+    this.name,
+    this.description,
+    this.value,
+  });
+
+  factory TransportFee.fromJson(Map<String, dynamic> json) => TransportFee(
+    name: json["name"],
+    description: json["description"],
+    value: json["value"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "name": name,
+    "description": description,
+    "value": value,
+  };
 }
