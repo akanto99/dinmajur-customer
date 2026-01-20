@@ -302,7 +302,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     color: Colors.transparent,
                     child: Text(
                       "Cooking Policy",
-                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
                     ),
                   ),
                 ),
@@ -319,7 +319,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     color: Colors.transparent,
                     child: Text(
                       "Delivery Policy",
-                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
                     ),
                   ),
                 ),
@@ -336,7 +336,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     color: Colors.transparent,
                     child: Text(
                       "Refund Policy",
-                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
                     ),
                   ),
                 ),
@@ -351,7 +351,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     color: Colors.transparent,
                     child: Text(
                       "Terms & Conditions",
-                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
                     ),
                   ),
                 ),
@@ -366,7 +366,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     color: Colors.transparent,
                     child: Text(
                       "Privacy Policy",
-                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
                     ),
                   ),
                 ),
