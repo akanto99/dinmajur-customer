@@ -1,5 +1,6 @@
 
 import 'dart:convert';
+import 'package:dinmajur_customer/configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
@@ -176,12 +177,25 @@ class LoginLogoutViewModel with ChangeNotifier {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       final sseService = Provider.of<SSENotificationService>(context, listen: false); // ✅ Get SSE service
       final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
+      final oneSignalService = Provider.of<OneSignalNotificationService>(context, listen: false);
+
+
+
       // Get accessToken from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken') ?? '';
 
       // ✅ Get userId from SharedPreferences
       String userId = prefs.getString('userId') ?? '';
+      try {
+        print("🔔 Attempting to logout from OneSignal...");
+        await oneSignalService.logoutUser();
+        print("🔔 ✅ OneSignal logout successful");
+      } catch (e) {
+        print("⚠️ OneSignal logout failed: $e");
+        // Continue anyway - don't block logout
+      }
+
 
       // Fallback: try to get from userPreference if not in SharedPreferences
       if (userId.isEmpty) {
