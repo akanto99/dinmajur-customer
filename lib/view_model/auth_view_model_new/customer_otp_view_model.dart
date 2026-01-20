@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dinmajur_customer/configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -51,8 +52,10 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
 
         if (userId != null && userId.isNotEmpty) {
           ///One Signal
-          await OneSignal.login(userId);
-          await prefs.setString('userId', userId);
+          // await OneSignal.login(userId);
+          // await prefs.setString('userId', userId);
+          final oneSignalService = Provider.of<OneSignalNotificationService>(context, listen: false);
+          await oneSignalService.loginUser(userId);
         }
         ///SOCKET
         if (userId != null && userId.isNotEmpty) {

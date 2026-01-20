@@ -683,6 +683,7 @@ import 'package:upgrader/upgrader.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
+import 'configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'configs/utils/routes/routes.dart';
 import 'configs/utils/routes/routes_name.dart';
 import 'l10n/app_localizations.dart';
@@ -715,13 +716,13 @@ void main() async {
 
   final languageProvider = LanguageChangeProvider();
   await languageProvider.getLanguage();
-
-  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-  final oneSignalAppId = dotenv.env['ONESIGNAL_APP_ID'];
-  OneSignal.initialize(oneSignalAppId!);
-  OneSignal.Notifications.requestPermission(false);
+  ///OneSignal
+  final oneSignalService = OneSignalNotificationService();
+  await oneSignalService.initialize();
+  await oneSignalService.autoLogin();
   await Future.delayed(Duration(microseconds: 200));
 
+  ///App Upgrade Alert Play/iOS
   await Upgrader.clearSavedSettings();
 
   ///SOCKET.IO
@@ -736,8 +737,6 @@ void main() async {
   String? userId = prefs.getString('userId');
 
   if (userId != null && userId.isNotEmpty) {
-    ///OneSignal
-    await OneSignal.login(userId);
     ///SOCKET.IO
     print("🔌 Main: Auto-connecting socket for logged-in user: $userId");
     await socketProvider.connectWithUser(userId: userId);
@@ -760,6 +759,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        Provider<OneSignalNotificationService>.value(value: oneSignalService),
+
+
         ChangeNotifierProvider<LanguageChangeProvider>.value(value: languageProvider),
         ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => CountdownTimerProvider()),
