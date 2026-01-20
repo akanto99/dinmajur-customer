@@ -114,7 +114,7 @@
     "no_notification": "এখনও কোনো নোটিফিকেশন নেই",
 
       "drawer_screen":"--------------------Drawer Screen ------------------------",
-       "profile_menu": "প্রোফাইল মেনু",
+    "profile_menu": "প্রোফাইল মেনু",
     "order":"অর্ডার",
     "wishlist":"পছন্দের তালিকা",
     "review":"রিভিউ",
@@ -135,7 +135,10 @@
     "promo_codes": "প্রোমো কোডসমূহ",
     "offers": "অফারসমূহ",
     "terms_conditions": "শর্তাবলী",
-    "privacy_policy": "গোপনীয়তা নীতি"
+    "privacy_policy": "গোপনীয়তা নীতি",
+    "language": "ভাষা",
+    "chooseYourLanguage": "আপনার ভাষা নির্বাচন করুন",
+    "selectLanguageDesc": "সহজে Dinmajur Customer অ্যাপ ব্যবহার করার জন্য\nআপনার পছন্দের ভাষা নির্বাচন করুন"
 
 
 

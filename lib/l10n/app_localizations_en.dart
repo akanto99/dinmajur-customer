@@ -423,4 +423,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacy_policy => 'Privacy Policy';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get chooseYourLanguage => 'Choose your language';
+
+  @override
+  String get selectLanguageDesc =>
+      'Select your preferred language to use\nDinmajur Customer app easily';
 }

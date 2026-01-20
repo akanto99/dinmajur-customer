@@ -232,12 +232,17 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
               child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
             ),
-
             GestureDetector(
               onTap: () {
                 Navigator.pushNamed(context, RoutesName.support);
               },
               child: _buildDrawerItem(CupertinoIcons.question_circle, AppLocalizations.of(context)!.support),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, RoutesName.language);
+              },
+              child: _buildDrawerItem(CupertinoIcons.globe, AppLocalizations.of(context)!.language),
             ),
             GestureDetector(
               onTap: () {

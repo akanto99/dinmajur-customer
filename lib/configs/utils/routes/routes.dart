@@ -13,6 +13,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/language/language_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
@@ -350,6 +351,8 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const DeliveryPolicyScreen());
         case RoutesName.refundPolicyScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const RefundPolicyScreen());
+        case RoutesName.language:
+        return MaterialPageRoute(builder: (BuildContext context) => const LanguageScreen());
 
       ///Task
       case RoutesName.orderScreen:
