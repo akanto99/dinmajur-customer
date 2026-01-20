@@ -494,7 +494,7 @@ class DynamicServiceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       // margin: EdgeInsets.only(bottom: 15),
-      padding: EdgeInsets.symmetric(vertical: 10),
+      padding: isLastItem?EdgeInsets.only(top: 10): EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         color: getBackgroundColor(context),
         // borderRadius: BorderRadius.circular(12),

@@ -326,6 +326,7 @@ import 'package:dinmajur_customer/configs/services/navigator_services/navigator_
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
@@ -337,11 +338,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class NavigationScreen extends StatefulWidget {
@@ -367,7 +370,8 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     "assets/images/navBar/navbar_new/home.svg",
     "assets/images/navBar/navbar_new/offers.svg",
     "assets/images/navBar/navbar_new/order.svg",
-    "assets/images/navBar/navbar_new/draft.svg",
+    // "assets/images/navBar/navbar_new/draft.svg",
+    "assets/images/navBar/navbar_new/support.svg",
   ];
 
   late List<String> labels;
@@ -399,11 +403,11 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     super.didChangeDependencies();
     _setSystemUIColors();
 
-    labels = [
-      AppLocalizations.of(context)!.home,
+    labels = [AppLocalizations.of(context)!.home,
       AppLocalizations.of(context)!.offers,
       AppLocalizations.of(context)!.order,
-      AppLocalizations.of(context)!.draft
+      // AppLocalizations.of(context)!.draft
+      AppLocalizations.of(context)!.support
     ];
   }
 
@@ -531,8 +535,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
         // Re-initialize listener if needed
         if (!notificationCountViewModel.isInitialized) {
-          notificationCountViewModel.initializeCountListener(
-              sseService.notificationCountStream, sseService.notificationIncrementStream);
+          notificationCountViewModel.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
         }
         notificationCountViewModel.setInitialCount(sseService.currentCount);
 
@@ -619,7 +622,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         }
       });
       setState(() => _isAlertSet = true);
-
     } else if (hasConnection && _isAlertSet) {
       // ✅ CONNECTION RESTORED - Close dialog and reconnect both services
       print("🔌 NavigationScreen: Connection restored, closing dialog and reconnecting services");
@@ -636,12 +638,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
       // ✅ Navigate to NavigationScreen with home tab
       if (mounted && context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NavigationScreen(initialIndex: 0),
-          ),
-        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
       }
     }
   }
@@ -695,8 +692,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
       // Re-initialize listener if needed
       if (!notificationCountViewModel.isInitialized) {
-        notificationCountViewModel.initializeCountListener(
-            sseService.notificationCountStream, sseService.notificationIncrementStream);
+        notificationCountViewModel.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
       }
 
       // Update with current count
@@ -736,19 +732,9 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
       builder: (BuildContext dialogContext) => CupertinoAlertDialog(
         title: Column(
           children: [
-            Icon(
-              CupertinoIcons.wifi_exclamationmark,
-              size: 40,
-              color: CupertinoColors.systemRed,
-            ),
+            Icon(CupertinoIcons.wifi_exclamationmark, size: 40, color: CupertinoColors.systemRed),
             SizedBox(height: 10),
-            Text(
-              'Connection Lost',
-              style: GoogleFonts.hindSiliguri(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            Text('Connection Lost', style: GoogleFonts.hindSiliguri(fontSize: 16, fontWeight: FontWeight.w600)),
           ],
         ),
         content: Padding(
@@ -756,10 +742,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
           child: Text(
             'You seem to be offline. Check your connection to stay updated.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.hindSiliguri(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-            ),
+            style: GoogleFonts.hindSiliguri(fontSize: 14, fontWeight: FontWeight.w400),
           ),
         ),
         actions: <Widget>[
@@ -771,9 +754,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
               // Check connection again
               List<ConnectivityResult> result = await _connectivity.checkConnectivity();
               bool hasInternet = await InternetConnectionChecker().hasConnection;
-              bool hasConnection = !result.contains(ConnectivityResult.none) &&
-                  result.isNotEmpty &&
-                  hasInternet;
+              bool hasConnection = !result.contains(ConnectivityResult.none) && result.isNotEmpty && hasInternet;
 
               if (hasConnection) {
                 print("🔌 NavigationScreen: Retry - Connection restored");
@@ -781,12 +762,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
                 // ✅ Navigate to NavigationScreen with home tab
                 if (mounted && context.mounted) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NavigationScreen(initialIndex: 0),
-                    ),
-                  );
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
                 }
               } else {
                 print("🔌 NavigationScreen: Retry - Still no connection");
@@ -800,10 +776,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
             },
             child: Text(
               'Retry',
-              style: TextStyle(
-                color: CupertinoColors.activeBlue,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: CupertinoColors.activeBlue, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -850,10 +823,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         showLater: false,
         showIgnore: false,
         showReleaseNotes: false,
-        upgrader: Upgrader(
-          countryCode: 'BD',
-          languageCode: 'en',
-        ),
+        upgrader: Upgrader(countryCode: 'BD', languageCode: 'en'),
         child: WillPopScope(
           onWillPop: () async {
             // Handle drawer close if open
@@ -936,9 +906,22 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                         bool isOrderTab = index == 2;
 
                         return GestureDetector(
-                          onTap: () {
+                          // onTap: () {
+                          //   if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
+                          //     _key.currentState!.closeDrawer();
+                          //   } else {
+                          //     setState(() {
+                          //       _currentIndex = index;
+                          //     });
+                          //   }
+                          // },
+                          onTap: () async {
                             if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
                               _key.currentState!.closeDrawer();
+                            } else if (index == 3) {
+                              // Index 3 = Draft/Support - Open WhatsApp
+                              await _openWhatsAppSupport();
+                              // Don't change the current index, stay on current screen
                             } else {
                               setState(() {
                                 _currentIndex = index;
@@ -974,19 +957,12 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                                               decoration: BoxDecoration(
                                                 color: Colors.red,
                                                 shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color: AppColors.globalBlackWhite(context),
-                                                  width: 1,
-                                                ),
+                                                border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
                                               ),
                                               constraints: BoxConstraints(minWidth: 14, minHeight: 14),
                                               child: Text(
                                                 '${orderCountViewModel.runningOrderCount > 9 ? '9+' : orderCountViewModel.runningOrderCount}',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                                                 textAlign: TextAlign.center,
                                               ),
                                             ),
@@ -995,13 +971,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                                     );
                                   },
                                 )
-                                    : SvgPicture.asset(
-                                  icons[index],
-                                  width: 18,
-                                  height: 18,
-                                  color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                                  semanticsLabel: labels[index],
-                                ),
+                                    : SvgPicture.asset(icons[index], width: 18, height: 18, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context), semanticsLabel: labels[index]),
                                 const SizedBox(height: 6),
                                 Text(
                                   labels[index],
@@ -1026,5 +996,136 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         ),
       ),
     );
+  }
+
+  Future<void> _openWhatsAppSupport() async {
+    // Your company WhatsApp number
+    const String companyPhone = '8801929600600'; // Bangladesh number with country code
+
+    // Pre-filled message for customer support
+    const String message = 'Hello! I need assistance with Dinmajur platform services.';
+
+    // Create WhatsApp URL with encoded message
+    final String whatsappUrl = 'https://wa.me/$companyPhone?text=${Uri.encodeComponent(message)}';
+    final Uri whatsappUri = Uri.parse(whatsappUrl);
+
+    try {
+      // ✅ Check if WhatsApp can be launched
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        print('✅ WhatsApp opened successfully');
+      } else {
+        // WhatsApp is not installed
+        print('⚠️ WhatsApp is not available');
+        _showWhatsAppNotInstalledDialog();
+      }
+    } catch (e) {
+      print('❌ Error opening WhatsApp: $e');
+      Utils.flushBarErrorMessage("WhatsApp not available. Opening phone dialer...", context);
+
+      // Wait a moment then open dialer
+      await Future.delayed(Duration(milliseconds: 500));
+      await _callSupport();
+    }
+  }
+
+  // ✅ Dialog when WhatsApp is not installed
+  void _showWhatsAppNotInstalledDialog() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.containerBackground(context),
+          contentPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: screenHeight * 0.02),
+          insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Row(
+            children: [
+              Icon(Icons.phone_android, color: AppColors.button(context), size: 28),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text('WhatsApp Not Found', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+              ),
+            ],
+          ),
+          content: Text('WhatsApp is not installed. Would you like to call our support team instead?', style: AppTextStyles.textSize14(context)),
+          actions: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Option 1: Call Support (Primary Action)
+                GestureDetector(
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    await _callSupport();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.014),
+                    decoration: BoxDecoration(color: AppColors.button(context),
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.phone, size: 18, color: AppColors.whiteColor),
+                        SizedBox(width: 8),
+                        Text(
+                            'Call Support (01929-600600)',
+                            style: AppTextStyles.textSize14(context,color: AppColors.whiteColor,weight: FontWeight.w500)
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 15),
+
+                // Option 3: Cancel
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: screenHeight * 0.012),
+                    decoration: BoxDecoration(color: AppColors.containerBackground(context),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            width: 1,
+                            color: AppColors.border(context)
+                        )
+                    ),
+                    child: Center(
+                      child: Text(
+                          'Cancel',
+                          style: AppTextStyles.textSize14(context,weight: FontWeight.w500)
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  Future<void> _callSupport() async {
+    const String phoneNumber = 'tel:+8801929600600'; // Company support number
+    final Uri phoneUri = Uri.parse(phoneNumber);
+
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+        print('✅ Phone dialer opened for support call');
+      } else {
+        Utils.flushBarErrorMessage("Unable to open phone dialer", context);      }
+    } catch (e) {
+      print('❌ Error opening phone dialer: $e');
+      Utils.flushBarErrorMessage("Unable to make phone call", context);
+    }
   }
 }

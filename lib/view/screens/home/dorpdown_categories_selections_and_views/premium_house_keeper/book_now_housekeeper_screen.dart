@@ -670,6 +670,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     // Get services data
     final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
+    final transportFeeValue = viewModel.getAllPremiumHouseKeeperTaskData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
     // Filter services with quantity > 0
     final servicesWithQuantity = data.where((service) {
@@ -687,6 +688,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         selectedFrequency: _selectedFrequency,
         selectedDate: _dateController.text,
         selectedTime: _selectedTime!,
+        transportFee: transportFeeValue,
         onQuantityChanged: (String serviceId, int newQuantity) {
           setState(() {
             if (newQuantity == 0) {
@@ -729,6 +731,10 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   // }
 
   void _showCheckoutScreen() async {
+    // Get the data before navigation
+    final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
+    final transportFeeValue = viewModel.getAllPremiumHouseKeeperTaskData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
+
     final result = await Navigator.pushNamed(
       context,
       RoutesName.checkoutHouseKeeperScreen,
@@ -741,6 +747,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         'customerName': widget.customerName,
         'customerPhone': widget.customerPhone,
         'customerAddress': _currentCustomerAddress,
+        'transportFee': transportFeeValue,
         'onAddressUpdate': (String newAddress) {
           setState(() {
             _currentCustomerAddress = newAddress;
