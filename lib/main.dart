@@ -719,7 +719,7 @@ void main() async {
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   final oneSignalAppId = dotenv.env['ONESIGNAL_APP_ID'];
   OneSignal.initialize(oneSignalAppId!);
-  OneSignal.Notifications.requestPermission(true);
+  OneSignal.Notifications.requestPermission(false);
   await Future.delayed(Duration(microseconds: 200));
 
   await Upgrader.clearSavedSettings();
