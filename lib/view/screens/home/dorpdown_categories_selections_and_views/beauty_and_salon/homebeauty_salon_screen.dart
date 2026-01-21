@@ -766,7 +766,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           defaultIcon: Icons.spa,
                           supportSvg: false,
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: 20),
                       ],
                     ),
                   ),
