@@ -783,7 +783,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                         child: Center(
                           child: Container(
                             width: screenWidth * 0.9,
-                            height: 45,
+                            padding: EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
                               color: AppColors.containerBackground(context),
                               border: Border(
@@ -794,9 +794,15 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
+                                // Text(
+                                //   category.name ?? '',
+                                //   style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                // ),
                                 Text(
                                   category.name ?? '',
                                   style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
