@@ -1,15 +1,18 @@
 
 import 'dart:convert';
+import 'package:dinmajur_customer/configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:dinmajur_customer/respository/auth_repository/login_logout_repository.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart'; // ✅ Add SSE import
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -173,6 +176,10 @@ class LoginLogoutViewModel with ChangeNotifier {
       final socketProvider = Provider.of<SocketProvider>(context, listen: false);
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       final sseService = Provider.of<SSENotificationService>(context, listen: false); // ✅ Get SSE service
+      final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
+      final oneSignalService = Provider.of<OneSignalNotificationService>(context, listen: false);
+
+
 
       // Get accessToken from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
@@ -180,9 +187,20 @@ class LoginLogoutViewModel with ChangeNotifier {
 
       // ✅ Get userId from SharedPreferences
       String userId = prefs.getString('userId') ?? '';
+      try {
+        print("🔔 Attempting to logout from OneSignal...");
+        await oneSignalService.logoutUser();
+        print("🔔 ✅ OneSignal logout successful");
+      } catch (e) {
+        print("⚠️ OneSignal logout failed: $e");
+        // Continue anyway - don't block logout
+      }
+
 
       // Fallback: try to get from userPreference if not in SharedPreferences
       if (userId.isEmpty) {
+        ///OneSignal
+        await OneSignal.logout();
         final currentUser = userPreference.currentUser;
         userId = currentUser?.data?.user?.userId ?? '';
       }
@@ -253,6 +271,7 @@ class LoginLogoutViewModel with ChangeNotifier {
       print("🗑️ Clearing local data...");
       await userPreference.remove();
       profileViewModel.clearCache();
+      locationListViewModel.clearCache();
 
       setLoggingOut(false);
 

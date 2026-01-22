@@ -1,185 +1,56 @@
-// import 'package:dinmajur_customer/configs/res/color.dart';
-// import 'package:dinmajur_customer/configs/res/text_styles.dart';
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-//
-// ///Poppins
-// class CustomTextFieldWithFormFieldPoppins extends StatefulWidget {
-//   final String ?titleText;
-//   final String? requiredStar;
-//   final String placeholder;
-//   final double? dynamicheight;
-//   final TextEditingController controller;
-//   final FocusNode? focusCurrent;
-//   final FocusNode? focusNext;
-//   final String? Function(String?)? validator;
-//   final Function(String)? onChanged;
-//   final TextInputType keyboardType;
-//
-//   CustomTextFieldWithFormFieldPoppins({
-//     Key? key,
-//     this.titleText,
-//     this.requiredStar,
-//     this.dynamicheight,
-//     required this.placeholder,
-//     required this.controller,
-//     this.focusCurrent,
-//     this.focusNext,
-//     this.validator,
-//     this.onChanged,
-//     this.keyboardType = TextInputType.text,
-//   }) : super(key: key);
-//
-//   @override
-//   State<CustomTextFieldWithFormFieldPoppins> createState() => _CustomTextFieldWithFormFieldPoppinsState();
-// }
-//
-// class _CustomTextFieldWithFormFieldPoppinsState extends State<CustomTextFieldWithFormFieldPoppins> {
-//   bool _isFocused = false;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     widget.focusCurrent?.addListener(_handleFocusChange);
-//   }
-//
-//   void _handleFocusChange() {
-//     if (mounted) {
-//       setState(() {
-//         _isFocused = widget.focusCurrent!.hasFocus;
-//       });
-//     }
-//   }
-//
-//   @override
-//   void dispose() {
-//     widget.focusCurrent?.removeListener(_handleFocusChange);
-//     super.dispose();
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final screenHeight = MediaQuery.of(context).size.height*1;
-//     final screenWidth = MediaQuery.of(context).size.width*1;
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Container(
-//           // width: screenWidth * 0.75,
-//           child:  Text('${widget.titleText}', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-//         ),
-//         SizedBox(height: screenHeight * 0.012,),
-//         FormField<String>(
-//           validator: widget.validator,
-//           autovalidateMode: AutovalidateMode.onUserInteraction,
-//           builder: (FormFieldState<String> fieldState) {
-//             return Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Container(
-//                   // width: screenWidth * 0.75,
-//                   height: 42,
-//                   // height: screenHeight*0.05,
-//                   decoration: BoxDecoration(
-//                     color: AppColors.textFieldFill(context),
-//                     borderRadius: BorderRadius.circular(12),
-//                     border:Border.all(
-//                       width: 1,
-//                       color: AppColors.border(context),
-//                     ),
-//                   ),
-//                   child: TextFormField(
-//                     controller: widget.controller,
-//                     focusNode: widget.focusCurrent,
-//                     keyboardType: widget.keyboardType,
-//                     maxLines: widget.keyboardType == TextInputType.multiline ? 5 : 1,
-//                     style:  AppTextStyles.textSize16(context, weight: FontWeight.w500),
-//                     decoration: InputDecoration(
-//                       hintText: widget.placeholder,
-//                       hintStyle:  AppTextStyles.textSize16(context,      color: AppColors.hintColor(context), weight: FontWeight.w400),
-//                       border: OutlineInputBorder(
-//                         borderSide: BorderSide.none,
-//                       ),
-//                       // focusedBorder: OutlineInputBorder(
-//                       //   borderRadius: BorderRadius.circular(8.0),
-//                       //   borderSide: BorderSide(
-//                       //     color: Colors.green,
-//                       //     width: 1,
-//                       //   ),
-//                       // ),
-//                       contentPadding: EdgeInsets.symmetric( horizontal: 10.0),
-//                     ),
-//                     onChanged: (value) {
-//                       fieldState.didChange(value);
-//                       if (widget.onChanged != null) {
-//                         widget.onChanged!(value);
-//                       }
-//                     },
-//                   ),
-//                 ),
-//                 if (fieldState.hasError)
-//                   Container(
-//                     width: screenWidth * 0.85,
-//                     child: Padding(
-//                       padding: const EdgeInsets.only(top: 4.0, left: 10.0),
-//                       child: Text(
-//                         fieldState.errorText ?? '',
-//                         style: const TextStyle(
-//                             fontSize: 12,
-//                             fontWeight: FontWeight.w400,
-//                             color: Colors.red,
-//                             letterSpacing: 0.2
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//               ],
-//             );
-//           },
-//         ),
-//       ],
-//     );
-//   }
-// }
-//
-//
-//
-//
-//
-//
-//
-//
-
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:flutter/material.dart';
 
-/// Poppins TextField with customizable text styles
-class CustomTextFieldWithFormFieldPoppins extends StatefulWidget {
+/// Fully customizable TextField with all styling options
+class CustomTextFieldWithFormField extends StatefulWidget {
+  // Text content
   final String? titleText;
   final String? requiredStar;
   final String placeholder;
-  final double? dynamicheight;
+
+  // Controllers and focus
   final TextEditingController controller;
   final FocusNode? focusCurrent;
   final FocusNode? focusNext;
   final String? Function(String?)? validator;
   final Function(String)? onChanged;
   final TextInputType keyboardType;
+  final bool isReadOnly;
 
-  // ✨ NEW: Customizable text styles
+  // Dimensions
+  final double? height;
+  final double? width;
+  final double? borderRadius;
+  final double? borderWidth;
+  final EdgeInsetsGeometry? contentPadding;
+  final double? titleSpacing;
+
+  // Colors
+  final Color? backgroundColor;
+  final Color? borderColor;
+  final Color? focusedBorderColor;
+  final Color? errorBorderColor;
+
+  // Text styles
   final TextStyle? titleTextStyle;
   final TextStyle? inputTextStyle;
   final TextStyle? hintTextStyle;
   final TextStyle? errorTextStyle;
 
-  final bool isReadOnly;
+  // Icons
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+  final bool showLockIconWhenReadOnly;
 
-  CustomTextFieldWithFormFieldPoppins({
+  // Multiline
+  final int? maxLines;
+  final int? minLines;
+
+  const CustomTextFieldWithFormField({
     Key? key,
     this.titleText,
     this.requiredStar,
-    this.dynamicheight,
     required this.placeholder,
     required this.controller,
     this.focusCurrent,
@@ -187,20 +58,43 @@ class CustomTextFieldWithFormFieldPoppins extends StatefulWidget {
     this.validator,
     this.onChanged,
     this.keyboardType = TextInputType.text,
-    // Custom text styles (optional - uses defaults if null)
+    this.isReadOnly = false,
+
+    // Dimensions with defaults
+    this.height,
+    this.width,
+    this.borderRadius,
+    this.borderWidth,
+    this.contentPadding,
+    this.titleSpacing,
+
+    // Colors with defaults
+    this.backgroundColor,
+    this.borderColor,
+    this.focusedBorderColor,
+    this.errorBorderColor,
+
+    // Text styles with defaults
     this.titleTextStyle,
     this.inputTextStyle,
     this.hintTextStyle,
     this.errorTextStyle,
 
-    this.isReadOnly = false,
+    // Icons
+    this.prefixIcon,
+    this.suffixIcon,
+    this.showLockIconWhenReadOnly = true,
+
+    // Multiline
+    this.maxLines,
+    this.minLines,
   }) : super(key: key);
 
   @override
-  State<CustomTextFieldWithFormFieldPoppins> createState() => _CustomTextFieldWithFormFieldPoppinsState();
+  State<CustomTextFieldWithFormField> createState() => _CustomTextFieldWithFormFieldState();
 }
 
-class _CustomTextFieldWithFormFieldPoppinsState extends State<CustomTextFieldWithFormFieldPoppins> {
+class _CustomTextFieldWithFormFieldState extends State<CustomTextFieldWithFormField> {
   bool _isFocused = false;
 
   @override
@@ -228,69 +122,126 @@ class _CustomTextFieldWithFormFieldPoppinsState extends State<CustomTextFieldWit
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // Default values
+    final double actualHeight = widget.height ?? 50;
+    final double actualWidth = widget.width ?? screenWidth * 0.9;
+    final double actualBorderRadius = widget.borderRadius ?? 12;
+    final double actualBorderWidth = widget.borderWidth ?? 1;
+    final double actualTitleSpacing = widget.titleSpacing ?? (screenHeight * 0.012);
+
+    final Color actualBackgroundColor = widget.backgroundColor ?? AppColors.textFieldFill(context);
+    final Color actualBorderColor = widget.borderColor ?? AppColors.border(context);
+    final Color actualFocusedBorderColor = widget.focusedBorderColor ?? AppColors.button(context);
+    final Color actualErrorBorderColor = widget.errorBorderColor ?? Colors.red;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Title Text
-        if (widget.titleText != null)
-          Container(
-            child: Text('${widget.titleText}', style: widget.titleTextStyle ?? AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+        if (widget.titleText != null) ...[
+          SizedBox(
+            width: actualWidth,
+            child: Text(
+              '${widget.titleText}${widget.requiredStar ?? ""}',
+              style: widget.titleTextStyle ??
+                  AppTextStyles.textSize16(
+                      context,
+                      weight: FontWeight.w600,
+                      color: AppColors.textPrimary(context)
+                  ),
+            ),
           ),
-
-        if (widget.titleText != null) SizedBox(height: screenHeight * 0.012),
+          SizedBox(height: actualTitleSpacing),
+        ],
 
         // Form Field
         FormField<String>(
           validator: widget.validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           builder: (FormFieldState<String> fieldState) {
+            // Determine border color based on state
+            Color currentBorderColor = actualBorderColor;
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  height: widget.dynamicheight ?? 42,
+                  height: actualHeight,
+                  width: actualWidth,
                   decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border:Border.all(
-                      width: 1,
-                      color: AppColors.border(context),
+                    color: actualBackgroundColor,
+                    borderRadius: BorderRadius.circular(actualBorderRadius),
+                    border: Border.all(
+                      width: actualBorderWidth,
+                      color: currentBorderColor,
                     ),
-                    // border: Border.all(width: 1, color: fieldState.hasError ? Colors.red : (_isFocused ? AppColors.button(context) : AppColors.border(context))),
                   ),
                   child: TextFormField(
                     controller: widget.controller,
                     focusNode: widget.focusCurrent,
                     keyboardType: widget.keyboardType,
-                    maxLines: widget.keyboardType == TextInputType.multiline ? 5 : 1,
+                    maxLines: widget.maxLines ?? (widget.keyboardType == TextInputType.multiline ? 5 : 1),
+                    minLines: widget.minLines,
                     readOnly: widget.isReadOnly,
-                    style: widget.inputTextStyle ?? AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                    style: widget.inputTextStyle ??
+                        AppTextStyles.textSize14(
+                            context,
+                            weight: FontWeight.w500,
+                            color: AppColors.textPrimary(context)
+                        ),
                     decoration: InputDecoration(
                       hintText: widget.placeholder,
-                      hintStyle: widget.hintTextStyle ?? AppTextStyles.textSize16(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
-                      suffixIcon: widget.isReadOnly ? Icon(Icons.lock_outline, size: 18, color: AppColors.subtitle(context)) : null,
+                      hintStyle: widget.hintTextStyle ??
+                          AppTextStyles.textSize14(
+                              context,
+                              color: AppColors.subtitle(context).withOpacity(0.5),
+                              weight: FontWeight.w400
+                          ),
+                      prefixIcon: widget.prefixIcon,
+                      suffixIcon: widget.suffixIcon ??
+                          (widget.isReadOnly && widget.showLockIconWhenReadOnly
+                              ? Icon(
+                              Icons.lock_outline,
+                              size: 18,
+                              color: AppColors.subtitle(context)
+                          )
+                              : null),
                       border: OutlineInputBorder(borderSide: BorderSide.none),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0, vertical: widget.keyboardType == TextInputType.multiline ? 10.0 : 0),
+                      contentPadding: widget.contentPadding ??
+                          EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: widget.keyboardType == TextInputType.multiline ? 12.0 : 0
+                          ),
                     ),
-
                     onChanged: (value) {
                       fieldState.didChange(value);
                       if (widget.onChanged != null) {
                         widget.onChanged!(value);
                       }
                     },
+                    onFieldSubmitted: (_) {
+                      if (widget.focusNext != null) {
+                        FocusScope.of(context).requestFocus(widget.focusNext);
+                      }
+                    },
                   ),
                 ),
 
                 // Error Text
-                if (fieldState.hasError)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0, left: 10.0),
-                    child: Text(
-                      fieldState.errorText ?? '',
-                      style: widget.errorTextStyle ?? const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.red, letterSpacing: 0.2),
-                    ),
-                  ),
+                // if (fieldState.hasError)
+                //   Padding(
+                //     padding: const EdgeInsets.only(top: 4.0, left: 12.0),
+                //     child: Text(
+                //       fieldState.errorText ?? '',
+                //       style: widget.errorTextStyle ??
+                //           const TextStyle(
+                //               fontSize: 12,
+                //               fontWeight: FontWeight.w400,
+                //               color: Colors.red,
+                //               letterSpacing: 0.2
+                //           ),
+                //     ),
+                //   ),
               ],
             );
           },

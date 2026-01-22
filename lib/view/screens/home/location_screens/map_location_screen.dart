@@ -81,6 +81,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
             width: screenWidth * 0.7,
             child: GooglePlaceAutoCompleteTextField(
               textEditingController: _controller.addressController,
+              focusNode: _controller.addressFocusNode, // Add this
               googleAPIKey: _controller.googlePlacesApiKey,
               isCrossBtnShown: false,
               inputDecoration: InputDecoration(
@@ -105,6 +106,19 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
               getPlaceDetailWithLatLng: _controller.onPlaceSelected,
               itemClick: (Prediction prediction) {
                 _controller.addressController.text = prediction.description!;
+
+                // Unfocus using the focusNode
+                _controller.addressFocusNode.unfocus();
+
+                // Also use FocusScope as backup
+                FocusScope.of(context).unfocus();
+
+                // Delayed unfocus to ensure it persists
+                Future.delayed(Duration(milliseconds: 100), () {
+                  _controller.addressFocusNode.unfocus();
+                  FocusScope.of(context).unfocus();
+                });
+
                 _controller.onPlaceSelected(prediction);
               },
               seperatedBuilder: Divider(color: AppColors.border(context), height: 1),

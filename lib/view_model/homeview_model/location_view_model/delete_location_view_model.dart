@@ -31,8 +31,9 @@ class DeleteLocationViewModel with ChangeNotifier {
       setCreateDeleteLocationLoading(false);
       Utils.flushBarSuccessMessage('Location Deleted successfully', context);
 
-      Provider.of<GetLocationListViewModel>(context, listen: false).fetchLocationListApi();
-
+      final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
+      locationListViewModel.clearCache(); // Clear the cached data
+      await locationListViewModel.fetchLocationListApi();
       if (kDebugMode) {
         print('Location API Response: ${jsonEncode(response)}');
         print('========================================');

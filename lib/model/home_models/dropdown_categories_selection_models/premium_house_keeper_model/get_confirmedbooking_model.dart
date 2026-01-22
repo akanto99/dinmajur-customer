@@ -47,6 +47,7 @@ class Data {
   String? notes;
   List<dynamic>? images;
   ShiftId? shiftId;
+  String? paymentType;
   String? discountType;
   num? discountValue; // Changed from int? to num?
   num? total; // Changed from int? to num?
@@ -74,6 +75,7 @@ class Data {
     this.notes,
     this.images,
     this.shiftId,
+    this.paymentType,
     this.discountType,
     this.discountValue,
     this.total,
@@ -102,6 +104,7 @@ class Data {
     notes: json["notes"],
     images: json["images"] == null ? [] : List<dynamic>.from(json["images"]!.map((x) => x)),
     shiftId: json["shiftId"] == null ? null : ShiftId.fromJson(json["shiftId"]),
+    paymentType: json["paymentType"],
     discountType: json["discountType"],
     discountValue: json["discountValue"],
     total: json["total"],
@@ -130,6 +133,7 @@ class Data {
     "notes": notes,
     "images": images == null ? [] : List<dynamic>.from(images!.map((x) => x)),
     "shiftId": shiftId?.toJson(),
+    "paymentType": paymentType,
     "discountType": discountType,
     "discountValue": discountValue,
     "total": total,

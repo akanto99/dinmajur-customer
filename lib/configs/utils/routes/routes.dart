@@ -1,15 +1,25 @@
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/widgets/failedorder_screen_widget.dart';
 import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
 import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/homebeauty_salon_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_checkout_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cooking_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/language/language_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/policies/cooking_policy.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/policies/delivery_policy.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/policies/refund_policy.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/privacy_policy/privacy_policy_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/promo_codes/promo_code_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/review/review.dart';
@@ -17,6 +27,7 @@ import 'package:dinmajur_customer/view/screens/home/drawer/save_address/save_add
 import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/terms_conditions/terms_conditions_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/view_edit_profile/view_profile.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/location_screens/add_newlocation_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/location_screens/map_location_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
@@ -62,6 +73,8 @@ class Routes {
       ///Home
       case RoutesName.home:
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
+        case RoutesName.addLocationScreenWidget:
+        return MaterialPageRoute(builder: (BuildContext context) => const AddLocationScreenWidget());
         case RoutesName.notificationsListScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
         //  case RoutesName.notificationsListScreen:
@@ -101,7 +114,20 @@ class Routes {
       case RoutesName.mapLocationScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const MapLocationScreen());
 
-
+      case RoutesName.failedOrderScreenWidget:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => FailedOrderScreenWidget(
+              trackingId: args['trackingId'] ?? 'N/A',
+              valId: args['valId'] ?? 'N/A',
+              reason: args['reason'],
+              errorMessage: args['errorMessage'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
 
         ///order Now Screen For Retail after clicking Grocerry in HOME SCreen- DropDown 1
       case RoutesName.orderNow:
@@ -147,6 +173,7 @@ class Routes {
                 customerName: args['customerName'],
                 customerPhone: args['customerPhone'],
                 customerAddress: args['customerAddress'],
+              isFromHome: args['isFromHome'] ?? false,
             ),
             settings: settings,
           );
@@ -156,12 +183,40 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => ConfirmedScreen(trackingId: args['trackingId']),
+            builder: (BuildContext context) => ConfirmedScreen(
+              //   trackingId: args['trackingId'],
+              // valId: args['valId'],
+              trackingId: args['trackingId'] as String? ?? '',
+              valId: args['valId'] as String? ?? '',
+            ),
             settings: settings,
           );
         }
         return _errorRoute();
 
+        case RoutesName.checkoutHouseKeeperScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CheckoutHouseKeeperScreen(
+              serviceQuantities: args['serviceQuantities'] ,
+              selectedTaskItems: args['selectedTaskItems'] ,
+              selectedFrequency: args['selectedFrequency'] ,
+              selectedDate: args['selectedDate'],
+              selectedTime: args['selectedTime'] ,
+              customerName: args['customerName'] ,
+              customerPhone: args['customerPhone'] ,
+              customerAddress: args['customerAddress'] ,
+              onAddressUpdate: args['onAddressUpdate'],
+              transportFee: args['transportFee'],
+              onSuccess: () {
+                // This callback will be called from checkout screen
+              },
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
     ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
       case RoutesName.bookNowHomeBeautySalonScreen:
         final args = settings.arguments as Map<String, dynamic>?;
@@ -171,6 +226,7 @@ class Routes {
               customerName: args['customerName'],
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
+              isFromHome: args['isFromHome'] ?? false,
             ),
             settings: settings,
           );
@@ -180,7 +236,88 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => BeautyConfirmedScreen(trackingId: args['trackingId']),
+            builder: (BuildContext context) => BeautyConfirmedScreen(
+              //   trackingId: args['trackingId'],
+              // valId: args['valId'],
+              trackingId: args['trackingId'] as String? ?? '',
+              valId: args['valId'] as String? ?? '',
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.beautyCheckoutScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CheckoutScreen(
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+              userId: args['userId'],
+              categories: args['categories'],
+              serviceQuantities: args['serviceQuantities'],
+              totalPrice: args['totalPrice'],
+              transportFee: args['transportFee'],
+              onAddressUpdate: args['onAddressUpdate'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+
+    ///In HOME Screen- DropDown 4 Family Event Cooking
+      case RoutesName.familyEventCookingScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => FamilyEventCookingScreen(
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+              isFromHome: args['isFromHome'] ?? false,
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.cookingCheckoutScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CookingCheckoutScreen(
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+              userId: args['userId'],
+              categories: args['categories'],
+              selectedPackages: args['selectedPackages'],
+              selectedManualItems: args['selectedManualItems'],
+              activeCategoryId: args['activeCategoryId'],
+              selectedGuestRangeIndex: args['selectedGuestRangeIndex'],
+              totalPrice: args['totalPrice'],
+              savedAmount: args['savedAmount'],
+              transportFee: args['transportFee'],
+              selectedDate: args['selectedDate'],
+              selectedServiceTime: args['selectedServiceTime'],
+              onAddressUpdate: args['onAddressUpdate'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+      case RoutesName.cookingConfirmedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => CookingConfirmedScreen(
+              //   trackingId: args['trackingId'],
+              // valId: args['valId'],
+              trackingId: args['trackingId'] as String? ?? '',
+              valId: args['valId'] as String? ?? '',
+            ),
             settings: settings,
           );
         }
@@ -208,6 +345,14 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const TermsConditionsScreen());
       case RoutesName.privacyPolicy:
         return MaterialPageRoute(builder: (BuildContext context) => const PrivacyPolicyScreen());
+        case RoutesName.cookiesPolicyScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const CookiesPolicyScreen());
+        case RoutesName.deliveryPolicyScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const DeliveryPolicyScreen());
+        case RoutesName.refundPolicyScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const RefundPolicyScreen());
+        case RoutesName.language:
+        return MaterialPageRoute(builder: (BuildContext context) => const LanguageScreen());
 
       ///Task
       case RoutesName.orderScreen:

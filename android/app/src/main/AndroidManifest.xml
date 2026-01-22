@@ -15,6 +15,7 @@
     <application
         android:label="DM Customer"
         android:name="${applicationName}"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -46,6 +47,23 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- ===================== OneSignal Configuration ===================== -->
+        <!-- Small Notification Icon (White transparent PNG) -->
+        <meta-data
+            android:name="com.onesignal.NotificationIcon"
+            android:resource="@drawable/ic_stat_onesignal_default" />
+
+        <!-- Large Notification Icon (App icon shown in notification) -->
+        <meta-data
+            android:name="com.onesignal.LargeIcon"
+            android:resource="@mipmap/ic_launcher" />
+
+        <!-- Notification Accent Color (Your brand color) -->
+        <meta-data
+            android:name="com.onesignal.NotificationAccentColor.DEFAULT"
+            android:value="FF00424D" />
+
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

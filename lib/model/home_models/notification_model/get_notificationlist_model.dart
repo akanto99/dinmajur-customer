@@ -11,152 +11,104 @@ String notificationListModelToJson(NotificationListModel data) => json.encode(da
 class NotificationListModel {
   bool? success;
   String? message;
-  NotificationListModelData? data;
+  Meta? meta;
+  List<Datum>? data;
 
   NotificationListModel({
     this.success,
     this.message,
+    this.meta,
     this.data,
   });
 
   factory NotificationListModel.fromJson(Map<String, dynamic> json) => NotificationListModel(
     success: json["success"],
     message: json["message"],
-    data: json["data"] == null ? null : NotificationListModelData.fromJson(json["data"]),
+    meta: json["meta"] == null ? null : Meta.fromJson(json["meta"]),
+    data: json["data"] == null ? [] : List<Datum>.from(json["data"]!.map((x) => Datum.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
     "success": success,
     "message": message,
-    "data": data?.toJson(),
-  };
-}
-
-class NotificationListModelData {
-  List<Datum>? data;
-  Meta? meta;
-
-  NotificationListModelData({
-    this.data,
-    this.meta,
-  });
-
-  factory NotificationListModelData.fromJson(Map<String, dynamic> json) => NotificationListModelData(
-    data: json["data"] == null ? [] : List<Datum>.from(json["data"]!.map((x) => Datum.fromJson(x))),
-    meta: json["meta"] == null ? null : Meta.fromJson(json["meta"]),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "data": data == null ? [] : List<dynamic>.from(data!.map((x) => x.toJson())),
     "meta": meta?.toJson(),
+    "data": data == null ? [] : List<dynamic>.from(data!.map((x) => x.toJson())),
   };
 }
 
 class Datum {
   String? id;
-  String? user;
-  String? source;
+  String? title;
+  String? badge;
   String? type;
-  String? message;
-  DatumData? data;
   bool? read;
-  bool? delivered;
+  bool? isNew;
+  String? message;
   String? priority;
+  Data? data;
   DateTime? createdAt;
   DateTime? updatedAt;
 
   Datum({
     this.id,
-    this.user,
-    this.source,
+    this.title,
+    this.badge,
     this.type,
-    this.message,
-    this.data,
     this.read,
-    this.delivered,
+    this.isNew,
+    this.message,
     this.priority,
+    this.data,
     this.createdAt,
     this.updatedAt,
   });
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     id: json["_id"],
-    user: json["user"],
-    source: json["source"],
+    title: json["title"],
+    badge: json["badge"],
     type: json["type"],
-    message: json["message"],
-    data: json["data"] == null ? null : DatumData.fromJson(json["data"]),
     read: json["read"],
-    delivered: json["delivered"],
+    isNew: json["isNew"],
+    message: json["message"],
     priority: json["priority"],
+    data: json["data"] == null ? null : Data.fromJson(json["data"]),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
   );
 
   Map<String, dynamic> toJson() => {
     "_id": id,
-    "user": user,
-    "source": source,
+    "title": title,
+    "badge": badge,
     "type": type,
-    "message": message,
-    "data": data?.toJson(),
     "read": read,
-    "delivered": delivered,
+    "isNew": isNew,
+    "message": message,
     "priority": priority,
+    "data": data?.toJson(),
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
   };
 }
 
-class DatumData {
-  String? title;
-  Params? params;
+class Data {
+  String? trackingId;
   String? status;
 
-  DatumData({
-    this.title,
-    this.params,
+  Data({
+    this.trackingId,
     this.status,
   });
 
-  factory DatumData.fromJson(Map<String, dynamic> json) => DatumData(
-    title: json["title"],
-    params: json["params"] == null ? null : Params.fromJson(json["params"]),
+  factory Data.fromJson(Map<String, dynamic> json) => Data(
+    trackingId: json["trackingId"],
     status: json["status"],
   );
 
   Map<String, dynamic> toJson() => {
-    "title": title,
-    "params": params?.toJson(),
+    "trackingId": trackingId,
     "status": status,
-  };
-}
-
-class Params {
-  String? beautySalonBookingId;
-  String? houseKeeperBookingId;
-  String? orderId;
-  String? deliveryId;
-
-  Params({
-    this.beautySalonBookingId,
-    this.houseKeeperBookingId,
-    this.orderId,
-    this.deliveryId,
-  });
-
-  factory Params.fromJson(Map<String, dynamic> json) => Params(
-    beautySalonBookingId: json["beautySalonBookingId"],
-    houseKeeperBookingId: json["houseKeeperBookingId"],
-    orderId: json["orderId"],
-    deliveryId: json["deliveryId"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "beautySalonBookingId": beautySalonBookingId,
-    "houseKeeperBookingId": houseKeeperBookingId,
-    "orderId": orderId,
-    "deliveryId": deliveryId,
   };
 }
 

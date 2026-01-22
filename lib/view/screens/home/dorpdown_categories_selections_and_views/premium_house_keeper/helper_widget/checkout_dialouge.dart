@@ -131,99 +131,99 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     return widget.serviceQuantities.entries.where((entry) => entry.value > 0).length;
   }
 
-  Future<void> _handleConfirm() async {
-    // Validate required fields
-    if (_phoneController.text.isEmpty) {
-      Utils.flushBarErrorMessage("Phone number is required", context);
-      return;
-    }
-    if (_addressController.text.isEmpty) {
-      Utils.flushBarErrorMessage("Service address is required", context);
-      return;
-    }
-    if (_selectedHouseSize == null) {
-      Utils.flushBarErrorMessage("Please select house size", context);
-      return;
-    }
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId');
-
-    // Prepare tasks data
-    List<Map<String, dynamic>> tasks = [];
-    final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
-    final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
-
-    data.forEach((service) {
-      int qty = widget.serviceQuantities[service.id ?? ''] ?? 0;
-      if (qty > 0) {
-        Set<String> selectedItems = widget.selectedTaskItems[service.id ?? ''] ??
-            service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
-
-        if (selectedItems.isNotEmpty) {
-          tasks.add({
-            "houseKeeperTaskId": service.id,
-            "totalRooms": qty,
-            "houseKeeperTaskItemIds": selectedItems.toList()
-          });
-        }
-      }
-    });
-
-    // Get shift time ID from selected time
-    final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
-    final shiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
-    String? shiftId;
-
-    for (var shift in shiftTimes) {
-      String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
-      if (displayText == widget.selectedTime) {
-        shiftId = shift.shiftId;
-        break;
-      }
-    }
-
-    if (shiftId == null) {
-      Utils.flushBarErrorMessage("Invalid time selection", context);
-      return;
-    }
-
-    Map<String, dynamic> bookingData = {
-      "userId": userId.toString(),
-      "district": "Chittagong",
-      "area": "N/A",
-      "planType": widget.selectedFrequency.toUpperCase(),
-      "fullName": _fullNameController.text.trim(),
-      "phone": _phoneController.text.trim(),
-      "fullAddress": _addressController.text.trim(),
-      "houseSize": _selectedHouseSize,
-      "notes": _specialRequestController.text.trim().isEmpty
-          ? null
-          : _specialRequestController.text.trim(),
-      "tasks": tasks,
-      "couponCode": null,
-      "shiftId": shiftId,
-      "date": widget.selectedDate,
-    };
-
-    print('Booking Data: $bookingData');
-
-    // Call the booking API with success callback
-    final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
-
-    await bookingViewModel.bookPremiumHouseKeeperPostApi(context, bookingData, (String trackingId) {
-      print('Success! TrackingId: $trackingId');
-
-      // Close checkout dialog
-      Navigator.pop(context);
-
-      // Call parent success callback
-      widget.onSuccess();
-
-      // Navigate to confirmed screen
-      Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId});
-    });
-  }
+  // Future<void> _handleConfirm() async {
+  //   // Validate required fields
+  //   if (_phoneController.text.isEmpty) {
+  //     Utils.flushBarErrorMessage("Phone number is required", context);
+  //     return;
+  //   }
+  //   if (_addressController.text.isEmpty) {
+  //     Utils.flushBarErrorMessage("Service address is required", context);
+  //     return;
+  //   }
+  //   if (_selectedHouseSize == null) {
+  //     Utils.flushBarErrorMessage("Please select house size", context);
+  //     return;
+  //   }
+  //
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? userId = prefs.getString('userId');
+  //
+  //   // Prepare tasks data
+  //   List<Map<String, dynamic>> tasks = [];
+  //   final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
+  //   final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
+  //
+  //   data.forEach((service) {
+  //     int qty = widget.serviceQuantities[service.id ?? ''] ?? 0;
+  //     if (qty > 0) {
+  //       Set<String> selectedItems = widget.selectedTaskItems[service.id ?? ''] ??
+  //           service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
+  //
+  //       if (selectedItems.isNotEmpty) {
+  //         tasks.add({
+  //           "houseKeeperTaskId": service.id,
+  //           "totalRooms": qty,
+  //           "houseKeeperTaskItemIds": selectedItems.toList()
+  //         });
+  //       }
+  //     }
+  //   });
+  //
+  //   // Get shift time ID from selected time
+  //   final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
+  //   final shiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
+  //   String? shiftId;
+  //
+  //   for (var shift in shiftTimes) {
+  //     String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
+  //     if (displayText == widget.selectedTime) {
+  //       shiftId = shift.shiftId;
+  //       break;
+  //     }
+  //   }
+  //
+  //   if (shiftId == null) {
+  //     Utils.flushBarErrorMessage("Invalid time selection", context);
+  //     return;
+  //   }
+  //
+  //   Map<String, dynamic> bookingData = {
+  //     "userId": userId.toString(),
+  //     "district": "Chittagong",
+  //     "area": "N/A",
+  //     "planType": widget.selectedFrequency.toUpperCase(),
+  //     "fullName": _fullNameController.text.trim(),
+  //     "phone": _phoneController.text.trim(),
+  //     "fullAddress": _addressController.text.trim(),
+  //     "houseSize": _selectedHouseSize,
+  //     "notes": _specialRequestController.text.trim().isEmpty
+  //         ? null
+  //         : _specialRequestController.text.trim(),
+  //     "tasks": tasks,
+  //     "couponCode": null,
+  //     "shiftId": shiftId,
+  //     "date": widget.selectedDate,
+  //   };
+  //
+  //   print('Booking Data: $bookingData');
+  //
+  //   // Call the booking API with success callback
+  //   final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
+  //
+  //   await bookingViewModel.bookPremiumHouseKeeperPostApi(context, bookingData, (String trackingId) {
+  //     print('Success! TrackingId: $trackingId');
+  //
+  //     // Close checkout dialog
+  //     Navigator.pop(context);
+  //
+  //     // Call parent success callback
+  //     widget.onSuccess();
+  //
+  //     // Navigate to confirmed screen
+  //     Navigator.pushNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId});
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -288,7 +288,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomTextFieldWithFormFieldPoppins(
+            CustomTextFieldWithFormField(
               titleText: "Full Name",
               placeholder: 'Enter your name',
               controller: _fullNameController,
@@ -302,7 +302,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
             _buildInfoRow('Enter your full legal name', context),
             SizedboxSpaccing.height015(context),
 
-            CustomTextFieldWithFormFieldPoppins(
+            CustomTextFieldWithFormField(
               titleText: 'Phone Number',
               placeholder: 'Enter your number',
               controller: _phoneController,
@@ -526,7 +526,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
             ),
           ),
           GestureDetector(
-            onTap: _handleConfirm,
+            // onTap: _handleConfirm,
             child: Consumer<PostBookPremiumHouseKeeperViewModel>(
               builder: (context, bookingViewModel, _) {
                 return Container(

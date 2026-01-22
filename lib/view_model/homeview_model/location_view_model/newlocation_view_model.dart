@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/respository/home_repositories/location_repository/newlocation_repository.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -49,9 +50,11 @@ class AddLocationViewModel with ChangeNotifier {
       setCreateAddLocationLoading(false);
       Utils.flushBarSuccessMessage('Location saved successfully', context);
 
+      ///Refetch and Clear cached
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-      profileViewModel.clearCache(); // Clear the cache to force refresh
-
+      profileViewModel.clearCache();
+      final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
+      locationListViewModel.clearCache();
       // ✅ Only navigate if shouldNavigate is true
       if (shouldNavigate) {
         Future.delayed(const Duration(milliseconds: 1000), () {
@@ -95,8 +98,11 @@ class AddLocationViewModel with ChangeNotifier {
 
       setCreateAddLocationLoading(false);
       Utils.flushBarSuccessMessage('Location updated successfully', context);
+      ///Refetch and Clear cached
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-      profileViewModel.clearCache(); // Clear the cache to force refresh
+      profileViewModel.clearCache();
+      final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
+      locationListViewModel.clearCache();
 
         Future.delayed(const Duration(milliseconds: 1000), () {
           Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));

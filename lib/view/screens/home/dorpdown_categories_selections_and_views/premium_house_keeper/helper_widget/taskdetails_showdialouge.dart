@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class TaskDetailsDialog extends StatefulWidget {
   final Datum service;
@@ -103,10 +104,10 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildHeader(context, totalDiscountedPrice, totalOriginalPrice),
-              _buildRoomNumberSection(context),
-              _buildSelectAllCheckbox(context, allSelected),
-              _buildTaskItemsList(context),
+              _buildHeader(context, totalDiscountedPrice, totalOriginalPrice,screenWidth),
+              _buildRoomNumberSection(context,screenWidth),
+              _buildSelectAllCheckbox(context, allSelected, screenWidth),
+              _buildTaskItemsList(context,screenWidth),
               _buildUpdateButton(context),
             ],
           ),
@@ -115,96 +116,106 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, double totalDiscountedPrice, double totalOriginalPrice) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
-      ),
-      child: Row(
+  Widget _buildHeader(BuildContext context, double totalDiscountedPrice, double totalOriginalPrice, double screenWidth) {
+    return Container(    width: screenWidth*0.87,
+      // padding: EdgeInsets.only(bottom: 15),
+
+      padding: EdgeInsets.symmetric(vertical: 15),
+      // decoration: BoxDecoration(
+      //   border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
+      // ),
+      child: Column(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.service.name ?? '',
-                  style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  height: 38,
+                  width: 38,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.button(context).withOpacity(0.2),
+                  ),
+                  child: Icon(
+                    FontAwesomeIcons.close,
+                    color: AppColors.textPrimary(context),
+                    size: 20,
+                  ),
                 ),
-                SizedboxSpaccing.height005(context),
-                Row(
-                  children: [
+              ),
+            ],
+          ),
+          SizedBox(height: 15,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(widget.service.name ?? '',
+                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    '৳${totalDiscountedPrice.toStringAsFixed(2)}',
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+
+                  ),
+                  if (widget.service.discountValue != null && totalOriginalPrice > 0) ...[
+                    SizedboxSpaccing.width02(context),
                     Text(
-                      '৳${totalDiscountedPrice.toStringAsFixed(2)}',
-                      style: AppTextStyles.textSize16(
+                      '${totalOriginalPrice.toStringAsFixed(2)}',
+                      style: AppTextStyles.textSize12(
                         context,
-                        weight: FontWeight.w700,
-                        color: AppColors.button(context),
-                      ),
+                        color: AppColors.subtitle(context),
+                        weight: FontWeight.w600
+                      ).copyWith(decoration: TextDecoration.lineThrough),
                     ),
-                    if (widget.service.discountValue != null && totalOriginalPrice > 0) ...[
-                      SizedboxSpaccing.width01(context),
-                      Text(
-                        '৳${totalOriginalPrice.toStringAsFixed(2)}',
-                        style: AppTextStyles.textSize14(
-                          context,
-                          color: AppColors.subtitle(context),
-                        ).copyWith(decoration: TextDecoration.lineThrough),
-                      ),
-                    ],
                   ],
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.button(context).withOpacity(0.2),
+                ],
               ),
-              child: Icon(
-                Icons.close,
-                color: AppColors.textPrimary(context),
-                size: 20,
-              ),
-            ),
+            ],
           ),
+
         ],
       ),
     );
   }
 
-  Widget _buildRoomNumberSection(BuildContext context) {
+  Widget _buildRoomNumberSection(BuildContext context, double screenWidth) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
-      ),
+      width: screenWidth*0.87,
+      padding: EdgeInsets.only(bottom: 5,top:15),
+      // decoration: BoxDecoration(
+      //   border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
+      // ),
       child: Row(
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: 13,
+            height: 13,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.textPrimary(context),
             ),
           ),
-          SizedBox(width: 12),
+          SizedBox(width: 10),
           Expanded(
             child: Text(
               'Room Number',
-              style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
             ),
           ),
           Row(
             children: [
               _buildQuantityButton(
-                icon: Icons.remove,
+                icon: FontAwesomeIcons.minus,
                 onTap: () {
                   if (tempQuantity > 1) {
                     setState(() => tempQuantity--);
@@ -212,7 +223,7 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
                 },
               ),
               Container(
-                width: 30,
+                width: 40,
                 child: Center(
                   child: Text(
                     tempQuantity.toString(),
@@ -221,7 +232,7 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
                 ),
               ),
               _buildQuantityButton(
-                icon: Icons.add,
+                icon: FontAwesomeIcons.plus,
                 onTap: () {
                   if (widget.service.hasRoom == false) {
                     Utils.flushBarExclamatoryMessage(
@@ -251,36 +262,49 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
           border: Border.all(color: AppColors.border(context)),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Icon(icon, size: 18),
+        child: Icon(icon, size: 14),
       ),
     );
   }
 
-  Widget _buildSelectAllCheckbox(BuildContext context, bool allSelected) {
+  Widget _buildSelectAllCheckbox(BuildContext context, bool allSelected, double screenWidth) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      width: screenWidth*0.87,
+      padding: EdgeInsets.symmetric(vertical: 15),
       decoration: BoxDecoration(
-        color: AppColors.textFieldFill(context).withOpacity(0.3),
+        color: AppColors.containerBackground(context),
+        border: Border(
+          bottom: BorderSide(
+            width: 1,
+            color: AppColors.border(context)
+          )
+        )
       ),
       child: Row(
+        // mainAxisSize: MainAxisSize.min,
         children: [
-          Checkbox(
-            value: allSelected,
-            checkColor: AppColors.whiteColor,
-            activeColor: AppColors.button(context),
-            side: BorderSide(color: AppColors.textPrimary(context), width: 1.5),
-            onChanged: (bool? value) {
-              setState(() {
-                if (value == true) {
-                  tempSelectedItems = widget.service.houseKeeperTaskItems
-                      ?.map((item) => item.id ?? '')
-                      .toSet() ?? {};
-                } else {
-                  tempSelectedItems.clear();
-                }
-              });
-            },
+          SizedBox(
+            height: 20,
+            width: 20,
+            child: Checkbox(
+              value: allSelected,
+              checkColor: AppColors.whiteColor,
+              activeColor: AppColors.button(context),
+              side: BorderSide(color: AppColors.textPrimary(context), width: 1.5),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    tempSelectedItems = widget.service.houseKeeperTaskItems
+                        ?.map((item) => item.id ?? '')
+                        .toSet() ?? {};
+                  } else {
+                    tempSelectedItems.clear();
+                  }
+                });
+              },
+            ),
           ),
+          SizedboxSpaccing.width02(context),
           Text(
             'Select All',
             style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
@@ -290,72 +314,83 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
     );
   }
 
-  Widget _buildTaskItemsList(BuildContext context) {
+  Widget _buildTaskItemsList(BuildContext context, double screenWidth) {
     return Flexible(
       child: widget.service.houseKeeperTaskItems?.isEmpty == true
-          ? Padding(
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-        child: Text(
-          'No task details available',
-          style: AppTextStyles.textSize14(context),
-        ),
-      )
-          : ListView.separated(
-        shrinkWrap: true,
-        padding: EdgeInsets.zero,
-        itemCount: widget.service.houseKeeperTaskItems?.length ?? 0,
-        separatorBuilder: (context, index) => Divider(
-          height: 1,
-          color: AppColors.border(context),
-        ),
-        itemBuilder: (context, index) {
-          final task = widget.service.houseKeeperTaskItems![index];
-          bool isSelected = tempSelectedItems.contains(task.id ?? '');
-
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            child: Row(
-              children: [
-                Checkbox(
-                  value: isSelected,
-                  activeColor: AppColors.button(context),
-                  checkColor: AppColors.whiteColor,
-                  side: BorderSide(
-                    color: AppColors.textPrimary(context),
-                    width: 1.5,
-                  ),
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        tempSelectedItems.add(task.id ?? '');
-                      } else {
-                        tempSelectedItems.remove(task.id ?? '');
-                      }
-                    });
-                  },
-                ),
-                Expanded(
-                  child: Text(
-                    task.name ?? '',
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w400,
+          ? Container(
+        width: screenWidth*0.87,
+            child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    child: Text(
+            'No task details available',
+            style: AppTextStyles.textSize14(context),
                     ),
                   ),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  '${task.price ?? 0} Taka',
-                  style: AppTextStyles.textSize14(
-                    context,
-                    weight: FontWeight.w500,
+          )
+          : Container(
+        width: screenWidth*0.87,
+            child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: widget.service.houseKeeperTaskItems?.length ?? 0,
+                    separatorBuilder: (context, index) => Divider(
+            height: 1,
+            color: AppColors.border(context),
+                    ),
+                    itemBuilder: (context, index) {
+            final task = widget.service.houseKeeperTaskItems![index];
+            bool isSelected = tempSelectedItems.contains(task.id ?? '');
+
+            return Container(
+              padding: EdgeInsets.symmetric(vertical: 15),
+              child: Row(
+                children: [
+                  SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: Checkbox(
+                      value: isSelected,
+                      activeColor: AppColors.button(context),
+                      checkColor: AppColors.whiteColor,
+                      side: BorderSide(
+                        color: AppColors.textPrimary(context),
+                        width: 1.5,
+                      ),
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            tempSelectedItems.add(task.id ?? '');
+                          } else {
+                            tempSelectedItems.remove(task.id ?? '');
+                          }
+                        });
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+                  SizedboxSpaccing.width02(context),
+                  Expanded(
+                    child: Text(
+                      task.name ?? '',
+                      style: AppTextStyles.textSize14(
+                        context,
+                        weight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '${task.price ?? 0} Taka',
+                    style: AppTextStyles.textSize14(
+                      context,
+                      weight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            );
+                    },
+                  ),
+          ),
     );
   }
 

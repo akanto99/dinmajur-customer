@@ -293,6 +293,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get draft => 'Draft';
 
   @override
+  String get callus => 'Call Us';
+
+  @override
   String get home_screen =>
       '--------------------Home Screen ------------------------';
 
@@ -319,6 +322,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeType_beauty_salon => 'Premium Home Beauty & Salon';
+
+  @override
+  String get storeType_family_event_cooking => 'Family Event Cooking';
 
   @override
   String get select_store_type => 'What do you need?';
@@ -420,4 +426,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacy_policy => 'Privacy Policy';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get chooseYourLanguage => 'Choose your language';
+
+  @override
+  String get selectLanguageDesc =>
+      'Select your preferred language to use\nDinmajur Customer app easily';
 }

@@ -2,17 +2,20 @@ import 'dart:async';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/cart_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/select_time_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/taskdetails_showdialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_categorytab.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
@@ -21,13 +24,19 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
-import 'helper_widget/checkout_dialouge.dart';
-
 class BookNowHousekeeperScreen extends StatefulWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
-  const BookNowHousekeeperScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress}) : super(key: key);
+  final bool isFromHome;
+
+  const BookNowHousekeeperScreen({Key? key,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+    this.isFromHome = false,
+
+  }) : super(key: key);
 
   @override
   State<BookNowHousekeeperScreen> createState() => _BookNowHousekeeperScreenState();
@@ -38,6 +47,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   final TextEditingController _dateController = TextEditingController();
   String? _selectedTime;
   int _selectedTabIndex = 0;
+  late String _currentCustomerAddress;
 
   // Map to store quantities for each service
   Map<String, int> _serviceQuantities = {};
@@ -55,6 +65,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   @override
   void initState() {
     super.initState();
+    _currentCustomerAddress = widget.customerAddress;
+
     _dateController.text = DateFormat('MMMM dd, yyyy').format(DateTime.now());
     _pageController = PageController(viewportFraction: 0.3);
 
@@ -212,10 +224,14 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, null);
+        return false;
+      },
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),
-        body: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
+        body: SafeArea(child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body())),
       ),
     );
   }
@@ -227,7 +243,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () => Navigator.pop(context, null),
           child: Container(height: 60, child: AppBarHeader("Premium House Keeper")),
         ),
         Expanded(
@@ -267,67 +283,48 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                 controller: _mainScrollController,
                 child: Column(
                   children: [
-                    SizedboxSpaccing.height015(context),
+                    SizedboxSpaccing.height03(context),
+                    Container(
+                      width: screenWidth * 0.9,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.freequencyColor(context)),
+                      child: Row(
+                        children: [
+                          Expanded(child: _frequencyButton('Daily', screenWidth)),
+                          Expanded(child: _frequencyButton('Monthly', screenWidth)),
+                        ],
+                      ),
+                    ),
+                    SizedboxSpaccing.height03(context),
                     Container(
                       width: screenWidth * 0.9,
                       child: Text(
                         "Two highly-trained housekeepers will work together",
-                        style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.subtitle(context)),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w400,),
                         textAlign: TextAlign.center,
                       ),
                     ),
+                    SizedboxSpaccing.height03(context),
+
+                    SectionHeader(title: 'Choose Date & Time', titleWidth: screenWidth * 0.9, showSeeAll: false),
                     SizedboxSpaccing.height02(context),
-
-                    // Frequency Selection
-                    Container(
-                      width: screenWidth * 0.9,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Frequency',
-                            style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
-                          ),
-                          SizedboxSpaccing.height01(context),
-                          Container(
-                            width: screenWidth * 0.9,
-                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.border(context).withOpacity(0.5)),
-                            padding: EdgeInsets.all(6),
-                            child: Row(
-                              children: [
-                                Expanded(child: _frequencyButton('Daily', screenWidth)),
-                                Expanded(child: _frequencyButton('Monthly', screenWidth)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedboxSpaccing.height02(context),
-
                     // Date Selection
-                    Container(
-                      width: screenWidth * 0.9,
-                      child: CustomDatePickerFormField(
-                        title: 'Choose Date',
-                        controller: _dateController,
-                        onDateSelected: (DateTime selectedDate) {
-                          // Format and set the date
-                          String formattedDate = DateFormat('MMMM dd, yyyy').format(selectedDate);
-                          _dateController.text = formattedDate;
-
-                          // Fetch shifts for the new date
-                          _onDateChanged(formattedDate);
-                        },
-                      ),
+                    CustomDatePickerFormField(
+                      controller: _dateController,
+                      borderRadius: 6,
+                      inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                      hintTextStyle: AppTextStyles.textSize14(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
+                      onDateSelected: (DateTime selectedDate) {
+                        String formattedDate = DateFormat('MMMM dd, yyyy').format(selectedDate);
+                        _dateController.text = formattedDate;
+                        _onDateChanged(formattedDate);
+                      },
                     ),
 
                     SizedboxSpaccing.height02(context),
 
                     _buildTimeSelection(screenWidth),
 
-                    SizedboxSpaccing.height02(context),
+                    SizedboxSpaccing.height03(context),
 
                     // Category Tabs
                     DynamicCategoryTabs(
@@ -340,16 +337,18 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                       getName: (service) => service.name ?? '',
                       getImageUrl: (service) => service.icon?.url,
                       getButtonColor: (context) => AppColors.button(context),
-                      getBackgroundColor: (context) => AppColors.containerBackground(context),
+                      getBackgroundColor: (context) => AppColors.border(context),
                       getBorderColor: (context) => AppColors.border(context),
+                      getSelectedIconColor: (context) => AppColors.whiteColor,
+                      getSelectedImageColor: (context) => AppColors.whiteColor,
                       getTextColor: (context) => AppColors.textPrimary(context),
                       getTextStyle: (context, isSelected) =>
-                          AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
+                          AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w400 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
                       defaultIcon: Icons.cleaning_services,
                       supportSvg: true,
                     ),
 
-                    SizedboxSpaccing.height02(context),
+                    SizedboxSpaccing.height015(context),
 
                     // Services List
                     DynamicServiceList<Datum, Datum>(
@@ -361,7 +360,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                       categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
                       emptyStateStyle: (context) => AppTextStyles.textSize16(context),
                       emptyStateSpacing: (context) => SizedboxSpaccing.height02(context),
-                      buildServiceCard: (service, width, height) {
+                      buildServiceCard: (service, width, height, isLastItem) {
                         int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
 
                         // Calculate prices
@@ -402,6 +401,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                           },
                           showRoomNumber: quantity > 0,
                           roomNumberLabel: 'Room Number',
+                          isLastItem: isLastItem,
                           getButtonColor: (context) => AppColors.button(context),
                           getBackgroundColor: (context) => AppColors.containerBackground(context),
                           getBorderColor: (context) => AppColors.border(context),
@@ -412,7 +412,9 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                         );
                       },
                     ),
+                    SizedboxSpaccing.height02(context),
 
+                    _buildImportantNotes(context, screenWidth),
                     SizedboxSpaccing.height045(context),
                   ],
                 ),
@@ -483,20 +485,88 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     );
   }
 
+
+  // Widget _buildTimeSelection(double screenWidth) {
+  //   return Consumer<GetallShifttimeViewModel>(
+  //     builder: (context, shiftTimeViewModel, child) {
+  //       final allShiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
+  //       final availableShiftTimes = allShiftTimes.where((shift) => shift.isBooked == false).toList();
+  //       final isLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
+  //
+  //       // Set default selected time
+  //       if (availableShiftTimes.isNotEmpty && _selectedTime == null) {
+  //         WidgetsBinding.instance.addPostFrameCallback((_) {
+  //           if (mounted && _selectedTime == null) {
+  //             setState(() {
+  //               final firstShift = availableShiftTimes.first;
+  //               _selectedTime = '${firstShift.type ?? ''} (${firstShift.startTime ?? ''}-${firstShift.endTime ?? ''})';
+  //             });
+  //           }
+  //         });
+  //       }
+  //
+  //       return DynamicTimeSelectionWidget(
+  //         context: context,
+  //         items: allShiftTimes,
+  //         selectedValue: _selectedTime,
+  //         isLoading: isLoading,
+  //         getDisplayText: (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' ,
+  //         isItemBooked: (shift) => shift.isBooked ?? false,
+  //         titleSpacing: (ctx) => SizedboxSpaccing.height01(ctx),
+  //         showPrefixIcon: true,
+  //         prefixIcon: Icons.access_time,
+  //           iconSize:20,
+  //         // selectedTextStyle: AppTextStyles.textSize16(context,weight: FontWeight.w400),
+  //           itemTextStyle:AppTextStyles.textSize14(context,weight: FontWeight.w400),
+  //         // selectedTextStyle,
+  //         // TextStyle? itemTextStyle,
+  //         // TextStyle? loadingTextStyle,
+  //         // TextStyle? emptyTextStyle,
+  //         // TextStyle? hintTextStyle,
+  //         // TextStyle? badgeTextStyle,
+  //
+  //         onChanged: (String? newValue) {
+  //           if (newValue != null) {
+  //             final selectedShift = allShiftTimes.firstWhere(
+  //                     (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue
+  //             );
+  //             if (selectedShift.isBooked != true) {
+  //               setState(() => _selectedTime = newValue);
+  //             }
+  //           }
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
   Widget _buildTimeSelection(double screenWidth) {
     return Consumer<GetallShifttimeViewModel>(
       builder: (context, shiftTimeViewModel, child) {
-        // Get all shift times from the view model
         final allShiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
-
-        // Filter available shifts for default selection
         final availableShiftTimes = allShiftTimes.where((shift) => shift.isBooked == false).toList();
-
-        // Check if we're still loading
         final isLoading = shiftTimeViewModel.getAllShiftTimeData.status == Status.LOADING;
 
-        // Set default selected time if not already set and available data exists
-        if (availableShiftTimes.isNotEmpty && _selectedTime == null) {
+        // ✅ FIX: Validate and reset _selectedTime if it's not in available shifts
+        if (_selectedTime != null && !isLoading) {
+          final isSelectedTimeAvailable = availableShiftTimes.any((shift) {
+            final displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
+            return displayText == _selectedTime;
+          });
+
+          // If selected time is no longer available, reset it
+          if (!isSelectedTimeAvailable) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {
+                  _selectedTime = null;
+                });
+              }
+            });
+          }
+        }
+
+        // Set default selected time only if there are available shifts
+        if (availableShiftTimes.isNotEmpty && _selectedTime == null && !isLoading) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && _selectedTime == null) {
               setState(() {
@@ -507,135 +577,32 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           });
         }
 
-        return Container(
-          width: screenWidth * 0.9,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Choose Time', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-              SizedboxSpaccing.height01(context),
-
-              // Show loading indicator while fetching
-              if (isLoading)
-                Container(
-                  height: 42,
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border(context)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Updating...', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                      Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
-                    ],
-                  ),
-                )
-              // Show dropdown with all shifts (both available and booked)
-              else if (allShiftTimes.isNotEmpty)
-                Container(
-                  height: 42,
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border(context)),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedTime,
-                      isExpanded: true,
-                      icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary(context)),
-                      dropdownColor: AppColors.containerBackground(context),
-                      menuMaxHeight: 300,
-                      borderRadius: BorderRadius.circular(8),
-                      hint: availableShiftTimes.isEmpty
-                          ? Row(
-                              children: [
-                                Icon(Icons.warning_amber_rounded, size: 18, color: Colors.red),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'All time slots are booked',
-                                    style: AppTextStyles.textSize14(context, color: Colors.red, weight: FontWeight.w500),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : null,
-                      items: allShiftTimes.map((shift) {
-                        String displayText = '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})';
-                        bool isBooked = shift.isBooked ?? false;
-
-                        return DropdownMenuItem<String>(
-                          value: displayText,
-                          enabled: !isBooked,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: AppColors.border(context).withOpacity(0.3), width: 0.5)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    displayText,
-                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: isBooked ? AppColors.subtitle(context).withOpacity(0.5) : AppColors.textPrimary(context)),
-                                  ),
-                                ),
-                                if (isBooked)
-                                  Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: Colors.red.withOpacity(0.3)),
-                                    ),
-                                    child: Text(
-                                      'Booked',
-                                      style: AppTextStyles.textSize10(context, color: Colors.red, weight: FontWeight.w600),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          final selectedShift = allShiftTimes.firstWhere((shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue);
-
-                          if (selectedShift.isBooked != true) {
-                            setState(() => _selectedTime = newValue);
-                          }
-                        }
-                      },
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  height: 42,
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border(context)),
-                  ),
-                  child: Center(
-                    child: Text('No shift times available', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
-                  ),
-                ),
-            ],
-          ),
+        return DynamicTimeSelectionWidget(
+          context: context,
+          items: allShiftTimes,
+          selectedValue: _selectedTime,
+          isLoading: isLoading,
+          getDisplayText: (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' ,
+          isItemBooked: (shift) => shift.isBooked ?? false,
+          titleSpacing: (ctx) => SizedboxSpaccing.height01(ctx),
+          showPrefixIcon: true,
+          prefixIcon: Icons.access_time,
+          iconSize: 20,
+          itemTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+          onChanged: (String? newValue) {
+            if (newValue != null) {
+              final selectedShift = allShiftTimes.firstWhere(
+                      (shift) => '${shift.type ?? ''} (${shift.startTime ?? ''}-${shift.endTime ?? ''})' == newValue
+              );
+              if (selectedShift.isBooked != true) {
+                setState(() => _selectedTime = newValue);
+              }
+            }
+          },
         );
       },
     );
   }
-
   void _proceedToCart() {
     // Check if time slot is available
     final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
@@ -699,6 +666,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     // Get services data
     final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final data = viewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
+    final transportFeeValue = viewModel.getAllPremiumHouseKeeperTaskData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
     // Filter services with quantity > 0
     final servicesWithQuantity = data.where((service) {
@@ -716,6 +684,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         selectedFrequency: _selectedFrequency,
         selectedDate: _dateController.text,
         selectedTime: _selectedTime!,
+        transportFee: transportFeeValue,
         onQuantityChanged: (String serviceId, int newQuantity) {
           setState(() {
             if (newQuantity == 0) {
@@ -727,32 +696,115 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           });
         },
         onProceedToCheckout: () {
-          _showCheckoutDialog();
+          _showCheckoutScreen();
         },
       ),
     );
   }
 
   ///3
-  void _showCheckoutDialog() {
-    showDialog(
-      context: context,
-      barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => CheckoutDialog(
-        serviceQuantities: _serviceQuantities,
-        selectedTaskItems: _selectedTaskItems,
-        selectedFrequency: _selectedFrequency,
-        selectedDate: _dateController.text,
-        selectedTime: _selectedTime!,
-        customerName: widget.customerName,
-        customerPhone: widget.customerPhone,
-        customerAddress: widget.customerAddress,
-        onSuccess: () {
+  // void _showCheckoutDialog() {
+  //   showDialog(
+  //     context: context,
+  //     barrierColor: AppColors.showDialougeBackground(context),
+  //     builder: (context) => CheckoutDialog(
+  //       serviceQuantities: _serviceQuantities,
+  //       selectedTaskItems: _selectedTaskItems,
+  //       selectedFrequency: _selectedFrequency,
+  //       selectedDate: _dateController.text,
+  //       selectedTime: _selectedTime!,
+  //       customerName: widget.customerName,
+  //       customerPhone: widget.customerPhone,
+  //       customerAddress: widget.customerAddress,
+  //       onSuccess: () {
+  //         setState(() {
+  //           _serviceQuantities.clear();
+  //           _selectedTaskItems.clear();
+  //         });
+  //       },
+  //     ),
+  //   );
+  // }
+
+  void _showCheckoutScreen() async {
+    // Get the data before navigation
+    final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
+    final transportFeeValue = viewModel.getAllPremiumHouseKeeperTaskData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
+
+    final result = await Navigator.pushNamed(
+      context,
+      RoutesName.checkoutHouseKeeperScreen,
+      arguments: {
+        'serviceQuantities': _serviceQuantities,
+        'selectedTaskItems': _selectedTaskItems,
+        'selectedFrequency': _selectedFrequency,
+        'selectedDate': _dateController.text,
+        'selectedTime': _selectedTime!,
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': _currentCustomerAddress,
+        'transportFee': transportFeeValue,
+        'onAddressUpdate': (String newAddress) {
           setState(() {
-            _serviceQuantities.clear();
-            _selectedTaskItems.clear();
+            _currentCustomerAddress = newAddress;
           });
         },
+      },
+    );
+
+    // Clear data if checkout was successful
+    if (result == true) {
+      setState(() {
+        _serviceQuantities.clear();
+        _selectedTaskItems.clear();
+      });
+    }
+  }
+
+  Widget _buildImportantNotes(BuildContext context, double screenWidth) {
+    return Container(
+      width:screenWidth*0.9 ,
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.description_outlined, size: 20, color: AppColors.textPrimary(context)),
+              SizedBox(width: 8),
+              Text('Important Notes', style: AppTextStyles.textSize16(context, weight: FontWeight.w700)),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            'আমরা হাউসকিপিং এর প্রয়োজনীয় উপকরণ সরবরাহ করব। তবে, কিছু বিষয় আমাদের কাস্টম সেবা দ্বারা পরিচালিত হবে:',
+            style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context)),
+          ),
+          SizedBox(height: 8),
+          _buildBulletPoint('ঝাড়ু এবং ফ্যান মুছার সিঁড়ি ব্যবস্থা ক্লায়েন্টদের নিজেই করতে হবে।'),
+          _buildBulletPoint('আমরা ভারী জিনিসপত্র স্থানান্তর করতে পারব না এবং শোকেসের জিনিসপত্রও সরাতে পারব না।'),
+          _buildBulletPoint('সকল প্রয়োজনীয় জিনিসপত্র ক্লায়েন্টদের নিজেরাই সরিয়ে রাখতে হবে।'),
+          _buildBulletPoint('আমরা শুধুমাত্র ক্লায়েন্টদের নির্বাচিত আইটেম এবং কাজ অনুযায়ী সেবা প্রদান করব।'),
+        ],
+      ),
+    );
+  }
+  Widget _buildBulletPoint(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4, left: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('• ', style: AppTextStyles.textSize14(context)),
+          Expanded(
+            child: Text(text, style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context))),
+          ),
+        ],
       ),
     );
   }

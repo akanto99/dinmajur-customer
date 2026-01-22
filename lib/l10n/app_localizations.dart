@@ -632,6 +632,12 @@ abstract class AppLocalizations {
   /// **'Draft'**
   String get draft;
 
+  /// No description provided for @callus.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Us'**
+  String get callus;
+
   /// No description provided for @home_screen.
   ///
   /// In en, this message translates to:
@@ -685,6 +691,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Premium Home Beauty & Salon'**
   String get storeType_beauty_salon;
+
+  /// No description provided for @storeType_family_event_cooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Event Cooking'**
+  String get storeType_family_event_cooking;
 
   /// No description provided for @select_store_type.
   ///
@@ -877,6 +889,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy Policy'**
   String get privacy_policy;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @chooseYourLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your language'**
+  String get chooseYourLanguage;
+
+  /// No description provided for @selectLanguageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your preferred language to use\nDinmajur Customer app easily'**
+  String get selectLanguageDesc;
 }
 
 class _AppLocalizationsDelegate
