@@ -10,10 +10,12 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/validations/authentication_validation/welcome_login_validation.dart';
 import 'package:dinmajur_customer/configs/widgets/customemobile_textfield.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
+import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view_model/auth_view_model_new/customer_authlogin_view_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -40,27 +42,46 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
 
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return UpgradeAlert(
+  //     navigatorKey: NavigationService.navigatorKey,
+  //
+  //     barrierDismissible: false,
+  //     showLater: false,
+  //     showIgnore: false,
+  //     showReleaseNotes: false,
+  //     upgrader: Upgrader(
+  //
+  //    //   debugDisplayAlways: kDebugMode,
+  //    //   debugLogging: kDebugMode,
+  //       countryCode: 'BD',
+  //       languageCode: 'en',
+  //     ),
+  //     child: Scaffold(
+  //       backgroundColor: AppColors.containerBackground(context),
+  //       body: SafeArea(
+  //         child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
+  //       ),
+  //     ),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
-    return UpgradeAlert(
-      navigatorKey: NavigationService.navigatorKey,
-
-      barrierDismissible: false,
-      showLater: false,
-      showIgnore: false,
-      showReleaseNotes: false,
-      upgrader: Upgrader(
-        // debugDisplayAlways: kDebugMode,
-        // debugLogging: kDebugMode,
-        countryCode: 'BD',
-        languageCode: 'en',
-      ),
-      child: Scaffold(
-        backgroundColor: AppColors.containerBackground(context),
-        body: SafeArea(
-          child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
-        ),
-      ),
+    return Builder(
+        builder: (context) {
+          // Check if upgrade is needed
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkForUpgrade(context);
+          });
+        return Scaffold(
+          backgroundColor: AppColors.containerBackground(context),
+          body: SafeArea(
+            child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
+          ),
+        );
+      }
     );
   }
 
@@ -187,6 +208,83 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
           ),
         ),)
       ],
+    );
+  }
+
+
+
+
+  // Add this method to your _NavigationScreenState class
+  void _checkForUpgrade(BuildContext context) async {
+    final upgrader = Upgrader(
+        // debugDisplayAlways: kDebugMode, debugLogging: kDebugMode,
+        countryCode: 'BD', languageCode: 'en');
+
+    await upgrader.initialize();
+
+    if (upgrader.shouldDisplayUpgrade()) {
+      _showCustomUpgradeDialog(context, upgrader);
+    }
+  }
+
+  void _showCustomUpgradeDialog(BuildContext context, Upgrader upgrader) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDarkMode = themeProvider.isDarkMode;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: AppColors.containerBackground(context),
+          insetPadding: EdgeInsets.all(screenHeight * 0.02),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding:EdgeInsets.all(screenHeight * 0.02),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 20),
+                Icon(FontAwesomeIcons.cloudArrowDown, color: AppColors.button(context), size: 50),
+                SizedBox(height: 10),
+                Text('Update Available', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+                SizedBox(height: 20),
+
+                Text('A new version is available!', textAlign: TextAlign.center, style: AppTextStyles.textSize14(context)),
+                SizedBox(height: 5),
+                Text(
+                  'Version ${upgrader.currentAppStoreVersion ?? 'Unknown'} is now available. You are using version ${upgrader.currentInstalledVersion ?? 'Unknown'}.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                ),
+
+                SizedBox(height: 20),
+                GestureDetector(
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    await upgrader.sendUserToAppStore();
+                  },
+                  child: Container(
+                    width: screenWidth*0.5,
+                    height: 45,
+                    decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+                    child: Center(
+                      child: Text(
+                        'Update Now',
+                        style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

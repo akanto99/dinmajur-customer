@@ -14,11 +14,13 @@ import 'package:dinmajur_customer/view/screens/draft/draft_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/order_screen_new.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:provider/provider.dart';
@@ -83,11 +85,12 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     super.didChangeDependencies();
     _setSystemUIColors();
 
-    labels = [AppLocalizations.of(context)!.home,
+    labels = [
+      AppLocalizations.of(context)!.home,
       AppLocalizations.of(context)!.offers,
       AppLocalizations.of(context)!.order,
       // AppLocalizations.of(context)!.draft
-      AppLocalizations.of(context)!.support
+      AppLocalizations.of(context)!.support,
     ];
   }
 
@@ -240,7 +243,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     print("🔌 NavigationScreen: Initializing network monitoring...");
 
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
-          (List<ConnectivityResult> result) async {
+      (List<ConnectivityResult> result) async {
         print("🔌 NavigationScreen: Connectivity listener triggered");
         print("🔌 NavigationScreen: Current context available: ${NavigationService.navigatorKey.currentContext != null}");
         print("🔌 NavigationScreen: Alert currently set: $_isAlertSet");
@@ -256,7 +259,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   }
 
   // ✅ HANDLE CONNECTIVITY CHANGES
-// ✅ HANDLE CONNECTIVITY CHANGES
+  // ✅ HANDLE CONNECTIVITY CHANGES
   Future<void> _handleConnectivityChange(List<ConnectivityResult> result) async {
     if (_isReconnecting) {
       print("🔌 NavigationScreen: Reconnection already in progress, skipping connectivity change");
@@ -322,7 +325,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     }
   }
 
-// ✅ SHOW NO CONNECTION DIALOG
+  // ✅ SHOW NO CONNECTION DIALOG
   void _showNoConnectionDialog() {
     if (!mounted) return;
 
@@ -461,7 +464,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     }
   }
 
-
   void _setSystemUIColors() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     bool isDarkMode = themeProvider.isDarkMode;
@@ -495,183 +497,189 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         systemNavigationBarDividerColor: isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
         systemNavigationBarContrastEnforced: false,
       ),
-      child: UpgradeAlert(
-        navigatorKey: NavigationService.navigatorKey,
-        barrierDismissible: false,
-        showLater: false,
-        showIgnore: false,
-        showReleaseNotes: false,
-        upgrader: Upgrader(countryCode: 'BD', languageCode: 'en'),
-        child: WillPopScope(
-          onWillPop: () async {
-            // Handle drawer close if open
-            if (_currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
-              _key.currentState!.closeDrawer();
-              return Future.value(false);
-            }
+      child: Builder(
+        builder: (context) {
+          // Check if upgrade is needed
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkForUpgrade(context);
+          });
+          return WillPopScope(
+            onWillPop: () async {
+              // Handle drawer close if open
+              if (_currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
+                _key.currentState!.closeDrawer();
+                return Future.value(false);
+              }
 
-            // Show exit confirmation dialog
-            final value = await showDialog<bool>(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  backgroundColor: AppColors.containerBackground(context),
-                  contentPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.02),
-                  insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenHeight * 0.2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                  content: Text("Are you sure you want to exit?", style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                  actions: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(false),
-                          child: Container(
-                            width: screenWidth * 0.2,
-                            padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
-                            decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(5)),
-                            child: Center(
-                              child: Text('No', style: AppTextStyles.textSize12(context, weight: FontWeight.w600)),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: screenWidth * 0.02),
-                        GestureDetector(
-                          onTap: () => SystemNavigator.pop(),
-                          child: Container(
-                            width: screenWidth * 0.2,
-                            padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
-                            decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(5)),
-                            child: Center(
-                              child: Text(
-                                'Yes',
-                                style: GoogleFonts.hindSiliguri(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.whiteColor),
+              // Show exit confirmation dialog
+              final value = await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: AppColors.containerBackground(context),
+                    contentPadding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.02),
+                    insetPadding: EdgeInsets.symmetric(horizontal: screenHeight * 0.1, vertical: screenHeight * 0.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                    content: Text("Are you sure you want to exit?", style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                    actions: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pop(false),
+                            child: Container(
+                              width: screenWidth * 0.2,
+                              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
+                              decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(5)),
+                              child: Center(
+                                child: Text('No', style: AppTextStyles.textSize12(context, weight: FontWeight.w600)),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            );
-            return value ?? false;
-          },
-          child: Scaffold(
-            backgroundColor: AppColors.containerBackground(context),
-            body: _pages[_currentIndex],
-            bottomNavigationBar: SafeArea(
-              child: Container(
-                height: 60,
-                width: screenWidth * 0.9,
-                decoration: BoxDecoration(
-                  color: AppColors.globalBlackWhite(context),
-                  boxShadow: [
-                    Theme.of(context).brightness == Brightness.dark
-                        ? BoxShadow(color: Colors.white12.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, -2))
-                        : BoxShadow(color: Colors.white10, blurRadius: 10, offset: const Offset(0, -2)),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Divider(color: AppColors.border(context), height: 1),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: List.generate(icons.length, (index) {
-                        bool isSelected = _currentIndex == index;
-                        bool isOrderTab = index == 2;
+                          SizedBox(width: screenWidth * 0.02),
+                          GestureDetector(
+                            onTap: () => SystemNavigator.pop(),
+                            child: Container(
+                              width: screenWidth * 0.2,
+                              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
+                              decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(5)),
+                              child: Center(
+                                child: Text(
+                                  'Yes',
+                                  style: GoogleFonts.hindSiliguri(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.whiteColor),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              );
+              return value ?? false;
+            },
+            child: Scaffold(
+              backgroundColor: AppColors.containerBackground(context),
+              body: _pages[_currentIndex],
+              bottomNavigationBar: SafeArea(
+                child: Container(
+                  height: 60,
+                  width: screenWidth * 0.9,
+                  decoration: BoxDecoration(
+                    color: AppColors.globalBlackWhite(context),
+                    boxShadow: [
+                      Theme.of(context).brightness == Brightness.dark
+                          ? BoxShadow(color: Colors.white12.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, -2))
+                          : BoxShadow(color: Colors.white10, blurRadius: 10, offset: const Offset(0, -2)),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Divider(color: AppColors.border(context), height: 1),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: List.generate(icons.length, (index) {
+                          bool isSelected = _currentIndex == index;
+                          bool isOrderTab = index == 2;
 
-                        return GestureDetector(
-                          // onTap: () {
-                          //   if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
-                          //     _key.currentState!.closeDrawer();
-                          //   } else {
-                          //     setState(() {
-                          //       _currentIndex = index;
-                          //     });
-                          //   }
-                          // },
-                          onTap: () async {
-                            if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
-                              _key.currentState!.closeDrawer();
-                            } else if (index == 3) {
-                              // Index 3 = Draft/Support - Open WhatsApp
-                              await _openWhatsAppSupport();
-                              // Don't change the current index, stay on current screen
-                            } else {
-                              setState(() {
-                                _currentIndex = index;
-                              });
-                            }
-                          },
-                          child: Container(
-                            width: screenWidth * 0.2,
-                            color: Colors.transparent,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                isOrderTab
-                                    ? Consumer<RunningOrderCountViewModel>(
-                                  builder: (context, orderCountViewModel, _) {
-                                    return Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [
-                                        SvgPicture.asset(
+                          return GestureDetector(
+                            // onTap: () {
+                            //   if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
+                            //     _key.currentState!.closeDrawer();
+                            //   } else {
+                            //     setState(() {
+                            //       _currentIndex = index;
+                            //     });
+                            //   }
+                            // },
+                            onTap: () async {
+                              if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
+                                _key.currentState!.closeDrawer();
+                              } else if (index == 3) {
+                                // Index 3 = Draft/Support - Open WhatsApp
+                                await _openWhatsAppSupport();
+                                // Don't change the current index, stay on current screen
+                              } else {
+                                setState(() {
+                                  _currentIndex = index;
+                                });
+                              }
+                            },
+                            child: Container(
+                              width: screenWidth * 0.2,
+                              color: Colors.transparent,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  isOrderTab
+                                      ? Consumer<RunningOrderCountViewModel>(
+                                          builder: (context, orderCountViewModel, _) {
+                                            return Stack(
+                                              clipBehavior: Clip.none,
+                                              children: [
+                                                SvgPicture.asset(
+                                                  icons[index],
+                                                  width: 18,
+                                                  height: 18,
+                                                  color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                                  semanticsLabel: labels[index],
+                                                ),
+                                                if (orderCountViewModel.hasRunningOrders)
+                                                  Positioned(
+                                                    right: -6,
+                                                    top: -4,
+                                                    child: Container(
+                                                      padding: EdgeInsets.all(2),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red,
+                                                        shape: BoxShape.circle,
+                                                        border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
+                                                      ),
+                                                      constraints: BoxConstraints(minWidth: 14, minHeight: 14),
+                                                      child: Text(
+                                                        '${orderCountViewModel.runningOrderCount > 9 ? '9+' : orderCountViewModel.runningOrderCount}',
+                                                        style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                                        textAlign: TextAlign.center,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            );
+                                          },
+                                        )
+                                      : SvgPicture.asset(
                                           icons[index],
                                           width: 18,
                                           height: 18,
                                           color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
                                           semanticsLabel: labels[index],
                                         ),
-                                        if (orderCountViewModel.hasRunningOrders)
-                                          Positioned(
-                                            right: -6,
-                                            top: -4,
-                                            child: Container(
-                                              padding: EdgeInsets.all(2),
-                                              decoration: BoxDecoration(
-                                                color: Colors.red,
-                                                shape: BoxShape.circle,
-                                                border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
-                                              ),
-                                              constraints: BoxConstraints(minWidth: 14, minHeight: 14),
-                                              child: Text(
-                                                '${orderCountViewModel.runningOrderCount > 9 ? '9+' : orderCountViewModel.runningOrderCount}',
-                                                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    );
-                                  },
-                                )
-                                    : SvgPicture.asset(icons[index], width: 18, height: 18, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context), semanticsLabel: labels[index]),
-                                const SizedBox(height: 6),
-                                Text(
-                                  labels[index],
-                                  style: AppTextStyles.textSize12(
-                                    context,
-                                    weight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                                    color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    labels[index],
+                                    style: AppTextStyles.textSize12(
+                                      context,
+                                      weight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                                      color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
-                    ),
-                    Container(height: 1),
-                  ],
+                          );
+                        }),
+                      ),
+                      Container(height: 1),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -744,16 +752,15 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                   },
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: screenHeight * 0.014),
-                    decoration: BoxDecoration(color: AppColors.button(context),
-                        borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.phone, size: 18, color: AppColors.whiteColor),
                         SizedBox(width: 8),
                         Text(
-                            'Call Support (01929-600600)',
-                            style: AppTextStyles.textSize14(context,color: AppColors.whiteColor,weight: FontWeight.w500)
+                          'Call Support (01929-600600)',
+                          style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -767,18 +774,13 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: screenHeight * 0.012),
-                    decoration: BoxDecoration(color: AppColors.containerBackground(context),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            width: 1,
-                            color: AppColors.border(context)
-                        )
+                    decoration: BoxDecoration(
+                      color: AppColors.containerBackground(context),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(width: 1, color: AppColors.border(context)),
                     ),
                     child: Center(
-                      child: Text(
-                          'Cancel',
-                          style: AppTextStyles.textSize14(context,weight: FontWeight.w500)
-                      ),
+                      child: Text('Cancel', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                     ),
                   ),
                 ),
@@ -790,7 +792,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     );
   }
 
-
   Future<void> _callSupport() async {
     const String phoneNumber = 'tel:+8801929600600'; // Company support number
     final Uri phoneUri = Uri.parse(phoneNumber);
@@ -800,10 +801,85 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         await launchUrl(phoneUri);
         print('✅ Phone dialer opened for support call');
       } else {
-        Utils.flushBarErrorMessage("Unable to open phone dialer", context);      }
+        Utils.flushBarErrorMessage("Unable to open phone dialer", context);
+      }
     } catch (e) {
       print('❌ Error opening phone dialer: $e');
       Utils.flushBarErrorMessage("Unable to make phone call", context);
     }
+  }
+
+  // Add this method to your _NavigationScreenState class
+  void _checkForUpgrade(BuildContext context) async {
+    final upgrader = Upgrader(
+        // debugDisplayAlways: kDebugMode, debugLogging: kDebugMode,
+        countryCode: 'BD', languageCode: 'en');
+
+    await upgrader.initialize();
+
+    if (upgrader.shouldDisplayUpgrade()) {
+      _showCustomUpgradeDialog(context, upgrader);
+    }
+  }
+
+  void _showCustomUpgradeDialog(BuildContext context, Upgrader upgrader) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDarkMode = themeProvider.isDarkMode;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: AppColors.containerBackground(context),
+          insetPadding: EdgeInsets.all(screenHeight * 0.02),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding:EdgeInsets.all(screenHeight * 0.02),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 20),
+                Icon(FontAwesomeIcons.cloudArrowDown, color: AppColors.button(context), size: 50),
+                SizedBox(height: 10),
+                Text('Update Available', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+                SizedBox(height: 20),
+
+                Text('A new version is available!', textAlign: TextAlign.center, style: AppTextStyles.textSize14(context)),
+                SizedBox(height: 5),
+                Text(
+                  'Version ${upgrader.currentAppStoreVersion ?? 'Unknown'} is now available. You are using version ${upgrader.currentInstalledVersion ?? 'Unknown'}.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                ),
+
+                SizedBox(height: 20),
+                GestureDetector(
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    await upgrader.sendUserToAppStore();
+                  },
+                  child: Container(
+                    width: screenWidth*0.5,
+                    height: 45,
+                    decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+                    child: Center(
+                      child: Text(
+                        'Update Now',
+                        style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
