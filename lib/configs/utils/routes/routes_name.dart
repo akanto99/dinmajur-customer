@@ -10,6 +10,7 @@ class RoutesName {
   static const String navigationBar = 'navigationBar_view';
   ///home
   static const String home = 'home_view';
+  static const String addLocationScreenWidget = 'addLocationScreenWidget_view';
   static const String notificationsListScreen = 'notificationsListScreen_view'; //Notifications ListScreen SSE Just
   static const String unifiedSeeAllScreen = 'unifiedSeeAllScreen_view';
   static const String orderDetailsSocketScreen = 'orderDetailsSocketScreen_view';
@@ -34,8 +35,14 @@ class RoutesName {
   static const String offers = 'offers_view';
   static const String termsAndCondition = 'termsAndCondition_view';
   static const String privacyPolicy = 'privacyPolicy_view';
+  static const String cookiesPolicyScreen = 'cookiesPolicy_view';
+  static const String deliveryPolicyScreen = 'deliveryPolicy_view';
+  static const String refundPolicyScreen = 'refundPolicy_view';
+  static const String language = 'language_view';
 
 
+
+  static const String failedOrderScreenWidget = 'failedOrderScreenWidget_view';
   ///Order Now DropDown- 1
   static const String orderScreen = 'orderScreen_view';
   static const String orderDetailsScreen = 'orderDetailsScreen_view';
@@ -49,9 +56,18 @@ class RoutesName {
   ///In HOME Screen- DropDown 2 Premium House Keeper
   static const String bookNowPremiumHouseKeeper = 'bookNowPremiumHouseKeeper_view';
   static const String confirmedScreen = 'confirmedScreen_view';
+  static const String checkoutHouseKeeperScreen = 'checkoutHouseKeeperScreen_view';
   ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
   static const String bookNowHomeBeautySalonScreen = 'bookNowHomeBeautySalonScreen_view';
   static const String beautyConfirmedScreen = 'beautyConfirmedScreen_view';
+  static const String beautyCheckoutScreen = 'beautyCheckoutScreen_view';
+
+  ///In HOME Screen- DropDown 4 Premium Home Beauty Salon
+  static const String familyEventCookingScreen= 'familyEventCookingScreen_view';
+  static const String cookingCheckoutScreen= 'cookingCheckoutScreen_view';
+  static const String cookingConfirmedScreen= 'CookingConfirmedScreen_view';
+
+
 
 
 

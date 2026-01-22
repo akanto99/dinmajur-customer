@@ -1,8 +1,8 @@
 class AppUrl {
-
+  // static var baseUrl = 'https://05f7b9dab317.ngrok-free.app//api/v1' ;// Staging Server
   static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
-
+  //
   // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
   // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
@@ -68,6 +68,12 @@ class AppUrl {
   static var getAllPremiumHomeBeautySalonGetAPI = baseUrl + '/beauty-salon-tasks';
   static var bookPremiumHomeBeautySalonPostAPI = baseUrl + '/beauty-salon-bookings/create';
   static var getBeautySalonByTrackingIdGetAPI = baseUrl + '/beauty-salon-bookings/tracking';
+  //========>Family Event Cooking
+  static var getAllFamilyEventCookingGetAPI = baseUrl + '/event-cooking-categories/get-all';
+  static var bookFamilyEventCookingPostAPI = baseUrl + '/event-cooking-bookings';
+  static var getFamilyEventCookingGetAPI = baseUrl + '/event-cooking-bookings';
+
+
 
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';

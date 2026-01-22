@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dinmajur_customer/configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -9,6 +10,7 @@ import 'package:dinmajur_customer/configs/services/sse_notification_services/sse
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,7 +51,12 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
         await prefs.setString('accessToken', accessToken);
 
         if (userId != null && userId.isNotEmpty) {
-          await prefs.setString('userId', userId);}
+          ///One Signal
+          // await OneSignal.login(userId);
+          // await prefs.setString('userId', userId);
+          final oneSignalService = Provider.of<OneSignalNotificationService>(context, listen: false);
+          await oneSignalService.loginUser(userId);
+        }
         ///SOCKET
         if (userId != null && userId.isNotEmpty) {
           try {
@@ -86,7 +93,7 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
             print("🔔 OTP Verify: Starting SSE connection with access token");
             await sseService.startListening();
             await Future.delayed(Duration(milliseconds: 500)); // Wait for initial count
-            notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
+            notificationCountViewModel.initializeCountListener(sseService.notificationCountStream,      sseService.notificationIncrementStream,);
             notificationCountViewModel.setInitialCount(sseService.currentCount);
             print("🔔 OTP Verify: ✅ SSE connection initiated successfully");
           } catch (sseError) {

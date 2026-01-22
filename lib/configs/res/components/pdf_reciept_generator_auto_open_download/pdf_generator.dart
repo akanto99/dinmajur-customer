@@ -19,6 +19,7 @@ class ReceiptData {
   final String? status;
   final DateTime? date;
   final String? time;
+  final String? paymentMethod;
   final List<ReceiptServiceItem> services;
   final ReceiptPaymentSummary paymentSummary;
   final String? footerMessage;
@@ -34,6 +35,7 @@ class ReceiptData {
     this.status,
     this.date,
     this.time,
+    this.paymentMethod,
     required this.services,
     required this.paymentSummary,
     this.footerMessage,
@@ -181,8 +183,12 @@ class PDFReceiptGenerator {
           if (data.address != null)
             _buildDetailRow('Address:', data.address!),
           if (data.address != null) pw.SizedBox(height: 6),
-          if (data.notes != null && data.notes!.isNotEmpty) ...[
-            _buildDetailRow('Notes:', data.notes!),
+          // if (data.notes != null && data.notes!.isNotEmpty) ...[
+          //   _buildDetailRow('Notes:', data.notes!),
+          //   pw.SizedBox(height: 6),
+          // ],
+          if (data.paymentMethod != null && data.paymentMethod!.isNotEmpty) ...[
+            _buildDetailRow('Payment Method:', data.paymentMethod ?? 'N/A',),
             pw.SizedBox(height: 6),
           ],
           if (data.status != null)
@@ -607,6 +613,7 @@ extension BeautySalonReceiptAdapter on Data {
       status: status,
       date: date,
       time: time,
+      paymentMethod: paymentType,
       services: services,
       paymentSummary: ReceiptPaymentSummary(
         subTotal: subTotal ?? 0,

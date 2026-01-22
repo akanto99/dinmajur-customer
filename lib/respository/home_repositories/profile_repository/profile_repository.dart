@@ -13,7 +13,7 @@ class ProfileRepository {
     print("usaser id----------------- $userID");
     ///6860e54d7ef33b5157635834
     try {
-      dynamic response = await _apiServices.getGetApiResponse("${AppUrl.viewProfile}/$userID");
+      dynamic response = await _apiServices.getGetApiWithHeaderResponse("${AppUrl.viewProfile}");
       // dynamic response = await _apiServices.getGetApiResponse("${AppUrl.viewProfile}/6860e54d7ef33b5157635834");
       return response =ProfileViewModel.fromJson(response);
     } catch (e) {

@@ -44,6 +44,11 @@ class AppColors {
       Theme.of(context).brightness == Brightness.dark
           ? Colors.grey[600]!
           : const Color(0xffE7E9E9);
+  ///freequency Button
+  static Color freequencyColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.grey[600]!
+          : const Color(0xffE5E7EB);
           // : const Color(0xffE0E0E0);
 
 
@@ -59,6 +64,11 @@ class AppColors {
 
 ///button bg /Branding
   static Color button(BuildContext context) => const Color(0xff00424D);
+
+  ///Global svgImages
+  static Color buttonTextColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ?  AppColors.whiteColor:Color(0xff00424D);
 
   ///Global svgImages
   static Color svgImages(BuildContext context) =>
