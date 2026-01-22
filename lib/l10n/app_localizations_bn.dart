@@ -42,7 +42,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get phone_hint => '০১xxxxxxxxx';
 
   @override
-  String get phone_hint_new => '১xxxxxxxxx';
+  String get phone_hint_new => '01XXXXXXXXX';
 
   @override
   String get password => 'পাসওয়ার্ড';
