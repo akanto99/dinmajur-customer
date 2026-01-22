@@ -632,6 +632,12 @@ abstract class AppLocalizations {
   /// **'Draft'**
   String get draft;
 
+  /// No description provided for @callus.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Us'**
+  String get callus;
+
   /// No description provided for @home_screen.
   ///
   /// In en, this message translates to:

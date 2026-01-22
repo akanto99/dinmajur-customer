@@ -293,6 +293,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get draft => 'ড্রাফট';
 
   @override
+  String get callus => 'কল করুন';
+
+  @override
   String get home_screen =>
       '--------------------Home Screen ------------------------';
 
