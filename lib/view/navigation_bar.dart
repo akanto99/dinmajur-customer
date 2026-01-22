@@ -90,7 +90,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
       AppLocalizations.of(context)!.offers,
       AppLocalizations.of(context)!.order,
       // AppLocalizations.of(context)!.draft
-      AppLocalizations.of(context)!.support,
+      AppLocalizations.of(context)!.callus,
     ];
   }
 

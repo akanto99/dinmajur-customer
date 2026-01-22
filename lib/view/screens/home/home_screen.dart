@@ -156,14 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _isLoadingLocation = false;
         });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Location error: ${e.toString()}'),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 3)
-            )
-        );
+print(e.toString());
+    Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
       }
     }
   }

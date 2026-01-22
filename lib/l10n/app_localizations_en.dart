@@ -293,6 +293,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get draft => 'Draft';
 
   @override
+  String get callus => 'Call Us';
+
+  @override
   String get home_screen =>
       '--------------------Home Screen ------------------------';
 
