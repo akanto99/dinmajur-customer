@@ -189,7 +189,10 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
           print("🔌 NavigationScreen: ✅ Socket reconnected successfully");
         } else {
           print("🔌 NavigationScreen: ⚠️ Socket reconnection uncertain, trying auto-reconnect");
-          await socketProvider.autoReconnect(maxRetries: 2, delay: Duration(seconds: 2));
+          await socketProvider.autoReconnect(
+              // maxRetries: 1,
+              // delay: Duration(seconds: 2)
+          );
         }
       } else {
         print("🔌 NavigationScreen: Socket already connected");
@@ -418,7 +421,10 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         print("🔌 NavigationScreen: ✅ Socket reconnected successfully");
       } else {
         print("🔌 NavigationScreen: ⚠️ Socket reconnection uncertain, attempting auto-reconnect...");
-        await socketProvider.autoReconnect(maxRetries: 3, delay: Duration(seconds: 2));
+        await socketProvider.autoReconnect(
+            // maxRetries: 1,
+            // delay: Duration(seconds: 2)
+        );
       }
 
       // ✅ Reconnect SSE
@@ -455,7 +461,10 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
       try {
         final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-        await socketProvider.autoReconnect(maxRetries: 2, delay: Duration(seconds: 3));
+        await socketProvider.autoReconnect(
+            // maxRetries: 1,
+            // delay: Duration(seconds: 3)
+        );
       } catch (retryError) {
         print("🔌 NavigationScreen: Final reconnection attempt failed - $retryError");
       }
