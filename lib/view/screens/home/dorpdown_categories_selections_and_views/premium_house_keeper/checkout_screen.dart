@@ -192,7 +192,11 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
             // ✅ Initiate SSL Commerz payment client-side
             final paymentResult = await checkoutViewModel.initiatePayment(
                 trackingId: trackingId,
-                totalAmount: totalAmount
+                totalAmount: totalAmount,
+              customerName: _fullNameController.text.trim(),
+              customerPhone: _phoneController.text.trim(),
+              customerEmail: null,
+              customerAddress: _addressController.text.trim(),
             );
 
             print('Payment Result: ${paymentResult.toString()}');

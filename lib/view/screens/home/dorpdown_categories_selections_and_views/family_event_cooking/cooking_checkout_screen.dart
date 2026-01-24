@@ -349,6 +349,10 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             final paymentResult = await checkoutVM.initiatePayment(
               trackingId: trackingId,
               totalAmount: totalAmount,
+              customerName: widget.customerName,
+              customerPhone: widget.customerPhone,
+              customerEmail: null,
+              customerAddress: _addressController.text.trim(),
             );
             await _handlePaymentResult(
               viewModel: checkoutVM,
