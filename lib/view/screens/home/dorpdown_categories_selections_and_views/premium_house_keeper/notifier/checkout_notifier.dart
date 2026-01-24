@@ -14,12 +14,12 @@ class CheckoutViewModel extends ChangeNotifier {
 
   // Payment methods data
   final List<Map<String, dynamic>> paymentMethods = [
-    // {
-    //   'method': 'online',
-    //   'title': 'Online Payment',
-    //   'icon': 'wallet',
-    //   'color': 0xFFEE4237
-    // },
+    {
+      'method': 'online',
+      'title': 'Online Payment',
+      'icon': 'wallet',
+      'color': 0xFFEE4237
+    },
     {
       'method': 'cash',
       'title': 'Hand Cash',
@@ -313,15 +313,60 @@ class CheckoutViewModel extends ChangeNotifier {
   //   }
   // }
   /// Initiate payment using centralized service
+  // Future<SSLPaymentResult> initiatePayment({
+  //   required String trackingId,
+  //   required double totalAmount,
+  // }) async {
+  //   return await _paymentService.initiatePayment(
+  //     trackingId: trackingId,
+  //     totalAmount: totalAmount,
+  //     productCategory: "House Keeping Service",
+  //   );
+  // }
+  /// Initiate payment using centralized service
   Future<SSLPaymentResult> initiatePayment({
     required String trackingId,
     required double totalAmount,
+    String? customerName,
+    String? customerPhone,
+    String? customerEmail,
+    String? customerAddress,
   }) async {
-    return await _paymentService.initiatePayment(
-      trackingId: trackingId,
-      totalAmount: totalAmount,
-      productCategory: "House Keeping Service",
-    );
+    print("═══════════════════════════════════════════");
+    print("🚀 CheckoutViewModel: Initiating Payment");
+    print("Tracking ID: $trackingId");
+    print("Total Amount: $totalAmount");
+    print("Customer: $customerName");
+    print("Phone: $customerPhone");
+    print("═══════════════════════════════════════════");
+
+    try {
+      final result = await _paymentService.initiatePayment(
+        trackingId: trackingId,
+        totalAmount: totalAmount,
+        productCategory: "House Keeping Service",
+        customerName: customerName,
+        customerPhone: customerPhone,
+        customerEmail: customerEmail,
+        customerAddress: customerAddress,
+      );
+
+      print("═══════════════════════════════════════════");
+      print("📥 Payment Service Result:");
+      print(result.toString());
+      print("═══════════════════════════════════════════");
+
+      return result;
+    } catch (e, stackTrace) {
+      print("💥 Payment Initiation Error in ViewModel: $e");
+      print("Stack Trace: $stackTrace");
+
+      return SSLPaymentResult(
+        success: false,
+        status: 'ERROR',
+        errorMessage: 'Failed to initiate payment: ${e.toString()}',
+      );
+    }
   }
   void reset() {
     _selectedHouseSize = null;

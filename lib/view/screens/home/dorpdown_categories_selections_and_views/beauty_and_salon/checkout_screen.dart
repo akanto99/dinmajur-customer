@@ -215,6 +215,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             final paymentResult = await checkoutVM.initiatePayment(
               trackingId: trackingId,
               totalAmount: totalAmount,
+              customerName: _fullNameController.text.trim(),
+              customerPhone: _phoneController.text.trim(),
+              customerEmail: null,
+              customerAddress: _addressController.text.trim(),
             );
             await _handlePaymentResult(
               viewModel: checkoutVM,
