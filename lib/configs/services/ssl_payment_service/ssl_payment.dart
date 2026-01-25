@@ -372,15 +372,6 @@ class SSLCommerzPaymentService {
       );
     }
   }
-
-  bool isPaymentSuccessful(SSLPaymentResult result) =>
-      result.success && (result.status == 'VALID' || result.status == 'VALIDATED' || result.status == 'SUCCESS');
-
-  bool isPaymentCancelled(SSLPaymentResult result) =>
-      result.status == 'CANCELLED' || result.status == 'CANCELED';
-
-  bool isPaymentFailed(SSLPaymentResult result) =>
-      result.status == 'FAILED' || result.status == 'ERROR';
 }
 
 class SSLPaymentResult {

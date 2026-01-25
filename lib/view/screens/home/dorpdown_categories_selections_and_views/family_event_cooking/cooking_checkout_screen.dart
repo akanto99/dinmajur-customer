@@ -73,6 +73,55 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     super.dispose();
   }
 
+  // Future<void> _handlePaymentResult({
+  //   required CookingCheckoutViewModel viewModel,
+  //   required SSLPaymentResult paymentResult,
+  //   required String trackingId,
+  // }) async {
+  //   if (!mounted) return;
+  //
+  //   if (paymentResult.success) {
+  //     _clearAllData();
+  //     Navigator.pushReplacementNamed(
+  //       context,
+  //       RoutesName.beautyConfirmedScreen,
+  //       arguments: {
+  //         'trackingId': trackingId,
+  //         'valId': paymentResult.validationId ?? 'N/A',
+  //       },
+  //     );
+  //   } else if (paymentResult.status == 'FAILED') {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       if (mounted) {
+  //         Navigator.pushReplacementNamed(
+  //           context,
+  //           RoutesName.failedOrderScreenWidget,
+  //           arguments: {
+  //             'trackingId': trackingId,
+  //             'valId': paymentResult.validationId ?? 'N/A',
+  //             'reason': 'Payment transaction failed',
+  //             'errorMessage': paymentResult.errorMessage ?? 'The payment could not be completed. Please try again.',
+  //           },
+  //         );
+  //       }
+  //     });
+  //   } else if (paymentResult.status == 'CANCELLED') {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       if (mounted) {
+  //         Utils.flushBarErrorMessage("Payment was cancelled", context);
+  //       }
+  //     });
+  //   } else {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       if (mounted) {
+  //         Utils.flushBarErrorMessage(
+  //           paymentResult.errorMessage ?? "Payment status unclear",
+  //           context,
+  //         );
+  //       }
+  //     });
+  //   }
+  // }
   Future<void> _handlePaymentResult({
     required CookingCheckoutViewModel viewModel,
     required SSLPaymentResult paymentResult,
@@ -84,31 +133,44 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       _clearAllData();
       Navigator.pushReplacementNamed(
         context,
-        RoutesName.beautyConfirmedScreen,
+        RoutesName.cookingConfirmedScreen,
         arguments: {
           'trackingId': trackingId,
           'valId': paymentResult.validationId ?? 'N/A',
         },
       );
     } else if (paymentResult.status == 'FAILED') {
+      print("---------------------Handle Payment result - FAILED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
             context,
-            RoutesName.failedOrderScreenWidget,
+            RoutesName.cookingFailedCancelledPaymentScreen,
             arguments: {
               'trackingId': trackingId,
               'valId': paymentResult.validationId ?? 'N/A',
               'reason': 'Payment transaction failed',
               'errorMessage': paymentResult.errorMessage ?? 'The payment could not be completed. Please try again.',
+              'isCancelled': false, // Payment failed
             },
           );
         }
       });
-    } else if (paymentResult.status == 'CANCELLED') {
+    } else if (paymentResult.status == 'CLOSED') {
+      print("---------------------Handle Payment result - CLOSED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Utils.flushBarErrorMessage("Payment was cancelled", context);
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.cookingFailedCancelledPaymentScreen,
+            arguments: {
+              'trackingId': trackingId,
+              'valId': paymentResult.validationId ?? 'N/A',
+              'reason': 'Payment cancelled by user',
+              'errorMessage': 'You cancelled the payment. You can retry whenever you\'re ready.',
+              'isCancelled': true, // Payment cancelled
+            },
+          );
         }
       });
     } else {

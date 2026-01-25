@@ -11,6 +11,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cooking_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/familyevent_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
@@ -154,8 +155,18 @@ class Routes {
             isCancelled: args?['isCancelled'] ?? false,
           ),
         );
-
-
+///Family Event Cancel Failed
+      case RoutesName.cookingFailedCancelledPaymentScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (BuildContext context) => CookingFailedCancelledPaymentScreen(
+            trackingId: args?['trackingId'],
+            valId: args?['valId'],
+            reason: args?['reason'],
+            errorMessage: args?['errorMessage'],
+            isCancelled: args?['isCancelled'] ?? false,
+          ),
+        );
 
 
 

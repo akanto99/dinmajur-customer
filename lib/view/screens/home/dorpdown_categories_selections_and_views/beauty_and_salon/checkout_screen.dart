@@ -160,8 +160,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           );
         }
       });
-    } else if (paymentResult.status == 'CANCELLED') {
-      print("---------------------Handle Payment result - CANCELLED -----------");
+    } else if (paymentResult.status == 'CLOSED') {
+      print("---------------------Handle Payment result - CLOSED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
