@@ -51,6 +51,7 @@ class AppUrl {
   static var paymentMethodPostAPI = baseUrl + '/payment-methods';
 
   ///Home Screen DropDown
+  static var sslPaymentFailed = baseUrl + "/api/v1/payments/ipn";
   //========>order Now
   static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
   static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";

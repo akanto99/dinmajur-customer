@@ -647,6 +647,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
+import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_failed_mvvm/ssl_view_model.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
@@ -784,6 +785,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GetNotificationViewModel()),
 
         //==============>Order Now
+        ChangeNotifierProvider(create: (_) => PostSslPaymentFailedViewModel()),///SSL Payment Faild Post APi Hit
+
         ChangeNotifierProvider(create: (_) => PostNearbyRetailersViewModel()),
         ChangeNotifierProvider(create: (_) => PostCheckOutOrderViewModel()),
         ChangeNotifierProvider(create: (_) => GetOrderDetailsViewModel()),
