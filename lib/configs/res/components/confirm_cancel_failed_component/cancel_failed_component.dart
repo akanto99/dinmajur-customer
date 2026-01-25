@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/res/components/support_cards/customercare_support_card.dart';
 import 'package:flutter/material.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -83,8 +84,9 @@ class FailedCancelledConfirmationUI extends StatelessWidget {
 
           SizedboxSpaccing.height02(context),
 
-          // Customer Care Section
-          _buildCustomerCareSection(context, screenWidth, screenHeight),
+
+          CustomerCareSupportCard(),
+
 
           SizedboxSpaccing.height045(context),
         ],
@@ -327,44 +329,7 @@ class FailedCancelledConfirmationUI extends StatelessWidget {
     );
   }
 
-  // Customer Care Section
-  Widget _buildCustomerCareSection(BuildContext context, double screenWidth, double screenHeight) {
-    return Container(
-      width: screenWidth * 0.9,
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(width: 1, color: AppColors.border(context)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 48,
-            width: 48,
-            decoration: BoxDecoration(color: AppColors.textPrimary(context), shape: BoxShape.circle),
-            child: Icon(Icons.headset_mic, color: Colors.white, size: 24),
-          ),
-          SizedboxSpaccing.width03(context),
-          SizedboxSpaccing.width01(context),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Customer Care Hotline', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-              SizedboxSpaccing.height005(context),
-              Text('Available 24/7 for your assistance', style: AppTextStyles.textSize12(context)),
-              SizedBox(height: 16),
-              Text('01929600600', style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
-  // Helper: Detail Column
   Widget _buildDetailColumn(String label, String value, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
