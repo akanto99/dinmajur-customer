@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/res/components/support_cards/customercare_support_card.dart';
 import 'package:flutter/material.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -89,8 +90,8 @@ class BookingConfirmationUI extends StatelessWidget {
 
           SizedboxSpaccing.height03(context),
 
-          // Customer Care Section
-          _buildCustomerCareSection(context, screenWidth, screenHeight),
+          CustomerCareSupportCard(),
+
 
           SizedboxSpaccing.height03(context),
 
@@ -205,32 +206,31 @@ class BookingConfirmationUI extends StatelessWidget {
               '#${data.orderId.length > 6 ? data.orderId.substring(data.orderId.length - 6) : data.orderId}',
               context
           ),
-          SizedboxSpaccing.height01(context),
+          SizedBox(height: 16,),
 
           // Services
           _buildServicesSection(context),
 
-          SizedboxSpaccing.height01(context),
+          SizedBox(height: 16,),
 
           // Date & Time
           _buildDetailColumn('Date & Time', data.dateTime, context),
 
-          SizedboxSpaccing.height01(context),
+          SizedBox(height: 16,),
 
           // Service Address
           _buildDetailColumn('Service Address', data.serviceAddress, context),
 
-          SizedboxSpaccing.height01(context),
+          SizedBox(height: 16,),
 
           // Total Payment
           _buildDetailRow('Total Payment', '৳ ${data.grandTotal}', context),
 
-          SizedboxSpaccing.height01(context),
+          SizedBox(height: 16,),
 
           // Payment Method
           _buildDetailRow('Payment Method', data.paymentMethod, context),
 
-          SizedboxSpaccing.height01(context),
         ],
       ),
     );
