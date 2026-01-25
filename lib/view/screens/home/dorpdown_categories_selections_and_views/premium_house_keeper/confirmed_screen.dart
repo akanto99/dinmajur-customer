@@ -1033,9 +1033,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
     }
   }
 
-  void _handleTrackOrder() {
-    print('Navigate to track order screen');
-  }
+
 
   void _showDownloadSuccessDialog(String filePath) {
     final screenWidth = MediaQuery.of(context).size.width;
