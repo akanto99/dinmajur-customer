@@ -11,6 +11,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cooking_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/cancel_or_failed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/language/language_screen.dart';
@@ -128,6 +129,21 @@ class Routes {
           );
         }
         return _errorRoute();
+      case RoutesName.failedCancelledPaymentScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (BuildContext context) => FailedCancelledPaymentScreen(
+            trackingId: args?['trackingId'],
+            valId: args?['valId'],
+            reason: args?['reason'],
+            errorMessage: args?['errorMessage'],
+            isCancelled: args?['isCancelled'] ?? false,
+          ),
+        );
+
+
+
+
 
         ///order Now Screen For Retail after clicking Grocerry in HOME SCreen- DropDown 1
       case RoutesName.orderNow:
