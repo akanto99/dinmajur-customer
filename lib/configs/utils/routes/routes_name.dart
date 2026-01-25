@@ -43,7 +43,8 @@ class RoutesName {
 
 
   static const String failedOrderScreenWidget = 'failedOrderScreenWidget_view';
-  static const String failedCancelledPaymentScreen = 'failed_cancelled_payment_screen';///Reusable Component
+  static const String failedCancelledPaymentScreen = 'failed_cancelled_payment_screen';///House-Keeper Reusable Component
+  static const String beautyFailedCancelledPaymentScreen = 'beauty_failed_cancelled_payment_screen';///Beauty Salon Reusable Component
 
   ///Order Now DropDown- 1
   static const String orderScreen = 'orderScreen_view';
