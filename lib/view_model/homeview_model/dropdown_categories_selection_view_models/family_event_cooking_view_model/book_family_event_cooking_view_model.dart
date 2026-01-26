@@ -27,7 +27,7 @@ class PostBookFamilyEventCookingViewModel with ChangeNotifier {
       setBookFamilyEventCookingLoading(false);
 
       Utils.flushBarSuccessMessage('Book Family Event Cooking successfully', context);
-      await Future.delayed(Duration(milliseconds: 1000));
+      // await Future.delayed(Duration(milliseconds: 1000));
 
       if (kDebugMode) print('API Response: ${response.toString()}');
 

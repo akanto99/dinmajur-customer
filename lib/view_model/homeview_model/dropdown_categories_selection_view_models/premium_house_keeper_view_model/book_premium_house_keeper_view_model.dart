@@ -27,7 +27,6 @@ class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
       setBookPremiumHouseKeeperLoading(false);
 
       Utils.flushBarSuccessMessage('Book Premium house keeper successfully', context);
-      await Future.delayed(Duration(milliseconds: 1000));
 
       if (kDebugMode) print('API Response: ${response.toString()}');
 

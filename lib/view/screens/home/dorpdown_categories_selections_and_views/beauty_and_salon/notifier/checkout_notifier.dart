@@ -187,6 +187,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     required String serviceTime,
     required List<Map<String, dynamic>> tasks,
     required String? paymentMethod,
+    required String source,
   }) {
     String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
     String paymentData = getPaymentMethodData(paymentMethod);
@@ -203,6 +204,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
       'date': formattedDate,
       'tasks': tasks,
       "paymentType": paymentData,
+      "source": source,
     };
   }
 

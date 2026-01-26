@@ -27,7 +27,7 @@ class PostBookPremiumHomeBeautySalonViewModel with ChangeNotifier {
       setBookPremiumHomeBeautySalonLoading(false);
 
       Utils.flushBarSuccessMessage('Book Premium Home Beauty and Salon successfully', context);
-      await Future.delayed(Duration(milliseconds: 1000));
+      // await Future.delayed(Duration(milliseconds: 1000));
 
       if (kDebugMode) print('API Response: ${response.toString()}');
 

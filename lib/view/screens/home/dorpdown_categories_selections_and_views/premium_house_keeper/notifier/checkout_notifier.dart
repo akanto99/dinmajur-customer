@@ -203,6 +203,7 @@ class CheckoutViewModel extends ChangeNotifier {
     required String? shiftId,
     required List<Map<String, dynamic>> tasks,
     required String? paymentMethod,
+    required String source,
   }) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userId = prefs.getString('userId');
@@ -224,6 +225,7 @@ class CheckoutViewModel extends ChangeNotifier {
       "shiftId": shiftId,
       "date": selectedDate,
       "paymentType": paymentData,
+      "source":source,
     };
   }
 

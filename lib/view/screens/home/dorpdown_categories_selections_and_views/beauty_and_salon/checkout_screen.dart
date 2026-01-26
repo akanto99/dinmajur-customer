@@ -54,7 +54,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _specialRequestController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   bool _isTermsAccepted = false;
-  bool _isProcessing = false; // ✅ Add this flag to prevent multiple API calls
 
   @override
   void initState() {
@@ -91,25 +90,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _dateController.clear();
     setState(() {
       _isTermsAccepted = false;
-      _isProcessing = false; // ✅ Reset processing flag
     });
   }
 
   Future<void> _handleConfirmBooking() async {
-    // ✅ Prevent multiple simultaneous API calls
-    if (_isProcessing) {
+    final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
+    final bookingViewModel = Provider.of<PostBookPremiumHomeBeautySalonViewModel>(context, listen: false);
+
+    // ✅ Use bookingViewModel's loading state instead
+    if (bookingViewModel.createBookPremiumHomeBeautySalonLoading) {
       print('⚠️ Already processing payment, ignoring duplicate tap');
       return;
     }
 
-    final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
-    final bookingViewModel = Provider.of<PostBookPremiumHomeBeautySalonViewModel>(context, listen: false);
-
     // Calculate total amount
-    double subtotal = checkoutVM.calculateTotal(
-      serviceQuantities: widget.serviceQuantities,
-      categories: widget.categories,
-    );
+    double subtotal = checkoutVM.calculateTotal(serviceQuantities: widget.serviceQuantities, categories: widget.categories);
     double totalAmount = subtotal + widget.transportFee;
 
     // Validate form
@@ -129,16 +124,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    // ✅ Set processing flag BEFORE API call
-    setState(() {
-      _isProcessing = true;
-    });
-
     // Prepare tasks data
-    List<Map<String, dynamic>> tasks = checkoutVM.prepareTasksData(
-      serviceQuantities: widget.serviceQuantities,
-      categories: widget.categories,
-    );
+    List<Map<String, dynamic>> tasks = checkoutVM.prepareTasksData(serviceQuantities: widget.serviceQuantities, categories: widget.categories);
 
     // Prepare booking data
     Map<String, dynamic> bookingData = checkoutVM.prepareBookingData(
@@ -151,182 +138,110 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       serviceTime: checkoutVM.selectedServiceTime!,
       tasks: tasks,
       paymentMethod: checkoutVM.selectedPaymentMethod,
+      source:"android",
     );
 
     print('Booking Data: $bookingData');
 
     try {
       // Call booking API with paymentUrl and trackingId callback
-      await bookingViewModel.bookPremiumHomeBeautySalonPostApi(
-        context,
-        bookingData,
-            (String? paymentUrl, String? trackingId) async {
-          print('Success! Payment URL: $paymentUrl, TrackingId: $trackingId');
+      await bookingViewModel.bookPremiumHomeBeautySalonPostApi(context, bookingData, (String? paymentUrl, String? trackingId) async {
+        print('Success! Payment URL: $paymentUrl, TrackingId: $trackingId');
 
-          if (trackingId == null || trackingId.isEmpty) {
-            Navigator.pushReplacementNamed(
-              context,
-              RoutesName.failedOrderScreenWidget,
-              arguments: {
-                'trackingId': 'N/A',
-                'valId': 'N/A',
-                'reason': 'Booking creation failed',
-                'errorMessage': 'Unable to create booking. Please try again.',
-              },
-            );
+        if (trackingId == null || trackingId.isEmpty) {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking. Please try again.'},
+          );
+          return;
+        }
 
-            // ✅ Reset processing flag
-            if (mounted) {
-              setState(() {
-                _isProcessing = false;
+        if (checkoutVM.selectedPaymentMethod == 'online' && paymentUrl != null && paymentUrl.isNotEmpty) {
+          print('---------------Opening WebView for payment----------------');
+
+          // Navigate to payment WebView
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PaymentWebViewScreen(paymentUrl: paymentUrl, trackingId: trackingId),
+            ),
+          );
+
+          // Handle payment result from WebView
+          if (result != null && result is Map<String, dynamic>) {
+            String status = result['status'] ?? '';
+
+            if (status == 'success') {
+              // Payment successful
+              _clearAllData();
+              Navigator.pop(context);
+
+              Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': 'ONLINE_PAYMENT'});
+            } else if (status == 'failed') {
+              // Payment failed
+              print("---------------------Payment FAILED -----------");
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  Navigator.pushReplacementNamed(
+                    context,
+                    RoutesName.beautyFailedCancelledPaymentScreen,
+                    arguments: {
+                      'trackingId': trackingId,
+                      'valId': 'N/A',
+                      'reason': 'Payment transaction failed',
+                      'errorMessage': 'The payment could not be completed. Please try again.',
+                      'isCancelled': false,
+                    },
+                  );
+                }
+              });
+            } else if (status == 'cancelled') {
+              // Payment cancelled
+              print("---------------------Payment CANCELLED -----------");
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  Navigator.pushReplacementNamed(
+                    context,
+                    RoutesName.beautyFailedCancelledPaymentScreen,
+                    arguments: {
+                      'trackingId': trackingId,
+                      'valId': 'N/A',
+                      'reason': 'Payment cancelled by user',
+                      'errorMessage': 'You cancelled the payment. You can retry whenever you\'re ready.',
+                      'isCancelled': true,
+                    },
+                  );
+                }
               });
             }
-            return;
           }
+        } else if (checkoutVM.selectedPaymentMethod == 'cash') {
+          // Cash on delivery flow
+          _clearAllData();
 
-          if (checkoutVM.selectedPaymentMethod == 'online' &&
-              paymentUrl != null &&
-              paymentUrl.isNotEmpty) {
-            print('---------------Opening WebView for payment----------------');
+          Navigator.pop(context);
+          Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': "COD"});
+        } else {
+          // No payment URL received for online payment
+          Utils.flushBarErrorMessage("Payment gateway URL not available", context);
 
-            // Navigate to payment WebView
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PaymentWebViewScreen(
-                  paymentUrl: paymentUrl,
-                  trackingId: trackingId,
-                ),
-              ),
-            );
-
-            // ✅ Reset processing flag after WebView closes
-            if (mounted) {
-              setState(() {
-                _isProcessing = false;
-              });
-            }
-
-            // Handle payment result from WebView
-            if (result != null && result is Map<String, dynamic>) {
-              String status = result['status'] ?? '';
-
-              if (status == 'success') {
-                // Payment successful
-                _clearAllData();
-                Navigator.pop(context);
-
-                Navigator.pushNamed(
-                  context,
-                  RoutesName.beautyConfirmedScreen,
-                  arguments: {
-                    'trackingId': trackingId,
-                    'valId': 'ONLINE_PAYMENT'
-                  },
-                );
-              } else if (status == 'failed') {
-                // Payment failed
-                print("---------------------Payment FAILED -----------");
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      RoutesName.beautyFailedCancelledPaymentScreen,
-                      arguments: {
-                        'trackingId': trackingId,
-                        'valId': 'N/A',
-                        'reason': 'Payment transaction failed',
-                        'errorMessage': 'The payment could not be completed. Please try again.',
-                        'isCancelled': false,
-                      },
-                    );
-                  }
-                });
-              } else if (status == 'cancelled') {
-                // Payment cancelled
-                print("---------------------Payment CANCELLED -----------");
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      RoutesName.beautyFailedCancelledPaymentScreen,
-                      arguments: {
-                        'trackingId': trackingId,
-                        'valId': 'N/A',
-                        'reason': 'Payment cancelled by user',
-                        'errorMessage': 'You cancelled the payment. You can retry whenever you\'re ready.',
-                        'isCancelled': true,
-                      },
-                    );
-                  }
-                });
-              }
-            }
-          } else if (checkoutVM.selectedPaymentMethod == 'cash') {
-            // Cash on delivery flow
-            _clearAllData();
-
-            // ✅ Reset processing flag
-            if (mounted) {
-              setState(() {
-                _isProcessing = false;
-              });
-            }
-
-            Navigator.pop(context);
-            Navigator.pushNamed(
-              context,
-              RoutesName.beautyConfirmedScreen,
-              arguments: {
-                'trackingId': trackingId,
-                'valId': "COD",
-              },
-            );
-          } else {
-            // No payment URL received for online payment
-            Utils.flushBarErrorMessage("Payment gateway URL not available", context);
-
-            // ✅ Reset processing flag
-            if (mounted) {
-              setState(() {
-                _isProcessing = false;
-              });
-            }
-
-            Navigator.pushReplacementNamed(
-              context,
-              RoutesName.failedOrderScreenWidget,
-              arguments: {
-                'trackingId': trackingId,
-                'valId': 'N/A',
-                'reason': 'Invalid payment method',
-                'errorMessage': 'The selected payment method is not available.',
-              },
-            );
-          }
-        },
-      );
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {'trackingId': trackingId, 'valId': 'N/A', 'reason': 'Invalid payment method', 'errorMessage': 'The selected payment method is not available.'},
+          );
+        }
+      });
     } catch (e) {
       print('Booking error: $e');
-
-      // ✅ Reset processing flag on error
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
             context,
             RoutesName.failedOrderScreenWidget,
-            arguments: {
-              'trackingId': 'N/A',
-              'valId': 'N/A',
-              'reason': 'Booking failed',
-              'errorMessage': 'An error occurred while processing your booking. Please try again.',
-            },
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking failed', 'errorMessage': 'An error occurred while processing your booking. Please try again.'},
           );
         }
       });
@@ -337,15 +252,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     return Consumer2<CheckoutBeautySalonViewModel, PostBookPremiumHomeBeautySalonViewModel>(
       builder: (context, checkoutVM, bookingVM, _) {
-        double subtotal = checkoutVM.calculateTotal(
-          serviceQuantities: widget.serviceQuantities,
-          categories: widget.categories,
-        );
+        double subtotal = checkoutVM.calculateTotal(serviceQuantities: widget.serviceQuantities, categories: widget.categories);
         double total = subtotal + widget.transportFee;
-        double saved = checkoutVM.calculateSaved(
-          serviceQuantities: widget.serviceQuantities,
-          categories: widget.categories,
-        );
+        double saved = checkoutVM.calculateSaved(serviceQuantities: widget.serviceQuantities, categories: widget.categories);
 
         return WillPopScope(
           onWillPop: () async {
@@ -359,10 +268,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context, false),
-                    child: Container(
-                      height: 60,
-                      child: AppBarHeader("Checkout"),
-                    ),
+                    child: Container(height: 60, child: AppBarHeader("Checkout")),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -392,7 +298,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             getWhiteColor: (context) => AppColors.whiteColor,
                             getTextStyle: (context, {weight}) => AppTextStyles.textSize12(context, weight: weight ?? FontWeight.w400),
                           ),
-                          SizedboxSpaccing.height03(context)
+                          SizedboxSpaccing.height03(context),
                         ],
                       ),
                     ),
@@ -408,10 +314,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _handleEditAddress() async {
-    final result = await Navigator.pushNamed(
-      context,
-      RoutesName.addLocationScreenWidget,
-    );
+    final result = await Navigator.pushNamed(context, RoutesName.addLocationScreenWidget);
 
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
@@ -490,7 +393,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Row(
       children: [
         Text('$label :  ', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-        Text(value, style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.subtitle(context))),
+        Text(
+          value,
+          style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.subtitle(context)),
+        ),
       ],
     );
   }
@@ -513,7 +419,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-
   Widget _buildPaymentMethodSection(CheckoutBeautySalonViewModel viewModel) {
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -521,15 +426,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       children: [
         SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false),
         SizedboxSpaccing.height02(context),
-        PaymentMethodWidget(
-          selectedPaymentMethod: viewModel.selectedPaymentMethod,
-          paymentMethods: viewModel.paymentMethods,
-          onPaymentMethodChanged: (method) => viewModel.setPaymentMethod(method),
-        ),
+        PaymentMethodWidget(selectedPaymentMethod: viewModel.selectedPaymentMethod, paymentMethods: viewModel.paymentMethods, onPaymentMethodChanged: (method) => viewModel.setPaymentMethod(method)),
       ],
     );
   }
-
 
   Widget _buildSelectedServicesList(CheckoutBeautySalonViewModel checkoutVM, double subtotal, double saved) {
     // Get all selected services from all categories
@@ -540,10 +440,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         for (var service in category.items!) {
           int qty = widget.serviceQuantities[service.id ?? ''] ?? 0;
           if (qty > 0) {
-            selectedServices.add({
-              'service': service,
-              'quantity': qty,
-            });
+            selectedServices.add({'service': service, 'quantity': qty});
           }
         }
       }
@@ -596,27 +493,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Text(
-                                "${service.name ?? ''}($quantity)",
-                                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                                maxLines: null,
-                                softWrap: true,
-                              ),
+                              child: Text("${service.name ?? ''}($quantity)", style: AppTextStyles.textSize14(context, weight: FontWeight.w400), maxLines: null, softWrap: true),
                             ),
                             SizedBox(width: 8),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(
-                                  '৳${totalDiscountedPrice.toStringAsFixed(2)}',
-                                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                                ),
+                                Text('৳${totalDiscountedPrice.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                                 if (hasDiscount) ...[
                                   SizedboxSpaccing.width01(context),
                                   Text(
                                     '৳${totalOriginalPrice.toStringAsFixed(2)}',
-                                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))
-                                        .copyWith(decoration: TextDecoration.lineThrough),
+                                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                                   ),
                                 ],
                               ],
@@ -655,17 +543,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildConfirmButton(
-      BuildContext context,
-      CheckoutBeautySalonViewModel checkoutVM,
-      PostBookPremiumHomeBeautySalonViewModel bookingVM,
-      double total,
-      double saved,
-      ) {
+  Widget _buildConfirmButton(BuildContext context, CheckoutBeautySalonViewModel checkoutVM, PostBookPremiumHomeBeautySalonViewModel bookingVM, double total, double saved) {
     int totalItems = checkoutVM.getTotalItems(widget.serviceQuantities);
 
-    // ✅ Disable button when processing OR when loading
-    bool isButtonDisabled = _isProcessing || bookingVM.createBookPremiumHomeBeautySalonLoading;
+    // ✅ Disable button when processing OR when loading0
+    bool isButtonDisabled = bookingVM.createBookPremiumHomeBeautySalonLoading;
 
     return Container(
       padding: EdgeInsets.all(15),
@@ -680,10 +562,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Total Services ($totalItems item${totalItems > 1 ? 's' : ''})',
-                  style: AppTextStyles.textSize12(context, color: AppColors.whiteColor),
-                ),
+                Text('Total Services ($totalItems item${totalItems > 1 ? 's' : ''})', style: AppTextStyles.textSize12(context, color: AppColors.whiteColor)),
                 SizedBox(height: 4),
                 Row(
                   children: [
@@ -719,19 +598,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   border: Border.all(width: 1, color: AppColors.whiteColor),
                 ),
                 child: isButtonDisabled
-                    ? Center(
-                  child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30),
-                )
+                    ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30))
                     : Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Pay Now', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white)),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                    ],
-                  ),
-                ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Pay Now',
+                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                          ],
+                        ),
+                      ),
               ),
             ),
           ),
