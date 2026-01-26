@@ -195,7 +195,7 @@ class SSLCommerzPaymentService {
     required String trackingId,
     required double totalAmount,
     String ? productCategory,
-    bool useTestMode = true,
+    bool useTestMode = false,
     String? customerName,
     String? customerPhone,
     String? customerEmail,
@@ -266,23 +266,23 @@ class SSLCommerzPaymentService {
               "southeast,islamibank,al_arafah,social,ific,shahjalal,"
               "firstsecurity,onebank,qcash,fastcash",
         )
-      // )
-      //     .addCustomerInfoInitializer(customerInfoInitializer: SSLCCustomerInfoInitializer(
-      //   customerName: name,
-      //   customerEmail: email,
-      //   customerAddress1: address,
-      //   customerCountry: "Bangladesh",
-      //   customerPhone: phone, customerState: 'BD',
-      //   customerCity: '',
-      //   customerPostCode: '',
-      // )).addProductInitializer( sslcProductInitializer: SSLCProductInitializer(
-      //   productName: productCategory?? "",
-      //   productCategory: productCategory?? "",  general: General(
-      //   general: productCategory??"",
-      //   productProfile: "general",
-      // ),
-      //
-      // )
+      )
+          .addCustomerInfoInitializer(customerInfoInitializer: SSLCCustomerInfoInitializer(
+        customerName: name,
+        customerEmail: email,
+        customerAddress1: address,
+        customerCountry: "Bangladesh",
+        customerPhone: phone, customerState: 'BD',
+        customerCity: '',
+        customerPostCode: '',
+      )).addProductInitializer( sslcProductInitializer: SSLCProductInitializer(
+        productName: productCategory?? "",
+        productCategory: productCategory?? "",  general: General(
+        general: productCategory??"",
+        productProfile: "general",
+      ),
+
+      )
       );
 
       print("✅ SSL Commerz configured - launching payment...");
