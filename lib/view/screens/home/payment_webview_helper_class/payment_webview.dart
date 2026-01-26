@@ -8,7 +8,7 @@ class PaymentWebViewScreen extends StatefulWidget {
   final String paymentUrl;
   final String? trackingId;
 
-   const PaymentWebViewScreen({Key? key, required this.paymentUrl, this.trackingId}) : super(key: key);
+  const PaymentWebViewScreen({Key? key, required this.paymentUrl, this.trackingId}) : super(key: key);
 
   @override
   State<PaymentWebViewScreen> createState() => _PaymentWebViewScreenState();

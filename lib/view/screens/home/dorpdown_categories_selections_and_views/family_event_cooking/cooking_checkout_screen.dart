@@ -117,6 +117,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
       },
       "eventCookingCategoryId": activeCategory.id,
+      "source":"mobile",
     };
 
     if (activeCategory.type == 'REGULAR') {
@@ -727,12 +728,12 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   }
 
   Widget _buildConfirmButton(
-      BuildContext context,
-      CookingCheckoutViewModel checkoutVM,
-      PostBookFamilyEventCookingViewModel bookingVM,
-      double total,
-      bool isButtonDisabled, // ✅ This parameter is passed correctly
-      ) {
+    BuildContext context,
+    CookingCheckoutViewModel checkoutVM,
+    PostBookFamilyEventCookingViewModel bookingVM,
+    double total,
+    bool isButtonDisabled, // ✅ This parameter is passed correctly
+  ) {
     return Container(
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -746,10 +747,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Total Amount',
-                  style: AppTextStyles.textSize14(context, color: AppColors.whiteColor),
-                ),
+                Text('Total Amount', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
                 SizedBox(height: 4),
                 Row(
                   children: [
@@ -761,10 +759,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                       SizedBox(width: 8),
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                        decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
                         child: Text(
                           'Saved ৳${widget.savedAmount.toStringAsFixed(0)}',
                           style: AppTextStyles.textSize12(context, color: Colors.greenAccent, weight: FontWeight.w600),
@@ -791,27 +786,30 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(width: 1, color: AppColors.whiteColor),
                 ),
-                child: isButtonDisabled // ✅ Use the correct variable
-                    ? Center(
-                  child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30),
-                )
+                child:
+                    isButtonDisabled // ✅ Use the correct variable
+                    ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30))
                     : Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Pay Now', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white)),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                    ],
-                  ),
-                ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Pay Now',
+                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                          ],
+                        ),
+                      ),
               ),
             ),
           ),
         ],
       ),
     );
-  }}
+  }
+}
 
 ///For Ssl Integration using store id and Password
 

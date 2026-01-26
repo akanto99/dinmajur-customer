@@ -56,7 +56,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _specialRequestController = TextEditingController();
   bool _isTermsAccepted = false;
-  bool _isProcessing = false; // ✅ Add this flag to prevent multiple API calls
 
   @override
   void initState() {
@@ -76,16 +75,16 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   }
 
   Future<void> _handleConfirm() async {
-    // ✅ Prevent multiple simultaneous API calls
-    if (_isProcessing) {
-      print('⚠️ Already processing payment, ignoring duplicate tap');
-      return;
-    }
-
     final checkoutViewModel = Provider.of<CheckoutViewModel>(context, listen: false);
     final taskViewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
+
+    // ✅ Check if already processing using ViewModel state
+    if (bookingViewModel.createBookPremiumHouseKeeperLoading) {
+      print('⚠️ Already processing payment, ignoring duplicate tap');
+      return;
+    }
 
     // Validate form
     String? validationError = checkoutViewModel.validateCheckoutForm(
@@ -103,11 +102,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       Utils.flushBarErrorMessage("Please accept the Terms & Conditions to proceed", context);
       return;
     }
-
-    // ✅ Set processing flag BEFORE API call
-    setState(() {
-      _isProcessing = true;
-    });
 
     try {
       // Get services data
@@ -129,9 +123,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
       if (shiftId == null) {
         Utils.flushBarErrorMessage("Invalid time selection", context);
-        setState(() {
-          _isProcessing = false;
-        });
         return;
       }
 
@@ -147,6 +138,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         shiftId: shiftId,
         tasks: tasks,
         paymentMethod: checkoutViewModel.selectedPaymentMethod,
+        source: "android",
       );
 
       print('Booking Data: $bookingData');
@@ -157,6 +149,28 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         bookingData,
             (String? paymentUrl, String? trackingId) async {
           print('Success! Payment URL: $paymentUrl, TrackingId: $trackingId');
+
+          // ✅ Check if trackingId is null (API failed)
+          if (trackingId == null || trackingId.isEmpty) {
+            print('⚠️ Booking failed - no tracking ID received');
+
+            // Navigate to failed screen
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                Navigator.pushReplacementNamed(
+                  context,
+                  RoutesName.failedOrderScreenWidget,
+                  arguments: {
+                    'trackingId': 'N/A',
+                    'valId': 'N/A',
+                    'reason': 'Booking creation failed',
+                    'errorMessage': 'Unable to create booking. Please try again.',
+                  },
+                );
+              }
+            });
+            return;
+          }
 
           if (checkoutViewModel.selectedPaymentMethod == 'online' &&
               paymentUrl != null &&
@@ -174,13 +188,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               ),
             );
 
-            // ✅ Reset processing flag after WebView closes
-            if (mounted) {
-              setState(() {
-                _isProcessing = false;
-              });
-            }
-
             // Handle payment result from WebView
             if (result != null && result is Map<String, dynamic>) {
               String status = result['status'] ?? '';
@@ -195,7 +202,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                   context,
                   RoutesName.confirmedScreen,
                   arguments: {
-                    'trackingId': trackingId ?? '',
+                    'trackingId': trackingId,
                     'valId': 'ONLINE_PAYMENT'
                   },
                 );
@@ -241,42 +248,53 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
             // Cash on delivery flow
             _clearAllData();
 
-            // ✅ Reset processing flag
-            if (mounted) {
-              setState(() {
-                _isProcessing = false;
-              });
-            }
-
             Navigator.pop(context);
             widget.onSuccess();
 
             Navigator.pushNamed(
               context,
               RoutesName.confirmedScreen,
-              arguments: {'trackingId': trackingId ?? '', 'valId': "COD"},
+              arguments: {'trackingId': trackingId, 'valId': "COD"},
             );
           } else {
             // No payment URL received for online payment
             Utils.flushBarErrorMessage("Payment gateway URL not available", context);
 
-            // ✅ Reset processing flag
-            if (mounted) {
-              setState(() {
-                _isProcessing = false;
-              });
-            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                Navigator.pushReplacementNamed(
+                  context,
+                  RoutesName.failedOrderScreenWidget,
+                  arguments: {
+                    'trackingId': trackingId,
+                    'valId': 'N/A',
+                    'reason': 'Invalid payment method',
+                    'errorMessage': 'The selected payment method is not available.',
+                  },
+                );
+              }
+            });
           }
         },
       );
     } catch (e) {
       print('Error in _handleConfirm: $e');
-      // ✅ Reset processing flag on error
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
+
+      // ✅ Show error to user
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {
+              'trackingId': 'N/A',
+              'valId': 'N/A',
+              'reason': 'Booking failed',
+              'errorMessage': 'An error occurred while processing your booking. Please try again.',
+            },
+          );
+        }
+      });
     }
   }
 
@@ -290,7 +308,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     _specialRequestController.clear();
     setState(() {
       _isTermsAccepted = false;
-      _isProcessing = false; // ✅ Reset processing flag
     });
   }
 
@@ -617,8 +634,8 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   Widget _buildBottomConfirmButton(BuildContext context, PostBookPremiumHouseKeeperViewModel bookingVM, double total, double saved, CheckoutViewModel checkoutVM) {
     int totalItems = checkoutVM.getTotalItems(widget.serviceQuantities);
 
-    // ✅ Disable button when processing OR when loading
-    bool isButtonDisabled = _isProcessing || bookingVM.createBookPremiumHouseKeeperLoading;
+    // ✅ Only use ViewModel loading state
+    bool isButtonDisabled = bookingVM.createBookPremiumHouseKeeperLoading;
 
     return Container(
       padding: EdgeInsets.all(15),
@@ -661,13 +678,13 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                 width: 140,
                 decoration: BoxDecoration(
                   color: isButtonDisabled
-                      ? AppColors.blackColor.withOpacity(0.5) // ✅ Visual feedback when disabled
+                      ? AppColors.blackColor.withOpacity(0.5)
                       : AppColors.blackColor,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(width: 1, color: AppColors.whiteColor),
                 ),
                 child: isButtonDisabled
-                    ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 50))
+                    ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30))
                     : Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -687,8 +704,12 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         ],
       ),
     );
-  }
-}
+  }}
+
+
+
+
+
 ///For Ssl Integration using store id and Password
 
 // import 'package:dinmajur_customer/configs/res/color.dart';
