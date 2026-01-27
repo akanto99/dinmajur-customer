@@ -4,15 +4,18 @@ import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
 import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beautysalon_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/homebeauty_salon_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/cooking_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cooking_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/familyevent_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/book_now_housekeeper_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/houesekeeper_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/language/language_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
@@ -128,6 +131,44 @@ class Routes {
           );
         }
         return _errorRoute();
+        ///House Keeper
+      case RoutesName.failedCancelledPaymentScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (BuildContext context) => FailedCancelledPaymentScreen(
+            trackingId: args?['trackingId'],
+            valId: args?['valId'],
+            reason: args?['reason'],
+            errorMessage: args?['errorMessage'],
+            isCancelled: args?['isCancelled'] ?? false,
+          ),
+        );
+        ///Beauty Salon
+      case RoutesName.beautyFailedCancelledPaymentScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (BuildContext context) => BeautyFailedCancelledPaymentScreen(
+            trackingId: args?['trackingId'],
+            valId: args?['valId'],
+            reason: args?['reason'],
+            errorMessage: args?['errorMessage'],
+            isCancelled: args?['isCancelled'] ?? false,
+          ),
+        );
+///Family Event Cancel Failed
+      case RoutesName.cookingFailedCancelledPaymentScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (BuildContext context) => CookingFailedCancelledPaymentScreen(
+            trackingId: args?['trackingId'],
+            valId: args?['valId'],
+            reason: args?['reason'],
+            errorMessage: args?['errorMessage'],
+            isCancelled: args?['isCancelled'] ?? false,
+          ),
+        );
+
+
 
         ///order Now Screen For Retail after clicking Grocerry in HOME SCreen- DropDown 1
       case RoutesName.orderNow:

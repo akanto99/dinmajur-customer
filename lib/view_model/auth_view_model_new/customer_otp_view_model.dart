@@ -73,8 +73,8 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
             } else {
               print("🔌 OTP Verify: ⚠️ Socket connection uncertain, attempting retry");
               await socketProvider.autoReconnect(
-                maxRetries: 3,
-                delay: Duration(seconds: 2),
+                // maxRetries: 1,
+                // delay: Duration(seconds: 2),
               );
             }
           } catch (socketError) {

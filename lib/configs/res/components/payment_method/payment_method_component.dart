@@ -70,7 +70,18 @@ class PaymentMethodWidget extends StatelessWidget {
                     : null,
               ),
               SizedboxSpaccing.width03(context),
-              Text(title, style: AppTextStyles.textSize16(context, weight: FontWeight.w400)),
+              Expanded(child: Text(title, style: AppTextStyles.textSize16(context, weight: FontWeight.w400))),
+              if (method == 'online') ...[
+                Container(
+                  height: 24,
+                  width: 90,
+                  // color: Colors.deepOrange,
+                  child: Image.asset(
+                    'assets/images/home/drawer/ssl.png',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

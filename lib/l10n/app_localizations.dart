@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// No description provided for @phone_hint_new.
   ///
   /// In en, this message translates to:
-  /// **'1XXXXXXXXX'**
+  /// **'01XXXXXXXXX'**
   String get phone_hint_new;
 
   /// No description provided for @password.

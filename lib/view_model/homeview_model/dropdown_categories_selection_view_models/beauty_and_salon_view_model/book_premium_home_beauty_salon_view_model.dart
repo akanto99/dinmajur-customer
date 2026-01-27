@@ -1,3 +1,4 @@
+/// For Web View SSL Implementation using payment url
 // import 'dart:convert';
 // import 'package:dinmajur_customer/configs/utils/utils.dart';
 // import 'package:dinmajur_customer/respository/home_repositories/dropdown_categories_selection_repositories/beauty_and_salon_repository/book_premium_home_beauty_salon_repository.dart';
@@ -14,41 +15,46 @@
 //     notifyListeners();
 //   }
 //
+//   /// Updated to return both paymentUrl and trackingId
 //   Future<void> bookPremiumHomeBeautySalonPostApi(
 //       BuildContext context,
 //       dynamic fields,
-//       Function(String trackingId) onSuccess // CHANGED: Now receives trackingId
+//       Function(String? paymentUrl, String? trackingId) onSuccess
 //       ) async {
 //     setBookPremiumHomeBeautySalonLoading(true);
 //     try {
-//       // CHANGED: Store the response
 //       dynamic response = await _myRepo.bookPremiumHomeBeautySalonPostApi(fields);
 //       setBookPremiumHomeBeautySalonLoading(false);
 //
 //       Utils.flushBarSuccessMessage('Book Premium Home Beauty and Salon successfully', context);
-//       await Future.delayed(Duration(milliseconds: 1000));
+//       // await Future.delayed(Duration(milliseconds: 1000));
 //
 //       if (kDebugMode) print('API Response: ${response.toString()}');
 //
-//       // CHANGED: Extract trackingId from response and pass it to callback
-//       String trackingId = '';
-//       if (response != null && response['data'] != null && response['data']['trackingId'] != null) {
-//         trackingId = response['data']['trackingId'].toString();
-//         if (kDebugMode) print('Tracking ID: $trackingId');
+//       // Extract trackingId and paymentUrl from response
+//       String? trackingId;
+//       String? paymentUrl;
 //
-//         // Call the success callback with trackingId
-//         onSuccess(trackingId);
+//       if (response != null && response['data'] != null) {
+//         trackingId = response['data']['trackingId']?.toString();
+//         paymentUrl = response['data']['GatewayPageURL']?.toString();
+//
+//         if (kDebugMode) {
+//           print('Tracking ID: $trackingId');
+//           print('Payment URL: $paymentUrl');
+//         }
+//
+//         // Call the success callback with both values
+//         onSuccess(paymentUrl, trackingId);
 //       } else {
-//         if (kDebugMode) print('Warning: trackingId not found in response');
-//         // Still call success but with empty trackingId
-//         onSuccess('');
+//         if (kDebugMode) print('Warning: Response data not found');
+//         onSuccess(null, null);
 //       }
 //
 //     } catch (error) {
 //       setBookPremiumHomeBeautySalonLoading(false);
 //       _handleError(error, context);
 //       if (kDebugMode) print('Error: $error');
-//       // Don't call onSuccess on error - dialog will stay open
 //     }
 //   }
 //
@@ -70,6 +76,8 @@
 //     Utils.flushBarErrorMessage(errorMessage, context);
 //   }
 // }
+
+///For Ssl Integration using store id and Password
 
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/utils/utils.dart';

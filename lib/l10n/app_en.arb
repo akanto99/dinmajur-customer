@@ -10,7 +10,7 @@
   "fullName_hint": "Enter your full name",
   "phone": "Mobile Number",
   "phone_hint":"01XXXXXXXXX",
-  "phone_hint_new":"1XXXXXXXXX",
+  "phone_hint_new":"01XXXXXXXXX",
   "password": "Password",
   "password_hint":"Enter 6 characters or more",
   "forgot_password": "Forgot Password",
