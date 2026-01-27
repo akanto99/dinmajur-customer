@@ -19,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -52,7 +51,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     "assets/images/navBar/navbar_new/home.svg",
     "assets/images/navBar/navbar_new/offers.svg",
     "assets/images/navBar/navbar_new/order.svg",
-    // "assets/images/navBar/navbar_new/draft.svg",
     "assets/images/navBar/navbar_new/support.svg",
   ];
 
@@ -62,19 +60,18 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // ✅ Add lifecycle observer
+    WidgetsBinding.instance.addObserver(this);
 
     _pages = [HomeScreen(scaffoldKey: _key), OffersScreen(), OrderScreen(), DraftScreen()];
     _currentIndex = widget.initialIndex;
 
-    // ✅ Initialize network monitoring
     _initializeNetworkMonitoring();
-    WakelockPlus.enable(); // ✅ Keep screen awake
+    WakelockPlus.enable();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // ✅ Remove lifecycle observer
+    WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription.cancel();
     WakelockPlus.disable();
     super.dispose();
@@ -89,7 +86,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
       AppLocalizations.of(context)!.home,
       AppLocalizations.of(context)!.offers,
       AppLocalizations.of(context)!.order,
-      // AppLocalizations.of(context)!.draft
       AppLocalizations.of(context)!.callus,
     ];
   }
@@ -98,55 +94,36 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    print("🔌 NavigationScreen: App lifecycle state changed to: $state");
 
-    switch (state) {
-      case AppLifecycleState.resumed:
-        print("🔌 NavigationScreen: App resumed - checking connections");
-        _handleAppResumed();
-        WakelockPlus.enable();
-        break;
-      case AppLifecycleState.paused:
-        WakelockPlus.disable();
-        print("🔌 NavigationScreen: App paused");
-        break;
-      case AppLifecycleState.inactive:
-        print("🔌 NavigationScreen: App inactive");
-        break;
-      case AppLifecycleState.detached:
-        print("🔌 NavigationScreen: App detached");
-        break;
-      case AppLifecycleState.hidden:
-        print("🔌 NavigationScreen: App hidden");
-        break;
+    if (state == AppLifecycleState.resumed) {
+      print("🔌 NavigationScreen: App resumed - checking connections");
+      _handleAppResumed();
+      WakelockPlus.enable();
+    } else if (state == AppLifecycleState.paused) {
+      WakelockPlus.disable();
+      print("🔌 NavigationScreen: App paused");
     }
   }
 
   // ✅ HANDLE APP RESUME
   Future<void> _handleAppResumed() async {
-    if (_isReconnecting) {
-      print("🔌 NavigationScreen: Reconnection already in progress, skipping");
-      return;
-    }
+    if (_isReconnecting) return;
 
     try {
       _isReconnecting = true;
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? userId = prefs.getString('userId');
+      String? accessToken = prefs.getString('accessToken');
 
-      if (userId == null || userId.isEmpty) {
-        print("🔌 NavigationScreen: No userId found, skipping reconnection");
+      if (accessToken == null || accessToken.isEmpty) {
+        print("🔌 NavigationScreen: No access token found, skipping reconnection");
         _isReconnecting = false;
         return;
       }
 
-      // Wait for system to stabilize
       await Future.delayed(Duration(milliseconds: 500));
 
-      // Check internet connection
       bool hasInternet = await InternetConnectionChecker().hasConnection;
-
       if (!hasInternet) {
         print("🔌 NavigationScreen: No internet connection, cannot reconnect");
         _isReconnecting = false;
@@ -155,10 +132,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
       print("🔌 NavigationScreen: Internet available, checking connections");
 
-      // ✅ RECONNECT SOCKET.IO
-      await _reconnectSocketIfNeeded(userId);
-
-      // ✅ RECONNECT SSE
+      await _reconnectSocketIfNeeded(accessToken);
       await _reconnectSSEIfNeeded();
 
       _isReconnecting = false;
@@ -169,30 +143,24 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   }
 
   // ✅ Reconnect Socket.IO if disconnected
-  Future<void> _reconnectSocketIfNeeded(String userId) async {
+  Future<void> _reconnectSocketIfNeeded(String accessToken) async {
     try {
       final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-
-      print("🔌 NavigationScreen: Checking socket status");
 
       if (!socketProvider.isConnected) {
         print("🔌 NavigationScreen: Socket disconnected, reconnecting...");
 
         await socketProvider.disconnect();
         await Future.delayed(Duration(milliseconds: 300));
-        await socketProvider.connectWithUser(userId: userId);
+        await socketProvider.connectWithToken(accessToken: accessToken);
 
-        // Verify connection
         await Future.delayed(Duration(milliseconds: 1000));
 
         if (socketProvider.isConnected) {
           print("🔌 NavigationScreen: ✅ Socket reconnected successfully");
         } else {
-          print("🔌 NavigationScreen: ⚠️ Socket reconnection uncertain, trying auto-reconnect");
-          await socketProvider.autoReconnect(
-              // maxRetries: 1,
-              // delay: Duration(seconds: 2)
-          );
+          print("🔌 NavigationScreen: ⚠️ Attempting auto-reconnect");
+          await socketProvider.autoReconnect();
         }
       } else {
         print("🔌 NavigationScreen: Socket already connected");
@@ -209,19 +177,17 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
       final notificationCountViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
       final runningOrderCountViewModel = Provider.of<RunningOrderCountViewModel>(context, listen: false);
 
-      print("🔔 NavigationScreen: Checking SSE status");
-
       if (!sseService.isListening) {
         print("🔔 NavigationScreen: SSE disconnected, reconnecting...");
 
         await sseService.startListening();
-
-        // Wait for initial count
         await Future.delayed(Duration(milliseconds: 500));
 
-        // Re-initialize listener if needed
         if (!notificationCountViewModel.isInitialized) {
-          notificationCountViewModel.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
+          notificationCountViewModel.initializeCountListener(
+            sseService.notificationCountStream,
+            sseService.notificationIncrementStream,
+          );
         }
         notificationCountViewModel.setInitialCount(sseService.currentCount);
 
@@ -231,8 +197,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
 
         print("🔔 NavigationScreen: ✅ SSE reconnected successfully");
-        print("🔔 Notification count: ${sseService.currentCount}");
-        print("📦 Running order count: ${sseService.currentRunningOrderCount}");
       } else {
         print("🔔 NavigationScreen: SSE already connected");
       }
@@ -243,88 +207,57 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
   // ✅ INITIALIZE NETWORK MONITORING
   void _initializeNetworkMonitoring() {
-    print("🔌 NavigationScreen: Initializing network monitoring...");
-
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
-      (List<ConnectivityResult> result) async {
-        print("🔌 NavigationScreen: Connectivity listener triggered");
-        print("🔌 NavigationScreen: Current context available: ${NavigationService.navigatorKey.currentContext != null}");
-        print("🔌 NavigationScreen: Alert currently set: $_isAlertSet");
-
+          (List<ConnectivityResult> result) async {
         await _handleConnectivityChange(result);
       },
       onError: (error) {
         print("🔌 NavigationScreen: Connectivity listener error: $error");
       },
     );
-
-    print("🔌 NavigationScreen: ✅ Network monitoring initialized");
   }
 
   // ✅ HANDLE CONNECTIVITY CHANGES
-  // ✅ HANDLE CONNECTIVITY CHANGES
   Future<void> _handleConnectivityChange(List<ConnectivityResult> result) async {
-    if (_isReconnecting) {
-      print("🔌 NavigationScreen: Reconnection already in progress, skipping connectivity change");
-      return;
-    }
-
-    print('🔌 NavigationScreen: Connectivity changed: $result');
+    if (_isReconnecting) return;
 
     bool hasConnectivity = !result.contains(ConnectivityResult.none) && result.isNotEmpty;
 
-    // Wait a bit to check actual internet
     await Future.delayed(Duration(milliseconds: 500));
     bool hasInternet = await InternetConnectionChecker().hasConnection;
-
     bool hasConnection = hasConnectivity && hasInternet;
 
     if (!hasConnection && !_isAlertSet) {
-      // ✅ CONNECTION LOST - Disconnect both Socket.IO and SSE
+      // ✅ CONNECTION LOST
       print("🔌 NavigationScreen: No connection detected, disconnecting services");
 
       try {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        String? userId = prefs.getString('userId');
+        final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+        await socketProvider.disconnect();
+        print("🔌 NavigationScreen: Socket disconnected due to network loss");
 
-        if (userId != null && userId.isNotEmpty) {
-          // Disconnect Socket.IO
-          final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-          await socketProvider.unregisterAndDisconnect(userId: userId);
-          print("🔌 NavigationScreen: Socket disconnected due to network loss");
-
-          // Disconnect SSE
-          final sseService = Provider.of<SSENotificationService>(context, listen: false);
-          await sseService.stopListening();
-          print("🔔 NavigationScreen: SSE disconnected due to network loss");
-        }
+        final sseService = Provider.of<SSENotificationService>(context, listen: false);
+        await sseService.stopListening();
+        print("🔔 NavigationScreen: SSE disconnected due to network loss");
       } catch (e) {
         print("🔌 NavigationScreen: Error disconnecting services: $e");
       }
 
-      // Show dialog
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _showNoConnectionDialog();
-        }
+        if (mounted) _showNoConnectionDialog();
       });
       setState(() => _isAlertSet = true);
+
     } else if (hasConnection && _isAlertSet) {
-      // ✅ CONNECTION RESTORED - Close dialog and reconnect both services
+      // ✅ CONNECTION RESTORED
       print("🔌 NavigationScreen: Connection restored, closing dialog and reconnecting services");
 
-      // Use navigatorKey to dismiss dialog
       if (NavigationService.navigatorKey.currentContext != null) {
         Navigator.of(NavigationService.navigatorKey.currentContext!, rootNavigator: true).pop();
       }
 
       setState(() => _isAlertSet = false);
-
-      // Reconnect both Socket.IO and SSE WITHOUT navigation
       await _reconnectAllServices();
-
-      // ✅ REMOVED: No longer navigating to home screen
-      // User stays on their current tab
     }
   }
 
@@ -357,7 +290,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
               Navigator.pop(dialogContext);
               setState(() => _isAlertSet = false);
 
-              // Check connection again
               List<ConnectivityResult> result = await _connectivity.checkConnectivity();
               bool hasInternet = await InternetConnectionChecker().hasConnection;
               bool hasConnection = !result.contains(ConnectivityResult.none) && result.isNotEmpty && hasInternet;
@@ -365,9 +297,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
               if (hasConnection) {
                 print("🔌 NavigationScreen: Retry - Connection restored");
                 await _reconnectAllServices();
-
-                // ✅ REMOVED: No longer navigating to home screen
-                // User stays on their current tab
               } else {
                 print("🔌 NavigationScreen: Retry - Still no connection");
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -378,10 +307,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                 });
               }
             },
-            child: Text(
-              'Retry',
-              style: TextStyle(color: CupertinoColors.activeBlue, fontWeight: FontWeight.bold),
-            ),
+            child: Text('Retry', style: TextStyle(color: CupertinoColors.activeBlue, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -390,41 +316,31 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
   // ✅ Reconnect both Socket.IO and SSE
   Future<void> _reconnectAllServices() async {
-    if (_isReconnecting) {
-      print("🔌 NavigationScreen: Reconnection already in progress");
-      return;
-    }
+    if (_isReconnecting) return;
 
     try {
       _isReconnecting = true;
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? userId = prefs.getString('userId');
+      String? accessToken = prefs.getString('accessToken');
 
-      if (userId == null || userId.isEmpty) {
-        print("🔌 NavigationScreen: No userId found for reconnection");
+      if (accessToken == null || accessToken.isEmpty) {
+        print("🔌 NavigationScreen: No access token found for reconnection");
         _isReconnecting = false;
         return;
       }
 
-      print("🔌 NavigationScreen: Reconnecting all services for user: $userId");
+      print("🔌 NavigationScreen: Reconnecting all services");
 
       // ✅ Reconnect Socket.IO
       final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-      await socketProvider.connectWithUser(userId: userId);
-      print("🔌 NavigationScreen: Socket reconnection initiated");
+      await socketProvider.connectWithToken(accessToken: accessToken);
 
-      // Wait and verify socket connection
       await Future.delayed(Duration(milliseconds: 1000));
 
-      if (socketProvider.isConnected) {
-        print("🔌 NavigationScreen: ✅ Socket reconnected successfully");
-      } else {
-        print("🔌 NavigationScreen: ⚠️ Socket reconnection uncertain, attempting auto-reconnect...");
-        await socketProvider.autoReconnect(
-            // maxRetries: 1,
-            // delay: Duration(seconds: 2)
-        );
+      if (!socketProvider.isConnected) {
+        print("🔌 NavigationScreen: ⚠️ Attempting auto-reconnect...");
+        await socketProvider.autoReconnect();
       }
 
       // ✅ Reconnect SSE
@@ -432,18 +348,15 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
       final notificationCountViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
       final runningOrderCountViewModel = Provider.of<RunningOrderCountViewModel>(context, listen: false);
 
-      print("🔔 NavigationScreen: Reconnecting SSE");
       await sseService.startListening();
-
-      // Wait for initial count
       await Future.delayed(Duration(milliseconds: 500));
 
-      // Re-initialize listener if needed
       if (!notificationCountViewModel.isInitialized) {
-        notificationCountViewModel.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
+        notificationCountViewModel.initializeCountListener(
+          sseService.notificationCountStream,
+          sseService.notificationIncrementStream,
+        );
       }
-
-      // Update with current count
       notificationCountViewModel.setInitialCount(sseService.currentCount);
 
       if (!runningOrderCountViewModel.isInitialized) {
@@ -451,9 +364,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
       }
       runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
 
-      print("🔔 NavigationScreen: ✅ SSE reconnected successfully");
-      print("🔔 Notification count: ${sseService.currentCount}");
-      print("📦 Running order count: ${sseService.currentRunningOrderCount}");
+      print("🔔 NavigationScreen: ✅ Services reconnected successfully");
 
       _isReconnecting = false;
     } catch (e) {
@@ -461,10 +372,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
       try {
         final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-        await socketProvider.autoReconnect(
-            // maxRetries: 1,
-            // delay: Duration(seconds: 3)
-        );
+        await socketProvider.autoReconnect();
       } catch (retryError) {
         print("🔌 NavigationScreen: Final reconnection attempt failed - $retryError");
       }
@@ -508,16 +416,14 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
       ),
       child: Builder(
         builder: (context) {
-          // Check if upgrade is needed
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _checkForUpgrade(context);
-          });
+          WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpgrade(context));
+
           return WillPopScope(
             onWillPop: () async {
               // Handle drawer close if open
-              if (_currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
+              if (_currentIndex == 0 && _key.currentState?.isDrawerOpen == true) {
                 _key.currentState!.closeDrawer();
-                return Future.value(false);
+                return false;
               }
 
               // Show exit confirmation dialog
@@ -540,9 +446,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                               width: screenWidth * 0.2,
                               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
                               decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(5)),
-                              child: Center(
-                                child: Text('No', style: AppTextStyles.textSize12(context, weight: FontWeight.w600)),
-                              ),
+                              child: Center(child: Text('No', style: AppTextStyles.textSize12(context, weight: FontWeight.w600))),
                             ),
                           ),
                           SizedBox(width: screenWidth * 0.02),
@@ -553,10 +457,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.008),
                               decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(5)),
                               child: Center(
-                                child: Text(
-                                  'Yes',
-                                  style: GoogleFonts.hindSiliguri(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.whiteColor),
-                                ),
+                                child: Text('Yes', style: GoogleFonts.hindSiliguri(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.whiteColor)),
                               ),
                             ),
                           ),
@@ -594,26 +495,14 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                           bool isOrderTab = index == 2;
 
                           return GestureDetector(
-                            // onTap: () {
-                            //   if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
-                            //     _key.currentState!.closeDrawer();
-                            //   } else {
-                            //     setState(() {
-                            //       _currentIndex = index;
-                            //     });
-                            //   }
-                            // },
                             onTap: () async {
-                              if (index == 0 && _currentIndex == 0 && _key.currentState != null && _key.currentState!.isDrawerOpen) {
+                              if (index == 0 && _currentIndex == 0 && _key.currentState?.isDrawerOpen == true) {
                                 _key.currentState!.closeDrawer();
                               } else if (index == 3) {
-                                // Index 3 = Draft/Support - Open WhatsApp
+                                // Support tab - Open WhatsApp (don't change current index)
                                 await _openWhatsAppSupport();
-                                // Don't change the current index, stay on current screen
                               } else {
-                                setState(() {
-                                  _currentIndex = index;
-                                });
+                                setState(() => _currentIndex = index);
                               }
                             },
                             child: Container(
@@ -625,47 +514,47 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                                 children: [
                                   isOrderTab
                                       ? Consumer<RunningOrderCountViewModel>(
-                                          builder: (context, orderCountViewModel, _) {
-                                            return Stack(
-                                              clipBehavior: Clip.none,
-                                              children: [
-                                                SvgPicture.asset(
-                                                  icons[index],
-                                                  width: 18,
-                                                  height: 18,
-                                                  color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                                                  semanticsLabel: labels[index],
+                                    builder: (context, orderCountViewModel, _) {
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          SvgPicture.asset(
+                                            icons[index],
+                                            width: 18,
+                                            height: 18,
+                                            color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                            semanticsLabel: labels[index],
+                                          ),
+                                          if (orderCountViewModel.hasRunningOrders)
+                                            Positioned(
+                                              right: -6,
+                                              top: -4,
+                                              child: Container(
+                                                padding: EdgeInsets.all(2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red,
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
                                                 ),
-                                                if (orderCountViewModel.hasRunningOrders)
-                                                  Positioned(
-                                                    right: -6,
-                                                    top: -4,
-                                                    child: Container(
-                                                      padding: EdgeInsets.all(2),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.red,
-                                                        shape: BoxShape.circle,
-                                                        border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
-                                                      ),
-                                                      constraints: BoxConstraints(minWidth: 14, minHeight: 14),
-                                                      child: Text(
-                                                        '${orderCountViewModel.runningOrderCount > 9 ? '9+' : orderCountViewModel.runningOrderCount}',
-                                                        style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                                                        textAlign: TextAlign.center,
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            );
-                                          },
-                                        )
+                                                constraints: BoxConstraints(minWidth: 14, minHeight: 14),
+                                                child: Text(
+                                                  '${orderCountViewModel.runningOrderCount > 9 ? '9+' : orderCountViewModel.runningOrderCount}',
+                                                  style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  )
                                       : SvgPicture.asset(
-                                          icons[index],
-                                          width: 18,
-                                          height: 18,
-                                          color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                                          semanticsLabel: labels[index],
-                                        ),
+                                    icons[index],
+                                    width: 18,
+                                    height: 18,
+                                    color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                    semanticsLabel: labels[index],
+                                  ),
                                   const SizedBox(height: 6),
                                   Text(
                                     labels[index],
@@ -694,37 +583,27 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   }
 
   Future<void> _openWhatsAppSupport() async {
-    // Your company WhatsApp number
-    const String companyPhone = '8801929600600'; // Bangladesh number with country code
-
-    // Pre-filled message for customer support
+    const String companyPhone = '8801929600600';
     const String message = 'Hello! I need assistance with Dinmajur platform services.';
-
-    // Create WhatsApp URL with encoded message
     final String whatsappUrl = 'https://wa.me/$companyPhone?text=${Uri.encodeComponent(message)}';
     final Uri whatsappUri = Uri.parse(whatsappUrl);
 
     try {
-      // ✅ Check if WhatsApp can be launched
       if (await canLaunchUrl(whatsappUri)) {
         await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
         print('✅ WhatsApp opened successfully');
       } else {
-        // WhatsApp is not installed
         print('⚠️ WhatsApp is not available');
         _showWhatsAppNotInstalledDialog();
       }
     } catch (e) {
       print('❌ Error opening WhatsApp: $e');
       Utils.flushBarErrorMessage("WhatsApp not available. Opening phone dialer...", context);
-
-      // Wait a moment then open dialer
       await Future.delayed(Duration(milliseconds: 500));
       await _callSupport();
     }
   }
 
-  // ✅ Dialog when WhatsApp is not installed
   void _showWhatsAppNotInstalledDialog() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -743,9 +622,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
             children: [
               Icon(Icons.phone_android, color: AppColors.button(context), size: 28),
               SizedBox(width: 10),
-              Expanded(
-                child: Text('WhatsApp Not Found', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              ),
+              Expanded(child: Text('WhatsApp Not Found', style: AppTextStyles.textSize16(context, weight: FontWeight.w600))),
             ],
           ),
           content: Text('WhatsApp is not installed. Would you like to call our support team instead?', style: AppTextStyles.textSize14(context)),
@@ -753,7 +630,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Option 1: Call Support (Primary Action)
                 GestureDetector(
                   onTap: () async {
                     Navigator.of(context).pop();
@@ -767,18 +643,12 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                       children: [
                         Icon(Icons.phone, size: 18, color: AppColors.whiteColor),
                         SizedBox(width: 8),
-                        Text(
-                          'Call Support (01929-600600)',
-                          style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w500),
-                        ),
+                        Text('Call Support (01929-600600)', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w500)),
                       ],
                     ),
                   ),
                 ),
-
                 SizedBox(height: 15),
-
-                // Option 3: Cancel
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
@@ -788,9 +658,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(width: 1, color: AppColors.border(context)),
                     ),
-                    child: Center(
-                      child: Text('Cancel', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-                    ),
+                    child: Center(child: Text('Cancel', style: AppTextStyles.textSize14(context, weight: FontWeight.w500))),
                   ),
                 ),
               ],
@@ -802,7 +670,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   }
 
   Future<void> _callSupport() async {
-    const String phoneNumber = 'tel:+8801929600600'; // Company support number
+    const String phoneNumber = 'tel:+8801929600600';
     final Uri phoneUri = Uri.parse(phoneNumber);
 
     try {
@@ -818,12 +686,8 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     }
   }
 
-  // Add this method to your _NavigationScreenState class
   void _checkForUpgrade(BuildContext context) async {
-    final upgrader = Upgrader(
-        // debugDisplayAlways: kDebugMode, debugLogging: kDebugMode,
-        countryCode: 'BD', languageCode: 'en');
-
+    final upgrader = Upgrader(countryCode: 'BD', languageCode: 'en');
     await upgrader.initialize();
 
     if (upgrader.shouldDisplayUpgrade()) {
@@ -832,8 +696,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   }
 
   void _showCustomUpgradeDialog(BuildContext context, Upgrader upgrader) {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    final isDarkMode = themeProvider.isDarkMode;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -847,7 +709,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
           insetPadding: EdgeInsets.all(screenHeight * 0.02),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
-            padding:EdgeInsets.all(screenHeight * 0.02),
+            padding: EdgeInsets.all(screenHeight * 0.02),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -856,7 +718,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                 SizedBox(height: 10),
                 Text('Update Available', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
                 SizedBox(height: 20),
-
                 Text('A new version is available!', textAlign: TextAlign.center, style: AppTextStyles.textSize14(context)),
                 SizedBox(height: 5),
                 Text(
@@ -864,7 +725,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                   textAlign: TextAlign.center,
                   style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
                 ),
-
                 SizedBox(height: 20),
                 GestureDetector(
                   onTap: () async {
@@ -872,14 +732,11 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                     await upgrader.sendUserToAppStore();
                   },
                   child: Container(
-                    width: screenWidth*0.5,
+                    width: screenWidth * 0.5,
                     height: 45,
                     decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
                     child: Center(
-                      child: Text(
-                        'Update Now',
-                        style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
-                      ),
+                      child: Text('Update Now', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600)),
                     ),
                   ),
                 ),

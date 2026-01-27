@@ -735,13 +735,12 @@ void main() async {
 
   // ✅ Auto-connect if user is already logged in
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? userId = prefs.getString('userId');
+  String? accessToken = prefs.getString('accessToken');
 
-  if (userId != null && userId.isNotEmpty) {
-    ///SOCKET.IO
-    print("🔌 Main: Auto-connecting socket for logged-in user: $userId");
-    await socketProvider.connectWithUser(userId: userId);
-
+  if (accessToken != null && accessToken.isNotEmpty) {
+    ///SOCKET.IO - Connect using access token
+    print("🔌 Main: Auto-connecting socket with access token");
+    await socketProvider.connectWithToken(accessToken: accessToken);
     ///SSE
     print("🔔 Main: Starting SSE connection for logged-in user");
     await sseService.startListening();

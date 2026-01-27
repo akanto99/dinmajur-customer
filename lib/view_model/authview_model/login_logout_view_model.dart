@@ -35,256 +35,76 @@ class LoginLogoutViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  // Future<void> loginApi(dynamic data, BuildContext context) async {
-  //   setLoading(true);
-  //
-  //   try {
-  //     final response = await _myRepo.loginApi(data);
-  //
-  //     // Parse the response
-  //     final user = UserModel.fromJson(response);
-  //
-  //     final bool isPhoneVerified = user.data?.user?.isPhoneVerified ?? false;
-  //     final bool isRegistered = user.data?.user?.isRegistered ?? false;
-  //     final String userRole = user.data?.user?.role ?? '';
-  //     final String userId = user.data?.user?.userId ?? '';
-  //     final String accessToken = user.data?.accessToken ?? ''; // ✅ Get access token
-  //
-  //     print("🔍 Login Response Check:");
-  //     print("   - accessToken: ${accessToken.isNotEmpty ? 'Present' : 'Missing'}");
-  //     print("   - isPhoneVerified: $isPhoneVerified");
-  //     print("   - isRegistered: $isRegistered");
-  //     print("   - userRole: $userRole");
-  //     print("   - userId: $userId");
-  //
-  //     // ✅ CHECK ROLE FIRST - Before saving anything
-  //     if (!isPhoneVerified || userRole.isEmpty) {
-  //       setLoading(false);
-  //       print("❌ Login Failed: Phone not verified or account doesn't exist");
-  //       Utils.flushBarErrorMessage("এই নাম্বারটি রেজিস্টার করা হয়নি", context);
-  //       return; // Exit early
-  //     }
-  //
-  //     // ✅ CHECK ROLE - This handles accounts registered for other apps
-  //     if (userRole.toUpperCase() != 'CUSTOMER') {
-  //       setLoading(false);
-  //       print("❌ Login Failed: User role is '$userRole', not 'CUSTOMER'");
-  //       Utils.flushBarErrorMessage("এই অ্যাকাউন্টটি কাস্টমার অ্যাকাউন্ট নয়", context);
-  //       return; // Exit early - don't save user data or navigate
-  //     }
-  //
-  //
-  //     // ✅ If we reach here, user is a verified CUSTOMER - proceed with auth_login
-  //     final userPreference = Provider.of<UserViewModel>(context, listen: false);
-  //     await userPreference.saveUser(user);
-  //
-  //     // Save additional preferences
-  //     final prefs = await SharedPreferences.getInstance();
-  //     await prefs.setString('accessToken', accessToken);
-  //     await prefs.setBool('isPhoneVerified', isPhoneVerified);
-  //     await prefs.setBool('isRegistered', isRegistered);
-  //     await prefs.setString('role', userRole);
-  //     await prefs.setString('userId', userId);
-  //
-  //     // ✅ CONNECT SOCKET AFTER SUCCESSFUL LOGIN
-  //     if (userId.isNotEmpty) {
-  //       try {
-  //         final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-  //
-  //         print("🔌 Login: Connecting socket for user: $userId");
-  //
-  //         // Connect socket with user credentials
-  //         await socketProvider.connectWithUser(userId: userId);
-  //
-  //         // Wait to ensure connection is established
-  //         await Future.delayed(Duration(seconds: 1));
-  //
-  //         if (socketProvider.isConnected) {
-  //           print("🔌 Login: ✅ Socket connected successfully");
-  //         } else {
-  //           print("🔌 Login: ⚠️ Socket not connected, attempting retry");
-  //           await socketProvider.autoReconnect(
-  //             maxRetries: 3,
-  //             delay: Duration(seconds: 2),
-  //           );
-  //         }
-  //       } catch (socketError) {
-  //         print("🔌 Login: Socket connection error - $socketError");
-  //         // Don't fail auth_login if socket connection fails
-  //         // Socket will be reconnected by app lifecycle management
-  //       }
-  //     } else {
-  //       print("⚠️ Login: userId is empty, skipping socket connection");
-  //     }
-  //
-  //     // ✅ START SSE CONNECTION AFTER SUCCESSFUL LOGIN
-  //     if (accessToken.isNotEmpty) {
-  //       try {
-  //         final sseService = Provider.of<SSENotificationService>(context, listen: false);
-  //         final notificationCountViewModel = NotificationCountViewModel();
-  //
-  //         print("🔔 Login: Starting SSE connection with access token");
-  //
-  //         // Start SSE listening with the access token
-  //         await sseService.startListening();
-  //         await Future.delayed(Duration(milliseconds: 500)); // Wait for initial count
-  //         notificationCountViewModel.initializeCountListener(sseService.notificationCountStream);
-  //         notificationCountViewModel.setInitialCount(sseService.currentCount);
-  //       } catch (sseError) {
-  //         print("🔔 Login: SSE connection error - $sseError");
-  //         // Don't fail auth_login if SSE connection fails
-  //         // SSE can be reconnected later
-  //       }
-  //     } else {
-  //       print("⚠️ Login: accessToken is empty, skipping SSE connection");
-  //     }
-  //
-  //     setLoading(false);
-  //
-  //     // Show success message
-  //     await Future.delayed(Duration(milliseconds: 300));
-  //     Utils.flushBarSuccessMessage('Login Successfully', context);
-  //
-  //     print("✅ Login Success: Customer verified - Navigating to home");
-  //
-  //     // Navigate to home
-  //     Navigator.pushNamedAndRemoveUntil(
-  //       context,
-  //       RoutesName.navigationBar,
-  //           (route) => false,
-  //     );
-  //
-  //     if (kDebugMode) print("Login Response: ${response.toString()}");
-  //   } catch (error) {
-  //     print("🔥 Login Error: $error");
-  //     setLoading(false);
-  //     _handleError(error, context);
-  //   }
-  // }
-
-  /// ✅ UPDATED LOGOUT: Disconnect both Socket and SSE
   Future<void> logoutUser(BuildContext context) async {
-    if (_loggingOut) {
-      print("⚠️ Logout already in progress");
-      return;
-    }
+    if (_loggingOut) return;
 
     setLoggingOut(true);
 
     try {
-      final userPreference = Provider.of<UserViewModel>(context, listen: false);
-      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-      final sseService = Provider.of<SSENotificationService>(context, listen: false); // ✅ Get SSE service
-      final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
-      final oneSignalService = Provider.of<OneSignalNotificationService>(context, listen: false);
-
-
-
-      // Get accessToken from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken') ?? '';
-
-      // ✅ Get userId from SharedPreferences
-      String userId = prefs.getString('userId') ?? '';
-      try {
-        print("🔔 Attempting to logout from OneSignal...");
-        await oneSignalService.logoutUser();
-        print("🔔 ✅ OneSignal logout successful");
-      } catch (e) {
-        print("⚠️ OneSignal logout failed: $e");
-        // Continue anyway - don't block logout
-      }
-
-
-      // Fallback: try to get from userPreference if not in SharedPreferences
-      if (userId.isEmpty) {
-        ///OneSignal
-        await OneSignal.logout();
-        final currentUser = userPreference.currentUser;
-        userId = currentUser?.data?.user?.userId ?? '';
-      }
-
-      print("🔓 Logout: userId = '$userId', token exists = ${token.isNotEmpty}");
 
       if (token.isEmpty) {
         print("❌ Logout: No accessToken found");
         setLoggingOut(false);
-        Utils.flushBarErrorMessage("Invalid session. Please auth_login again.", context);
+        Utils.flushBarErrorMessage("Invalid session. Please login again.", context);
         return;
       }
 
-      // ✅ STEP 1: Disconnect Socket
-      bool socketDisconnected = false;
+      // ✅ Get providers
+      final userPreference = Provider.of<UserViewModel>(context, listen: false);
+      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      final sseService = Provider.of<SSENotificationService>(context, listen: false);
+      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
+      final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
+      final oneSignalService = Provider.of<OneSignalNotificationService>(context, listen: false);
 
+      print("🔓 Logout: Starting logout process");
+
+      // ✅ STEP 1: Logout from OneSignal
       try {
-        print("🔌 Attempting to disconnect socket (userId: '$userId')");
-
-        if (userId.isNotEmpty) {
-          await socketProvider.unregisterAndDisconnect(userId: userId)
-              .timeout(Duration(seconds: 5));
-        } else {
-          print("⚠️ No userId found, forcing socket disconnect");
-          await socketProvider.disconnect().timeout(Duration(seconds: 2));
-        }
-
-        socketDisconnected = true;
-        print("🔌 ✅ Socket disconnected successfully");
-
+        await oneSignalService.logoutUser();
+        print("🔔 ✅ OneSignal logout successful");
       } catch (e) {
-        print("⚠️ Socket disconnect failed: $e");
-
-        try {
-          print("🔌 Attempting force disconnect...");
-          await socketProvider.disconnect().timeout(Duration(seconds: 2));
-          socketDisconnected = true;
-          print("🔌 ✅ Force disconnect successful");
-        } catch (forceError) {
-          print("⚠️ Force disconnect also failed: $forceError");
-        }
+        print("⚠️ OneSignal logout failed: $e");
       }
 
-      // ✅ STEP 1.5: Stop SSE Connection
-      bool sseDisconnected = false;
-
+      // ✅ STEP 2: Disconnect Socket
       try {
-        print("🔔 Attempting to stop SSE connection");
+        await socketProvider.disconnect().timeout(Duration(seconds: 3));
+        print("🔌 ✅ Socket disconnected successfully");
+      } catch (e) {
+        print("⚠️ Socket disconnect failed: $e");
+      }
+
+      // ✅ STEP 3: Stop SSE Connection
+      try {
         await sseService.stopListening();
-        sseDisconnected = true;
         print("🔔 ✅ SSE connection stopped successfully");
       } catch (e) {
         print("⚠️ SSE disconnect failed: $e");
-        // Continue anyway - don't block logout
       }
 
-      // ✅ STEP 2: Call logout API
+      // ✅ STEP 4: Call logout API
       try {
-        print("🔓 Calling logout API...");
         await _myRepo.logoutApi(token).timeout(Duration(seconds: 10));
         print("🔓 ✅ Logout API call successful");
-      } catch (apiError) {
-        print("⚠️ Logout API failed: $apiError");
+      } catch (e) {
+        print("⚠️ Logout API failed: $e");
         // Continue with local cleanup even if API fails
       }
-
-      // ✅ STEP 3: Clear local data
-      print("🗑️ Clearing local data...");
       await userPreference.remove();
       profileViewModel.clearCache();
       locationListViewModel.clearCache();
 
       setLoggingOut(false);
 
-      // ✅ STEP 4: Show success message
-      if (!socketDisconnected || !sseDisconnected) {
-        Utils.flushBarErrorMessage("Logged out (connections may still be active)", context);
-      } else {
-        Utils.flushBarSuccessMessage("Logged out successfully", context);
-      }
-
-      // ✅ STEP 5: Navigate to auth_login
+      Utils.flushBarSuccessMessage("Logged out successfully", context);
       Navigator.pushNamedAndRemoveUntil(
-          context, RoutesName.authLoginWelcome, (route) => false);
+        context,
+        RoutesName.authLoginWelcome,
+            (route) => false,
+      );
 
       print("🔓 ✅ Logout Completed Successfully");
 
@@ -294,7 +114,6 @@ class LoginLogoutViewModel with ChangeNotifier {
       _handleError(error, context);
     }
   }
-
 
   /// Handle Errors
   void _handleError(dynamic error, BuildContext context) {
