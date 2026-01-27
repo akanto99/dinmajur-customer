@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:flutter/material.dart';
@@ -32,11 +33,25 @@ class AppBarHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(height: 20, width: 24,
+                  color: Colors.transparent,
                   alignment: Alignment.centerLeft,
                   child: SvgPicture.asset("assets/images/header_arrow.svg")),
 
-              Text(appTitle, style: AppTextStyles.textSize24(context, weight: FontWeight.w600,color: AppColors.textPrimary(context))),
-
+              // Text(appTitle, style: AppTextStyles.textSize24(context, weight: FontWeight.w600,color: AppColors.textPrimary(context))),
+              Container(
+                height: 40,
+                child: Flexible(
+                  child: AutoSizeText(
+                    appTitle,
+                    style: AppTextStyles.textSize24(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
+                    maxLines: 1,
+                    minFontSize: 14,
+                    maxFontSize: 24,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
               Container(width: 20, height: 24),
             ],
           ),
