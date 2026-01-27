@@ -780,7 +780,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _handleConfirmBooking() async {
     final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookPremiumHomeBeautySalonViewModel>(context, listen: false);
-
+    if (bookingViewModel.createBookPremiumHomeBeautySalonLoading) {
+      print('⚠️ Already processing payment, ignoring duplicate tap');
+      return;
+    }
     // Calculate total amount
     double subtotal = checkoutVM.calculateTotal(
       serviceQuantities: widget.serviceQuantities,
@@ -1242,15 +1245,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildConfirmButton(
-      BuildContext context,
-      CheckoutBeautySalonViewModel checkoutVM,
-      PostBookPremiumHomeBeautySalonViewModel bookingVM,
-      double total,
-      double saved,
-      ) {
+  Widget _buildConfirmButton(BuildContext context, CheckoutBeautySalonViewModel checkoutVM, PostBookPremiumHomeBeautySalonViewModel bookingVM, double total, double saved) {
     int totalItems = checkoutVM.getTotalItems(widget.serviceQuantities);
-    bool isLoading = bookingVM.createBookPremiumHomeBeautySalonLoading;
+
+    // ✅ Disable button when processing OR when loading0
+    bool isButtonDisabled = bookingVM.createBookPremiumHomeBeautySalonLoading;
 
     return Container(
       padding: EdgeInsets.all(15),
@@ -1265,10 +1264,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Total Services ($totalItems item${totalItems > 1 ? 's' : ''})',
-                  style: AppTextStyles.textSize12(context, color: AppColors.whiteColor),
-                ),
+                Text('Total Services ($totalItems item${totalItems > 1 ? 's' : ''})', style: AppTextStyles.textSize12(context, color: AppColors.whiteColor)),
                 SizedBox(height: 4),
                 Row(
                   children: [
@@ -1288,29 +1284,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: isLoading ? null : _handleConfirmBooking,
-            child: Container(
-              height: 40,
-              width: 140,
-              decoration: BoxDecoration(
-                color: isLoading ? AppColors.blackColor.withOpacity(0.6) : AppColors.blackColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(width: 1, color: AppColors.whiteColor),
-              ),
-              child: isLoading
-                  ? Center(
-                child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30),
-              )
-                  : Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Pay Now', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white)),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                  ],
+          // ✅ Wrap with AbsorbPointer to prevent taps when disabled
+          AbsorbPointer(
+            absorbing: isButtonDisabled,
+            child: GestureDetector(
+              onTap: _handleConfirmBooking,
+              child: Container(
+                height: 40,
+                width: 140,
+                decoration: BoxDecoration(
+                  color: isButtonDisabled
+                      ? AppColors.blackColor.withOpacity(0.5) // ✅ Visual feedback when disabled
+                      : AppColors.blackColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(width: 1, color: AppColors.whiteColor),
                 ),
+                child: isButtonDisabled
+                    ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30))
+                    : Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Pay Now',
+                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                          ],
+                        ),
+                      ),
               ),
             ),
           ),
