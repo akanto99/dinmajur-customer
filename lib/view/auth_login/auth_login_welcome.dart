@@ -157,7 +157,8 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                                 }
                                 Map data = {
                                   // "fullName":_fullNameController.text.toString(),
-                                  'phone': "0${_phoneController.text.toString()}",
+                                  // 'phone': "0${_phoneController.text.toString()}",
+                                  'phone': _phoneController.text.toString(),
                                   "role":"CUSTOMER"
                                 };
 
@@ -173,7 +174,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                                         RoutesName.authOtp,
                                         arguments: {
                                           // "fullName":_fullNameController.text.toString(),
-                                          'phone': "0${_phoneController.text.toString()}",
+                                          'phone': _phoneController.text.toString(),
                                           "role":"CUSTOMER"
                                         },
                                       );

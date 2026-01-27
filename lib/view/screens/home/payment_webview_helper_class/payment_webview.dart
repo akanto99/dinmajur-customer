@@ -8,11 +8,7 @@ class PaymentWebViewScreen extends StatefulWidget {
   final String paymentUrl;
   final String? trackingId;
 
-  const PaymentWebViewScreen({
-    Key? key,
-    required this.paymentUrl,
-    this.trackingId,
-  }) : super(key: key);
+  const PaymentWebViewScreen({Key? key, required this.paymentUrl, this.trackingId}) : super(key: key);
 
   @override
   State<PaymentWebViewScreen> createState() => _PaymentWebViewScreenState();
@@ -83,20 +79,11 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
 
     print('Checking payment status for URL: $url');
 
-    if (url.contains('/payment-success') ||
-        url.contains('/success?') ||
-        url.contains('status=success') ||
-        url.contains('payment_status=success')) {
+    if (url.contains('/payment-success') || url.contains('/success?') || url.contains('status=success') || url.contains('payment_status=success')) {
       _handlePaymentSuccess();
-    } else if (url.contains('/payment-failed') ||
-        url.contains('/fail?') ||
-        url.contains('status=failed') ||
-        url.contains('payment_status=failed')) {
+    } else if (url.contains('/payment-failed') || url.contains('/fail?') || url.contains('status=failed') || url.contains('payment_status=failed')) {
       _handlePaymentFailure();
-    } else if (url.contains('/payment-cancel') ||
-        url.contains('/cancel?') ||
-        url.contains('status=cancel') ||
-        url.contains('payment_status=cancel')) {
+    } else if (url.contains('/payment-cancel') || url.contains('/cancel?') || url.contains('status=cancel') || url.contains('payment_status=cancel')) {
       _handlePaymentCancel();
     }
   }
@@ -109,10 +96,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
     print("A --------------${widget.trackingId}");
 
     if (mounted) {
-      Navigator.pop(context, {
-        'status': 'success',
-        'trackingId': widget.trackingId
-      });
+      Navigator.pop(context, {'status': 'success', 'trackingId': widget.trackingId});
     }
   }
 
@@ -124,10 +108,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
     print("B --------------${widget.trackingId}");
 
     if (mounted) {
-      Navigator.pop(context, {
-        'status': 'failed',
-        'trackingId': widget.trackingId
-      });
+      Navigator.pop(context, {'status': 'failed', 'trackingId': widget.trackingId});
     }
   }
 
@@ -139,10 +120,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
     print("C --------------${widget.trackingId}");
 
     if (mounted) {
-      Navigator.pop(context, {
-        'status': 'cancelled',
-        'trackingId': widget.trackingId
-      });
+      Navigator.pop(context, {'status': 'cancelled', 'trackingId': widget.trackingId});
     }
   }
 
@@ -156,11 +134,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor: AppColors.containerBackground(context),
-          body: ResPonsiveUi(
-            mobile: _buildBody(),
-            desktop: _buildBody(),
-            tablet: _buildBody(),
-          ),
+          body: ResPonsiveUi(mobile: _buildBody(), desktop: _buildBody(), tablet: _buildBody()),
         ),
       ),
     );
@@ -173,17 +147,9 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
           onTap: () {
             _showExitConfirmation();
           },
-          child: Container(
-            height: 60,
-            child: AppBarHeader("Payment Gateway"),
-          ),
+          child: Container(height: 60, child: AppBarHeader("Payment Gateway")),
         ),
-        if (_isLoading)
-          LinearProgressIndicator(
-            value: _progress,
-            backgroundColor: Colors.grey[200],
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.button(context)),
-          ),
+        if (_isLoading) LinearProgressIndicator(value: _progress, backgroundColor: Colors.grey[200], valueColor: AlwaysStoppedAnimation<Color>(AppColors.button(context))),
         Expanded(
           child: Stack(
             children: [
@@ -193,17 +159,9 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(
-                        color: AppColors.button(context),
-                      ),
+                      CircularProgressIndicator(color: AppColors.button(context)),
                       SizedBox(height: 16),
-                      Text(
-                        'Loading payment gateway...',
-                        style: TextStyle(
-                          color: AppColors.subtitle(context),
-                          fontSize: 14,
-                        ),
-                      ),
+                      Text('Loading payment gateway...', style: TextStyle(color: AppColors.subtitle(context), fontSize: 14)),
                     ],
                   ),
                 ),
@@ -220,33 +178,18 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: AppColors.containerBackground(context),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: Text(
             'Exit Payment?',
-            style: TextStyle(
-              color: AppColors.textPrimary(context),
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: AppColors.textPrimary(context), fontSize: 18, fontWeight: FontWeight.w600),
           ),
-          content: Text(
-            'Are you sure you want to exit? Your payment will be cancelled.',
-            style: TextStyle(
-              color: AppColors.subtitle(context),
-              fontSize: 14,
-            ),
-          ),
+          content: Text('Are you sure you want to exit? Your payment will be cancelled.', style: TextStyle(color: AppColors.subtitle(context), fontSize: 14)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Continue Payment',
-                style: TextStyle(
-                  color: AppColors.button(context),
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(color: AppColors.button(context), fontWeight: FontWeight.w500),
               ),
             ),
             TextButton(
@@ -257,10 +200,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
               },
               child: Text(
                 'Exit',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
               ),
             ),
           ],

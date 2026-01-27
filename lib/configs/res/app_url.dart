@@ -1,10 +1,10 @@
 class AppUrl {
-  // static var baseUrl = 'https://05f7b9dab317.ngrok-free.app//api/v1' ;// Staging Server
-  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
-  static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
-  //
-  // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
-  // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+  // static var baseUrl = 'https://ca1ce38338c8.ngrok-free.app/api/v1' ;// Staging Server
+  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
+
+  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
@@ -51,6 +51,7 @@ class AppUrl {
   static var paymentMethodPostAPI = baseUrl + '/payment-methods';
 
   ///Home Screen DropDown
+  static var sslPaymentFailed = baseUrl + "/api/v1/payments/ipn";
   //========>order Now
   static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
   static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";
