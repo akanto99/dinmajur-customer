@@ -106,8 +106,8 @@ class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
       dynamic response = await _myRepo.bookPremiumHouseKeeperPostApi(fields);
       setBookPremiumHouseKeeperLoading(false);
 
-      Utils.flushBarSuccessMessage('Booking created successfully', context);
-      await Future.delayed(Duration(milliseconds: 1000));
+      // Utils.flushBarSuccessMessage('Booking created successfully', context);
+
 
       if (kDebugMode) print('API Response: ${response.toString()}');
 

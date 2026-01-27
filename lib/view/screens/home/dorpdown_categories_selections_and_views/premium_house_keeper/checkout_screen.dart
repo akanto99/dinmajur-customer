@@ -896,6 +896,11 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     final taskViewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
+    // ✅ Check if already processing using ViewModel state
+    if (bookingViewModel.createBookPremiumHouseKeeperLoading) {
+      print('⚠️ Already processing payment, ignoring duplicate tap');
+      return;
+    }
 
     // Validate form
     String? validationError = checkoutViewModel.validateCheckoutForm(
@@ -1365,6 +1370,9 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   Widget _buildBottomConfirmButton(BuildContext context, PostBookPremiumHouseKeeperViewModel bookingVM, double total, double saved, CheckoutViewModel checkoutVM) {
     int totalItems = checkoutVM.getTotalItems(widget.serviceQuantities);
 
+    // ✅ Only use ViewModel loading state
+    bool isButtonDisabled = bookingVM.createBookPremiumHouseKeeperLoading;
+
     return Container(
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -1396,35 +1404,40 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: _handleConfirm,
-            child: Container(
-              height: 40,
-              width: 140,
-              decoration: BoxDecoration(
-                color: AppColors.blackColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(width: 1, color: AppColors.whiteColor),
-              ),
-              child: bookingVM.createBookPremiumHouseKeeperLoading
-                  ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 50))
-                  : Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Pay Now',
-                            style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                        ],
+          // ✅ Wrap with AbsorbPointer to prevent taps when disabled
+          AbsorbPointer(
+            absorbing: isButtonDisabled,
+            child: GestureDetector(
+              onTap: _handleConfirm,
+              child: Container(
+                height: 40,
+                width: 140,
+                decoration: BoxDecoration(
+                  color: isButtonDisabled
+                      ? AppColors.blackColor.withOpacity(0.5)
+                      : AppColors.blackColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(width: 1, color: AppColors.whiteColor),
+                ),
+                child: isButtonDisabled
+                    ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30))
+                    : Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Pay Now',
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
                       ),
-                    ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
-  }
-}
+  }}

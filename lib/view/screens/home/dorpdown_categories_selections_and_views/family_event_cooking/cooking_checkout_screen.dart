@@ -888,55 +888,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     super.dispose();
   }
 
-  // Future<void> _handlePaymentResult({
-  //   required CookingCheckoutViewModel viewModel,
-  //   required SSLPaymentResult paymentResult,
-  //   required String trackingId,
-  // }) async {
-  //   if (!mounted) return;
-  //
-  //   if (paymentResult.success) {
-  //     _clearAllData();
-  //     Navigator.pushReplacementNamed(
-  //       context,
-  //       RoutesName.beautyConfirmedScreen,
-  //       arguments: {
-  //         'trackingId': trackingId,
-  //         'valId': paymentResult.validationId ?? 'N/A',
-  //       },
-  //     );
-  //   } else if (paymentResult.status == 'FAILED') {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       if (mounted) {
-  //         Navigator.pushReplacementNamed(
-  //           context,
-  //           RoutesName.failedOrderScreenWidget,
-  //           arguments: {
-  //             'trackingId': trackingId,
-  //             'valId': paymentResult.validationId ?? 'N/A',
-  //             'reason': 'Payment transaction failed',
-  //             'errorMessage': paymentResult.errorMessage ?? 'The payment could not be completed. Please try again.',
-  //           },
-  //         );
-  //       }
-  //     });
-  //   } else if (paymentResult.status == 'CANCELLED') {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       if (mounted) {
-  //         Utils.flushBarErrorMessage("Payment was cancelled", context);
-  //       }
-  //     });
-  //   } else {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       if (mounted) {
-  //         Utils.flushBarErrorMessage(
-  //           paymentResult.errorMessage ?? "Payment status unclear",
-  //           context,
-  //         );
-  //       }
-  //     });
-  //   }
-  // }
   Future<void> _handlePaymentResult({
     required CookingCheckoutViewModel viewModel,
     required SSLPaymentResult paymentResult,
@@ -1010,64 +961,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     });
   }
 
-  List<Map<String, dynamic>> _prepareTasksData() {
-    List<Map<String, dynamic>> tasks = [];
-
-    if (widget.activeCategoryId == null) return tasks;
-
-    for (var category in widget.categories) {
-      if (category.id == widget.activeCategoryId) {
-        if (category.type == 'REGULAR') {
-          // Handle REGULAR package
-          final selectedPackageId = widget.selectedPackages[category.id];
-          if (selectedPackageId != null) {
-            for (var package in category.packages ?? []) {
-              if (package.id == selectedPackageId) {
-                if (widget.selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
-                  final priceInfo = package.prices![widget.selectedGuestRangeIndex];
-
-                  tasks.add({
-                    'packageId': package.id,
-                    'categoryId': category.id,
-                    'type': 'REGULAR',
-                    'guestRangeIndex': widget.selectedGuestRangeIndex,
-                    'price': priceInfo.salePrice,
-                    'originalPrice': priceInfo.originalPrice,
-                  });
-                }
-                break;
-              }
-            }
-          }
-        } else if (category.type == 'MANUAL') {
-          // Handle MANUAL items
-          for (var package in category.packages ?? []) {
-            for (var item in package.items ?? []) {
-              final key = '${package.id}_${item.id}';
-              if (widget.selectedManualItems[category.id]?.contains(key) ?? false) {
-                if (widget.selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
-                  final priceInfo = item.prices![widget.selectedGuestRangeIndex];
-
-                  tasks.add({
-                    'packageId': package.id,
-                    'itemId': item.id,
-                    'categoryId': category.id,
-                    'type': 'MANUAL',
-                    'guestRangeIndex': widget.selectedGuestRangeIndex,
-                    'price': priceInfo.salePrice,
-                    'originalPrice': priceInfo.originalPrice,
-                  });
-                }
-              }
-            }
-          }
-        }
-        break;
-      }
-    }
-
-    return tasks;
-  }
   Map<String, dynamic> _prepareBookingPayload() {
     if (widget.activeCategoryId == null) {
       throw Exception('No active category selected');
@@ -1173,7 +1066,10 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   Future<void> _handleConfirmBooking() async {
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookFamilyEventCookingViewModel>(context, listen: false);
-
+    if (bookingViewModel.createBookFamilyEventCookingLoading) {
+      print('⚠️ Already processing payment, ignoring duplicate tap');
+      return;
+    }
     // Calculate total amount
     double totalAmount = widget.totalPrice + widget.transportFee;
 
@@ -1707,6 +1603,9 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       double total,
       bool isLoading,
       ) {
+    // ✅ Only use ViewModel loading state
+    bool isButtonDisabled = bookingVM.createBookFamilyEventCookingLoading;
+
     return Container(
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -1750,28 +1649,40 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: isLoading ? null : _handleConfirmBooking,
-            child: Container(
-              height: 50,
-              width: 140,
-              decoration: BoxDecoration(
-                color: isLoading ? AppColors.blackColor.withOpacity(0.6) : AppColors.blackColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(width: 1, color: AppColors.whiteColor),
-              ),
-              child: isLoading
-                  ? Center(
-                child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30),
-              )
-                  : Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Pay Now', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white)),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                  ],
+          // ✅ Wrap with AbsorbPointer to prevent taps when disabled
+          AbsorbPointer(
+            absorbing: isButtonDisabled,
+            child: GestureDetector(
+              onTap: _handleConfirmBooking,
+              child: Container(
+                height: 50,
+                width: 140,
+                decoration: BoxDecoration(
+                  color: isButtonDisabled
+                      ? AppColors.blackColor.withOpacity(0.5) // ✅ Visual feedback when disabled
+                      : AppColors.blackColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(width: 1, color: AppColors.whiteColor),
+                ),
+                child: isButtonDisabled
+                    ? Center(
+                  child: LoadingAnimationWidget.progressiveDots(
+                      color: AppColors.whiteColor,
+                      size: 30
+                  ),
+                )
+                    : Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Pay Now',
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                    ],
+                  ),
                 ),
               ),
             ),
