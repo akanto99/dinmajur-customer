@@ -281,7 +281,7 @@ class _RunningOrdersViewDetailsSocketscreenState extends State<RunningOrdersView
       await Future.delayed(Duration(milliseconds: 500));
 
       // Reconnect
-      await _socketProvider!.connectWithUser(userId: userId);
+      // await _socketProvider!.connectWithUser(userId: userId);
       await Future.delayed(Duration(milliseconds: 1500));
 
       if (_socketProvider!.isConnected) {
