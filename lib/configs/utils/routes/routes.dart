@@ -102,15 +102,15 @@ class Routes {
           );
         }
         return _errorRoute();
-      case RoutesName.orderDetailsSocketScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        if (args != null) {
-          return MaterialPageRoute(
-            builder: (BuildContext context) => OrderDetailsSocketScreen(orderId: args['orderId']),
-            settings: settings,
-          );
-        }
-        return _errorRoute();
+      // case RoutesName.orderDetailsSocketScreen:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   if (args != null) {
+      //     return MaterialPageRoute(
+      //       builder: (BuildContext context) => OrderDetailsSocketScreen(orderId: args['orderId']),
+      //       settings: settings,
+      //     );
+      //   }
+      //   return _errorRoute();
       //-----------location_screens
       case RoutesName.addlocation:
         return MaterialPageRoute(builder: (BuildContext context) => const AddNewlocationScreen());
@@ -399,26 +399,26 @@ class Routes {
       case RoutesName.orderScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
         //pending Order Details SOCKET.IO Screen
-      case RoutesName.pendingOrdersViewDetailsSocketscreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        if (args != null) {
-          return MaterialPageRoute(
-            builder: (BuildContext context) => PendingOrdersViewDetailsSocketscreen(orderId: args['orderId']),
-            settings: settings,
-          );
-        }
-        return _errorRoute();
+      // case RoutesName.pendingOrdersViewDetailsSocketscreen:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   if (args != null) {
+      //     return MaterialPageRoute(
+      //       builder: (BuildContext context) => PendingOrdersViewDetailsSocketscreen(orderId: args['orderId']),
+      //       settings: settings,
+      //     );
+      //   }
+      //   return _errorRoute();
 
         //running Order Details SOCKET.IO Screen
-      case RoutesName.runningOrdersViewDetailsSocketscreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        if (args != null) {
-          return MaterialPageRoute(
-            builder: (BuildContext context) => RunningOrdersViewDetailsSocketscreen(orderId: args['orderId']),
-            settings: settings,
-          );
-        }
-        return _errorRoute();
+      // case RoutesName.runningOrdersViewDetailsSocketscreen:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   if (args != null) {
+      //     return MaterialPageRoute(
+      //       builder: (BuildContext context) => RunningOrdersViewDetailsSocketscreen(orderId: args['orderId']),
+      //       settings: settings,
+      //     );
+      //   }
+      //   return _errorRoute();
         //Complete Order Details API Get Data
       case RoutesName.completeOrdersDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>?;
