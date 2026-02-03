@@ -1,224 +1,3 @@
-// import 'package:flutter/foundation.dart';
-// import '../../../../model/home_models/socket_home_model/socket_get_all_orders_model/socket_orderdetails_model.dart';
-// import '../../../socket_provider_services/socket_provider.dart';
-//
-// class OrderDetailsSocketProvider with ChangeNotifier {
-//   // State
-//   OrderDetailsModel? _orderDetailsModel;
-//   bool _isLoading = false;
-//   String? _error;
-//
-//   // Socket reference
-//   SocketProvider? _socketProvider;
-//   bool _isListenerSetup = false;
-//
-//   // Getters
-//   OrderDetailsModel? get orderDetailsModel => _orderDetailsModel;
-//   bool get isLoading => _isLoading;
-//   String? get error => _error;
-//
-//   /// Initialize and fetch order details
-//   Future<void> initializeAndFetch({
-//     required SocketProvider socketProvider,
-//     required String orderId,
-//     Function(OrderDetailsModel)? onSuccess,
-//     Function(String)? onError,
-//   }) async {
-//     try {
-//       _socketProvider = socketProvider;
-//
-//       // Wait for socket connection
-//       if (!_socketProvider!.isConnected) {
-//         _isLoading = true;
-//         notifyListeners();
-//
-//         int attempts = 0;
-//         while (!_socketProvider!.isConnected && attempts < 20) {
-//           await Future.delayed(Duration(milliseconds: 500));
-//           attempts++;
-//         }
-//
-//         if (!_socketProvider!.isConnected) {
-//           throw Exception('Could not connect to server');
-//         }
-//       }
-//
-//       // Setup listeners once
-//       if (!_isListenerSetup) {
-//         _setupListeners();
-//         _isListenerSetup = true;
-//         await Future.delayed(Duration(milliseconds: 200));
-//       }
-//
-//       // Fetch data
-//       await _fetchOrderDetails(orderId);
-//     } catch (e) {
-//       _error = e.toString().replaceAll('Exception: ', '');
-//       _isLoading = false;
-//       notifyListeners();
-//       onError?.call(_error!);
-//     }
-//   }
-//
-//   /// Refresh order details
-//   Future<void> refreshOrderDetails({
-//     required SocketProvider socketProvider,
-//     required String orderId,
-//     Function(OrderDetailsModel)? onSuccess,
-//     Function(String)? onError,
-//   }) async {
-//     try {
-//       _socketProvider = socketProvider;
-//
-//       if (!_socketProvider!.isConnected) {
-//         throw Exception('Socket not connected');
-//       }
-//
-//       // Clear and reset listeners
-//       _clearListeners();
-//       await Future.delayed(Duration(milliseconds: 200));
-//
-//       _setupListeners();
-//       _isListenerSetup = true;
-//       await Future.delayed(Duration(milliseconds: 200));
-//
-//       // Fetch data
-//       await _fetchOrderDetails(orderId);
-//     } catch (e) {
-//       _error = e.toString().replaceAll('Exception: ', '');
-//       _isLoading = false;
-//       notifyListeners();
-//       onError?.call(_error!);
-//     }
-//   }
-//
-//   /// Fetch order details by emitting socket event
-//   Future<void> _fetchOrderDetails(String orderId) async {
-//     if (orderId.trim().isEmpty || orderId == 'N/A') {
-//       throw Exception('Invalid order ID');
-//     }
-//
-//     if (_socketProvider?.socketService.socket == null) {
-//       throw Exception('Socket not available');
-//     }
-//     print('✅ [FRONTEND] Socket available, preparing to emit');
-//     print('🔌 [FRONTEND] Socket connected: ${_socketProvider!.isConnected}');
-//     print('🔌 [FRONTEND] Socket ID: ${_socketProvider!.socketService.socket?.id}');
-//
-//     _isLoading = true;
-//     _error = null;
-//     notifyListeners();
-//
-//     // Emit request
-//     _socketProvider!.socketService.socket!.emit('request-order-details', {
-//       'orderId': orderId,
-//     });
-//
-//     // Timeout handler
-//     Future.delayed(Duration(seconds: 15), () {
-//       if (_isLoading) {
-//         _error = 'Request timeout';
-//         _isLoading = false;
-//         notifyListeners();
-//       }
-//     });
-//   }
-//
-//   /// Setup socket listeners
-//   void _setupListeners() {
-//     final socket = _socketProvider?.socketService.socket;
-//     if (socket == null) return;
-//
-//     // Clear existing listeners
-//     socket.off('get-order-details');
-//     socket.off('request-order-details-error');
-//
-//     // Listen for success
-//     socket.on('get-order-details', (data) {
-//       print('═══════════════════════════════════════════════════════════');
-//       print('✅ [BACKEND] Response received on "get-order-details" event');
-//       print('📥 [BACKEND] Data type: ${data.runtimeType}');
-//       print('📥 [BACKEND] Raw data: $data');
-//       print('═══════════════════════════════════════════════════════════');
-//       try {
-//         if (data == null) throw Exception('Received null data');
-//
-//         // Parse response
-//         Map<String, dynamic> responseData;
-//         if (data is Map<String, dynamic>) {
-//           responseData = data.containsKey('order') ? data : data['data'];
-//         } else {
-//           throw Exception('Invalid data format');
-//         }
-//
-//         _orderDetailsModel = OrderDetailsModel.fromJson(responseData);
-//         _isLoading = false;
-//         _error = null;
-//         notifyListeners();
-//       } catch (e) {
-//         _error = 'Failed to parse data: $e';
-//         _isLoading = false;
-//         notifyListeners();
-//       }
-//     });
-//
-//     // Listen for errors
-//     socket.on('request-order-details-error', (data) {
-//       print('═══════════════════════════════════════════════════════════');
-//       print('❌ [BACKEND] Error received on "request-order-details-error" event');
-//       print('📥 [BACKEND] Error data type: ${data.runtimeType}');
-//       print('📥 [BACKEND] Raw error data: $data');
-//       print('═══════════════════════════════════════════════════════════');
-//
-//       String errorMessage = 'Failed to fetch order details';
-//
-//       if (data is String) {
-//         errorMessage = data;
-//       } else if (data is Map<String, dynamic>) {
-//         errorMessage = data['message']?.toString() ??
-//             data['error']?.toString() ??
-//             errorMessage;
-//       }
-//
-//       _error = errorMessage;
-//       _isLoading = false;
-//       notifyListeners();
-//     });
-//   }
-//
-//   /// Clear socket listeners
-//   void _clearListeners() {
-//     final socket = _socketProvider?.socketService.socket;
-//     if (socket != null) {
-//       socket.off('get-order-details');
-//       socket.off('request-order-details-error');
-//     }
-//     _isListenerSetup = false;
-//   }
-//
-//   /// Clear all data
-//   void clearData() {
-//     _orderDetailsModel = null;
-//     _isLoading = false;
-//     _error = null;
-//     notifyListeners();
-//   }
-//
-//   /// Reset provider
-//   void reset() {
-//     _clearListeners();
-//     clearData();
-//     _socketProvider = null;
-//     _isListenerSetup = false;
-//   }
-//
-//   @override
-//   void dispose() {
-//     _clearListeners();
-//     _socketProvider = null;
-//     super.dispose();
-//   }
-// }
 import 'package:flutter/foundation.dart';
 import '../../../../model/home_models/socket_home_model/socket_get_all_orders_model/socket_orderdetails_model.dart';
 import '../../../socket_provider_services/socket_provider.dart';
@@ -232,6 +11,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
   // Socket reference
   SocketProvider? _socketProvider;
   bool _isListenerSetup = false;
+  String? _currentOrderId;
 
   // Getters
   OrderDetailsModel? get orderDetailsModel => _orderDetailsModel;
@@ -246,35 +26,16 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     Function(String)? onError,
   }) async {
     try {
-      print('📱 [FRONTEND] initializeAndFetch called for orderId: $orderId');
       _socketProvider = socketProvider;
+      _currentOrderId = orderId;
 
-      // Wait for socket connection
-      if (!_socketProvider!.isConnected) {
-        print('⏳ [FRONTEND] Socket not connected, waiting...');
-        _isLoading = true;
-        notifyListeners();
-
-        int attempts = 0;
-        while (!_socketProvider!.isConnected && attempts < 20) {
-          await Future.delayed(Duration(milliseconds: 500));
-          attempts++;
-          print('⏳ [FRONTEND] Connection attempt $attempts/20');
-        }
-
-        if (!_socketProvider!.isConnected) {
-          print('❌ [FRONTEND] Socket connection timeout after 20 attempts');
-          throw Exception('Could not connect to server');
-        }
-      }
-
-      print('✅ [FRONTEND] Socket is connected');
-      print('🔌 [FRONTEND] Socket ID: ${_socketProvider!.socketService.socket?.id}');
+      // ✅ Ensure socket is connected before proceeding
+      await _ensureSocketConnection();
 
       // Setup listeners once
       if (!_isListenerSetup) {
         print('🔧 [FRONTEND] Setting up listeners...');
-        _setupListeners();
+        _setupListeners(onSuccess);
         _isListenerSetup = true;
         await Future.delayed(Duration(milliseconds: 200));
         print('✅ [FRONTEND] Listeners setup complete');
@@ -304,14 +65,10 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     try {
       print('🔄 [FRONTEND] refreshOrderDetails called for orderId: $orderId');
       _socketProvider = socketProvider;
+      _currentOrderId = orderId;
 
-      if (!_socketProvider!.isConnected) {
-        print('❌ [FRONTEND] Socket not connected during refresh');
-        throw Exception('Socket not connected');
-      }
-
-      print('✅ [FRONTEND] Socket connected for refresh');
-      print('🔌 [FRONTEND] Socket ID: ${_socketProvider!.socketService.socket?.id}');
+      // ✅ Ensure socket is connected before proceeding
+      await _ensureSocketConnection();
 
       // Clear and reset listeners
       print('🧹 [FRONTEND] Clearing old listeners...');
@@ -319,7 +76,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
       await Future.delayed(Duration(milliseconds: 200));
 
       print('🔧 [FRONTEND] Setting up fresh listeners...');
-      _setupListeners();
+      _setupListeners(onSuccess);
       _isListenerSetup = true;
       await Future.delayed(Duration(milliseconds: 200));
       print('✅ [FRONTEND] Fresh listeners setup complete');
@@ -336,6 +93,45 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     }
   }
 
+  /// ✅ NEW: Ensure socket is connected before any operation
+  Future<void> _ensureSocketConnection() async {
+    if (_socketProvider == null) {
+      throw Exception('Socket provider is not initialized');
+    }
+
+    // If socket is already connected, return immediately
+    if (_socketProvider!.isConnected) {
+      print('✅ [FRONTEND] Socket already connected');
+      print('🔌 [FRONTEND] Socket ID: ${_socketProvider!.socketService.socket?.id}');
+      return;
+    }
+
+    // If socket is disconnected, attempt to reconnect
+    print('⏳ [FRONTEND] Socket not connected, attempting reconnection...');
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Attempt auto-reconnect with retry logic
+      await _socketProvider!.autoReconnect(maxRetries: 5, delay: Duration(seconds: 2));
+
+      // Verify connection was successful
+      if (!_socketProvider!.isConnected) {
+        throw Exception('Failed to establish socket connection after retries');
+      }
+
+      print('✅ [FRONTEND] Socket reconnected successfully');
+      print('🔌 [FRONTEND] Socket ID: ${_socketProvider!.socketService.socket?.id}');
+
+      // Small delay to ensure connection is stable
+      await Future.delayed(Duration(milliseconds: 500));
+
+    } catch (e) {
+      print('❌ [FRONTEND] Socket reconnection failed: $e');
+      throw Exception('Could not connect to server: $e');
+    }
+  }
+
   /// Fetch order details by emitting socket event
   Future<void> _fetchOrderDetails(String orderId) async {
     print('📦 [FRONTEND] _fetchOrderDetails called with orderId: $orderId');
@@ -348,6 +144,11 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     if (_socketProvider?.socketService.socket == null) {
       print('❌ [FRONTEND] Socket is null, cannot emit');
       throw Exception('Socket not available');
+    }
+
+    if (!_socketProvider!.isConnected) {
+      print('❌ [FRONTEND] Socket not connected, cannot emit');
+      throw Exception('Socket not connected');
     }
 
     print('✅ [FRONTEND] Socket available, preparing to emit');
@@ -386,7 +187,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
   }
 
   /// Setup socket listeners
-  void _setupListeners() {
+  void _setupListeners(Function(OrderDetailsModel)? onSuccess) {
     final socket = _socketProvider?.socketService.socket;
     if (socket == null) {
       print('⚠️ [FRONTEND] Cannot setup listeners: socket is null');
@@ -405,7 +206,6 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     socket.on('get-order-details', (data) {
       print('═══════════════════════════════════════════════════════════');
       print('✅ [BACKEND] Response received on "get-order-details" event');
-      print('📥 [BACKEND] Data type: ${data.runtimeType}');
       print('📥 [BACKEND] Raw data: $data');
       print('═══════════════════════════════════════════════════════════');
 
@@ -418,8 +218,6 @@ class OrderDetailsSocketProvider with ChangeNotifier {
         // Parse response
         Map<String, dynamic> responseData;
         if (data is Map<String, dynamic>) {
-          print('✅ [BACKEND] Data is Map<String, dynamic>');
-
           if (data.containsKey('order')) {
             print('✅ [BACKEND] Data has "order" key - using direct structure');
             responseData = data;
@@ -438,14 +236,18 @@ class OrderDetailsSocketProvider with ChangeNotifier {
 
         print('🔄 [FRONTEND] Parsing response data...');
         _orderDetailsModel = OrderDetailsModel.fromJson(responseData);
-        print('✅ [FRONTEND] Data parsed successfully');
-        print('📋 [FRONTEND] Order ID: ${_orderDetailsModel?.order?.id}');
-        print('📋 [FRONTEND] Customer: ${_orderDetailsModel?.customer?.fullName}');
-        print('📋 [FRONTEND] Delivery status: ${_orderDetailsModel?.delivery?.status}');
+        print('✅ [FRONTEND] Data parsed successfully----------------------------');
+
 
         _isLoading = false;
         _error = null;
         notifyListeners();
+
+        // Call success callback
+        if (onSuccess != null && _orderDetailsModel != null) {
+          onSuccess(_orderDetailsModel!);
+        }
+
         print('✅ [FRONTEND] UI notified - data ready to display');
       } catch (e) {
         print('═══════════════════════════════════════════════════════════');
@@ -502,6 +304,31 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     _isListenerSetup = false;
   }
 
+  /// ✅ NEW: Retry fetching order details (useful after reconnection)
+  Future<void> retryFetch() async {
+    if (_currentOrderId == null) {
+      print('⚠️ [FRONTEND] Cannot retry: No order ID stored');
+      return;
+    }
+
+    if (_socketProvider == null) {
+      print('⚠️ [FRONTEND] Cannot retry: Socket provider not initialized');
+      return;
+    }
+
+    print('🔄 [FRONTEND] Retrying order details fetch...');
+
+    try {
+      await _ensureSocketConnection();
+      await _fetchOrderDetails(_currentOrderId!);
+    } catch (e) {
+      print('❌ [FRONTEND] Retry failed: $e');
+      _error = 'Retry failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   /// Clear all data
   void clearData() {
     _orderDetailsModel = null;
@@ -516,12 +343,14 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     clearData();
     _socketProvider = null;
     _isListenerSetup = false;
+    _currentOrderId = null;
   }
 
   @override
   void dispose() {
     _clearListeners();
     _socketProvider = null;
+    _currentOrderId = null;
     super.dispose();
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -13,6 +14,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TrackOrderViewdetailsSocketScreen extends StatefulWidget {
@@ -31,6 +33,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   bool _hasNavigatedToDelivered = false;
   bool _isInitialized = false;
 
+  VoidCallback? _socketReconnectCallback;
+
   @override
   void initState() {
     super.initState();
@@ -46,68 +50,186 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.resumed && _isInitialized) {
-      // Wait for socket to reconnect then refresh
-      Future.delayed(Duration(seconds: 2), () {
-        if (mounted) {
-          _handleRefresh();
-        }
-      });
+      print('🔄 [SCREEN] App resumed - refreshing data');
+      _handleRefresh();
     }
   }
 
+  /// ✅ SIMPLIFIED: Setup listener ONLY for future reconnections
+  void _setupSocketReconnectListener() {
+    print('👂 [SCREEN] Setting up socket reconnect listener');
+
+    _socketReconnectCallback = () {
+      print('🔌 [SCREEN] Socket reconnected! Refreshing order details...');
+
+      // Only refresh if screen is already initialized
+      if (mounted && _isInitialized) {
+        Future.delayed(Duration(milliseconds: 500), () {
+          if (mounted) {
+            _handleRefresh();
+          }
+        });
+      }
+    };
+
+    // ✅ Register callback - but don't trigger on initial connection
+    _socketProvider?.onSocketReady(_socketReconnectCallback!);
+  }
+
+  /// ✅ SIMPLIFIED: Initialize once with auto-retry on failure
   Future<void> _initializeScreen() async {
     if (!mounted) return;
+
+    print('🎬 [SCREEN] Initializing screen for order: ${widget.orderId}');
 
     _socketProvider = Provider.of<SocketProvider>(context, listen: false);
     _orderDetailsProvider = Provider.of<OrderDetailsSocketProvider>(context, listen: false);
 
-    // Initialize and fetch
-    await _orderDetailsProvider!.initializeAndFetch(
-      socketProvider: _socketProvider!,
-      orderId: widget.orderId,
-      onSuccess: _handleOrderDetailsUpdate,
-      onError: (error) {
-        if (mounted) {
-          // Error is already set in provider
-        }
-      },
-    );
+    // Setup reconnect listener BEFORE fetching data
+    _setupSocketReconnectListener();
+
+    // Initial fetch with retry logic
+    await _initializeWithRetry();
 
     _isInitialized = true;
+    print('✅ [SCREEN] Screen initialization complete');
   }
 
-  Future<void> _handleRefresh() async {
-    if (!mounted || _socketProvider == null || _orderDetailsProvider == null) return;
+  /// ✅ NEW: Initialize with automatic retry and reconnection
+  Future<void> _initializeWithRetry({int maxRetries = 3}) async {
+    int retryCount = 0;
 
-    await _orderDetailsProvider!.refreshOrderDetails(
-      socketProvider: _socketProvider!,
-      orderId: widget.orderId,
-      onSuccess: _handleOrderDetailsUpdate,
-      onError: (error) {
-        // Error handling done in provider
-      },
-    );
+    while (retryCount < maxRetries) {
+      try {
+        print('🔄 [SCREEN] Initialization attempt ${retryCount + 1}/$maxRetries');
+
+        // Attempt to initialize and fetch
+        await _orderDetailsProvider!.initializeAndFetch(
+          socketProvider: _socketProvider!,
+          orderId: widget.orderId,
+          onSuccess: _handleOrderDetailsUpdate,
+          onError: (error) async {
+            if (mounted) {
+              print('❌ [SCREEN] Error during initialization: $error');
+
+              // Don't retry if it's an invalid order ID
+              if (error.contains('Invalid order ID')) {
+                throw Exception(error);
+              }
+            }
+          },
+        );
+
+        // If we reach here, initialization was successful
+        print('✅ [SCREEN] Initialization successful');
+        return;
+      } catch (e) {
+        retryCount++;
+        print('❌ [SCREEN] Initialization attempt $retryCount failed: $e');
+
+        // If it's an invalid order ID, don't retry
+        if (e.toString().contains('Invalid order ID')) {
+          print('❌ [SCREEN] Invalid order ID, stopping retries');
+          return;
+        }
+
+        if (retryCount < maxRetries) {
+          // Try to reconnect socket before retrying
+          await _reconnectAndRetry();
+
+          // Wait before next retry
+          await Future.delayed(Duration(seconds: 2));
+        } else {
+          print('❌ [SCREEN] Max retries reached, showing error state');
+        }
+      }
+    }
+  }
+
+  /// ✅ NEW: Reconnect socket and retry fetching
+  Future<void> _reconnectAndRetry() async {
+    try {
+      print('🔌 [SCREEN] Attempting to reconnect socket...');
+
+      // Get access token
+      final prefs = await SharedPreferences.getInstance();
+      String? accessToken = prefs.getString('accessToken');
+
+      if (accessToken == null || accessToken.isEmpty) {
+        print('❌ [SCREEN] No access token available');
+        return;
+      }
+
+      // Disconnect existing connection
+      await _socketProvider!.disconnect();
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // Reconnect with token
+      await _socketProvider!.connectWithToken(accessToken: accessToken);
+      await Future.delayed(Duration(milliseconds: 1000));
+
+      if (_socketProvider!.isConnected) {
+        print('✅ [SCREEN] Socket reconnected successfully');
+      } else {
+        print('⚠️ [SCREEN] Socket not connected, attempting auto-reconnect');
+        await _socketProvider!.autoReconnect();
+      }
+    } catch (e) {
+      print('❌ [SCREEN] Reconnection failed: $e');
+    }
+  }
+
+  /// ✅ SIMPLIFIED: Single refresh method with reconnection logic
+  Future<void> _handleRefresh() async {
+    if (!mounted || _socketProvider == null || _orderDetailsProvider == null) {
+      print('⚠️ [SCREEN] Cannot refresh: screen not ready');
+      return;
+    }
+
+    print('🔄 [SCREEN] Refreshing order details');
+
+    try {
+      // Check socket connection before refresh
+      if (!_socketProvider!.isConnected) {
+        print('⚠️ [SCREEN] Socket disconnected, attempting reconnection before refresh');
+        await _reconnectAndRetry();
+        await Future.delayed(Duration(milliseconds: 500));
+      }
+
+      await _orderDetailsProvider!.refreshOrderDetails(
+        socketProvider: _socketProvider!,
+        orderId: widget.orderId,
+        onSuccess: _handleOrderDetailsUpdate,
+        onError: (error) {
+          print('❌ [SCREEN] Error during refresh: $error');
+          if (mounted) {
+            Utils.flushBarErrorMessage("Failed to update order details", context);
+          }
+        },
+      );
+    } catch (e) {
+      print('❌ [SCREEN] Refresh error: $e');
+      if (mounted) {
+        Utils.flushBarErrorMessage("Failed to refresh order details", context);
+      }
+    }
   }
 
   void _handleOrderDetailsUpdate(OrderDetailsModel model) {
     if (!mounted) return;
 
+    print('📊 [SCREEN] Order details updated');
+
     // Check for delivery status changes
     String? currentStatus = model.delivery?.status;
 
-    if (currentStatus?.toUpperCase() == 'DELIVERED' &&
-        _previousDeliveryStatus?.toUpperCase() != 'DELIVERED' &&
-        !_hasNavigatedToDelivered) {
-
+    if (currentStatus?.toUpperCase() == 'DELIVERED' && _previousDeliveryStatus?.toUpperCase() != 'DELIVERED' && !_hasNavigatedToDelivered) {
+      print('🎉 [SCREEN] Order delivered! Navigating to delivery screen...');
       _hasNavigatedToDelivered = true;
 
       Future.delayed(Duration(seconds: 2), () {
         if (mounted) {
-          Navigator.pushNamed(
-              context,
-              RoutesName.deliverdScreen,
-              arguments: {'orderId': widget.orderId}
-          );
+          Navigator.pushNamed(context, RoutesName.deliverdScreen, arguments: {'orderId': widget.orderId});
         }
       });
     }
@@ -117,8 +239,15 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   @override
   void dispose() {
+    print('🗑️ [SCREEN] Disposing screen');
     WidgetsBinding.instance.removeObserver(this);
-    _orderDetailsProvider?.dispose();
+
+    // ✅ Remove socket reconnect callback
+    if (_socketReconnectCallback != null && _socketProvider != null) {
+      _socketProvider!.removeSocketReadyCallback(_socketReconnectCallback!);
+      print('✅ [SCREEN] Removed socket reconnect listener');
+    }
+
     super.dispose();
   }
 
@@ -148,16 +277,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
         child: Column(
           children: [
             GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => NavigationScreen(initialIndex: 0)
-                ),
-              ),
-              child: Container(
-                height: 60,
-                child: AppBarHeader("Track Order Details"),
-              ),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0))),
+              child: Container(height: 60, child: AppBarHeader("Track Order Details")),
             ),
             Expanded(child: _buildContent()),
           ],
@@ -171,12 +292,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       builder: (context, provider, child) {
         // Loading state
         if (provider.isLoading) {
-          return Center(
-            child: LoadingAnimationWidget.progressiveDots(
-              color: AppColors.button(context),
-              size: 45,
-            ),
-          );
+          return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
         }
 
         // Error state (only if no data available)
@@ -190,12 +306,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
         }
 
         // Default loading
-        return Center(
-          child: LoadingAnimationWidget.progressiveDots(
-            color: AppColors.button(context),
-            size: 45,
-          ),
-        );
+        return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
       },
     );
   }
@@ -233,11 +344,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     onPressed: _handleRefresh,
                     icon: Icon(Icons.refresh),
                     label: Text('Retry'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.button(context),
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context), foregroundColor: Colors.white, padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
                   ),
                 ],
               ),
@@ -272,16 +379,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               SizedboxSpaccing.height02(context),
               _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer),
               SizedboxSpaccing.height02(context),
-              if (!isPending) ...[
-                _buildContactSection(context, freelancer),
-                SizedboxSpaccing.height02(context),
-              ],
+              if (!isPending) ...[_buildContactSection(context, freelancer), SizedboxSpaccing.height02(context)],
               _buildCustomerOrderItems(context, order.items),
               SizedboxSpaccing.height02(context),
-              if (order.customerNote != null && order.customerNote!.isNotEmpty) ...[
-                _buildCustomerNotes(context, order.customerNote!),
-                SizedboxSpaccing.height02(context),
-              ],
+              if (order.customerNote != null && order.customerNote!.isNotEmpty) ...[_buildCustomerNotes(context, order.customerNote!), SizedboxSpaccing.height02(context)],
               _buildDeliveryItemsSection(context, order.items),
               SizedboxSpaccing.height02(context),
               Divider(height: 1, color: AppColors.border(context)),
@@ -297,12 +398,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   Widget _buildOrderProgress(BuildContext context, String? deliveryStatus) {
     List<String> steps = ['Dinmajur', 'Pickup', 'Delivery', 'Complete'];
-    List<IconData> stepIcons = [
-      FontAwesomeIcons.user,
-      FontAwesomeIcons.box,
-      FontAwesomeIcons.truck,
-      FontAwesomeIcons.check
-    ];
+    List<IconData> stepIcons = [FontAwesomeIcons.user, FontAwesomeIcons.box, FontAwesomeIcons.truck, FontAwesomeIcons.check];
     final screenWidth = MediaQuery.of(context).size.width;
 
     bool isPending = deliveryStatus?.toUpperCase() == 'PENDING';
@@ -322,11 +418,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             Expanded(
               child: Text(
                 'Order is pending. Waiting for freelancer acceptance...',
-                style: AppTextStyles.textSize14(
-                    context,
-                    weight: FontWeight.w500,
-                    color: Colors.orange
-                ),
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: Colors.orange),
               ),
             ),
           ],
@@ -351,32 +443,14 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isActive
-                        ? AppColors.button(context)
-                        : AppColors.containerBackground(context),
-                    border: Border.all(
-                      width: 1,
-                      color: isActive
-                          ? AppColors.button(context)
-                          : AppColors.border(context),
-                    ),
+                    color: isActive ? AppColors.button(context) : AppColors.containerBackground(context),
+                    border: Border.all(width: 1, color: isActive ? AppColors.button(context) : AppColors.border(context)),
                   ),
-                  child: Icon(
-                    stepIcons[stepIndex],
-                    color: isActive ? Colors.white : Colors.grey,
-                    size: 16,
-                  ),
+                  child: Icon(stepIcons[stepIndex], color: isActive ? Colors.white : Colors.grey, size: 16),
                 );
               } else {
                 int lineIndex = (index - 1) ~/ 2;
-                return Expanded(
-                  child: Container(
-                    height: 2,
-                    color: lineIndex < currentStep
-                        ? AppColors.button(context)
-                        : AppColors.border(context),
-                  ),
-                );
+                return Expanded(child: Container(height: 2, color: lineIndex < currentStep ? AppColors.button(context) : AppColors.border(context)));
               }
             }),
           ),
@@ -397,13 +471,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   child: Center(
                     child: Text(
                       steps[index],
-                      style: AppTextStyles.textSize12(
-                        context,
-                        weight: isCurrent ? FontWeight.w600 : FontWeight.w400,
-                        color: isActive
-                            ? AppColors.textPrimary(context)
-                            : AppColors.subtitle(context),
-                      ),
+                      style: AppTextStyles.textSize12(context, weight: isCurrent ? FontWeight.w600 : FontWeight.w400, color: isActive ? AppColors.textPrimary(context) : AppColors.subtitle(context)),
                     ),
                   ),
                 ),
@@ -415,14 +483,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     );
   }
 
-  Widget _buildCustomerInfo(
-      BuildContext context,
-      Customer? customer,
-      Retailer? retailer,
-      Order order,
-      Delivery? delivery,
-      Freelancer? freelancer,
-      ) {
+  Widget _buildCustomerInfo(BuildContext context, Customer? customer, Retailer? retailer, Order order, Delivery? delivery, Freelancer? freelancer) {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
@@ -445,15 +506,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     Container(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.textPrimary(context),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        FontAwesomeIcons.store,
-                        color: AppColors.containerBackground(context),
-                        size: 16,
-                      ),
+                      decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(8)),
+                      child: Icon(FontAwesomeIcons.store, color: AppColors.containerBackground(context), size: 16),
                     ),
                     SizedboxSpaccing.width03(context),
                     Expanded(
@@ -462,20 +516,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                         children: [
                           Text(
                             customer?.fullName ?? 'N/A',
-                            style: AppTextStyles.textSize18(
-                              context,
-                              weight: FontWeight.w500,
-                              color: AppColors.textPrimary(context),
-                            ),
+                            style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             'Under: ${retailer?.businessName ?? 'N/A'}',
-                            style: AppTextStyles.textSize14(
-                              context,
-                              weight: FontWeight.w400,
-                              color: AppColors.subtitle(context),
-                            ),
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -487,14 +533,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               SizedboxSpaccing.width02(context),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.textFieldFill(context),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Order #${order.id?.substring(order.id!.length - 6) ?? 'N/A'}',
-                  style: AppTextStyles.textSize12(context, weight: FontWeight.w400),
-                ),
+                decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(8)),
+                child: Text('Order #${order.id?.substring(order.id!.length - 6) ?? 'N/A'}', style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
               ),
             ],
           ),
@@ -515,19 +555,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                       Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.button(context),
-                        ),
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
                         child: ClipOval(
-                          child: freelancer.profilePicture?.url != null &&
-                              freelancer.profilePicture!.url!.isNotEmpty
-                              ? Image.network(
-                            freelancer.profilePicture!.url!,
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                          )
+                          child: freelancer.profilePicture?.url != null && freelancer.profilePicture!.url!.isNotEmpty
+                              ? Image.network(freelancer.profilePicture!.url!, width: 40, height: 40, fit: BoxFit.cover)
                               : Icon(Icons.person, color: Colors.white, size: 20),
                         ),
                       ),
@@ -537,31 +568,17 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                         children: [
                           Text(
                             '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim(),
-                            style: AppTextStyles.textSize14(
-                              context,
-                              weight: FontWeight.w500,
-                              color: AppColors.button(context),
-                            ),
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
                           ),
                           Row(
                             children: [
                               Icon(Icons.star, size: 14, color: Colors.amber),
                               SizedboxSpaccing.width01(context),
-                              Text(
-                                '${freelancer.rating?.toStringAsFixed(1) ?? 'N/A'}',
-                                style: AppTextStyles.textSize12(
-                                  context,
-                                  weight: FontWeight.w400,
-                                ),
-                              ),
+                              Text('${freelancer.rating?.toStringAsFixed(1) ?? 'N/A'}', style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
                               SizedboxSpaccing.width02(context),
                               Text(
                                 '• ${freelancer.totalOrders ?? 0} orders',
-                                style: AppTextStyles.textSize12(
-                                  context,
-                                  weight: FontWeight.w400,
-                                  color: AppColors.subtitle(context),
-                                ),
+                                style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                               ),
                             ],
                           ),
@@ -575,19 +592,11 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                       children: [
                         Text(
                           'Accepted at',
-                          style: AppTextStyles.textSize10(
-                            context,
-                            weight: FontWeight.w400,
-                            color: AppColors.subtitle(context),
-                          ),
+                          style: AppTextStyles.textSize10(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                         ),
                         Text(
                           _formatAcceptedTime(freelancer.acceptedAt!),
-                          style: AppTextStyles.textSize12(
-                            context,
-                            weight: FontWeight.w500,
-                            color: AppColors.button(context),
-                          ),
+                          style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
                         ),
                       ],
                     ),
@@ -598,14 +607,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
           ],
           Row(
             children: [
-              Text(
-                'Budget: ',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-              ),
-              Text(
-                '৳${order.budget ?? 0}',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-              ),
+              Text('Budget: ', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+              Text('৳${order.budget ?? 0}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             ],
           ),
           SizedboxSpaccing.height01(context),
@@ -622,11 +625,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     return DateFormat('hh:mm a').format(bdTime);
   }
 
-  Widget _buildOrderDateTime(
-      BuildContext context,
-      DateTime? createdAt,
-      String? estimatedTime,
-      ) {
+  Widget _buildOrderDateTime(BuildContext context, DateTime? createdAt, String? estimatedTime) {
     String formattedDate = 'N/A';
     String formattedTime = 'N/A';
 
@@ -648,18 +647,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   child: Container(
                     height: 12,
                     width: 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.button(context),
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: BoxDecoration(color: AppColors.button(context), shape: BoxShape.circle),
                   ),
                 ),
               ),
               SizedboxSpaccing.width02(context),
-              Text(
-                'By: $formattedTime',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-              ),
+              Text('By: $formattedTime', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             ],
           ),
         ),
@@ -672,18 +665,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 child: Container(
                   height: 12,
                   width: 12,
-                  decoration: BoxDecoration(
-                    color: AppColors.button(context),
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(color: AppColors.button(context), shape: BoxShape.circle),
                 ),
               ),
             ),
             SizedboxSpaccing.width02(context),
-            Text(
-              formattedDate,
-              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-            ),
+            Text(formattedDate, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
           ],
         ),
       ],
@@ -698,11 +685,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
           height: 22,
           width: 20,
           alignment: Alignment.bottomCenter,
-          child: Icon(
-            Icons.location_on,
-            size: 16,
-            color: AppColors.button(context),
-          ),
+          child: Icon(Icons.location_on, size: 16, color: AppColors.button(context)),
         ),
         SizedboxSpaccing.width02(context),
         Expanded(
@@ -711,37 +694,21 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             children: [
               Text(
                 'Delivery Address',
-                style: AppTextStyles.textSize16(
-                  context,
-                  weight: FontWeight.w500,
-                  color: AppColors.button(context),
-                ),
+                style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.button(context)),
               ),
               SizedboxSpaccing.height005(context),
               Text(
                 delivery?.destinationFullAddress ?? 'No address available',
-                style: AppTextStyles.textSize14(
-                  context,
-                  weight: FontWeight.w400,
-                  color: AppColors.subtitle(context),
-                ),
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
               ),
               SizedboxSpaccing.height005(context),
               Row(
                 children: [
-                  Icon(
-                    FontAwesomeIcons.car,
-                    size: 12,
-                    color: AppColors.subtitle(context),
-                  ),
+                  Icon(FontAwesomeIcons.car, size: 12, color: AppColors.subtitle(context)),
                   SizedboxSpaccing.width02(context),
                   Text(
                     '${delivery?.distance ?? 'N/A'} from Store',
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w400,
-                      color: AppColors.button(context),
-                    ),
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
                   ),
                 ],
               ),
@@ -759,18 +726,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Contact With Delivery Person',
-          style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-        ),
+        Text('Contact With Delivery Person', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         SizedboxSpaccing.height01(context),
         Divider(height: 1, color: AppColors.border(context)),
         SizedboxSpaccing.height02(context),
         Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: screenHeight * 0.02,
-            vertical: screenHeight * 0.015,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.015),
           decoration: BoxDecoration(
             color: AppColors.textFieldFill(context),
             borderRadius: BorderRadius.circular(12),
@@ -784,26 +745,18 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   Container(
                     width: 34,
                     height: 34,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.button(context),
-                    ),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
                     child: ClipOval(
-                      child: freelancer?.profilePicture?.url != null &&
-                          freelancer!.profilePicture!.url!.isNotEmpty
+                      child: freelancer?.profilePicture?.url != null && freelancer!.profilePicture!.url!.isNotEmpty
                           ? Image.network(
-                        freelancer.profilePicture!.url!,
-                        width: 34,
-                        height: 34,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 20,
-                          );
-                        },
-                      )
+                              freelancer.profilePicture!.url!,
+                              width: 34,
+                              height: 34,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.person, color: Colors.white, size: 20);
+                              },
+                            )
                           : Icon(Icons.person, color: Colors.white, size: 20),
                     ),
                   ),
@@ -812,25 +765,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'
-                            .trim()
-                            .isEmpty
-                            ? 'N/A'
-                            : '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'
-                            .trim(),
-                        style: AppTextStyles.textSize14(
-                          context,
-                          weight: FontWeight.w500,
-                          color: AppColors.button(context),
-                        ),
+                        '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim().isEmpty ? 'N/A' : '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim(),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
                       ),
-                      Text(
-                        freelancerPhone.isEmpty ? 'N/A' : freelancerPhone,
-                        style: AppTextStyles.textSize12(
-                          context,
-                          weight: FontWeight.w400,
-                        ),
-                      ),
+                      Text(freelancerPhone.isEmpty ? 'N/A' : freelancerPhone, style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
                     ],
                   ),
                 ],
@@ -838,46 +776,22 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               Row(
                 children: [
                   GestureDetector(
-                    onTap: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A'
-                        ? () => _openWhatsApp(freelancerPhone)
-                        : null,
+                    onTap: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? () => _openWhatsApp(freelancerPhone) : null,
                     child: Container(
                       width: 34,
                       height: 34,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: freelancerPhone.isNotEmpty &&
-                            freelancerPhone != 'N/A'
-                            ? AppColors.containerBackground(context)
-                            : Colors.grey,
-                      ),
-                      child: Icon(
-                        Icons.message,
-                        color: AppColors.textPrimary(context),
-                        size: 18,
-                      ),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? AppColors.containerBackground(context) : Colors.grey),
+                      child: Icon(Icons.message, color: AppColors.textPrimary(context), size: 18),
                     ),
                   ),
                   SizedboxSpaccing.width02(context),
                   GestureDetector(
-                    onTap: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A'
-                        ? () => _makePhoneCall(freelancerPhone)
-                        : null,
+                    onTap: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? () => _makePhoneCall(freelancerPhone) : null,
                     child: Container(
                       width: 34,
                       height: 34,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: freelancerPhone.isNotEmpty &&
-                            freelancerPhone != 'N/A'
-                            ? AppColors.containerBackground(context)
-                            : Colors.grey,
-                      ),
-                      child: Icon(
-                        Icons.call,
-                        color: AppColors.textPrimary(context),
-                        size: 18,
-                      ),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? AppColors.containerBackground(context) : Colors.grey),
+                      child: Icon(Icons.call, color: AppColors.textPrimary(context), size: 18),
                     ),
                   ),
                 ],
@@ -898,10 +812,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Customer Order Items (${items.length})',
-          style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-        ),
+        Text('Customer Order Items (${items.length})', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         SizedboxSpaccing.height01(context),
         Divider(height: 1, color: AppColors.border(context)),
         SizedboxSpaccing.height02(context),
@@ -921,29 +832,15 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          item.name ?? 'N/A',
-                          style: AppTextStyles.textSize14(
-                            context,
-                            weight: FontWeight.w400,
-                          ),
-                        ),
+                        child: Text(item.name ?? 'N/A', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                       ),
                       Text(
                         '${item.quantity ?? 0} ${item.unit ?? ''}',
-                        style: AppTextStyles.textSize14(
-                          context,
-                          weight: FontWeight.w400,
-                          color: AppColors.subtitle(context),
-                        ),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                       ),
                     ],
                   ),
-                  if (index < items.length - 1) ...[
-                    SizedboxSpaccing.height01(context),
-                    Divider(height: 1, color: AppColors.border(context)),
-                    SizedboxSpaccing.height01(context),
-                  ],
+                  if (index < items.length - 1) ...[SizedboxSpaccing.height01(context), Divider(height: 1, color: AppColors.border(context)), SizedboxSpaccing.height01(context)],
                 ],
               );
             }),
@@ -969,16 +866,9 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             padding: EdgeInsets.all(screenHeight * 0.02),
             child: Row(
               children: [
-                Icon(
-                  FontAwesomeIcons.solidMessage,
-                  size: 18,
-                  color: AppColors.textPrimary(context),
-                ),
+                Icon(FontAwesomeIcons.solidMessage, size: 18, color: AppColors.textPrimary(context)),
                 SizedboxSpaccing.width02(context),
-                Text(
-                  'Customer Notes',
-                  style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-                ),
+                Text('Customer Notes', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
               ],
             ),
           ),
@@ -996,11 +886,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 alignment: Alignment.topLeft,
                 child: Text(
                   customerNote,
-                  style: AppTextStyles.textSize14(
-                    context,
-                    weight: FontWeight.w400,
-                    color: AppColors.textPrimary(context),
-                  ),
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
                 ),
               ),
             ),
@@ -1019,10 +905,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Delivery Items',
-          style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-        ),
+        Text('Delivery Items', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         SizedboxSpaccing.height01(context),
         Divider(height: 1, color: AppColors.border(context)),
         SizedboxSpaccing.height02(context),
@@ -1038,40 +921,25 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 padding: EdgeInsets.all(screenHeight * 0.015),
                 decoration: BoxDecoration(
                   color: AppColors.containerBackground(context),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
                 ),
                 child: Row(
                   children: [
                     Expanded(
                       flex: 2,
-                      child: Text(
-                        'Item Name',
-                        style: AppTextStyles.textSize14(
-                          context,
-                          weight: FontWeight.w600,
-                        ),
-                      ),
+                      child: Text('Item Name', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                     ),
                     Expanded(
                       child: Text(
                         'Weight/Pcs/Qty',
-                        style: AppTextStyles.textSize14(
-                          context,
-                          weight: FontWeight.w600,
-                        ),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
                         textAlign: TextAlign.center,
                       ),
                     ),
                     Expanded(
                       child: Text(
                         'Price',
-                        style: AppTextStyles.textSize14(
-                          context,
-                          weight: FontWeight.w600,
-                        ),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
                         textAlign: TextAlign.right,
                       ),
                     ),
@@ -1081,17 +949,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               Divider(height: 1, color: AppColors.border(context)),
               ...List.generate(items.length, (index) {
                 final item = items[index];
-                bool isNotFound = item.status?.toLowerCase() == 'not_found' ||
-                    item.totalPrice == null ||
-                    item.totalPrice == 0;
+                bool isNotFound = item.status?.toLowerCase() == 'not_found' || item.totalPrice == null || item.totalPrice == 0;
 
                 return Column(
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: screenHeight * 0.015,
-                        vertical: screenHeight * 0.012,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.015, vertical: screenHeight * 0.012),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1104,14 +967,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                                   style: AppTextStyles.textSize14(
                                     context,
                                     weight: FontWeight.w400,
-                                  ).copyWith(
-                                    decoration: isNotFound
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                    decorationColor:
-                                    isNotFound ? Colors.red : null,
-                                    decorationThickness: isNotFound ? 2.0 : null,
-                                  ),
+                                  ).copyWith(decoration: isNotFound ? TextDecoration.lineThrough : null, decorationColor: isNotFound ? Colors.red : null, decorationThickness: isNotFound ? 2.0 : null),
                                 ),
                               ),
                               Expanded(
@@ -1121,25 +977,14 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                                     context,
                                     weight: FontWeight.w400,
                                     color: AppColors.subtitle(context),
-                                  ).copyWith(
-                                    decoration: isNotFound
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                    decorationColor:
-                                    isNotFound ? Colors.red : null,
-                                    decorationThickness: isNotFound ? 2.0 : null,
-                                  ),
+                                  ).copyWith(decoration: isNotFound ? TextDecoration.lineThrough : null, decorationColor: isNotFound ? Colors.red : null, decorationThickness: isNotFound ? 2.0 : null),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                               Expanded(
                                 child: Text(
                                   isNotFound ? '' : '৳${item.totalPrice ?? 0}',
-                                  style: AppTextStyles.textSize14(
-                                    context,
-                                    weight: FontWeight.w400,
-                                    color: AppColors.subtitle(context),
-                                  ),
+                                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                                   textAlign: TextAlign.right,
                                 ),
                               ),
@@ -1147,34 +992,17 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                           ),
                           Text(
                             "Dinmajur's comment:",
-                            style: AppTextStyles.textSize14(context,
-                                weight: FontWeight.w400)
-                                .copyWith(
-                              decoration: TextDecoration.underline,
-                              decorationThickness: 1.0,
-                            ),
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline, decorationThickness: 1.0),
                           ),
                           Text(
-                            (item.comment == null || item.comment!.isEmpty)
-                                ? 'N/A'
-                                : item.comment!,
-                            style: AppTextStyles.textSize12(
-                              context,
-                              weight: FontWeight.w400,
-                              color: AppColors.subtitle(context),
-                            ),
+                            (item.comment == null || item.comment!.isEmpty) ? 'N/A' : item.comment!,
+                            style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                           ),
                           SizedboxSpaccing.height005(context),
                         ],
                       ),
                     ),
-                    if (index < items.length - 1)
-                      Divider(
-                        height: 1,
-                        color: AppColors.border(context),
-                        indent: screenHeight * 0.015,
-                        endIndent: screenHeight * 0.015,
-                      ),
+                    if (index < items.length - 1) Divider(height: 1, color: AppColors.border(context), indent: screenHeight * 0.015, endIndent: screenHeight * 0.015),
                   ],
                 );
               }),
@@ -1187,21 +1015,14 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   int _getFoundItemsCount(List<Item>? items) {
     if (items == null) return 0;
-    return items
-        .where((item) =>
-    item.status?.toLowerCase() != 'not_found' &&
-        item.totalPrice != null &&
-        item.totalPrice! > 0)
-        .length;
+    return items.where((item) => item.status?.toLowerCase() != 'not_found' && item.totalPrice != null && item.totalPrice! > 0).length;
   }
 
   Widget _buildTotalSection(BuildContext context, Order order) {
     double subtotal = 0;
     if (order.items != null) {
       subtotal = order.items!.fold(0.0, (sum, item) {
-        if (item.status?.toLowerCase() != 'not_found' &&
-            item.totalPrice != null &&
-            item.totalPrice! > 0) {
+        if (item.status?.toLowerCase() != 'not_found' && item.totalPrice != null && item.totalPrice! > 0) {
           return sum + item.totalPrice!;
         }
         return sum;
@@ -1213,10 +1034,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     int foundItems = _getFoundItemsCount(order.items);
 
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
           Row(
@@ -1224,16 +1042,9 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             children: [
               Text(
                 'Total Order:',
-                style: AppTextStyles.textSize14(
-                  context,
-                  weight: FontWeight.w400,
-                  color: AppColors.subtitle(context),
-                ),
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
               ),
-              Text(
-                '$foundItems items',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-              ),
+              Text('$foundItems items', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             ],
           ),
           SizedboxSpaccing.height01(context),
@@ -1242,16 +1053,9 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             children: [
               Text(
                 'Subtotal:',
-                style: AppTextStyles.textSize14(
-                  context,
-                  weight: FontWeight.w400,
-                  color: AppColors.subtitle(context),
-                ),
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
               ),
-              Text(
-                '৳${subtotal.toStringAsFixed(0)}',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-              ),
+              Text('৳${subtotal.toStringAsFixed(0)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             ],
           ),
           SizedboxSpaccing.height01(context),
@@ -1260,16 +1064,9 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             children: [
               Text(
                 'Service Fee:',
-                style: AppTextStyles.textSize14(
-                  context,
-                  weight: FontWeight.w400,
-                  color: AppColors.subtitle(context),
-                ),
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
               ),
-              Text(
-                '৳${serviceFee.toStringAsFixed(0)}',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-              ),
+              Text('৳${serviceFee.toStringAsFixed(0)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             ],
           ),
           SizedboxSpaccing.height01(context),
@@ -1278,14 +1075,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total Amount:',
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-              ),
-              Text(
-                '৳${total.toStringAsFixed(0)}',
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-              ),
+              Text('Total Amount:', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+              Text('৳${total.toStringAsFixed(0)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
             ],
           ),
         ],
