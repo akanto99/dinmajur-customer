@@ -22,11 +22,6 @@ class SocketProvider with ChangeNotifier {
   /// Register callback to be called when socket is ready
   void onSocketReady(Function() callback) {
     _onReadyCallbacks.add(callback);
-
-    // If already connected, call immediately
-    if (_isConnected) {
-      callback();
-    }
   }
 
   /// Remove callback
