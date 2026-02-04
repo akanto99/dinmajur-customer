@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
@@ -33,13 +32,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'configs/utils/routes/routes.dart';
@@ -228,6 +223,14 @@ class MyApp extends StatelessWidget {
             Locale('en'), // English
             Locale('bn'), // Bengali
           ],
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: const TextScaler.linear(1.0),
+              ),
+              child: child!,
+            );
+          },
         );
       },
     );
