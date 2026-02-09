@@ -3,11 +3,17 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:async';
 import 'package:dinmajur_customer/configs/res/app_url.dart';
+import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'package:dinmajur_customer/configs/services/session_expired_services/session_expired.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
+import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
+import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:http/http.dart' as https;
 import 'package:http/http.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
 import '../app_excaptions.dart';
@@ -629,8 +635,8 @@ print(accessToken);
             // Save updated user data
             await userViewModel.saveUser(updatedUserModel);
 
-            print('✅ Access token refreshed successfully');
-            print('🔑 New access token: ${newAccessToken.substring(0, 20)}...');
+            await _reconnectServicesWithNewToken(newAccessToken);
+
 
             // Notify all waiting requests with success
             for (final completer in _refreshQueue) {
@@ -705,219 +711,52 @@ print(accessToken);
       _isRefreshing = false;
     }
   }
-  // Future<String?> _refreshAccessToken() async {
-  //   // If already refreshing, wait for the result
-  //   if (_isRefreshing) {
-  //     final completer = Completer<String?>();
-  //     _refreshQueue.add(completer);
-  //     return completer.future;
-  //   }
-  //
-  //   _isRefreshing = true;
-  //
-  //   try {
-  //     SharedPreferences prefs = await SharedPreferences.getInstance();
-  //     String? refreshToken = prefs.getString('refreshToken');
-  //
-  //     if (refreshToken == null || refreshToken.isEmpty) {
-  //       print('❌ No refresh token available in storage');
-  //       await _handleLogout();
-  //
-  //       for (final completer in _refreshQueue) {
-  //         completer.complete(null);
-  //       }
-  //       _refreshQueue.clear();
-  //
-  //       throw Exception('Refresh token expired');
-  //     }
-  //
-  //     print('🔄 Attempting to refresh access token...');
-  //     print('🔑 Using refresh token: ${refreshToken.substring(0, 20)}...');
-  //
-  //     final response = await https
-  //         .post(
-  //           Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
-  //           headers: {
-  //             'Content-Type': 'application/json',
-  //             'Authorization': refreshToken, // ✅ Pass as Authorization header
-  //           },
-  //           body: jsonEncode({'refreshToken': refreshToken}),
-  //         )
-  //         .timeout(const Duration(seconds: 30));
-  //
-  //     print('🔄 Refresh token API response status: ${response.statusCode}');
-  //     print('🔄 Refresh token API response body: ${response.body}');
-  //
-  //     if (response.statusCode == 200 || response.statusCode == 201) {
-  //       final responseData = jsonDecode(response.body);
-  //
-  //       if (responseData['success'] == true && responseData['data'] != null) {
-  //         final data = responseData['data'];
-  //         final newAccessToken = data['accessToken'];
-  //         final newRefreshToken = data['refreshToken'];
-  //
-  //         if (newAccessToken != null && newAccessToken.isNotEmpty) {
-  //           // ✅ Get current user data
-  //           final userViewModel = UserViewModel();
-  //           final currentUser = await userViewModel.getUser();
-  //
-  //           // ✅ Create updated user model with new access token
-  //           // but PRESERVE the existing refresh token (server doesn't return new one)
-  //           final updatedUserModel = UserModel(
-  //             success: true,
-  //             message: responseData['message'] ?? 'Token refreshed successfully',
-  //             data: Data(
-  //               accessToken: newAccessToken,
-  //               refreshToken: newRefreshToken,
-  //               user: User(
-  //                 id: data['user']['_id'] ?? data['user']['id'],
-  //                 userId: data['user']['id'],
-  //                 phone: data['user']['phone'],
-  //                 role: data['user']['role'],
-  //                 userStatus: data['user']['userStatus'],
-  //                 isRegistered: data['user']['isRegistered'],
-  //                 isPhoneVerified: data['user']['isPhoneVerified'],
-  //                 firstName: data['user']['firstName'],
-  //                 lastName: data['user']['lastName'],
-  //                 profilePicture: data['user']['profilePicture'] != null ? ProfilePicture(url: data['user']['profilePicture']['url'], altText: data['user']['profilePicture']['altText']) : null,
-  //                 isDeliveryPerson: currentUser.data?.user?.isDeliveryPerson ?? false,
-  //                 checkedJoinUs: currentUser.data?.user?.checkedJoinUs ?? false,
-  //                 checkedSelectServices: currentUser.data?.user?.checkedSelectServices ?? false,
-  //                 checkedSelectArea: currentUser.data?.user?.checkedSelectArea ?? false,
-  //               ),
-  //             ),
-  //           );
-  //
-  //           // ✅ Save updated user data
-  //           await userViewModel.saveUser(updatedUserModel);
-  //
-  //           print('✅ Access token refreshed successfully');
-  //           print('🔑 New access token: ${newAccessToken.substring(0, 20)}...');
-  //           print('🔄 Refresh token preserved: ${currentUser.data?.refreshToken?.substring(0, 20)}...');
-  //
-  //           // Notify all waiting requests with success
-  //           for (final completer in _refreshQueue) {
-  //             completer.complete(newAccessToken);
-  //           }
-  //           _refreshQueue.clear();
-  //
-  //           return newAccessToken;
-  //         } else {
-  //           print('❌ Invalid access token received in refresh response');
-  //           throw Exception('Invalid access token received');
-  //         }
-  //       } else {
-  //         print('❌ Invalid response format from refresh token API');
-  //         throw Exception('Invalid response format');
-  //       }
-  //     } else if (response.statusCode == 401 || response.statusCode == 403) {
-  //       // ✅ ONLY logout when refresh token itself is expired/invalid
-  //       print('❌ REFRESH TOKEN EXPIRED (401/403) - LOGGING OUT USER');
-  //       await _handleLogout();
-  //
-  //       for (final completer in _refreshQueue) {
-  //         completer.complete(null);
-  //       }
-  //       _refreshQueue.clear();
-  //
-  //       throw Exception('Refresh token expired');
-  //     } else {
-  //       // ✅ Other errors (500, network issues) - DON'T logout
-  //       print('❌ Refresh token API failed with status: ${response.statusCode} - NOT LOGGING OUT');
-  //
-  //       for (final completer in _refreshQueue) {
-  //         completer.complete(null);
-  //       }
-  //       _refreshQueue.clear();
-  //
-  //       throw Exception('Token refresh failed with status: ${response.statusCode}');
-  //     }
-  //   } on SocketException {
-  //     throw FetchDataException('No Internet Connection');
-  //   } on TimeoutException {
-  //     throw FetchDataException('Request timeout. Please try again');
-  //   } catch (e) {
-  //     if (e.toString().contains('Refresh token expired')) {
-  //       for (final completer in _refreshQueue) {
-  //         completer.complete(null);
-  //       }
-  //       _refreshQueue.clear();
-  //     } else {
-  //       // For other errors, still notify waiting requests
-  //       for (final completer in _refreshQueue) {
-  //         completer.complete(null);
-  //       }
-  //       _refreshQueue.clear();
-  //     }
-  //
-  //     return null;
-  //   } finally {
-  //     _isRefreshing = false;
-  //   }
-  // }
-  //
-  // /// Handle API response with automatic token refresh
-  // Future<dynamic> _handleResponse(https.Response response, String originalUrl, Future<dynamic> Function() retryFunction) async {
-  //   print('📡 Response from $originalUrl: ${response.statusCode}');
-  //
-  //   if (response.statusCode == 401) {
-  //     print('🔒 Unauthorized response detected for: $originalUrl');
-  //
-  //     // ✅ Check retry count for this URL
-  //     int retryCount = _retryAttempts[originalUrl] ?? 0;
-  //
-  //     if (retryCount >= _maxRetries) {
-  //       print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
-  //       _retryAttempts.remove(originalUrl);
-  //       throw UnauthorisedException('Session expired. Please auth_login again.');
-  //     }
-  //
-  //     // Check if this is an API call that should trigger refresh
-  //     if (_shouldRefreshToken(originalUrl)) {
-  //       print('🔄 Attempting token refresh for URL: $originalUrl (Retry: ${retryCount + 1}/$_maxRetries)');
-  //
-  //       try {
-  //         final newAccessToken = await _refreshAccessToken();
-  //
-  //         if (newAccessToken != null && newAccessToken.isNotEmpty) {
-  //           print('✅ Token refreshed successfully, retrying original request');
-  //
-  //           // ✅ Increment retry counter
-  //           _retryAttempts[originalUrl] = retryCount + 1;
-  //
-  //           // Retry the original request with new token
-  //           final result = await retryFunction();
-  //
-  //           // ✅ Success - clear retry counter
-  //           _retryAttempts.remove(originalUrl);
-  //
-  //           return result;
-  //         } else {
-  //           print('❌ Token refresh returned null - refresh token likely expired');
-  //           _retryAttempts.remove(originalUrl);
-  //           throw UnauthorisedException('Session expired. Please auth_login again.');
-  //         }
-  //       } catch (e) {
-  //         print('❌ Token refresh exception: $e');
-  //         _retryAttempts.remove(originalUrl);
-  //
-  //         if (e.toString().contains('Refresh token expired')) {
-  //           throw UnauthorisedException('Session expired. Please auth_login again.');
-  //         } else {
-  //           throw FetchDataException('Unable to refresh session: ${e.toString()}');
-  //         }
-  //       }
-  //     } else {
-  //       print('🔒 401 response for excluded endpoint: $originalUrl');
-  //       throw UnauthorisedException('Authentication failed');
-  //     }
-  //   }
-  //
-  //   // ✅ Success response - clear any retry counters for this URL
-  //   _retryAttempts.remove(originalUrl);
-  //
-  //   return returnResponse(response);
-  // }
+
+
+
+
+  /// Reconnect Socket & SSE with new token
+  Future<void> _reconnectServicesWithNewToken(String newAccessToken) async {
+    try {
+      final context = NavigationService.navigatorKey.currentContext;
+      if (context == null) {
+        return;
+      }
+      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      await socketProvider.disconnect();
+      await Future.delayed(Duration(milliseconds: 300));
+      await socketProvider.connectWithToken(accessToken: newAccessToken);
+
+
+      if (socketProvider.isConnected) {
+        print('✅ NetworkApiService: Socket reconnected successfully');
+      } else {
+        print('⚠️ NetworkApiService: Attempting auto-reconnect...');
+        await socketProvider.autoReconnect();
+      }
+
+      // ✅ Reconnect SSE
+      final sseService = Provider.of<SSENotificationService>(context, listen: false);
+      final notificationCountViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
+      final runningOrderCountViewModel = Provider.of<RunningOrderCountViewModel>(context, listen: false);
+      await sseService.stopListening();
+      await Future.delayed(Duration(milliseconds: 300));
+      await sseService.startListening();
+      await Future.delayed(Duration(milliseconds: 500));
+      if (!notificationCountViewModel.isInitialized) {
+        notificationCountViewModel.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
+      }
+      notificationCountViewModel.setInitialCount(sseService.currentCount);
+      if (!runningOrderCountViewModel.isInitialized) {
+        runningOrderCountViewModel.initializeCountListener(sseService.runningOrderCountStream);
+      }
+      runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
+      print('✅ NetworkApiService: All services reconnected with new token');
+    } catch (e) {
+      print('❌ NetworkApiService: Error reconnecting services - $e');
+    }
+  }
+
 
   /// Handle logout only when both tokens are expired/invalid
   Future<void> _handleLogout() async {

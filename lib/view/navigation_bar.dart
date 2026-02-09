@@ -67,8 +67,65 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
     _initializeNetworkMonitoring();
     WakelockPlus.enable();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureSSEInitialized();
+    });
   }
+  Future<void> _ensureSSEInitialized() async {
+    try {
+      final sseService = Provider.of<SSENotificationService>(context, listen: false);
+      final notificationCountViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
+      final runningOrderCountViewModel = Provider.of<RunningOrderCountViewModel>(context, listen: false);
 
+      // Check if SSE is already listening
+      if (!sseService.isListening) {
+        print("🔔 NavigationScreen: SSE not running, initializing...");
+
+        await sseService.startListening();
+        await Future.delayed(Duration(milliseconds: 500));
+
+        // Initialize listeners if not already initialized
+        if (!notificationCountViewModel.isInitialized) {
+          notificationCountViewModel.initializeCountListener(
+            sseService.notificationCountStream,
+            sseService.notificationIncrementStream,
+          );
+        }
+        notificationCountViewModel.setInitialCount(sseService.currentCount);
+
+        if (!runningOrderCountViewModel.isInitialized) {
+          runningOrderCountViewModel.initializeCountListener(
+            sseService.runningOrderCountStream,
+          );
+        }
+        runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
+
+        print("✅ NavigationScreen: SSE initialized");
+        print("   Notification count: ${sseService.currentCount}");
+        print("   Running order count: ${sseService.currentRunningOrderCount}");
+      } else {
+        print("✅ NavigationScreen: SSE already running");
+
+        // Ensure listeners are setup even if SSE is already running
+        if (!notificationCountViewModel.isInitialized) {
+          notificationCountViewModel.initializeCountListener(
+            sseService.notificationCountStream,
+            sseService.notificationIncrementStream,
+          );
+          notificationCountViewModel.setInitialCount(sseService.currentCount);
+        }
+
+        if (!runningOrderCountViewModel.isInitialized) {
+          runningOrderCountViewModel.initializeCountListener(
+            sseService.runningOrderCountStream,
+          );
+          runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
+        }
+      }
+    } catch (e) {
+      print("❌ NavigationScreen: Error ensuring SSE initialization - $e");
+    }
+  }
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
