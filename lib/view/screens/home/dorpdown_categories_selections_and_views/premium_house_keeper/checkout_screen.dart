@@ -711,7 +711,6 @@
 
 
 ///For Ssl Integration using store id and Password
-
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/iagree_terms&condition/iagree_terms&condition.dart';
@@ -723,9 +722,9 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -743,7 +742,9 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
   final String customerAddress;
   final VoidCallback onSuccess;
   final Function(String)? onAddressUpdate;
-    final double transportFee;
+  final double transportFee;
+  final List<Datum> allServices; // ✅ NEW: All services from all categories
+
   const CheckoutHouseKeeperScreen({
     Key? key,
     required this.serviceQuantities,
@@ -756,7 +757,8 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
     required this.customerAddress,
     required this.onSuccess,
     this.onAddressUpdate,
-        required this.transportFee,
+    required this.transportFee,
+    required this.allServices, // ✅ NEW
   }) : super(key: key);
 
   @override
@@ -787,48 +789,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     super.dispose();
   }
 
-  // Future<void> _handlePaymentResult({required CheckoutViewModel viewModel, required SSLPaymentResult paymentResult, required String trackingId}) async {
-  //   if (!mounted) return;
-  //
-  //   if (paymentResult.success) {
-  //     _clearAllData();
-  //     // Navigator.pop(context);
-  //     Navigator.pushReplacementNamed(context, RoutesName.confirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A'});
-  //   } else if (paymentResult.status == 'FAILED') {
-  //     print("---------------------Handle Payment result -----------");
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       if (mounted) {
-  //         Navigator.pushReplacementNamed(
-  //           context,
-  //           RoutesName.failedOrderScreenWidget,
-  //           arguments: {
-  //             'trackingId': trackingId,
-  //             'valId': paymentResult.validationId ?? 'N/A',
-  //             'reason': 'Payment transaction failed',
-  //             'errorMessage': paymentResult.errorMessage ?? 'The payment could not be completed. Please try again.',
-  //           },
-  //         );
-  //       }
-  //     });
-  //   } else if (paymentResult.status == 'CANCELLED') {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       if (mounted) {
-  //         Utils.flushBarErrorMessage("Payment was cancelled", context);
-  //       }
-  //     });
-  //   } else {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       if (mounted) {
-  //         Utils.flushBarErrorMessage(paymentResult.errorMessage ?? "Payment status unclear", context);
-  //       }
-  //     });
-  //   }
-  // }
-
-// Add this to your checkout_housekeeper_screen.dart
-
-// Update the _handlePaymentResult method:
-
   Future<void> _handlePaymentResult({
     required CheckoutViewModel viewModel,
     required SSLPaymentResult paymentResult,
@@ -858,7 +818,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               'valId': paymentResult.validationId ?? 'N/A',
               'reason': 'Payment transaction failed',
               'errorMessage': paymentResult.errorMessage ?? 'The payment could not be completed. Please try again.',
-              'isCancelled': false, // Payment failed
+              'isCancelled': false,
             },
           );
         }
@@ -875,7 +835,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               'valId': paymentResult.validationId ?? 'N/A',
               'reason': 'Payment cancelled by user',
               'errorMessage': 'You cancelled the payment. You can retry whenever you\'re ready.',
-              'isCancelled': true, // Payment cancelled
+              'isCancelled': true,
             },
           );
         }
@@ -891,12 +851,12 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       });
     }
   }
+
   Future<void> _handleConfirm() async {
     final checkoutViewModel = Provider.of<CheckoutViewModel>(context, listen: false);
-    final taskViewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final shiftTimeViewModel = Provider.of<GetallShifttimeViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
-    // ✅ Check if already processing using ViewModel state
+
     if (bookingViewModel.createBookPremiumHouseKeeperLoading) {
       print('⚠️ Already processing payment, ignoring duplicate tap');
       return;
@@ -917,8 +877,9 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       Utils.flushBarErrorMessage("Please accept the Terms & Conditions to proceed", context);
       return;
     }
-    // Get services data
-    final services = taskViewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
+
+    // ✅ UPDATED: Use allServices from widget instead of ViewModel
+    final services = widget.allServices;
     final shiftTimes = shiftTimeViewModel.getAllShiftTimeData.data?.data ?? [];
 
     // Prepare tasks
@@ -964,7 +925,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
     print('Booking Data: $bookingData');
 
-    // ✅ UPDATED: Call booking API with simplified callback
     await bookingViewModel.bookPremiumHouseKeeperPostApi(
         context,
         bookingData,
@@ -974,10 +934,9 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
           if (checkoutViewModel.selectedPaymentMethod == 'online' && trackingId != null) {
             print('---------------A----------------');
 
-            // ✅ Initiate SSL Commerz payment client-side
             final paymentResult = await checkoutViewModel.initiatePayment(
-                trackingId: trackingId,
-                totalAmount: totalAmount,
+              trackingId: trackingId,
+              totalAmount: totalAmount,
               customerName: _fullNameController.text.trim(),
               customerPhone: _phoneController.text.trim(),
               customerEmail: null,
@@ -993,7 +952,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
             );
 
           } else if (checkoutViewModel.selectedPaymentMethod == 'cash') {
-            // Cash on delivery flow
             _clearAllData();
             Navigator.pop(context);
             widget.onSuccess();
@@ -1034,22 +992,31 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer3<CheckoutViewModel, GetallPremiumHouseKeeperTaskViewModel, PostBookPremiumHouseKeeperViewModel>(
-      builder: (context, checkoutVM, taskVM, bookingVM, _) {
-        final services = taskVM.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
+    return Consumer2<CheckoutViewModel, PostBookPremiumHouseKeeperViewModel>(
+      builder: (context, checkoutVM, bookingVM, _) {
+        // ✅ UPDATED: Use allServices from widget
+        final services = widget.allServices;
 
-        double subtotal = checkoutVM.calculateTotal(serviceQuantities: widget.serviceQuantities, selectedTaskItems: widget.selectedTaskItems, services: services);
+        double subtotal = checkoutVM.calculateTotal(
+            serviceQuantities: widget.serviceQuantities,
+            selectedTaskItems: widget.selectedTaskItems,
+            services: services
+        );
         double transport = widget.transportFee;
         double total = subtotal + transport;
-        double saved = checkoutVM.calculateSaved(serviceQuantities: widget.serviceQuantities, selectedTaskItems: widget.selectedTaskItems, services: services);
+        double saved = checkoutVM.calculateSaved(
+            serviceQuantities: widget.serviceQuantities,
+            selectedTaskItems: widget.selectedTaskItems,
+            services: services
+        );
 
         return SafeArea(
           child: Scaffold(
             backgroundColor: AppColors.containerBackground(context),
             body: ResPonsiveUi(
-              mobile: _buildBody(context, checkoutVM, bookingVM,total ,subtotal, saved),
-              desktop: _buildBody(context, checkoutVM, bookingVM, total,subtotal, saved),
-              tablet: _buildBody(context, checkoutVM, bookingVM, total,subtotal, saved),
+              mobile: _buildBody(context, checkoutVM, bookingVM, total, subtotal, saved),
+              desktop: _buildBody(context, checkoutVM, bookingVM, total, subtotal, saved),
+              tablet: _buildBody(context, checkoutVM, bookingVM, total, subtotal, saved),
             ),
           ),
         );
@@ -1057,18 +1024,16 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     );
   }
 
-  Widget _buildBody(BuildContext context, CheckoutViewModel viewModel, PostBookPremiumHouseKeeperViewModel bookingVM, double total,double subtotal, double saved) {
+  Widget _buildBody(BuildContext context, CheckoutViewModel viewModel, PostBookPremiumHouseKeeperViewModel bookingVM, double total, double subtotal, double saved) {
     final screenWidth = MediaQuery.of(context).size.width * 1;
     final screenHeight = MediaQuery.of(context).size.height * 1;
     return Column(
       children: [
-        // Header
         GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Container(height: 60, child: AppBarHeader("Checkout")),
         ),
 
-        // Form Content
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(screenHeight * 0.02),
@@ -1100,21 +1065,16 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                   getTextStyle: (context, {weight}) => AppTextStyles.textSize12(context, weight: weight ?? FontWeight.w400),
                 ),
                 SizedboxSpaccing.height03(context)
-
               ],
             ),
           ),
         ),
 
-        // Bottom Confirm Button
         _buildBottomConfirmButton(context, bookingVM, total, saved, viewModel),
       ],
     );
   }
 
-
-
-  // ✅ Handle Edit Address Navigation
   Future<void> _handleEditAddress() async {
     final result = await Navigator.pushNamed(context, RoutesName.addLocationScreenWidget);
 
@@ -1132,7 +1092,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
         _addressController.text = newAddress;
 
-        // ✅ Notify parent (BookNowScreen) about address update
         if (widget.onAddressUpdate != null && newAddress.isNotEmpty) {
           widget.onAddressUpdate!(newAddress);
         }
@@ -1171,7 +1130,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
           SizedboxSpaccing.height02(context),
           _buildDetailRow('Phone', widget.customerPhone),
           SizedboxSpaccing.height02(context),
-          _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true), // ✅ Use controller text if available
+          _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true),
         ],
       ),
     );
@@ -1231,9 +1190,10 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       ],
     );
   }
+
   Widget _buildSelectedServicesList(double subtotal, double saved) {
-    final taskViewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
-    final services = taskViewModel.getAllPremiumHouseKeeperTaskData.data?.data ?? [];
+    // ✅ UPDATED: Use allServices from widget
+    final services = widget.allServices;
 
     // Filter services with quantity > 0
     final selectedServices = services.where((service) {
@@ -1244,10 +1204,12 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     if (selectedServices.isEmpty) {
       return SizedBox.shrink();
     }
+
     double transport = widget.transportFee;
     double total = subtotal + transport;
     final screenWidth = MediaQuery.of(context).size.width * 1;
     final screenHeight = MediaQuery.of(context).size.height * 1;
+
     return Column(
       children: [
         SectionHeader(title: 'Booking Summary', titleWidth: screenWidth * 0.6, showSeeAll: false),
@@ -1265,10 +1227,8 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               ...selectedServices.map((service) {
                 int quantity = widget.serviceQuantities[service.id ?? ''] ?? 0;
 
-                // Get selected items
                 Set<String> selectedItems = widget.selectedTaskItems[service.id ?? ''] ?? service.houseKeeperTaskItems!.map((item) => item.id ?? '').toSet();
 
-                // Calculate prices
                 double originalPrice = 0;
                 for (var item in service.houseKeeperTaskItems ?? []) {
                   if (selectedItems.contains(item.id ?? '')) {
@@ -1285,12 +1245,11 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                   }
                 }
 
-                // Total prices (multiplied by quantity)
                 double totalOriginalPrice = originalPrice * quantity;
                 double totalDiscountedPrice = discountedPrice * quantity;
 
                 return Container(
-                  padding: EdgeInsets.only(bottom: screenHeight*0.02),
+                  padding: EdgeInsets.only(bottom: screenHeight * 0.02),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1334,19 +1293,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               _buildPriceRow('Transport', transport),
               SizedboxSpaccing.height02(context),
               _buildPriceRow('Subtotal', subtotal),
-              // SizedboxSpaccing.height02(context),
-              // if (saved > 0) ...[SizedboxSpaccing.height005(context), _buildPriceRow('Saved', saved, isGreen: true)],
-              // Divider(height: 20, color: AppColors.border(context)),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //   children: [
-              //     Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              //     Text(
-              //       '৳${total.toStringAsFixed(2)}',
-              //       style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.button(context)),
-              //     ),
-              //   ],
-              // ),
             ],
           ),
         ),
@@ -1370,7 +1316,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   Widget _buildBottomConfirmButton(BuildContext context, PostBookPremiumHouseKeeperViewModel bookingVM, double total, double saved, CheckoutViewModel checkoutVM) {
     int totalItems = checkoutVM.getTotalItems(widget.serviceQuantities);
 
-    // ✅ Only use ViewModel loading state
     bool isButtonDisabled = bookingVM.createBookPremiumHouseKeeperLoading;
 
     return Container(
@@ -1404,7 +1349,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               ],
             ),
           ),
-          // ✅ Wrap with AbsorbPointer to prevent taps when disabled
           AbsorbPointer(
             absorbing: isButtonDisabled,
             child: GestureDetector(
@@ -1440,4 +1384,5 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         ],
       ),
     );
-  }}
+  }
+}
