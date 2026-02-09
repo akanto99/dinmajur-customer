@@ -15,6 +15,7 @@ import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_mo
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/book_family_event_cooking_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/get_confirmedbooking_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_housekeeper_category_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/delete_location_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
@@ -145,6 +146,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PatchFreelancerRatingViewModel()),
         //==============>Premium House Keeper
         ChangeNotifierProvider(create: (_) => CheckCoverageViewModel()),
+        ChangeNotifierProvider(create: (_) => GetallHousekeeperCategoryViewModel()),
         ChangeNotifierProvider(create: (_) => GetallPremiumHouseKeeperTaskViewModel()),
         ChangeNotifierProvider(create: (_) => GetallShifttimeViewModel()),
         ChangeNotifierProvider(create: (_) => PostBookPremiumHouseKeeperViewModel()),

@@ -63,6 +63,7 @@ class AppUrl {
   static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
   //========>Premium house Keeper
   static var checkCoverageGetAPI = baseUrl + '/customers/check-coverage';
+  static var getAllPremiumHouseKeeperCategoryGetAPI = baseUrl + '/house-keeper-categories/get-all';
   static var getAllPremiumHouseKeeperGetAPI = baseUrl + '/house-keeper-tasks';
   static var getAllShiftTimeGetAPI = baseUrl + '/shifts/get-all';
   static var getAllShiftTimeByDateGetAPI = baseUrl + '/shifts';

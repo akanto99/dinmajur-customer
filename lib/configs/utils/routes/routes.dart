@@ -250,6 +250,7 @@ class Routes {
               customerAddress: args['customerAddress'] ,
               onAddressUpdate: args['onAddressUpdate'],
               transportFee: args['transportFee'],
+              allServices: args['allServices'],
               onSuccess: () {
                 // This callback will be called from checkout screen
               },
