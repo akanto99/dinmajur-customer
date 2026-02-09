@@ -12,7 +12,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/pa
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:mobkit_dashed_border/mobkit_dashed_border.dart';
+// import 'package:mobkit_dashed_border/mobkit_dashed_border.dart';
 import 'package:provider/provider.dart';
 
 class PaymentMethod extends StatefulWidget {

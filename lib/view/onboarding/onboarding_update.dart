@@ -250,7 +250,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
       case 2:
         return "assets/images/onboard/bazar.svg";
       default:
-        return "assets/images/onboard/onboard1.svg";
+        return "assets/images/onboard/house_keeper.svg";
     }
   }
 
