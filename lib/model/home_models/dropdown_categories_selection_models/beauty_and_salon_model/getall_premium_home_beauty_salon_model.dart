@@ -43,6 +43,7 @@ class Datum {
   int? position;
   Image? image;
   dynamic banner;
+    bool? viewInPopup;
   List<Item>? items;
 
   Datum({
@@ -52,6 +53,7 @@ class Datum {
     this.position,
     this.image,
     this.banner,
+       this.viewInPopup,
     this.items,
   });
 
@@ -62,6 +64,7 @@ class Datum {
     position: json["position"],
     image: json["image"] == null ? null : Image.fromJson(json["image"]),
     banner: json["banner"],
+        viewInPopup: json["viewInPopup"],
     items: json["items"] == null ? [] : List<Item>.from(json["items"]!.map((x) => Item.fromJson(x))),
   );
 
@@ -72,6 +75,7 @@ class Datum {
     "position": position,
     "image": image?.toJson(),
     "banner": banner,
+      "viewInPopup": viewInPopup,
     "items": items == null ? [] : List<dynamic>.from(items!.map((x) => x.toJson())),
   };
 }

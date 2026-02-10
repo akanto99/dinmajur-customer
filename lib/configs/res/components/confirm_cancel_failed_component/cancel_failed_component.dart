@@ -176,7 +176,7 @@ class FailedCancelledConfirmationUI extends StatelessWidget {
           SizedBox(height: 16),
 
           // Date & Time
-          _buildDetailColumn('Date & Time', data.dateTime, context),
+          _buildDetailColumn('Date & Time', _formatDateTime(data.dateTime), context),
 
           SizedBox(height: 16),
 
@@ -361,5 +361,40 @@ class FailedCancelledConfirmationUI extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+String _formatDateTime(String dateTime) {
+  try {
+    // Split the date and time parts
+    // Expected format: "11 Feb 2026, 18:00"
+    final parts = dateTime.split(', ');
+    if (parts.length != 2) return dateTime; // Return original if format is unexpected
+
+    final datePart = parts[0]; // "11 Feb 2026"
+    final timePart = parts[1]; // "18:00"
+
+    // Parse the time
+    final timeComponents = timePart.split(':');
+    if (timeComponents.length != 2) return dateTime;
+
+    int hour = int.parse(timeComponents[0]);
+    final minute = timeComponents[1];
+
+    // Determine AM/PM
+    String period = 'AM';
+    if (hour >= 12) {
+      period = 'PM';
+      if (hour > 12) {
+        hour = hour - 12;
+      }
+    }
+    if (hour == 0) {
+      hour = 12; // Midnight case
+    }
+
+    // Format the time with AM/PM
+    return '$datePart, $hour:$minute $period';
+  } catch (e) {
+    return dateTime; // Return original if any error occurs
   }
 }

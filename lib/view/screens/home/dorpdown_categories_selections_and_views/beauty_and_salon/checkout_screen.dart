@@ -632,9 +632,11 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
+import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/get_bookedslot_model.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/book_premium_home_beauty_salon_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_bookedslot_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -780,6 +782,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _handleConfirmBooking() async {
     final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookPremiumHomeBeautySalonViewModel>(context, listen: false);
+
+    final bookedSlotVM = Provider.of<GetBookedSlotViewModel>(context, listen: false);
+    final List<BookedSlotDatum> slots = bookedSlotVM.getBookedSlotData.data?.data ?? [];
+    final selectedSlot = slots.firstWhere(
+          (slot) => slot.time == checkoutVM.selectedServiceTime,
+      orElse: () => BookedSlotDatum(),
+    );
+    final String timeSlotId = selectedSlot.id ?? '';
     if (bookingViewModel.createBookPremiumHomeBeautySalonLoading) {
       print('⚠️ Already processing payment, ignoring duplicate tap');
       return;
@@ -822,6 +832,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       specialRequest: _specialRequestController.text,
       selectedDate: checkoutVM.selectedDate!,
       serviceTime: checkoutVM.selectedServiceTime!,
+      timeSlot:timeSlotId,
       tasks: tasks,
       paymentMethod: checkoutVM.selectedPaymentMethod,
     );
@@ -1206,7 +1217,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               }).toList(),
               _buildDetailRow1('Date', DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate ?? DateTime.now())),
               SizedboxSpaccing.height02(context),
-              _buildDetailRow1('Slot', checkoutVM.selectedServiceTime ?? 'Not selected'),
+              _buildDetailRow1('Slot', _formatTo12Hour(checkoutVM.selectedServiceTime ?? '')),
               SizedboxSpaccing.height02(context),
               _buildPriceRow('Transport', widget.transportFee),
               SizedboxSpaccing.height02(context),
@@ -1320,5 +1331,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ],
       ),
     );
+  }
+}
+String _formatTo12Hour(String time) {
+  if (time.isEmpty) return time;
+  try {
+    final parts = time.split(':');
+    int hour = int.parse(parts[0]);
+    final String minute = parts.length > 1 ? parts[1] : '00';
+    final String period = hour >= 12 ? 'PM' : 'AM';
+    if (hour == 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+    return '$hour:$minute $period';
+  } catch (_) {
+    return time;
   }
 }

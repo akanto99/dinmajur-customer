@@ -414,6 +414,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     required String? specialRequest,
     required DateTime selectedDate,
     required String serviceTime,
+    required String timeSlot,
     required List<Map<String, dynamic>> tasks,
     required String? paymentMethod,
   }) {
@@ -425,6 +426,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
       'userId': userId,
       'fullName': fullName.trim(),
       'time': serviceTime,
+      'timeSlot':timeSlot,
       'phone': phone.trim(),
       'fullAddress': address.trim(),
       'notes': specialRequest?.trim().isEmpty == true
