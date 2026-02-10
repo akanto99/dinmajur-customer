@@ -97,9 +97,13 @@ dependencies:
   onesignal_flutter: ^5.3.5
 #  firebase_core: ^4.3.0
   wakelock_plus: ^1.4.0
+
   flutter_sticky_header: ^0.8.0
+
   pinput: ^6.0.1
   smart_auth: ^3.2.0
+
+  carousel_slider: ^5.1.2
 
 
   flutter_localizations:

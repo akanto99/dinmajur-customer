@@ -1,5 +1,6 @@
+///Old Stable Design
+
 // import 'dart:convert';
-//
 // import 'package:dinmajur_customer/configs/res/color.dart';
 // import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 // import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -15,11 +16,13 @@
 // import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/servicedetails_dialouge_widget.dart';
 // import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
 // import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
-// import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_categorytab.dart';
+// import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_categorytab.dart';
+// import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_scrollable_categorytab.dart';
 // import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
 // import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/book_premium_home_beauty_salon_view_model.dart';
 // import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
 // import 'package:flutter/material.dart';
+// import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 // import 'package:intl/intl.dart';
 // import 'package:provider/provider.dart';
 // import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -37,7 +40,6 @@
 //     required this.customerPhone,
 //     required this.customerAddress,
 //     this.isFromHome = false,
-//
 //   }) : super(key: key);
 //
 //   @override
@@ -49,16 +51,12 @@
 //   int _selectedTabIndex = 0;
 //   final Map<int, GlobalKey> _categoryKeys = {};
 //   Map<String, int> _serviceQuantities = {};
-//
 //   late String _currentCustomerAddress;
-//
 //
 //   @override
 //   void initState() {
 //     super.initState();
 //     _currentCustomerAddress = widget.customerAddress;
-//
-//
 //
 //     WidgetsBinding.instance.addPostFrameCallback((_) {
 //       Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false)
@@ -78,22 +76,6 @@
 //         _categoryKeys[i] = GlobalKey();
 //       }
 //     }
-//   }
-//
-//   void _scrollToCategory(int index) {
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       if (_categoryKeys.containsKey(index)) {
-//         final keyContext = _categoryKeys[index]?.currentContext;
-//         if (keyContext != null) {
-//           Scrollable.ensureVisible(
-//             keyContext,
-//             duration: Duration(milliseconds: 500),
-//             curve: Curves.easeInOut,
-//             alignment: 0.1,
-//           );
-//         }
-//       }
-//     });
 //   }
 //
 //   void _updateQuantity(String serviceId, int change) {
@@ -144,12 +126,42 @@
 //   int _getTotalItems() {
 //     return _serviceQuantities.entries.where((entry) => entry.value > 0).length;
 //   }
+//   bool _isScrolling = false;
+//   ///almost correct
+//   void _scrollToCategory(int index) {
+//     if (_categoryKeys[index]?.currentContext == null) return;
+//
+//     setState(() {
+//       _isScrolling = true;
+//       _selectedTabIndex = index;
+//     });
+//
+//     // Small delay to ensure layout is complete
+//     Future.delayed(Duration(milliseconds: 100), () {
+//       final RenderBox? renderBox = _categoryKeys[index]?.currentContext?.findRenderObject() as RenderBox?;
+//       if (renderBox == null) {
+//         setState(() => _isScrolling = false);
+//         return;
+//       }
+//
+//       final position = renderBox.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
+//       final offset = _mainScrollController.offset +( position.dy - 60)-20; // total 80 is AppBarHeader height
+//
+//       _mainScrollController.animateTo(
+//         offset,
+//         duration: Duration(milliseconds: 400),
+//         curve: Curves.easeInOut,
+//       ).then((_) {
+//         setState(() => _isScrolling = false);
+//       });
+//     });
+//   }
+//
 //
 //   @override
 //   Widget build(BuildContext context) {
 //     return WillPopScope(
 //       onWillPop: () async {
-//         // ✅ Return null to indicate user backed out
 //         Navigator.pop(context, null);
 //         return false;
 //       },
@@ -173,7 +185,7 @@
 //     return Column(
 //       children: [
 //         GestureDetector(
-//           onTap: () =>Navigator.pop(context, null),
+//           onTap: () => Navigator.pop(context, null),
 //           child: Container(
 //             height: 60,
 //             child: AppBarHeader("Beauty & Salon"),
@@ -223,111 +235,171 @@
 //                 );
 //               }
 //
-//               return SingleChildScrollView(
+//               return CustomScrollView(
 //                 controller: _mainScrollController,
-//                 child: Column(
-//                   children: [
-//                     SizedboxSpaccing.height03(context),
-//                     Container(
-//                       width: screenWidth * 0.9,
-//                       child: Column(
-//                         children: [
-//                           Row(
-//                             mainAxisAlignment: MainAxisAlignment.center,
+//                 slivers: [
+//                   SliverToBoxAdapter(
+//                     child: Column(
+//                       children: [
+//                         SizedboxSpaccing.height03(context),
+//                         Container(
+//                           width: screenWidth * 0.9,
+//                           child: Column(
 //                             children: [
-//                               Text(
-//                                 "Premium",
-//                                 style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
-//                                 textAlign: TextAlign.center,
+//                               Row(
+//                                 mainAxisAlignment: MainAxisAlignment.center,
+//                                 children: [
+//                                   Text(
+//                                     "Premium",
+//                                     style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
+//                                     textAlign: TextAlign.center,
+//                                   ),
+//                                   Text(
+//                                     " Home Beauty & Salon",
+//                                     style: AppTextStyles.textSize20(
+//                                       context,
+//                                       weight: FontWeight.w600,
+//                                       color: Color(0xffD78503),
+//                                     ),
+//                                     textAlign: TextAlign.center,
+//                                   ),
+//                                 ],
 //                               ),
+//                               SizedboxSpaccing.height01(context),
 //                               Text(
-//                                 " Home Beauty & Salon",
-//                                 style: AppTextStyles.textSize20(context, weight: FontWeight.w600,color: Color(0xffD78503)),
+//                                 "Trained Beauticians • Premium Products Salon \n•  Experience at Home",
+//                                 style: AppTextStyles.textSize14(
+//                                   context,
+//                                   weight: FontWeight.w400,
+//                                 ),
 //                                 textAlign: TextAlign.center,
 //                               ),
 //                             ],
 //                           ),
-//                           SizedboxSpaccing.height01(context),
-//                           Text(
-//                             "Trained Beauticians • Premium Products Salon \n•  Experience at Home",
-//                             style: AppTextStyles.textSize14(
-//                               context,
-//                               weight: FontWeight.w400,
-//                             ),
-//                             textAlign: TextAlign.center,
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                     SizedboxSpaccing.height03(context),
-//                     DynamicCategoryTabs(
-//                       categories: data,
-//                       selectedIndex: _selectedTabIndex,
-//                       onCategoryTap: (index) {
-//                         setState(() => _selectedTabIndex = index);
-//                         _scrollToCategory(index);
-//                       },
-//                       getName: (category) => category.name ?? '',
-//                       getImageUrl: (category) => category.image?.url,
-//                       getButtonColor: (context) => AppColors.button(context),
-//                       getBackgroundColor: (context) => AppColors.border(context),
-//                       getBorderColor: (context) => AppColors.border(context),
-//                       getSelectedIconColor: (context) => AppColors.whiteColor,
-//                       getSelectedImageColor: (context) => AppColors.whiteColor,
-//                       getTextColor: (context) => AppColors.textPrimary(context),
-//                       getTextStyle: (context, isSelected) => AppTextStyles.textSize12(
-//                         context,
-//                         weight: isSelected ? FontWeight.w600 : FontWeight.w400,
-//                         color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
-//                       ),
-//                       defaultIcon: Icons.spa,
-//                       supportSvg: false,
-//                     ),
-//                     SizedBox(height: 25,),
-//                     DynamicServiceList<Datum, Item>(
-//                       categories: data,
-//                       categoryKeys: _categoryKeys,
-//                       screenWidth: screenWidth,
-//                       screenHeight: screenHeight,
-//                       isSimpleList: false,
-//                       getItems: (category) => category.items,
-//                       getCategoryName: (category) => category.name ?? '',
-//                       categoryHeaderStyle: (context) => AppTextStyles.textSize18(context, weight: FontWeight.w600),
-//                       emptyStateStyle: (context) => AppTextStyles.textSize16(context),
-//                       emptyStateSpacing: (context) => SizedBox(height: 35,),
-//                       buildServiceCard: (service, width, height, isLastItem) {
-//                         int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
-//                         double originalPrice = service.originalPrice?.toDouble() ?? 0;
-//                         double discountedPrice = service.salePrice?.toDouble() ?? originalPrice;
-//
-//                         return DynamicServiceCard(
-//                           imageUrl: service.image?.url,
-//                           defaultIcon: Icons.spa,
-//                           serviceName: service.name ?? '',
-//                           viewDetailsText: 'View Task Details',
-//                           onViewDetails: () => _showTaskDetailsDialog(service),
-//                           discountedPrice: discountedPrice,
-//                           originalPrice: originalPrice,
-//                           showDiscount: service.discountValue != null && originalPrice > discountedPrice,
-//                           quantity: quantity,
-//                           onAdd: () => _updateQuantity(service.id ?? '', 1),
-//                           onRemove: () => _updateQuantity(service.id ?? '', -1),
-//                           onIncrease: () => _updateQuantity(service.id ?? '', 1),
-//                           showRoomNumber: quantity > 0,
-//                           isLastItem: isLastItem,
+//                         ),
+//                         SizedboxSpaccing.height03(context),
+//                         CategoryTabs(
+//                           categories: data,
+//                           iconSize: 60,
+//                           selectedIndex: _selectedTabIndex,
+//                           onCategoryTap: (index) {
+//                             _scrollToCategory(index); // Changed this line
+//                           },
+//                           getName: (category) => category.name ?? '',
+//                           getImageUrl: (category) => category.image?.url,
 //                           getButtonColor: (context) => AppColors.button(context),
-//                           getBackgroundColor: (context) => AppColors.containerBackground(context),
+//                           getBackgroundColor: (context) => AppColors.border(context),
 //                           getBorderColor: (context) => AppColors.border(context),
-//                           getSubtitleColor: (context) => AppColors.subtitle(context),
+//                           getSelectedIconColor: (context) => AppColors.whiteColor,
+//                           getSelectedImageColor: (context) => AppColors.whiteColor,
 //                           getTextColor: (context) => AppColors.textPrimary(context),
-//                           getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.normal, color: color ?? AppColors.textPrimary(context)),
-//                           getSpacing: (context) => SizedboxSpaccing.width01(context),
-//                         );
-//                       },
+//                           getTextStyle: (context, isSelected) => AppTextStyles.textSize12(
+//                             context,
+//                             weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+//                             color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
+//                           ),
+//                           defaultIcon: Icons.spa,
+//                           supportSvg: false,
+//                         ),
+//                         SizedBox(height: 20),
+//                       ],
 //                     ),
-//                     SizedboxSpaccing.height045(context),
-//                   ],
-//                 ),
+//                   ),
+//                   ...data.asMap().entries.map((entry) {
+//                     int index = entry.key;
+//                     Datum category = entry.value;
+//                     final items = category.items ?? [];
+//
+//                     return SliverStickyHeader(
+//                       header: Container(
+//                         key: _categoryKeys[index],
+//                         width: screenWidth,
+//                         color: AppColors.containerBackground(context),
+//                         child: Center(
+//                           child: Container(
+//                             width: screenWidth * 0.9,
+//                             padding: EdgeInsets.symmetric(vertical: 12),
+//                             decoration: BoxDecoration(
+//                               color: AppColors.containerBackground(context),
+//                               border: Border(
+//                                 bottom: BorderSide(width: 1, color: AppColors.border(context)),
+//                               ),
+//                             ),
+//                             child: Column(
+//                               crossAxisAlignment: CrossAxisAlignment.start,
+//                               mainAxisAlignment: MainAxisAlignment.center,
+//                               children: [
+//                                 // Text(
+//                                 //   category.name ?? '',
+//                                 //   style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+//                                 // ),
+//                                 Text(
+//                                   category.name ?? '',
+//                                   style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+//                                   maxLines: 1,
+//                                   overflow: TextOverflow.ellipsis,
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+//                         ),
+//                       ),
+//                       sliver: SliverList(
+//                         delegate: SliverChildBuilderDelegate(
+//                               (context, itemIndex) {
+//                             if (itemIndex >= items.length) return null;
+//
+//                             final service = items[itemIndex];
+//                             bool isLastItem = itemIndex == items.length - 1;
+//                             int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
+//                             double originalPrice = service.originalPrice?.toDouble() ?? 0;
+//                             double discountedPrice = service.salePrice?.toDouble() ?? originalPrice;
+//
+//                             return Container(
+//                               width: screenWidth,
+//                               child: Center(
+//                                 child: Container(
+//                                   width: screenWidth * 0.9,
+//                                   child: DynamicServiceCard(
+//                                     imageUrl: service.image?.url,
+//                                     defaultIcon: Icons.spa,
+//                                     serviceName: service.name ?? '',
+//                                     viewDetailsText: 'View Task Details',
+//                                     onViewDetails: () => _showTaskDetailsDialog(service),
+//                                     discountedPrice: discountedPrice,
+//                                     originalPrice: originalPrice,
+//                                     showDiscount: service.discountValue != null && originalPrice > discountedPrice,
+//                                     quantity: quantity,
+//                                     onAdd: () => _updateQuantity(service.id ?? '', 1),
+//                                     onRemove: () => _updateQuantity(service.id ?? '', -1),
+//                                     onIncrease: () => _updateQuantity(service.id ?? '', 1),
+//                                     showRoomNumber: quantity > 0,
+//                                     isLastItem: isLastItem,
+//                                     getButtonColor: (context) => AppColors.button(context),
+//                                     getBackgroundColor: (context) => AppColors.containerBackground(context),
+//                                     getBorderColor: (context) => AppColors.border(context),
+//                                     getSubtitleColor: (context) => AppColors.subtitle(context),
+//                                     getTextColor: (context) => AppColors.textPrimary(context),
+//                                     getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(
+//                                       context,
+//                                       weight: weight ?? FontWeight.normal,
+//                                       color: color ?? AppColors.textPrimary(context),
+//                                     ),
+//                                     getSpacing: (context) => SizedboxSpaccing.width02(context),
+//                                   ),
+//                                 ),
+//                               ),
+//                             );
+//                           },
+//                           childCount: items.length,
+//                         ),
+//                       ),
+//                     );
+//                   }).toList(),
+//                   SliverToBoxAdapter(
+//                     child: SizedBox(height: screenHeight / 1.5),
+//                   ),
+//                 ],
 //               );
 //             },
 //           ),
@@ -353,6 +425,7 @@
 //       ],
 //     );
 //   }
+//
 //   void _showCartDialog() {
 //     final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
 //     final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
@@ -399,6 +472,7 @@
 //       ),
 //     );
 //   }
+//
 //   void _showTaskDetailsDialog(Item service) {
 //     showDialog(
 //       context: context,
@@ -429,12 +503,10 @@
 //       return;
 //     }
 //
-//     // Get the data before navigation
 //     final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
 //     final categories = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
 //     final transportFeeValue = viewModel.getAllPremiumHomeBeautySalonData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 //
-//     // Navigate to CheckoutScreen using named route
 //     final result = await Navigator.pushNamed(
 //       context,
 //       RoutesName.beautyCheckoutScreen,
@@ -455,17 +527,18 @@
 //       },
 //     );
 //
-//     // If booking was successful, clear the cart
 //     if (result == true) {
 //       setState(() {
 //         _serviceQuantities.clear();
 //       });
 //     }
 //   }
-//
 // }
+
+///New design for the combo
 import 'dart:convert';
 
+import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -475,16 +548,13 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart' hide Image;
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/cart_dialouge.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/checkout_dialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/servicedetails_dialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_categorytab.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_scrollable_categorytab.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/book_premium_home_beauty_salon_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_bookedslot_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
@@ -492,6 +562,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class BookNowHomeBeautySalonScreen extends StatefulWidget {
   final String customerName;
@@ -499,13 +570,7 @@ class BookNowHomeBeautySalonScreen extends StatefulWidget {
   final String customerAddress;
   final bool isFromHome;
 
-  const BookNowHomeBeautySalonScreen({
-    Key? key,
-    required this.customerName,
-    required this.customerPhone,
-    required this.customerAddress,
-    this.isFromHome = false,
-  }) : super(key: key);
+  const BookNowHomeBeautySalonScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress, this.isFromHome = false}) : super(key: key);
 
   @override
   State<BookNowHomeBeautySalonScreen> createState() => _BookNowHomeBeautySalonScreenState();
@@ -518,14 +583,19 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
   Map<String, int> _serviceQuantities = {};
   late String _currentCustomerAddress;
 
+  // Carousel state management
+  final Map<String, int> _carouselCurrentPage = {};
+  final Map<String, CarouselSliderController> _carouselControllers = {};
+
   @override
   void initState() {
     super.initState();
     _currentCustomerAddress = widget.customerAddress;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false)
-          .fetchGetAllPermiumHomeBeautySalonGetDataApi();
+      Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false).fetchGetAllPermiumHomeBeautySalonGetDataApi();
+
+      Provider.of<GetBookedSlotViewModel>(context, listen: false).fetchGetBookedSlotDataApi(DateTime.now());
     });
   }
 
@@ -539,6 +609,11 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     if (_categoryKeys.isEmpty && data.isNotEmpty) {
       for (int i = 0; i < data.length; i++) {
         _categoryKeys[i] = GlobalKey();
+        // Initialize carousel controllers for popup categories
+        if (data[i].viewInPopup == false) {
+          _carouselControllers[data[i].id ?? i.toString()] = CarouselSliderController();
+          _carouselCurrentPage[data[i].id ?? i.toString()] = 0;
+        }
       }
     }
   }
@@ -591,8 +666,9 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
   int _getTotalItems() {
     return _serviceQuantities.entries.where((entry) => entry.value > 0).length;
   }
+
   bool _isScrolling = false;
-  ///almost correct
+
   void _scrollToCategory(int index) {
     if (_categoryKeys[index]?.currentContext == null) return;
 
@@ -601,7 +677,6 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
       _selectedTabIndex = index;
     });
 
-    // Small delay to ensure layout is complete
     Future.delayed(Duration(milliseconds: 100), () {
       final RenderBox? renderBox = _categoryKeys[index]?.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox == null) {
@@ -610,18 +685,13 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
       }
 
       final position = renderBox.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
-      final offset = _mainScrollController.offset +( position.dy - 60)-20; // total 80 is AppBarHeader height
+      final offset = _mainScrollController.offset + (position.dy - 60) - 20;
 
-      _mainScrollController.animateTo(
-        offset,
-        duration: Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      ).then((_) {
+      _mainScrollController.animateTo(offset, duration: Duration(milliseconds: 400), curve: Curves.easeInOut).then((_) {
         setState(() => _isScrolling = false);
       });
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -633,11 +703,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),
         body: SafeArea(
-          child: ResPonsiveUi(
-            mobile: _body(),
-            desktop: _body(),
-            tablet: _body(),
-          ),
+          child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
         ),
       ),
     );
@@ -651,10 +717,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context, null),
-          child: Container(
-            height: 60,
-            child: AppBarHeader("Beauty & Salon"),
-          ),
+          child: Container(height: 60, child: AppBarHeader("Beauty & Salon")),
         ),
         Expanded(
           child: Consumer<GetallPremiumHomeBeautySalonViewModel>(
@@ -668,12 +731,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
               }
 
               if (isLoading) {
-                return Center(
-                  child: LoadingAnimationWidget.progressiveDots(
-                    color: AppColors.button(context),
-                    size: 50,
-                  ),
-                );
+                return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
               }
 
               if (hasError) {
@@ -683,17 +741,12 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                     children: [
                       Icon(Icons.error_outline, size: 48, color: Colors.red),
                       SizedBox(height: 16),
-                      Text(
-                        'Failed to load services',
-                        style: AppTextStyles.textSize16(context, color: Colors.red),
-                      ),
+                      Text('Failed to load services', style: AppTextStyles.textSize16(context, color: Colors.red)),
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () => viewModel.fetchGetAllPermiumHomeBeautySalonGetDataApi(),
                         child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.button(context),
-                        ),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
                       ),
                     ],
                   ),
@@ -721,11 +774,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                                   ),
                                   Text(
                                     " Home Beauty & Salon",
-                                    style: AppTextStyles.textSize20(
-                                      context,
-                                      weight: FontWeight.w600,
-                                      color: Color(0xffD78503),
-                                    ),
+                                    style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: Color(0xffD78503)),
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
@@ -733,10 +782,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                               SizedboxSpaccing.height01(context),
                               Text(
                                 "Trained Beauticians • Premium Products Salon \n•  Experience at Home",
-                                style: AppTextStyles.textSize14(
-                                  context,
-                                  weight: FontWeight.w400,
-                                ),
+                                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -748,7 +794,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           iconSize: 60,
                           selectedIndex: _selectedTabIndex,
                           onCategoryTap: (index) {
-                            _scrollToCategory(index); // Changed this line
+                            _scrollToCategory(index);
                           },
                           getName: (category) => category.name ?? '',
                           getImageUrl: (category) => category.image?.url,
@@ -758,11 +804,8 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           getSelectedIconColor: (context) => AppColors.whiteColor,
                           getSelectedImageColor: (context) => AppColors.whiteColor,
                           getTextColor: (context) => AppColors.textPrimary(context),
-                          getTextStyle: (context, isSelected) => AppTextStyles.textSize12(
-                            context,
-                            weight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context),
-                          ),
+                          getTextStyle: (context, isSelected) =>
+                              AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
                           defaultIcon: Icons.spa,
                           supportSvg: false,
                         ),
@@ -774,96 +817,17 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                     int index = entry.key;
                     Datum category = entry.value;
                     final items = category.items ?? [];
+                    final isPopup = category.viewInPopup ?? true;
 
-                    return SliverStickyHeader(
-                      header: Container(
-                        key: _categoryKeys[index],
-                        width: screenWidth,
-                        color: AppColors.containerBackground(context),
-                        child: Center(
-                          child: Container(
-                            width: screenWidth * 0.9,
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.containerBackground(context),
-                              border: Border(
-                                bottom: BorderSide(width: 1, color: AppColors.border(context)),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Text(
-                                //   category.name ?? '',
-                                //   style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                                // ),
-                                Text(
-                                  category.name ?? '',
-                                  style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                              (context, itemIndex) {
-                            if (itemIndex >= items.length) return null;
-
-                            final service = items[itemIndex];
-                            bool isLastItem = itemIndex == items.length - 1;
-                            int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
-                            double originalPrice = service.originalPrice?.toDouble() ?? 0;
-                            double discountedPrice = service.salePrice?.toDouble() ?? originalPrice;
-
-                            return Container(
-                              width: screenWidth,
-                              child: Center(
-                                child: Container(
-                                  width: screenWidth * 0.9,
-                                  child: DynamicServiceCard(
-                                    imageUrl: service.image?.url,
-                                    defaultIcon: Icons.spa,
-                                    serviceName: service.name ?? '',
-                                    viewDetailsText: 'View Task Details',
-                                    onViewDetails: () => _showTaskDetailsDialog(service),
-                                    discountedPrice: discountedPrice,
-                                    originalPrice: originalPrice,
-                                    showDiscount: service.discountValue != null && originalPrice > discountedPrice,
-                                    quantity: quantity,
-                                    onAdd: () => _updateQuantity(service.id ?? '', 1),
-                                    onRemove: () => _updateQuantity(service.id ?? '', -1),
-                                    onIncrease: () => _updateQuantity(service.id ?? '', 1),
-                                    showRoomNumber: quantity > 0,
-                                    isLastItem: isLastItem,
-                                    getButtonColor: (context) => AppColors.button(context),
-                                    getBackgroundColor: (context) => AppColors.containerBackground(context),
-                                    getBorderColor: (context) => AppColors.border(context),
-                                    getSubtitleColor: (context) => AppColors.subtitle(context),
-                                    getTextColor: (context) => AppColors.textPrimary(context),
-                                    getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(
-                                      context,
-                                      weight: weight ?? FontWeight.normal,
-                                      color: color ?? AppColors.textPrimary(context),
-                                    ),
-                                    getSpacing: (context) => SizedboxSpaccing.width02(context),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          childCount: items.length,
-                        ),
-                      ),
-                    );
+                    if (isPopup) {
+                      // Regular list view for viewInPopup: true
+                      return _buildRegularCategorySection(index, category, items, screenWidth, screenHeight);
+                    } else {
+                      // Carousel view for viewInPopup: false
+                      return _buildCarouselCategorySection(index, category, items, screenWidth, screenHeight);
+                    }
                   }).toList(),
-                  SliverToBoxAdapter(
-                    child: SizedBox(height: screenHeight / 1.5),
-                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: screenHeight / 1.5)),
                 ],
               );
             },
@@ -891,9 +855,319 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     );
   }
 
+  // Regular category section (viewInPopup: true)
+  Widget _buildRegularCategorySection(int index, Datum category, List<Item> items, double screenWidth, double screenHeight) {
+    return SliverStickyHeader(
+      header: Container(
+        key: _categoryKeys[index],
+        width: screenWidth,
+        color: AppColors.containerBackground(context),
+        child: Center(
+          child: Container(
+            width: screenWidth * 0.9,
+            padding: EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  category.name ?? '',
+                  style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, itemIndex) {
+          if (itemIndex >= items.length) return null;
+
+          final service = items[itemIndex];
+          bool isLastItem = itemIndex == items.length - 1;
+          int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
+          double originalPrice = service.originalPrice?.toDouble() ?? 0;
+          double discountedPrice = service.salePrice?.toDouble() ?? originalPrice;
+
+          return Container(
+            width: screenWidth,
+            child: Center(
+              child: Container(
+                width: screenWidth * 0.9,
+                child: DynamicServiceCard(
+                  imageUrl: service.image?.url,
+                  defaultIcon: Icons.spa,
+                  serviceName: service.name ?? '',
+                  viewDetailsText: 'View Task Details',
+                  onViewDetails: () => _showTaskDetailsDialog(service),
+                  discountedPrice: discountedPrice,
+                  originalPrice: originalPrice,
+                  showDiscount: service.discountValue != null && originalPrice > discountedPrice,
+                  quantity: quantity,
+                  onAdd: () => _updateQuantity(service.id ?? '', 1),
+                  onRemove: () => _updateQuantity(service.id ?? '', -1),
+                  onIncrease: () => _updateQuantity(service.id ?? '', 1),
+                  showRoomNumber: quantity > 0,
+                  isLastItem: isLastItem,
+                  getButtonColor: (context) => AppColors.button(context),
+                  getBackgroundColor: (context) => AppColors.containerBackground(context),
+                  getBorderColor: (context) => AppColors.border(context),
+                  getSubtitleColor: (context) => AppColors.subtitle(context),
+                  getTextColor: (context) => AppColors.textPrimary(context),
+                  getTextStyle: (context, {weight, color}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.normal, color: color ?? AppColors.textPrimary(context)),
+                  getSpacing: (context) => SizedboxSpaccing.width02(context),
+                ),
+              ),
+            ),
+          );
+        }, childCount: items.length),
+      ),
+    );
+  }
+
+  // Carousel category section (viewInPopup: false)
+  Widget _buildCarouselCategorySection(int index, Datum category, List<Item> items, double screenWidth, double screenHeight) {
+    final categoryId = category.id ?? index.toString();
+
+    return SliverStickyHeader(
+      header: Container(
+        key: _categoryKeys[index],
+        width: screenWidth,
+        color: AppColors.containerBackground(context),
+        child: Center(
+          child: Container(
+            width: screenWidth * 0.9,
+            padding: EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  category.name ?? '',
+                  style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          children: [
+            SizedBox(height: 16),
+
+            // Carousel Slider
+            if (items.isNotEmpty)
+              CarouselSlider.builder(
+                carouselController: _carouselControllers[categoryId],
+                itemCount: items.length,
+                itemBuilder: (context, itemIndex, realIndex) {
+                  final service = items[itemIndex];
+                  int quantity = _serviceQuantities[service.id ?? ''] ?? 0;
+                  double originalPrice = service.originalPrice?.toDouble() ?? 0;
+                  double discountedPrice = service.salePrice?.toDouble() ?? originalPrice;
+
+                  return _buildCarouselCard(service: service, quantity: quantity, originalPrice: originalPrice, discountedPrice: discountedPrice, screenWidth: screenWidth);
+                },
+                options: CarouselOptions(
+                  height: 420,
+                  viewportFraction: 0.85,
+                  enableInfiniteScroll: items.length > 1,
+                  enlargeCenterPage: true,
+                  enlargeFactor: 0.2,
+                  onPageChanged: (index, reason) {
+                    setState(() {
+                      _carouselCurrentPage[categoryId] = index;
+                    });
+                  },
+                ),
+              ),
+
+            // Dot Indicators
+            if (items.length > 1) ...[SizedBox(height: 16), _buildDotIndicators(items.length, categoryId)],
+
+            SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCarouselCard({required Item service, required int quantity, required double originalPrice, required double discountedPrice, required double screenWidth}) {
+    String? discountBadge;
+
+    // Debug print to see what values we're getting
+    print('Service: ${service.name}');
+    print('DiscountType: ${service.discountType}');
+    print('DiscountValue: ${service.discountValue}');
+
+    if (service.discountType != null && service.discountValue != null) {
+      final discountVal = service.discountValue!;
+
+      if (discountVal > 0) {
+        if (service.discountType == DiscountType.PERCENTAGE) {
+          discountBadge = '${discountVal.toInt()}% OFF';
+        } else if (service.discountType == DiscountType.FLAT) {
+          discountBadge = 'Flat ${discountVal.toInt()} Taka OFF';
+        }
+      }
+    }
+
+    // Debug print to see final badge
+    print('Discount Badge: $discountBadge');
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border(context), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image Section
+          Container(
+            height: 195,
+            width: double.infinity,
+            decoration: BoxDecoration(color: AppColors.border(context).withOpacity(0.3), borderRadius: BorderRadius.circular(8)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: service.image?.url != null
+                  ? Image.network(
+                      service.image!.url!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.spa, size: 60, color: AppColors.border(context))),
+                    )
+                  : Center(child: Icon(Icons.spa, size: 60, color: AppColors.border(context))),
+            ),
+          ),
+          SizedBox(height: 16),
+          // Content Section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Service Name
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        service.name ?? '',
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedboxSpaccing.width02(context),
+                    Row(
+                      children: [
+                        Text('৳${discountedPrice.toStringAsFixed(2)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                        if (service.discountValue != null && originalPrice > discountedPrice) ...[
+                          SizedBox(width: 8),
+                          Text(
+                            '৳${originalPrice.toStringAsFixed(2)}',
+                            style: TextStyle(fontSize: 10, color: AppColors.subtitle(context), decoration: TextDecoration.lineThrough),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () => _showTaskDetailsDialog(service),
+                  child: Row(
+                    children: [
+                      Text(
+                        'View Task Details',
+                        style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                      ),
+                      Icon(Icons.chevron_right, size: 16, color: AppColors.button(context)),
+                    ],
+                  ),
+                ),
+
+                Spacer(),
+
+                if (discountBadge != null) ...[
+                  Container(
+                    // width: screenWidth * 0.9,
+                    child: Text(
+                      discountBadge,
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                ],
+                // Add to Cart Button
+                if (quantity == 0)
+                  RoundButtonFlexible(height: 42, showRightIcon: false, backgroundColor: AppColors.textPrimary(context), title: 'Add to Cart', onPress: () => _updateQuantity(service.id ?? '', 1))
+                else
+                  Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.textPrimary(context), width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed: () => _updateQuantity(service.id ?? '', -1),
+                          icon: Icon(Icons.remove, color: AppColors.textPrimary(context)),
+                        ),
+                        Text(
+                          '$quantity',
+                          style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.buttonTextColor(context)),
+                        ),
+                        IconButton(
+                          onPressed: () => _updateQuantity(service.id ?? '', 1),
+                          icon: Icon(Icons.add, color: AppColors.textPrimary(context)),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDotIndicators(int count, String categoryId) {
+    final currentPage = _carouselCurrentPage[categoryId] ?? 0;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        return Container(
+          width: currentPage == index ? 24 : 8,
+          height: 8,
+          margin: EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(color: currentPage == index ? AppColors.button(context) : AppColors.border(context), borderRadius: BorderRadius.circular(4)),
+        );
+      }),
+    );
+  }
+
   void _showCartDialog() {
     final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
     final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
+    final bookedSlotVM = Provider.of<GetBookedSlotViewModel>(context, listen: false); // ADD THIS
     final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
     final transportFeeValue = viewModel.getAllPremiumHomeBeautySalonData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
@@ -919,19 +1193,18 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
             selectedDate: checkoutVM.selectedDate,
             selectedServiceTime: checkoutVM.selectedServiceTime,
             transportFee: transportFeeValue,
+            bookedSlotViewModel: bookedSlotVM, // ADD THIS
             onDateSelected: (DateTime selectedDate) {
               checkoutVM.setSelectedDate(selectedDate);
+              // Refresh booked slots silently on date change
+              bookedSlotVM.fetchGetBookedSlotDataApi(selectedDate); // ADD THIS
               setDialogState(() {});
             },
             onTimeSelected: (String time) {
               checkoutVM.setServiceTime(time);
               setDialogState(() {});
             },
-            dateController: TextEditingController(
-              text: checkoutVM.selectedDate != null
-                  ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!)
-                  : '',
-            ),
+            dateController: TextEditingController(text: checkoutVM.selectedDate != null ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!) : ''),
           );
         },
       ),
@@ -947,8 +1220,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
         serviceName: service.name ?? 'Service Details',
         discountedPrice: service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0,
         originalPrice: service.originalPrice?.toDouble() ?? 0,
-        showDiscount: service.discountValue != null &&
-            (service.originalPrice?.toDouble() ?? 0) > (service.salePrice?.toDouble() ?? 0),
+        showDiscount: service.discountValue != null && (service.originalPrice?.toDouble() ?? 0) > (service.salePrice?.toDouble() ?? 0),
         details: service.details,
         onClose: () => Navigator.pop(context),
         getButtonColor: (context) => AppColors.button(context),

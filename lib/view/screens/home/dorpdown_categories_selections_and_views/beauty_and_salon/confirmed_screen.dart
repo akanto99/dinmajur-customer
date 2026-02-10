@@ -327,4 +327,18 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
     if (date == null) return 'N/A';
     return DateFormat('dd MMM yyyy').format(date);
   }
+  String _formatTo12Hour(String time) {
+    if (time.isEmpty) return time;
+    try {
+      final parts = time.split(':');
+      int hour = int.parse(parts[0]);
+      final String minute = parts.length > 1 ? parts[1] : '00';
+      final String period = hour >= 12 ? 'PM' : 'AM';
+      if (hour == 0) hour = 12;
+      else if (hour > 12) hour -= 12;
+      return '$hour:$minute $period';
+    } catch (_) {
+      return time;
+    }
+  }
 }
