@@ -113,7 +113,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
 
     try {
       // Attempt auto-reconnect with retry logic
-      await _socketProvider!.autoReconnect(maxRetries: 5, delay: Duration(seconds: 2));
+      await _socketProvider!.autoReconnect( delay: Duration(seconds: 2));
 
       // Verify connection was successful
       if (!_socketProvider!.isConnected) {

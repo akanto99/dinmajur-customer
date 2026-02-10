@@ -257,7 +257,8 @@ class SSLCommerzPaymentService {
           tran_id: trackingId,
           currency: SSLCurrencyType.BDT,
           product_category: productCategory ?? "",
-          sdkType:useTestMode ?SSLCSdkType.TESTBOX: SSLCSdkType.LIVE,
+          sdkType:SSLCSdkType.LIVE,
+          // sdkType:useTestMode ?SSLCSdkType.TESTBOX: SSLCSdkType.LIVE,
             // multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay,tap,okwallet,"
             //   "dbbl_visa,dbbl_master,city_visa,city_master,city_amex,"
             //   "ebl_visa,ebl_master,sbl_visa,sbl_master,brac_visa,brac_master,"

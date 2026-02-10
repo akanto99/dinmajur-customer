@@ -212,7 +212,7 @@ class SocketProvider with ChangeNotifier {
 
   /// Auto-reconnect with retry logic
   Future<void> autoReconnect({
-    int maxRetries = 3,
+    int maxRetries = 1,
     Duration delay = const Duration(seconds: 2),
   }) async {
     int retryCount = 0;

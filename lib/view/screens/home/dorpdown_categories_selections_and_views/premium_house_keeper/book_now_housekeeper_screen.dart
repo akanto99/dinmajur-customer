@@ -512,7 +512,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       )
           : Image.network(
         imageUrl,
-        fit: BoxFit.cover,
+       height: 20,
+        color: AppColors.buttonTextColor(context),
         errorBuilder: (context, error, stackTrace) => Icon(
           Icons.cleaning_services,
           color: isSelected ? AppColors.whiteColor : AppColors.blackColor,

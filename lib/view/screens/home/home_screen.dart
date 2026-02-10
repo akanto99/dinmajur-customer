@@ -21,6 +21,7 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_serv
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
@@ -226,9 +227,9 @@ print(e.toString());
           customerLat = _currentPosition!.latitude;
           fullAddress ??= "Current Location";
         } else {
-          if (mounted) {
-            Utils.flushBarErrorMessage("Location not available. Please enable location services.", context);
-          }
+          // if (mounted) {
+          //   Utils.flushBarErrorMessage("Location not available. Please enable location services.", context);
+          // }
           setState(() => isLoadingStores = false);
           return;
         }
@@ -367,33 +368,44 @@ print(e.toString());
       _checkCoverage();
     }
   }  @override
+  // Widget build(BuildContext context) {
+  //   final screenHeight = MediaQuery.of(context).size.height;
+  //   final screenWidth = MediaQuery.of(context).size.width;
+  //
+  //   return UpgradeAlert(
+  //     navigatorKey: NavigationService.navigatorKey,
+  //     barrierDismissible: false,
+  //     showLater: false,
+  //     showIgnore: false,
+  //     showReleaseNotes: false,
+  //     upgrader: Upgrader(
+  //       debugDisplayAlways: kDebugMode, debugLogging: kDebugMode,
+  //       countryCode: 'BD',
+  //       languageCode: 'en',
+  //     ),
+  //     child: Scaffold(
+  //       key: widget.scaffoldKey,
+  //       backgroundColor: AppColors.containerBackground(context),
+  //       drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
+  //       body: SafeArea(
+  //         child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
+  //       ),
+  //     ),
+  //   );
+  // }
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return UpgradeAlert(
-      navigatorKey: NavigationService.navigatorKey,
-      barrierDismissible: false,
-      showLater: false,
-      showIgnore: false,
-      showReleaseNotes: false,
-      upgrader: Upgrader(
-        // debugLogging: true,
-        // debugDisplayAlways: true
-        countryCode: 'BD',
-        languageCode: 'en',
-      ),
-      child: Scaffold(
-        key: widget.scaffoldKey,
-        backgroundColor: AppColors.containerBackground(context),
-        drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
-        body: SafeArea(
-          child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
-        ),
+    return Scaffold(
+      key: widget.scaffoldKey,
+      backgroundColor: AppColors.containerBackground(context),
+      drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
+      body: SafeArea(
+        child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
       ),
     );
   }
-
   // Widget body(BuildContext context) {
   //   final screenWidth = MediaQuery.of(context).size.width;
   //   final screenHeight = MediaQuery.of(context).size.height;
