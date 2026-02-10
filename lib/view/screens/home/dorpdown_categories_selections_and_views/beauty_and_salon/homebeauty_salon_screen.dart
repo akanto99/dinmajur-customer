@@ -1105,9 +1105,11 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                 if (discountBadge != null) ...[
                   Container(
                     // width: screenWidth * 0.9,
-                    child: Text(
-                      discountBadge,
-                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
+                    child: Center(
+                      child: Text(
+                        discountBadge,
+                        style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
+                      ),
                     ),
                   ),
                   SizedBox(height: 8),

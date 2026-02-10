@@ -744,7 +744,9 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   }
 
   void _checkForUpgrade(BuildContext context) async {
-    final upgrader = Upgrader(countryCode: 'BD', languageCode: 'en');
+    final upgrader = Upgrader(
+        // debugDisplayAlways: kDebugMode, debugLogging: kDebugMode,
+        countryCode: 'BD', languageCode: 'en');
     await upgrader.initialize();
 
     if (upgrader.shouldDisplayUpgrade()) {
