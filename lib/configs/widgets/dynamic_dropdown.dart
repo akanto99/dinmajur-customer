@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 class CustomDropdown extends StatelessWidget {
-  final String titleText;
+  // final String? titleText;
   final List<String> items;
   final String? selectedItem;
   final String hintText;
@@ -12,7 +12,9 @@ class CustomDropdown extends StatelessWidget {
   final Map<String, String>? valueToBengaliMap;
   final double? dynamicWidth;
 
-  const CustomDropdown({Key? key, required this.titleText, required this.items, required this.selectedItem, required this.hintText, required this.onChanged, this.valueToBengaliMap, this.dynamicWidth})
+  const CustomDropdown({Key? key,
+    // this.titleText,
+    required this.items, required this.selectedItem, required this.hintText, required this.onChanged, this.valueToBengaliMap, this.dynamicWidth})
     : super(key: key);
 
   @override
@@ -22,11 +24,11 @@ class CustomDropdown extends StatelessWidget {
     final double actualWidth = dynamicWidth ?? (screenWidth * 0.8);
     return Column(
       children: [
-        Container(
-          width: screenWidth * 0.9,
-          child: Text(titleText, style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-        ),
-        SizedBox(height: screenHeight * 0.012),
+        // Container(
+        //   width: screenWidth * 0.9,
+        //   child: Text(titleText, style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+        // ),
+        // SizedBox(height: screenHeight * 0.012),
         Container(
           height: 50,
           // height: screenHeight * 0.05,
@@ -37,7 +39,7 @@ class CustomDropdown extends StatelessWidget {
               style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
               hint: Text(
                 hintText,
-                style: AppTextStyles.textSize16(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
+                style: AppTextStyles.textSize16(context, color: AppColors.textPrimary(context), weight: FontWeight.w400),
               ),
               iconStyleData: IconStyleData(icon: Icon(Icons.keyboard_arrow_down, size: 25, color: AppColors.textPrimary(context))),
               buttonStyleData: ButtonStyleData(

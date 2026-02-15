@@ -314,7 +314,7 @@ print(e.toString());
     switch (serviceName) {
       case "House Keeper":
         return "Premium House Keeper";
-      case "Home Beauty Parlour":
+      case "Beauty Parlour":
         return "Premium Home Beauty & Salon";
       case "তাৎক্ষণিক বাজার":
         return "Retail";
@@ -606,10 +606,11 @@ print(e.toString());
                         borderRadius: BorderRadius.circular(24)
                     ),
                     child: CustomDropdown(
-                      titleText: AppLocalizations.of(context)!.select_store_type,
+                      // titleText: AppLocalizations.of(context)!.select_store_type,
                       items: storeTypes.keys.toList(),
                       selectedItem: selectedStoreType,
-                      hintText: AppLocalizations.of(context)!.select_dropdown_hint,
+                      // hintText: AppLocalizations.of(context)!.select_dropdown_hint,
+                      hintText: AppLocalizations.of(context)!.select_store_type,
                       onChanged: (String? newValue) {
                         // ✅ Check location before allowing selection
                         if (!_hasValidLocation()) {
@@ -640,13 +641,13 @@ print(e.toString());
                       valueToBengaliMap: storeTypes,
                     ),
                   ),
-                  SizedboxSpaccing.height012(context),
+                  SizedboxSpaccing.height025(context),
 
                   // ✅ Updated TrendingServicesWidget with location check
                   TrendingServicesWidget(
                     services: [
                       "House Keeper",
-                      "Home Beauty Parlour",
+                      "Beauty Parlour",
                       "তাৎক্ষণিক বাজার",
                       "Family Event Cooking"
                     ],
