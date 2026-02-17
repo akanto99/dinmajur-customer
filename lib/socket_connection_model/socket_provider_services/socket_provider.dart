@@ -35,7 +35,7 @@ class SocketProvider with ChangeNotifier {
       _isConnecting = true;
       _connectionError = null;
       notifyListeners();
-
+print("------------------ACCESS TOKEN Connection-----------------------$accessToken");
       // Initialize socket with access token
       await _socketService.initializeSocket(accessToken: accessToken);
 

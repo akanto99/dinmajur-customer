@@ -168,12 +168,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       await _socketProvider!.connectWithToken(accessToken: accessToken);
       await Future.delayed(Duration(milliseconds: 1000));
 
-      if (_socketProvider!.isConnected) {
-        print('✅ [SCREEN] Socket reconnected successfully');
-      } else {
-        print('⚠️ [SCREEN] Socket not connected, attempting auto-reconnect');
-        await _socketProvider!.autoReconnect();
-      }
+      // if (_socketProvider!.isConnected) {
+      //   print('✅ [SCREEN] Socket reconnected successfully');
+      // } else {
+      //   print('⚠️ [SCREEN] Socket not connected, attempting auto-reconnect');
+      //   await _socketProvider!.autoReconnect();
+      // }
     } catch (e) {
       print('❌ [SCREEN] Reconnection failed: $e');
     }

@@ -78,17 +78,17 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
       // ✅ STEP 2: Connect Socket with access token
       try {
         final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-        print("🔌 OTP Verify: Connecting socket with access token");
+        print("🔌 OTP Verify: Connecting socket with access token ------------$accessToken");
         await socketProvider.connectWithToken(accessToken: accessToken);
 
-        await Future.delayed(Duration(milliseconds: 1000));
+        await Future.delayed(Duration(seconds: 2));
 
-        if (socketProvider.isConnected) {
-          print("🔌 OTP Verify: ✅ Socket connected successfully");
-        } else {
-          print("🔌 OTP Verify: ⚠️ Attempting auto-reconnect");
-          await socketProvider.autoReconnect();
-        }
+        // if (socketProvider.isConnected) {
+        //   print("🔌 OTP Verify: ✅ Socket connected successfully");
+        // } else {
+        //   print("🔌 OTP Verify: ⚠️ Attempting auto-reconnect");
+        //   await socketProvider.autoReconnect();
+        // }
       } catch (e) {
         print("⚠️ OTP Verify: Socket connection error - $e");
       }

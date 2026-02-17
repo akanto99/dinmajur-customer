@@ -213,12 +213,12 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
         await Future.delayed(Duration(milliseconds: 1000));
 
-        if (socketProvider.isConnected) {
-          print("🔌 NavigationScreen: ✅ Socket reconnected successfully");
-        } else {
-          print("🔌 NavigationScreen: ⚠️ Attempting auto-reconnect");
-          await socketProvider.autoReconnect();
-        }
+        // if (socketProvider.isConnected) {
+        //   print("🔌 NavigationScreen: ✅ Socket reconnected successfully");
+        // } else {
+        //   print("🔌 NavigationScreen: ⚠️ Attempting auto-reconnect");
+        //   await socketProvider.autoReconnect();
+        // }
       } else {
         print("🔌 NavigationScreen: Socket already connected");
       }
@@ -395,10 +395,10 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
       await Future.delayed(Duration(milliseconds: 1000));
 
-      if (!socketProvider.isConnected) {
-        print("🔌 NavigationScreen: ⚠️ Attempting auto-reconnect...");
-        await socketProvider.autoReconnect();
-      }
+      // if (!socketProvider.isConnected) {
+      //   print("🔌 NavigationScreen: ⚠️ Attempting auto-reconnect...");
+      //   await socketProvider.autoReconnect();
+      // }
 
       // ✅ Reconnect SSE
       final sseService = Provider.of<SSENotificationService>(context, listen: false);
@@ -427,12 +427,12 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     } catch (e) {
       print("🔌 NavigationScreen: Service reconnection failed - $e");
 
-      try {
-        final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-        await socketProvider.autoReconnect();
-      } catch (retryError) {
-        print("🔌 NavigationScreen: Final reconnection attempt failed - $retryError");
-      }
+      // try {
+      //   final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+      //   await socketProvider.autoReconnect();
+      // } catch (retryError) {
+      //   print("🔌 NavigationScreen: Final reconnection attempt failed - $retryError");
+      // }
 
       _isReconnecting = false;
     }
