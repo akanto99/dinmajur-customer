@@ -98,6 +98,13 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
           'orderId': orderId,
         },
       );
+      Navigator.pushNamed(
+        context,
+        RoutesName.trackOrderViewdetailsSocketScreen,
+        arguments: {
+          'orderId': orderId,
+        },
+      );
 
     } catch (error) {
       setCheckoutOrderLoading(false);

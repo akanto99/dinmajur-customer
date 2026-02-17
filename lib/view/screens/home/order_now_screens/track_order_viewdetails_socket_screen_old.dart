@@ -22,15 +22,15 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class TrackOrderViewdetailsSocketScreen extends StatefulWidget {
+class TrackOrderViewdetailsSocketScreenOld extends StatefulWidget {
   final String orderId;
-  const TrackOrderViewdetailsSocketScreen({Key? key, required this.orderId}) : super(key: key);
+  const TrackOrderViewdetailsSocketScreenOld({Key? key, required this.orderId}) : super(key: key);
 
   @override
-  State<TrackOrderViewdetailsSocketScreen> createState() => _TrackOrderViewdetailsSocketScreenState();
+  State<TrackOrderViewdetailsSocketScreenOld> createState() => _TrackOrderViewdetailsSocketScreenOldState();
 }
 
-class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetailsSocketScreen> with WidgetsBindingObserver {
+class _TrackOrderViewdetailsSocketScreenOldState extends State<TrackOrderViewdetailsSocketScreenOld> with WidgetsBindingObserver {
   OrderDetailsSocketProvider? _orderDetailsProvider;
   SocketProvider? _socketProvider;
 
@@ -399,11 +399,11 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               _buildCustomerOrderItems(context, order.items),
               SizedboxSpaccing.height02(context),
               if (order.customerNote != null && order.customerNote!.isNotEmpty) ...[_buildCustomerNotes(context, order.customerNote!), SizedboxSpaccing.height02(context)],
-             if (!isPending)...[ _buildDeliveryItemsSection(context, order.items),
-              SizedboxSpaccing.height02(context),
-               _buildTotalSection(context, order),
-              SizedboxSpaccing.height02(context),
-               ],
+              if (!isPending)...[ _buildDeliveryItemsSection(context, order.items),
+                SizedboxSpaccing.height02(context),
+                _buildTotalSection(context, order),
+                SizedboxSpaccing.height02(context),
+              ],
 
               if(isArriveDestination)...[
                 _buildPaymentMethodSection(context),
@@ -787,14 +787,14 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     child: ClipOval(
                       child: freelancer?.profilePicture?.url != null && freelancer!.profilePicture!.url!.isNotEmpty
                           ? Image.network(
-                              freelancer.profilePicture!.url!,
-                              width: 34,
-                              height: 34,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(Icons.person, color: Colors.white, size: 20);
-                              },
-                            )
+                        freelancer.profilePicture!.url!,
+                        width: 34,
+                        height: 34,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.person, color: Colors.white, size: 20);
+                        },
+                      )
                           : Icon(Icons.person, color: Colors.white, size: 20),
                     ),
                   ),
@@ -1096,20 +1096,20 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   Widget _buildPayNowButton(BuildContext context,Order order) {
     return GestureDetector(
-  onTap: () => _handlePayNow(context, order),
+      onTap: () => _handlePayNow(context, order),
       child: Container(
-        height: 48,
-        width: double.infinity,
-        decoration: BoxDecoration(
-            color: AppColors.button(context),
-            borderRadius: BorderRadius.circular(8)
-        ),
-        child:Center(
-          child:  Text(
-            'Pay Now',
-            style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+          height: 48,
+          width: double.infinity,
+          decoration: BoxDecoration(
+              color: AppColors.button(context),
+              borderRadius: BorderRadius.circular(8)
           ),
-        )
+          child:Center(
+            child:  Text(
+              'Pay Now',
+              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+            ),
+          )
       ),
     );
   }
