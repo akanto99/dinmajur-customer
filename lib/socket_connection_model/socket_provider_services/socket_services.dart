@@ -16,47 +16,83 @@ class SocketService {
   IO.Socket? get socket => _socket;
 
   /// Initialize socket connection with access token
+  //   Future<void> initializeSocket({required String accessToken}) async {
+  //     try {
+  //       _accessToken = accessToken;
+  //
+  //       // Disconnect existing connection if any
+  //       if (_socket != null) {
+  //         await disconnect();
+  //       }
+  // print("===============SOCKET ACCESS TOKEN=========================$accessToken");
+  //       // Create socket connection with access token in headers
+  //       _socket = IO.io(
+  //         "${AppUrl.socketUrl}",
+  //         IO.OptionBuilder()
+  //             .setQuery({
+  //           'token': accessToken,
+  //         })
+  //         .setAuth({
+  //           'token':accessToken
+  //         })
+  //             .setTransports(['websocket'])
+  //             .enableAutoConnect()
+  //             .disableForceNew()
+  //             .setReconnectionAttempts(10)
+  //             .setReconnectionDelay(1000)
+  //             .setReconnectionDelayMax(5000)
+  //             .enableReconnection()
+  //             .setTimeout(20000)
+  //             .setExtraHeaders({
+  //           'Accept': 'application/json',
+  //           'Content-Type': 'application/json',
+  //           'Authorization': 'Bearer $accessToken', // ✅ Pass token in header
+  //         })
+  //             .build(),
+  //       );
+  //
+  //       _setupSocketListeners();
+  //
+  //       // Connect to socket
+  //       _socket!.connect();
+  //
+  //       if (kDebugMode) {
+  //         print('🔌 Socket initialization started with token');
+  //       }
+  //     } catch (e) {
+  //       if (kDebugMode) {
+  //         print('🔌 Socket initialization error: $e');
+  //       }
+  //     }
+  //   }
   Future<void> initializeSocket({required String accessToken}) async {
     try {
       _accessToken = accessToken;
 
-      // Disconnect existing connection if any
-      if (_socket != null) {
-        await disconnect();
-      }
+      // Completely destroy old socket
+      await disconnect();
 
-      // Create socket connection with access token in headers
+      print("===============SOCKET ACCESS TOKEN=========================$accessToken");
+
       _socket = IO.io(
-        "${AppUrl.socketUrl}",
+        AppUrl.socketUrl,
         IO.OptionBuilder()
             .setTransports(['websocket'])
-            .enableAutoConnect()
-            .disableForceNew()
-            .setReconnectionAttempts(10)
-            .setReconnectionDelay(1000)
-            .setReconnectionDelayMax(5000)
-            .enableReconnection()
+            .disableAutoConnect()
+            .enableForceNew()
+            .disableReconnection()
+            .setAuth({'token': accessToken})
             .setTimeout(20000)
-            .setExtraHeaders({
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken', // ✅ Pass token in header
-        })
             .build(),
       );
 
       _setupSocketListeners();
 
-      // Connect to socket
       _socket!.connect();
 
-      if (kDebugMode) {
-        print('🔌 Socket initialization started with token');
-      }
+      print('🔌 Clean socket initialized');
     } catch (e) {
-      if (kDebugMode) {
-        print('🔌 Socket initialization error: $e');
-      }
+      print('🔌 Socket initialization error: $e');
     }
   }
 

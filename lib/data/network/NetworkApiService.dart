@@ -95,32 +95,6 @@ class NetworkApiService extends BaseApiServices {
     }
   }
 
-  // @override
-  // Future gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers}) async {
-  //   try {
-  //     final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 120));
-  //     return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data, headers: headers));
-  //   } on SocketException {
-  //     throw FetchDataException('No Internet Connection');
-  //   } on TimeoutException {
-  //     throw FetchDataException('Request timeout. Please try again');
-  //   }
-  // }
-  // @override
-  // Future gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers}) async {
-  //   try {
-  //     final authHeaders = await _getAuthHeaders(headers);
-  //
-  //     // Corrected: Moved .timeout() to the end of the post call
-  //     final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: authHeaders).timeout(const Duration(seconds: 30));
-  //
-  //     return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data, headers: authHeaders));
-  //   } on SocketException {
-  //     throw FetchDataException('No Internet Connection');
-  //   } on TimeoutException {
-  //     throw FetchDataException('Request timeout. Please try again');
-  //   }
-  // }
   ///Corrected
   // ✅ Fetch auth headers fresh each time (including on retries)
   // ✅ Pass null for headers so retry will fetch fresh headers
@@ -197,12 +171,12 @@ class NetworkApiService extends BaseApiServices {
   /// Document PDF image upload with documentType field
   @override
   Future<dynamic> documentPdfImageMultipartPostApiResponse(
-    String url,
-    Uint8List pdfImageBytes,
-    String documentType,
-    String fileName, { // Accept filename as parameter
-    Map<String, String>? headers,
-  }) async {
+      String url,
+      Uint8List pdfImageBytes,
+      String documentType,
+      String fileName, { // Accept filename as parameter
+        Map<String, String>? headers,
+      }) async {
     try {
       var request = https.MultipartRequest('POST', Uri.parse(url));
 
@@ -280,10 +254,10 @@ class NetworkApiService extends BaseApiServices {
       final authHeaders = await _getAuthHeaders(headers);
       final response = await https
           .patch(
-            Uri.parse(url),
-            headers: authHeaders,
-            body: jsonEncode(data),
-          )
+        Uri.parse(url),
+        headers: authHeaders,
+        body: jsonEncode(data),
+      )
           .timeout(const Duration(seconds: 30));
       print(" ${response.statusCode}");
       print(" ${response.body}");
@@ -296,27 +270,7 @@ class NetworkApiService extends BaseApiServices {
     return responseJson;
   }
 
-  /// Same url, data, header ------>   {Create Area Address}
-  // @override
-  // Future getsamePostApiResponse(String url, dynamic data, {Map<String, String>? headers}) async {
-  //   dynamic responseJson;
-  //   try {
-  //     https.Response response = await https
-  //         .post(
-  //           Uri.parse(url),
-  //           headers: headers ?? {'Content-Type': 'application/json'},
-  //           body: jsonEncode(data), // Encode data as JSON
-  //         )
-  //         .timeout(const Duration(seconds: 30));
-  //     responseJson = await _handleResponse(response, url, () => getsamePostApiResponse(url, data, headers: headers));
-  //   } on SocketException {
-  //     throw FetchDataException('No Internet Connection');
-  //   } on TimeoutException {
-  //     throw FetchDataException('Request timeout. Please try again');
-  //   }
-  //   return responseJson;
-  // }
-///Corrected
+  ///Corrected
 
   @override
   Future getsamePostApiResponse(String url, dynamic data, {Map<String, String>? headers}) async {
@@ -459,7 +413,7 @@ class NetworkApiService extends BaseApiServices {
   Future getDeleteApiResponse(String url, {Map<String, String>? headers}) async {
     dynamic responseJson;
     try {
-  final authHeaders = await _getAuthHeaders(headers);
+      final authHeaders = await _getAuthHeaders(headers);
       final response = await https.delete(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
 
       print('delete Response Status: ${response.statusCode}');
@@ -478,7 +432,7 @@ class NetworkApiService extends BaseApiServices {
   Future<Map<String, String>> _getAuthHeaders([Map<String, String>? additionalHeaders]) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
-print(accessToken);
+    print(accessToken);
     Map<String, String> headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
 
     if (accessToken != null && accessToken.isNotEmpty) {
@@ -491,6 +445,7 @@ print(accessToken);
 
     return headers;
   }
+
   /// Handle API response with automatic token refresh
   Future<dynamic> _handleResponse(
       https.Response response,
@@ -499,8 +454,9 @@ print(accessToken);
       ) async {
     print('📡 Response from $originalUrl: ${response.statusCode}');
 
-    if (response.statusCode == 401) {
-      print('🔒 Unauthorized response detected for: $originalUrl');
+    // Handle both 400 and 401 status codes for token refresh
+    if (response.statusCode == 400 || response.statusCode == 401) {
+      print('🔒 ${response.statusCode} response detected for: $originalUrl');
 
       // Check retry count for this URL
       int retryCount = _retryAttempts[originalUrl] ?? 0;
@@ -508,7 +464,7 @@ print(accessToken);
       if (retryCount >= _maxRetries) {
         print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
         _retryAttempts.remove(originalUrl);
-        throw UnauthorisedException('Session expired. Please auth_login again.');
+        throw UnauthorisedException('Session expired. Please login again.');
       }
 
       // Check if this is an API call that should trigger refresh
@@ -516,9 +472,15 @@ print(accessToken);
         print('🔄 Attempting token refresh for URL: $originalUrl (Retry: ${retryCount + 1}/$_maxRetries)');
 
         try {
+          // Get current access token before refresh
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          String? oldAccessToken = prefs.getString('accessToken');
+          print('🔑 PREVIOUS Access Token:... $oldAccessToken');
+
           // This will throw if refresh token is expired
           final newAccessToken = await _refreshAccessToken();
 
+          print('🔑 NEW Access Token: ...$newAccessToken');
           print('✅ Token refreshed successfully, retrying original request');
 
           // Increment retry counter
@@ -540,7 +502,7 @@ print(accessToken);
           rethrow;
         }
       } else {
-        print('🔒 401 response for excluded endpoint: $originalUrl');
+        print('🔒 ${response.statusCode} response for excluded endpoint: $originalUrl');
         throw UnauthorisedException('Authentication failed');
       }
     }
@@ -577,7 +539,7 @@ print(accessToken);
         }
         _refreshQueue.clear();
 
-        throw UnauthorisedException('Session expired. Please auth_login again.');
+        throw UnauthorisedException('Session expired. Please login again.');
       }
 
       print('🔄 Attempting to refresh access token...');
@@ -635,6 +597,8 @@ print(accessToken);
             // Save updated user data
             await userViewModel.saveUser(updatedUserModel);
 
+            // ✅ RECONNECT SOCKET AND SSE WITH NEW TOKEN
+            print('🔄 Reconnecting services with new access token...');
             await _reconnectServicesWithNewToken(newAccessToken);
 
 
@@ -678,7 +642,7 @@ print(accessToken);
         }
         _refreshQueue.clear();
 
-        throw UnauthorisedException('Session expired. Please auth_login again.');
+        throw UnauthorisedException('Session expired. Please login again.');
       } else {
         // Other errors (500, network issues) - DON'T logout
         print('❌ Refresh token API failed with status: ${response.statusCode} - NOT LOGGING OUT');
@@ -720,37 +684,53 @@ print(accessToken);
     try {
       final context = NavigationService.navigatorKey.currentContext;
       if (context == null) {
+        print('❌ NetworkApiService: Context is null, cannot reconnect services');
         return;
       }
-      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-      await socketProvider.disconnect();
-      await Future.delayed(Duration(milliseconds: 300));
-      await socketProvider.connectWithToken(accessToken: newAccessToken);
 
+      print('🔌 NetworkApiService: Starting socket reconnection...');
+      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
+
+      // ✅ First disconnect existing socket if connected
+      if (socketProvider.isConnected) {
+        print('🔌 NetworkApiService: Disconnecting old socket connection...');
+        await socketProvider.disconnect();
+        await Future.delayed(Duration(milliseconds: 500));
+        print('✅ NetworkApiService: Old socket disconnected');
+      }
+
+      // ✅ Connect with new token
+      print('🔌 NetworkApiService: Connecting socket with NEW token...');
+      await socketProvider.connectWithToken(accessToken: newAccessToken);
+      await Future.delayed(Duration(seconds: 2));
 
       if (socketProvider.isConnected) {
-        print('✅ NetworkApiService: Socket reconnected successfully');
+        print('✅ NetworkApiService: Socket reconnected successfully with new token');
       } else {
-        print('⚠️ NetworkApiService: Attempting auto-reconnect...');
-        await socketProvider.autoReconnect();
+        print('⚠️ NetworkApiService: Socket connection status: ${socketProvider.statusText}');
       }
 
       // ✅ Reconnect SSE
+      print('🔔 NetworkApiService: Starting SSE reconnection...');
       final sseService = Provider.of<SSENotificationService>(context, listen: false);
       final notificationCountViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
       final runningOrderCountViewModel = Provider.of<RunningOrderCountViewModel>(context, listen: false);
+
       await sseService.stopListening();
       await Future.delayed(Duration(milliseconds: 300));
       await sseService.startListening();
       await Future.delayed(Duration(milliseconds: 500));
+
       if (!notificationCountViewModel.isInitialized) {
         notificationCountViewModel.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
       }
       notificationCountViewModel.setInitialCount(sseService.currentCount);
+
       if (!runningOrderCountViewModel.isInitialized) {
         runningOrderCountViewModel.initializeCountListener(sseService.runningOrderCountStream);
       }
       runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
+
       print('✅ NetworkApiService: All services reconnected with new token');
     } catch (e) {
       print('❌ NetworkApiService: Error reconnecting services - $e');

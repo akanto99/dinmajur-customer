@@ -20,20 +20,20 @@ class RunningOrderCountViewModel extends ChangeNotifier {
 
     _countSubscription?.cancel();
 
-    debugPrint('🎯 RunningOrderCountViewModel: Initializing count listener...');
+    // debugPrint('🎯 RunningOrderCountViewModel: Initializing count listener...');
 
     _countSubscription = countStream.listen(
           (count) {
-        debugPrint('═══════════════════════════════════════════');
-        debugPrint('📦 RUNNING ORDER COUNT RECEIVED: $count');
-        debugPrint('📦 Previous count: $_runningOrderCount');
-        debugPrint('═══════════════════════════════════════════');
+        // debugPrint('═══════════════════════════════════════════');
+        // debugPrint('📦 RUNNING ORDER COUNT RECEIVED: $count');
+        // debugPrint('📦 Previous count: $_runningOrderCount');
+        // debugPrint('═══════════════════════════════════════════');
 
         _runningOrderCount = count;
         notifyListeners();
-
-        debugPrint('✅ Running order badge count updated to: $count');
-        debugPrint('✅ Listeners notified');
+        //
+        // debugPrint('✅ Running order badge count updated to: $count');
+        // debugPrint('✅ Listeners notified');
       },
       onError: (error) {
         debugPrint('❌ Error in running order count stream: $error');
@@ -46,14 +46,14 @@ class RunningOrderCountViewModel extends ChangeNotifier {
     );
 
     _isInitialized = true;
-    debugPrint('✅ runningOrderCount listener initialized');
+    // debugPrint('✅ runningOrderCount listener initialized');
   }
 
   // Set initial count from stream controller's last value
   void setInitialCount(int count) {
     _runningOrderCount = count;
     notifyListeners();
-    debugPrint('🎯 Initial running order count set to: $count');
+    // debugPrint('🎯 Initial running order count set to: $count');
   }
 
   @override
