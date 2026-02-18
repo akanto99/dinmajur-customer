@@ -25,11 +25,10 @@ class RoutesName {
   static const String trackOrderViewdetailsSocketScreen = 'trackOrderViewdetailsSocketScreen_view';//SOCKET GET VIEW DETAILS
   static const String deliverdScreen = 'deliverdScreen_view';//delivered screen get api
   //drawer===========>
-  static const String paymentMethod = 'paymentMethod_view';
+
   static const String review = 'review_view';
   static const String support = 'support_view';
   static const String viewProfile = 'viewProfile_view';
-  static const String saveAddress = 'saveAddress_view';
   static const String ordersScreen = 'ordersScreen_view';
   static const String promoCodes = 'promoCodes_view';
   static const String offers = 'offers_view';

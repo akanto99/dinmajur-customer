@@ -7,12 +7,14 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/socket_home_model/socket_get_all_orders_model/socket_orderdetails_model.dart';
 import 'package:dinmajur_customer/socket_connection_model/screens_sockets/home_sceens_socket/get_all_orders_socket/socket_order_view_details.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/grocery_order_view_model/grocery_ordernow_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TrackOrderViewModel extends ChangeNotifier {
-  // ── Dependencies ─────────────────────────────────────────────────────────────
+  // ── Dependencies ──────────────────────────────────────────────────────────────
   final String orderId;
   OrderDetailsSocketProvider? _orderDetailsProvider;
   SocketProvider? _socketProvider;
@@ -42,22 +44,13 @@ class TrackOrderViewModel extends ChangeNotifier {
   ];
 
   // ── Setters ───────────────────────────────────────────────────────────────────
-  void setTermsAccepted(bool value) {
-    _isTermsAccepted = value;
-    notifyListeners();
-  }
+  void setTermsAccepted(bool value) { _isTermsAccepted = value; notifyListeners(); }
+  void setReviewAccepted(bool value) { _isReviewAccepted = value; notifyListeners(); }
+  void setPaymentMethod(String method) { _selectedPaymentMethod = method; notifyListeners(); }
 
-  void setReviewAccepted(bool value) {
-    _isReviewAccepted = value;
-    notifyListeners();
-  }
-
-  void setPaymentMethod(String method) {
-    _selectedPaymentMethod = method;
-    notifyListeners();
-  }
-
-  // ── Initialization ────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INITIALIZE — called once per screen lifetime from initState
+  // ─────────────────────────────────────────────────────────────────────────────
   Future<void> initialize({
     required BuildContext context,
     required OrderDetailsSocketProvider orderDetailsProvider,
@@ -65,112 +58,107 @@ class TrackOrderViewModel extends ChangeNotifier {
   }) async {
     if (!isContextValid(context)) return;
 
-    print('🎬 [VM] Initializing screen for order: $orderId');
+    print('🎬 [VM] initialize() for orderId: $orderId');
 
     _orderDetailsProvider = orderDetailsProvider;
     _socketProvider = socketProvider;
 
+    // ✅ Always reset provider state so previous screen's data never shows
+    _orderDetailsProvider!.reset();
+
+    // ✅ Setup socket reconnect listener FIRST
     _setupSocketReconnectListener(context: context);
-    await _initializeWithRetry(context: context);
+
+    // ✅ Then fetch
+    await _fetchWithRetry(context: context);
 
     _isInitialized = true;
     notifyListeners();
     print('✅ [VM] Initialization complete');
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SOCKET RECONNECT LISTENER
+  // When the socket reconnects (after network loss/resume), auto-refetch
+  // ─────────────────────────────────────────────────────────────────────────────
   void _setupSocketReconnectListener({required BuildContext context}) {
-    print('👂 [VM] Setting up socket reconnect listener');
+    // Remove old callback first to avoid duplicates
+    if (_socketReconnectCallback != null && _socketProvider != null) {
+      _socketProvider!.removeSocketReadyCallback(_socketReconnectCallback!);
+    }
 
     _socketReconnectCallback = () {
-      print('🔌 [VM] Socket reconnected! Refreshing...');
+      print('🔌 [VM] Socket reconnected — re-fetching order details...');
       if (_isInitialized) {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          handleRefresh(context: context);
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (isContextValid(context)) {
+            handleRefresh(context: context);
+          }
         });
       }
     };
 
     _socketProvider?.onSocketReady(_socketReconnectCallback!);
+    print('👂 [VM] Socket reconnect listener registered');
   }
 
-  Future<void> _initializeWithRetry({
+  // ─────────────────────────────────────────────────────────────────────────────
+  // FETCH WITH RETRY — tries up to 3 times with socket reconnect between attempts
+  // ─────────────────────────────────────────────────────────────────────────────
+  Future<void> _fetchWithRetry({
     required BuildContext context,
     int maxRetries = 3,
   }) async {
-    int retryCount = 0;
-
-    while (retryCount < maxRetries) {
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        print('🔄 [VM] Initialization attempt ${retryCount + 1}/$maxRetries');
+        print('🔄 [VM] Fetch attempt $attempt/$maxRetries');
 
         await _orderDetailsProvider!.initializeAndFetch(
           socketProvider: _socketProvider!,
           orderId: orderId,
           onSuccess: (model) => handleOrderDetailsUpdate(model: model, context: context),
-          onError: (error) async {
-            print('❌ [VM] Error during initialization: $error');
-            if (error.contains('Invalid order ID')) {
-              throw Exception(error);
-            }
+          onError: (error) {
+            print('❌ [VM] Server error: $error');
+            if (error.contains('Invalid order ID')) throw Exception(error);
           },
         );
 
-        print('✅ [VM] Initialization successful');
+        print('✅ [VM] Fetch initiated on attempt $attempt');
         return;
       } catch (e) {
-        retryCount++;
-        print('❌ [VM] Attempt $retryCount failed: $e');
+        print('❌ [VM] Attempt $attempt failed: $e');
 
         if (e.toString().contains('Invalid order ID')) {
-          print('❌ [VM] Invalid order ID, stopping retries');
+          print('❌ [VM] Stopping retries — invalid order ID');
           return;
         }
 
-        if (retryCount < maxRetries) {
+        if (attempt < maxRetries) {
+          print('🔌 [VM] Reconnecting socket before retry...');
           await _reconnectSocket();
           await Future.delayed(const Duration(seconds: 2));
         } else {
-          print('❌ [VM] Max retries reached');
+          print('❌ [VM] All $maxRetries attempts exhausted');
         }
       }
     }
   }
 
-  Future<void> _reconnectSocket() async {
-    try {
-      print('🔌 [VM] Attempting to reconnect socket...');
-
-      final prefs = await SharedPreferences.getInstance();
-      final accessToken = prefs.getString('accessToken');
-
-      if (accessToken == null || accessToken.isEmpty) {
-        print('❌ [VM] No access token available');
-        return;
-      }
-
-      await _socketProvider!.disconnect();
-      await Future.delayed(const Duration(milliseconds: 500));
-      await _socketProvider!.connectWithToken(accessToken: accessToken);
-      await Future.delayed(const Duration(milliseconds: 1000));
-
-      print('✅ [VM] Socket reconnected');
-    } catch (e) {
-      print('❌ [VM] Reconnection failed: $e');
-    }
-  }
-
-  // ── Refresh ───────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // REFRESH — pull-to-refresh or app resume
+  // ─────────────────────────────────────────────────────────────────────────────
   Future<void> handleRefresh({required BuildContext context}) async {
     if (_socketProvider == null || _orderDetailsProvider == null) {
-      print('⚠️ [VM] Cannot refresh: not ready');
+      print('⚠️ [VM] Cannot refresh: providers not ready');
       return;
     }
 
-    print('🔄 [VM] Refreshing order details');
+    print('🔄 [VM] handleRefresh()');
 
     try {
+      // Reconnect socket if needed
       if (!_socketProvider!.isConnected) {
-        print('⚠️ [VM] Socket disconnected, reconnecting before refresh');
+        print('⚠️ [VM] Socket disconnected — reconnecting before refresh');
         await _reconnectSocket();
         await Future.delayed(const Duration(milliseconds: 500));
       }
@@ -187,26 +175,56 @@ class TrackOrderViewModel extends ChangeNotifier {
         },
       );
     } catch (e) {
-      print('❌ [VM] Refresh error: $e');
+      print('❌ [VM] handleRefresh error: $e');
       if (isContextValid(context)) {
         Utils.flushBarErrorMessage("Failed to refresh order details", context);
       }
     }
   }
 
-  // ── Order Update Handler ──────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SOCKET RECONNECT HELPER
+  // ─────────────────────────────────────────────────────────────────────────────
+  Future<void> _reconnectSocket() async {
+    try {
+      print('🔌 [VM] _reconnectSocket()');
+
+      final prefs = await SharedPreferences.getInstance();
+      final accessToken = prefs.getString('accessToken');
+
+      if (accessToken == null || accessToken.isEmpty) {
+        print('❌ [VM] No access token');
+        return;
+      }
+
+      await _socketProvider!.disconnect();
+      await Future.delayed(const Duration(milliseconds: 500));
+      await _socketProvider!.connectWithToken(accessToken: accessToken);
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      print('✅ [VM] Socket reconnected');
+    } catch (e) {
+      print('❌ [VM] Socket reconnect failed: $e');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ORDER UPDATE HANDLER
+  // Called by provider whenever new data arrives
+  // ─────────────────────────────────────────────────────────────────────────────
   void handleOrderDetailsUpdate({
     required OrderDetailsModel model,
     required BuildContext context,
   }) {
-    print('📊 [VM] Order details updated');
+    print('📊 [VM] handleOrderDetailsUpdate — status: ${model.delivery?.status}');
 
     final currentStatus = model.delivery?.status;
 
+    // Navigate to delivered screen only once
     if (currentStatus?.toUpperCase() == 'DELIVERED' &&
         _previousDeliveryStatus?.toUpperCase() != 'DELIVERED' &&
         !_hasNavigatedToDelivered) {
-      print('🎉 [VM] Order delivered! Navigating...');
+      print('🎉 [VM] Order delivered — navigating in 2s');
       _hasNavigatedToDelivered = true;
       notifyListeners();
 
@@ -224,25 +242,24 @@ class TrackOrderViewModel extends ChangeNotifier {
     _previousDeliveryStatus = currentStatus;
   }
 
-  // ── Step Calculator ───────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // STEP CALCULATOR
+  // ─────────────────────────────────────────────────────────────────────────────
   int getCurrentStepFromStatus(String? deliveryStatus) {
     if (deliveryStatus == null) return 0;
     switch (deliveryStatus.toUpperCase()) {
       case 'PENDING':
-      case 'ACCEPTED':
-        return 0;
-      case 'PICKED_UP':
-        return 1;
-      case 'ARRIVED_DESTINATION':
-        return 2;
-      case 'DELIVERED':
-        return 3;
-      default:
-        return 0;
+      case 'ACCEPTED': return 0;
+      case 'PICKED_UP': return 1;
+      case 'ARRIVED_DESTINATION': return 2;
+      case 'DELIVERED': return 3;
+      default: return 0;
     }
   }
 
-  // ── Total Calculators ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOTAL CALCULATORS
+  // ─────────────────────────────────────────────────────────────────────────────
   double calculateSubtotal(Order order) {
     if (order.items == null) return 0;
     return order.items!.fold(0.0, (sum, item) {
@@ -255,11 +272,10 @@ class TrackOrderViewModel extends ChangeNotifier {
     });
   }
 
-  double calculateTotal(Order order) {
-    return calculateSubtotal(order) +
-        (order.serviceFee?.toDouble() ?? 0) +
-        (order.freelancerEarning?.toDouble() ?? 0);
-  }
+  double calculateTotal(Order order) =>
+      calculateSubtotal(order) +
+          (order.serviceFee?.toDouble() ?? 0) +
+          (order.freelancerEarning?.toDouble() ?? 0);
 
   int getFoundItemsCount(List<Item>? items) {
     if (items == null) return 0;
@@ -269,10 +285,11 @@ class TrackOrderViewModel extends ChangeNotifier {
         item.totalPrice! > 0).length;
   }
 
-  // ── Time Formatters ───────────────────────────────────────────────────────────
-  String formatAcceptedTime(DateTime acceptedAt) {
-    return DateFormat('hh:mm a').format(acceptedAt.add(const Duration(hours: 6)));
-  }
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TIME FORMATTERS
+  // ─────────────────────────────────────────────────────────────────────────────
+  String formatAcceptedTime(DateTime acceptedAt) =>
+      DateFormat('hh:mm a').format(acceptedAt.add(const Duration(hours: 6)));
 
   String formatDate(DateTime? createdAt) {
     if (createdAt == null) return 'N/A';
@@ -284,7 +301,9 @@ class TrackOrderViewModel extends ChangeNotifier {
     return DateFormat('hh:mm a').format(createdAt.add(const Duration(hours: 6)));
   }
 
-  // ── Phone Helpers ─────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHONE HELPERS
+  // ─────────────────────────────────────────────────────────────────────────────
   String cleanPhoneNumber(String phoneNumber) {
     String cleaned = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
     if (cleaned.startsWith('+88')) cleaned = cleaned.substring(3);
@@ -293,55 +312,44 @@ class TrackOrderViewModel extends ChangeNotifier {
     return cleaned;
   }
 
-  // ── Payment Handler ───────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PAY NOW
+  // ─────────────────────────────────────────────────────────────────────────────
   Future<void> handlePayNow({
     required BuildContext context,
     required Order order,
+    required Payment payment,
   }) async {
-    // 1. Payment method check
     if (_selectedPaymentMethod == null) {
       Utils.flushBarErrorMessage("Please select a payment method.", context);
       return;
     }
-
-    // 2. Terms checks
     if (!_isTermsAccepted && !_isReviewAccepted) {
       Utils.flushBarErrorMessage(
-        "Please accept the Terms & Conditions and confirm your review before paying.",
-        context,
-      );
+          "Please accept the Terms & Conditions and confirm your review before paying.", context);
       return;
     }
     if (!_isTermsAccepted) {
       Utils.flushBarErrorMessage(
-        "Please accept the Terms & Conditions, Privacy Policy, and Return/Refund Policy.",
-        context,
-      );
+          "Please accept the Terms & Conditions, Privacy Policy, and Return/Refund Policy.", context);
       return;
     }
     if (!_isReviewAccepted) {
       Utils.flushBarErrorMessage(
-        "Please confirm that you have reviewed the final items.",
-        context,
-      );
+          "Please confirm that you have reviewed the final items.", context);
       return;
     }
 
-    // 3. Cash → dialog
     if (_selectedPaymentMethod == 'cash') {
-      await _handleCashPayment(context: context, order: order);
-      return;
-    }
-
-    // 4. Online → SSL
-    if (_selectedPaymentMethod == 'online') {
+      await _handleCashPayment(context: context, payment: payment);
+    } else if (_selectedPaymentMethod == 'online') {
       await _handleOnlinePayment(context: context, order: order);
     }
   }
 
   Future<void> _handleCashPayment({
     required BuildContext context,
-    required Order order,
+    required Payment payment,
   }) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -353,31 +361,21 @@ class TrackOrderViewModel extends ChangeNotifier {
           children: [
             Icon(Icons.payments_outlined, color: AppColors.button(context), size: 22),
             SizedboxSpaccing.width02(context),
-            Text(
-              'Hand Cash Payment',
-              style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-            ),
+            Text('Hand Cash Payment',
+                style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
           ],
         ),
         content: Text(
           'You have selected Hand Cash. Please pay the delivery person the total amount upon delivery.\n\nDo you want to confirm this order?',
-          style: AppTextStyles.textSize14(
-            context,
-            weight: FontWeight.w400,
-            color: AppColors.subtitle(context),
-          ),
+          style: AppTextStyles.textSize14(context,
+              weight: FontWeight.w400, color: AppColors.subtitle(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              'Cancel',
-              style: AppTextStyles.textSize14(
-                context,
-                weight: FontWeight.w500,
-                color: AppColors.subtitle(context),
-              ),
-            ),
+            child: Text('Cancel',
+                style: AppTextStyles.textSize14(context,
+                    weight: FontWeight.w500, color: AppColors.subtitle(context))),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -387,22 +385,32 @@ class TrackOrderViewModel extends ChangeNotifier {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               elevation: 0,
             ),
-            child: Text(
-              'Confirm',
-              style: AppTextStyles.textSize14(
-                context,
-                weight: FontWeight.w600,
-                color: AppColors.whiteColor,
-              ),
-            ),
+            child: Text('Confirm',
+                style: AppTextStyles.textSize14(context,
+                    weight: FontWeight.w600, color: AppColors.whiteColor)),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-      // TODO: call your cash confirm API/socket here
-      print('✅ [VM] Cash payment confirmed for order: ${order.id}');
+      if (!isContextValid(context)) return;
+
+      final groceryVM = Provider.of<GroceryOrdernowViewModel>(context, listen: false);
+       print("======================================================${payment.id}");
+      final fields = {
+        'paymentId': payment.id,
+        'paymentType': 'CASH_ON_DELIVERY',
+      };
+
+      await groceryVM.groceryPaymentPatchApi(
+        context,
+        fields,
+            () {
+          print('✅ [VM] Cash payment confirmed for payment ID: ${payment.id}');
+          handleRefresh(context: context);
+        },
+      );
     }
   }
 
@@ -428,34 +436,36 @@ class TrackOrderViewModel extends ChangeNotifier {
 
     if (result.success) {
       print('💳 [VM] SSL payment success: ${result.transactionId}');
-      // TODO: navigate to success screen or call confirm API
+      // TODO: navigate to success screen
     } else if (result.status == 'CANCELLED') {
       Utils.flushBarErrorMessage("Payment was cancelled.", context);
     } else {
       Utils.flushBarErrorMessage(
-        result.errorMessage ?? 'Payment failed. Please try again.',
-        context,
-      );
+          result.errorMessage ?? 'Payment failed. Please try again.', context);
     }
   }
 
-  // ── Helper ────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────────────────────────────────────
   bool isContextValid(BuildContext context) {
-    try {
-      return context.mounted;
-    } catch (_) {
-      return false;
-    }
+    try { return context.mounted; } catch (_) { return false; }
   }
 
-  // ── Dispose ───────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DISPOSE
+  // ─────────────────────────────────────────────────────────────────────────────
   @override
   void dispose() {
-    print('🗑️ [VM] Disposing ViewModel');
+    print('🗑️ [VM] Disposing TrackOrderViewModel');
+
     if (_socketReconnectCallback != null && _socketProvider != null) {
       _socketProvider!.removeSocketReadyCallback(_socketReconnectCallback!);
-      print('✅ [VM] Removed socket reconnect listener');
     }
+
+    // ✅ Reset the shared provider so its stale data doesn't survive
+    _orderDetailsProvider?.reset();
+
     super.dispose();
   }
 }

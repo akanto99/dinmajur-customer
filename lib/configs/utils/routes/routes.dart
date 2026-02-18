@@ -19,14 +19,12 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/drawer/language/language_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/drawer/payment_method/payment_method.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/policies/cooking_policy.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/policies/delivery_policy.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/policies/refund_policy.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/privacy_policy/privacy_policy_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/promo_codes/promo_code_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/review/review.dart';
-import 'package:dinmajur_customer/view/screens/home/drawer/save_address/save_address_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/terms_conditions/terms_conditions_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/view_edit_profile/view_profile.dart';
@@ -39,13 +37,9 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/deliverd_s
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/socket_get_all_order_screen/order_view_details_screen_socket.dart';
 import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/notification_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/unified_seeall_screen/unified_seeall_screen.dart';
-// import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/sse_notification_screen.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
-import 'package:dinmajur_customer/view/screens/order/pending_orders/pending_orders_view_details_socketScreen.dart';
-import 'package:dinmajur_customer/view/screens/order/running_orders/running_orders_view_details_socketScreen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
 import 'package:flutter/material.dart';
 
@@ -369,10 +363,6 @@ class Routes {
     //drawer===========>
         case RoutesName.viewProfile:
         return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());
-      case RoutesName.paymentMethod:
-        return MaterialPageRoute(builder: (BuildContext context) => const PaymentMethod());
-      case RoutesName.saveAddress:
-        return MaterialPageRoute(builder: (BuildContext context) => const SaveAddressScreen());
       case RoutesName.ordersScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
       case RoutesName.promoCodes:

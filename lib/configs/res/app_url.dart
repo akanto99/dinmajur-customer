@@ -5,7 +5,7 @@ class AppUrl {
   static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
 
-  //
+
   // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
   // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
@@ -59,6 +59,7 @@ class AppUrl {
   static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
   static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";
   static var orderDetailsGetAPI = baseUrl + '/orders';
+  static var groceryPaymnetPatchAPI = baseUrl + '/customers/payments/type';
   //Freelancer Rating
   static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
   //========>Premium house Keeper

@@ -16,63 +16,15 @@ class SocketService {
   IO.Socket? get socket => _socket;
 
   /// Initialize socket connection with access token
-  //   Future<void> initializeSocket({required String accessToken}) async {
-  //     try {
-  //       _accessToken = accessToken;
-  //
-  //       // Disconnect existing connection if any
-  //       if (_socket != null) {
-  //         await disconnect();
-  //       }
-  // print("===============SOCKET ACCESS TOKEN=========================$accessToken");
-  //       // Create socket connection with access token in headers
-  //       _socket = IO.io(
-  //         "${AppUrl.socketUrl}",
-  //         IO.OptionBuilder()
-  //             .setQuery({
-  //           'token': accessToken,
-  //         })
-  //         .setAuth({
-  //           'token':accessToken
-  //         })
-  //             .setTransports(['websocket'])
-  //             .enableAutoConnect()
-  //             .disableForceNew()
-  //             .setReconnectionAttempts(10)
-  //             .setReconnectionDelay(1000)
-  //             .setReconnectionDelayMax(5000)
-  //             .enableReconnection()
-  //             .setTimeout(20000)
-  //             .setExtraHeaders({
-  //           'Accept': 'application/json',
-  //           'Content-Type': 'application/json',
-  //           'Authorization': 'Bearer $accessToken', // ✅ Pass token in header
-  //         })
-  //             .build(),
-  //       );
-  //
-  //       _setupSocketListeners();
-  //
-  //       // Connect to socket
-  //       _socket!.connect();
-  //
-  //       if (kDebugMode) {
-  //         print('🔌 Socket initialization started with token');
-  //       }
-  //     } catch (e) {
-  //       if (kDebugMode) {
-  //         print('🔌 Socket initialization error: $e');
-  //       }
-  //     }
-  //   }
   Future<void> initializeSocket({required String accessToken}) async {
     try {
+      // ✅ Save token BEFORE disconnect so canReconnect() stays true
       _accessToken = accessToken;
 
-      // Completely destroy old socket
+      // Completely destroy old socket first
       await disconnect();
 
-      print("===============SOCKET ACCESS TOKEN=========================$accessToken");
+      print("=============== SOCKET ACCESS TOKEN ========================= $accessToken");
 
       _socket = IO.io(
         AppUrl.socketUrl,
@@ -87,12 +39,11 @@ class SocketService {
       );
 
       _setupSocketListeners();
-
       _socket!.connect();
 
-      print('🔌 Clean socket initialized');
+      print('🔌 [SocketService] Clean socket initialized');
     } catch (e) {
-      print('🔌 Socket initialization error: $e');
+      print('🔌 [SocketService] Initialization error: $e');
     }
   }
 
@@ -100,177 +51,99 @@ class SocketService {
   void _setupSocketListeners() {
     _socket!.onConnect((data) {
       _isConnected = true;
-
       if (kDebugMode) {
         print('-----------------------------------');
-        print('🎉 Socket Connected Successfully');
+        print('🎉 [SocketService] Connected Successfully — id: ${_socket?.id}');
         print('-----------------------------------');
       }
-
       monitorConnection();
     });
 
     _socket!.onDisconnect((data) {
       _isConnected = false;
-
-      if (kDebugMode) {
-        print('🔌 Socket disconnected: $data');
-      }
+      if (kDebugMode) print('🔌 [SocketService] Disconnected: $data');
     });
 
     _socket!.onConnectError((error) {
       _isConnected = false;
-
-      if (kDebugMode) {
-        print('🔌 Socket connection error: $error');
-      }
+      if (kDebugMode) print('🔌 [SocketService] Connection error: $error');
     });
 
     _socket!.onError((error) {
-      if (kDebugMode) {
-        print('🔌 Socket error: $error');
-      }
+      if (kDebugMode) print('🔌 [SocketService] Error: $error');
     });
   }
 
   /// Monitor connection with ping/pong
   void monitorConnection() {
-    if (_socket != null) {
-      _socket!.on('ping', (_) {
-        if (kDebugMode) {
-          print('🔌 Socket: Ping received - connection alive');
-        }
-      });
-
-      _socket!.on('pong', (_) {
-        if (kDebugMode) {
-          print('🔌 Socket: Pong sent - connection alive');
-        }
-      });
-    }
+    _socket?.on('ping', (_) {
+      if (kDebugMode) print('🔌 [SocketService] Ping received');
+    });
+    _socket?.on('pong', (_) {
+      if (kDebugMode) print('🔌 [SocketService] Pong sent');
+    });
   }
 
-  /// Custom event listener
-  void on(String event, Function(dynamic) callback) {
-    _socket?.on(event, callback);
-  }
+  void on(String event, Function(dynamic) callback) => _socket?.on(event, callback);
+  void off(String event) => _socket?.off(event);
 
-  /// Remove event listener
-  void off(String event) {
-    _socket?.off(event);
-  }
-
-  /// Emit custom events
   void emit(String event, dynamic data) {
     if (_socket != null && _isConnected) {
       _socket!.emit(event, data);
-
-      if (kDebugMode) {
-        print('🔌 Emitted event: $event');
-      }
+      if (kDebugMode) print('🔌 [SocketService] Emitted: $event');
     }
   }
 
-  /// Disconnect socket
+  /// Disconnect socket — does NOT wipe _accessToken so reconnect still works
   Future<void> disconnect() async {
     try {
       if (kDebugMode) {
-        print('🔌 SocketService: disconnect() called');
-        print('🔌 SocketService: _socket is ${_socket == null ? 'NULL' : 'NOT NULL'}');
-        print('🔌 SocketService: _isConnected = $_isConnected');
+        print('🔌 [SocketService] disconnect() — socket is ${_socket == null ? 'NULL' : 'LIVE'}');
       }
 
       if (_socket != null) {
-        if (kDebugMode) {
-          print('🔌 SocketService: Calling socket.disconnect()...');
-        }
-
-        // Disconnect the socket
         _socket!.disconnect();
-
-        if (kDebugMode) {
-          print('🔌 SocketService: ✅ socket.disconnect() called successfully');
-          print('🔌 SocketService: Calling socket.dispose()...');
-        }
-
-        // Dispose the socket
         _socket!.dispose();
-
-        if (kDebugMode) {
-          print('🔌 SocketService: ✅ socket.dispose() called successfully');
-        }
-
-        // Clear socket reference
         _socket = null;
-
-        if (kDebugMode) {
-          print('🔌 SocketService: ✅ Socket reference set to null');
-        }
-      } else {
-        if (kDebugMode) {
-          print('🔌 SocketService: Socket was already null, nothing to disconnect');
-        }
+        if (kDebugMode) print('🔌 [SocketService] ✅ Socket destroyed');
       }
 
-      // Update connection state
       _isConnected = false;
 
-      if (kDebugMode) {
-        print('🔌 SocketService: ✅✅✅ Socket disconnected successfully');
-      }
+      if (kDebugMode) print('🔌 [SocketService] ✅ disconnect() complete');
     } catch (e) {
-      if (kDebugMode) {
-        print('🔌 SocketService: ⚠️ Error during disconnect: $e');
-      }
-    } finally {
-      // Ensure state is cleared even if error occurs
+      if (kDebugMode) print('🔌 [SocketService] ⚠️ disconnect error: $e');
+      // Still clean up state
+      _socket = null;
       _isConnected = false;
-      _accessToken = null;
-
-      if (kDebugMode) {
-        print('🔌 SocketService: Cleanup completed in finally block');
-        print('🔌 SocketService: Final state - _socket: ${_socket == null ? 'NULL' : 'NOT NULL'}, _isConnected: $_isConnected');
-      }
     }
+    // ✅ NOTE: _accessToken is intentionally NOT cleared here.
+    // canReconnect() needs it to reinitialize the socket without
+    // requiring the caller to pass the token again.
   }
 
-  /// Reconnect to socket
+  /// Reconnect socket
   Future<void> reconnect() async {
     try {
-      if (kDebugMode) {
-        print('🔌 Attempting to reconnect socket...');
-      }
+      if (kDebugMode) print('🔌 [SocketService] reconnect()');
 
-      // If socket exists but disconnected, try to connect
       if (_socket != null && !_isConnected) {
+        // Try to reconnect on existing socket instance
         _socket!.connect();
-
-        if (kDebugMode) {
-          print('🔌 Reconnect initiated for existing socket');
-        }
-      }
-      // If socket is null, reinitialize with previous token
-      else if (_socket == null && _accessToken != null) {
+        if (kDebugMode) print('🔌 [SocketService] connect() called on existing socket');
+      } else if (_accessToken != null) {
+        // Socket was destroyed — reinitialize from saved token
         await initializeSocket(accessToken: _accessToken!);
-
-        if (kDebugMode) {
-          print('🔌 Socket reinitialized with access token');
-        }
+        if (kDebugMode) print('🔌 [SocketService] Reinitialized from saved token');
       } else {
-        if (kDebugMode) {
-          print('🔌 Cannot reconnect: Missing token or socket already connected');
-        }
+        if (kDebugMode) print('🔌 [SocketService] ❌ Cannot reconnect: no token and no socket');
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('🔌 Reconnect error: $e');
-      }
+      if (kDebugMode) print('🔌 [SocketService] reconnect error: $e');
       rethrow;
     }
   }
 
-  /// Check if reconnection is possible
-  bool canReconnect() {
-    return _accessToken != null && !_isConnected;
-  }
+  /// True when we have a token and are not currently connected
+  bool canReconnect() => _accessToken != null && !_isConnected;
 }

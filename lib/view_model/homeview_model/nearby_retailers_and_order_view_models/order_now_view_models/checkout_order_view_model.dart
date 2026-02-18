@@ -91,13 +91,13 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
       await Future.delayed(Duration(milliseconds: 1000));
 
       // Navigate to order confirmation screen
-      Navigator.pushNamed(
-        context,
-        RoutesName.orderConfirmScreen,
-        arguments: {
-          'orderId': orderId,
-        },
-      );
+      // Navigator.pushNamed(
+      //   context,
+      //   RoutesName.orderConfirmScreen,
+      //   arguments: {
+      //     'orderId': orderId,
+      //   },
+      // );
       Navigator.pushNamed(
         context,
         RoutesName.trackOrderViewdetailsSocketScreen,
