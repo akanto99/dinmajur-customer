@@ -26,34 +26,58 @@ class TrackOrderViewdetailsSocketScreen extends StatefulWidget {
   State<TrackOrderViewdetailsSocketScreen> createState() => _TrackOrderViewdetailsSocketScreenState();
 }
 
-class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetailsSocketScreen> with WidgetsBindingObserver {
+class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetailsSocketScreen>
+    with RouteAware {
+  // ✅ One fresh VM per screen push — no lifecycle observer needed here
   late final TrackOrderViewModel _vm;
+
+  // RouteObserver for detecting screen focus/unfocus cleanly
+  // (avoids the double-fire problem from WidgetsBindingObserver)
+  static final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _vm = TrackOrderViewModel(orderId: widget.orderId);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _vm.initialize(context: context, orderDetailsProvider: Provider.of<OrderDetailsSocketProvider>(context, listen: false), socketProvider: Provider.of<SocketProvider>(context, listen: false));
+      if (mounted) _initializeScreen();
     });
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed && _vm.isInitialized) {
-      print('🔄 [SCREEN] App resumed - refreshing data');
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route events — safe to call multiple times
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  Future<void> _initializeScreen() async {
+    await _vm.initialize(
+      context: context,
+      orderDetailsProvider: Provider.of<OrderDetailsSocketProvider>(context, listen: false),
+      socketProvider: Provider.of<SocketProvider>(context, listen: false),
+    );
+  }
+
+  // ── RouteAware: called when this screen comes back into view ──────────────────
+  // This replaces WidgetsBindingObserver.didChangeAppLifecycleState for resume detection.
+  // It only fires for THIS screen, not for every observer registered in the app.
+  @override
+  void didPopNext() {
+    // User came back to this screen by popping a screen on top of it
+    // (e.g., came back from payment screen). Silently refresh data.
+    if (_vm.isInitialized) {
+      print('🔄 [SCREEN] Returned to screen — silent refresh');
       _vm.handleRefresh(context: context);
     }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
     _vm.dispose();
     super.dispose();
   }
@@ -70,7 +94,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
           child: Column(
             children: [
               GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0))),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+                ),
                 child: SizedBox(height: 60, child: AppBarHeader("Track Order Details")),
               ),
               Expanded(child: _buildContent()),
@@ -86,16 +113,32 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   Widget _buildContent() {
     return Consumer<OrderDetailsSocketProvider>(
       builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
+        // ✅ Show full-screen loader ONLY on first load (no data yet)
+        if (provider.isLoading && provider.orderDetailsModel == null) {
+          return Center(
+            child: LoadingAnimationWidget.progressiveDots(
+              color: AppColors.button(context), size: 45,
+            ),
+          );
         }
+
+        // ✅ Error with no data — show error state
         if (provider.error != null && provider.orderDetailsModel == null) {
           return _buildErrorState(provider.error!);
         }
+
+        // ✅ Has data — show content (even if a background refresh is running)
+        // The RefreshIndicator inside handles the visual feedback silently
         if (provider.orderDetailsModel != null) {
           return _buildOrderDetailsContent(provider.orderDetailsModel!);
         }
-        return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
+
+        // Initializing fallback
+        return Center(
+          child: LoadingAnimationWidget.progressiveDots(
+            color: AppColors.button(context), size: 45,
+          ),
+        );
       },
     );
   }
@@ -119,23 +162,23 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 children: [
                   Icon(FontAwesomeIcons.boxOpen, size: 50, color: Colors.red),
                   SizedboxSpaccing.height02(context),
-                  Text(
-                    'Unable to Load Order',
-                    style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-                    textAlign: TextAlign.center,
-                  ),
+                  Text('Unable to Load Order',
+                      style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
+                      textAlign: TextAlign.center),
                   SizedboxSpaccing.height01(context),
-                  Text(
-                    error,
-                    style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(error,
+                      style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+                      textAlign: TextAlign.center),
                   SizedboxSpaccing.height03(context),
                   ElevatedButton.icon(
                     onPressed: () => _vm.handleRefresh(context: context),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.button(context),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
                   ),
                 ],
               ),
@@ -155,8 +198,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     final delivery = model.delivery;
     final customer = model.customer;
     final freelancer = model.freelancer;
+    final payment = model.payment!;
 
     final bool isPending = delivery?.status?.toUpperCase() == 'PENDING';
+    final bool isPickedUp = delivery?.status?.toUpperCase() == 'PICKED_UP';
     final bool isArriveDestination = delivery?.status?.toUpperCase() == 'ARRIVED_DESTINATION';
 
     return RefreshIndicator(
@@ -177,16 +222,31 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               if (!isPending) ...[_buildContactSection(freelancer), SizedboxSpaccing.height02(context)],
               _buildCustomerOrderItems(order.items),
               SizedboxSpaccing.height02(context),
-              if (order.customerNote != null && order.customerNote!.isNotEmpty) ...[_buildCustomerNotes(order.customerNote!), SizedboxSpaccing.height02(context)],
-              if (!isPending) ...[_buildDeliveryItemsSection(order.items), SizedboxSpaccing.height02(context), _buildTotalSection(order), SizedboxSpaccing.height02(context)],
-              if (isArriveDestination) ...[
-                _buildPaymentMethodSection(),
-                SizedboxSpaccing.height02(context),
-                _buildDualTermsCheckbox(),
-                SizedboxSpaccing.height02(context),
-                _buildPayNowButton(order),
+              if (order.customerNote != null && order.customerNote!.isNotEmpty) ...[
+                _buildCustomerNotes(order.customerNote!),
                 SizedboxSpaccing.height02(context),
               ],
+              if (isPickedUp || isArriveDestination) ...[
+                _buildDeliveryItemsSection(order.items),
+                SizedboxSpaccing.height02(context),
+                _buildTotalSection(order),
+                SizedboxSpaccing.height02(context),
+Text(payment.paymentType??"No Payment"),
+
+                _buildPaymentStatusBanner(payment),
+
+                // ✅ Only show payment method + pay button if not yet paid
+                if (payment.paymentType != 'CASH_ON_DELIVERY' &&
+                    payment.paymentType != 'ONLINE') ...[
+                  _buildPaymentMethodSection(),
+                  SizedboxSpaccing.height02(context),
+                  _buildDualTermsCheckbox(),
+                  SizedboxSpaccing.height02(context),
+                  _buildPayNowButton(order, payment),
+                  SizedboxSpaccing.height02(context),
+                ],
+              ],
+
             ],
           ),
         ),
@@ -198,7 +258,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   Widget _buildOrderProgress(String? deliveryStatus) {
     final steps = ['Dinmajur', 'Pickup', 'Delivery', 'Complete'];
-    final stepIcons = [FontAwesomeIcons.user, FontAwesomeIcons.box, FontAwesomeIcons.truck, FontAwesomeIcons.check];
+    final stepIcons = [
+      FontAwesomeIcons.user,
+      FontAwesomeIcons.box,
+      FontAwesomeIcons.truck,
+      FontAwesomeIcons.check,
+    ];
     final screenWidth = MediaQuery.of(context).size.width;
     final bool isPending = deliveryStatus?.toUpperCase() == 'PENDING';
 
@@ -242,13 +307,22 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isActive ? AppColors.button(context) : AppColors.containerBackground(context),
-                    border: Border.all(width: 1, color: isActive ? AppColors.button(context) : AppColors.border(context)),
+                    border: Border.all(
+                      width: 1,
+                      color: isActive ? AppColors.button(context) : AppColors.border(context),
+                    ),
                   ),
-                  child: Icon(stepIcons[stepIndex], color: isActive ? Colors.white : Colors.grey, size: 16),
+                  child: Icon(stepIcons[stepIndex],
+                      color: isActive ? Colors.white : Colors.grey, size: 16),
                 );
               } else {
                 final lineIndex = (index - 1) ~/ 2;
-                return Expanded(child: Container(height: 2, color: lineIndex < currentStep ? AppColors.button(context) : AppColors.border(context)));
+                return Expanded(
+                  child: Container(
+                    height: 2,
+                    color: lineIndex < currentStep ? AppColors.button(context) : AppColors.border(context),
+                  ),
+                );
               }
             }),
           ),
@@ -267,7 +341,9 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   child: Center(
                     child: Text(
                       steps[index],
-                      style: AppTextStyles.textSize12(context, weight: isCurrent ? FontWeight.w600 : FontWeight.w400, color: isActive ? AppColors.textPrimary(context) : AppColors.subtitle(context)),
+                      style: AppTextStyles.textSize12(context,
+                          weight: isCurrent ? FontWeight.w600 : FontWeight.w400,
+                          color: isActive ? AppColors.textPrimary(context) : AppColors.subtitle(context)),
                     ),
                   ),
                 ),
@@ -294,7 +370,6 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header row ──────────────────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,26 +378,26 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 child: Row(
                   children: [
                     Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(8)),
-                      child: Icon(FontAwesomeIcons.store, color: AppColors.containerBackground(context), size: 16),
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(
+                          color: AppColors.textPrimary(context),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Icon(FontAwesomeIcons.store,
+                          color: AppColors.containerBackground(context), size: 16),
                     ),
                     SizedboxSpaccing.width03(context),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            customer?.fullName ?? 'N/A',
-                            style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Under: ${retailer?.businessName ?? 'N/A'}',
-                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          Text(customer?.fullName ?? 'N/A',
+                              style: AppTextStyles.textSize18(context,
+                                  weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                              overflow: TextOverflow.ellipsis),
+                          Text('Under: ${retailer?.businessName ?? 'N/A'}',
+                              style: AppTextStyles.textSize14(context,
+                                  weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                              overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
@@ -332,14 +407,16 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               SizedboxSpaccing.width02(context),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(8)),
-                child: Text('Order #${order.id?.substring(order.id!.length - 6) ?? 'N/A'}', style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
+                decoration: BoxDecoration(
+                    color: AppColors.textFieldFill(context),
+                    borderRadius: BorderRadius.circular(8)),
+                child: Text(
+                    'Order #${order.id?.substring(order.id!.length - 6) ?? 'N/A'}',
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
               ),
             ],
           ),
           SizedboxSpaccing.height02(context),
-
-          // ── Freelancer card ─────────────────────────────────────────────
           if (freelancer != null && delivery?.status?.toUpperCase() != 'PENDING') ...[
             Container(
               padding: EdgeInsets.all(screenHeight * 0.015),
@@ -354,12 +431,14 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   Row(
                     children: [
                       Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle, color: AppColors.button(context)),
                         child: ClipOval(
-                          child: freelancer.profilePicture?.url != null && freelancer.profilePicture!.url!.isNotEmpty
-                              ? Image.network(freelancer.profilePicture!.url!, width: 40, height: 40, fit: BoxFit.cover)
+                          child: freelancer.profilePicture?.url != null &&
+                              freelancer.profilePicture!.url!.isNotEmpty
+                              ? Image.network(freelancer.profilePicture!.url!,
+                              width: 40, height: 40, fit: BoxFit.cover)
                               : const Icon(Icons.person, color: Colors.white, size: 20),
                         ),
                       ),
@@ -369,18 +448,19 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                         children: [
                           Text(
                             '${freelancer.firstName ?? ''} ${freelancer.lastName ?? ''}'.trim(),
-                            style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                            style: AppTextStyles.textSize14(context,
+                                weight: FontWeight.w500, color: AppColors.button(context)),
                           ),
                           Row(
                             children: [
                               const Icon(Icons.star, size: 14, color: Colors.amber),
                               SizedboxSpaccing.width01(context),
-                              Text('${freelancer.rating?.toStringAsFixed(1) ?? 'N/A'}', style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
+                              Text('${freelancer.rating?.toStringAsFixed(1) ?? 'N/A'}',
+                                  style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
                               SizedboxSpaccing.width02(context),
-                              Text(
-                                '• ${freelancer.totalOrders ?? 0} orders',
-                                style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                              ),
+                              Text('• ${freelancer.totalOrders ?? 0} orders',
+                                  style: AppTextStyles.textSize12(context,
+                                      weight: FontWeight.w400, color: AppColors.subtitle(context))),
                             ],
                           ),
                         ],
@@ -391,14 +471,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          'Accepted at',
-                          style: AppTextStyles.textSize10(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                        ),
-                        Text(
-                          _vm.formatAcceptedTime(freelancer.acceptedAt!),
-                          style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
-                        ),
+                        Text('Accepted at',
+                            style: AppTextStyles.textSize10(context,
+                                weight: FontWeight.w400, color: AppColors.subtitle(context))),
+                        Text(_vm.formatAcceptedTime(freelancer.acceptedAt!),
+                            style: AppTextStyles.textSize12(context,
+                                weight: FontWeight.w500, color: AppColors.button(context))),
                       ],
                     ),
                 ],
@@ -406,46 +484,38 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             ),
             SizedboxSpaccing.height02(context),
           ],
-
-          // ── Budget ──────────────────────────────────────────────────────
           Row(
             children: [
               Text('Budget: ', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-              Text('৳${order.budget ?? 0}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+              Text('৳${order.budget ?? 0}',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             ],
           ),
           SizedboxSpaccing.height01(context),
-
-          // ── Date/Time ────────────────────────────────────────────────────
           Row(
             children: [
               Expanded(
-                child: Row(
-                  children: [
-                    _dot(),
-                    SizedboxSpaccing.width02(context),
-                    Text('By: ${_vm.formatTime(order.createdAt)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-                  ],
-                ),
-              ),
-              Row(
-                children: [
+                child: Row(children: [
                   _dot(),
                   SizedboxSpaccing.width02(context),
-                  Text(_vm.formatDate(order.createdAt), style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-                ],
+                  Text('By: ${_vm.formatTime(order.createdAt)}',
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                ]),
               ),
+              Row(children: [
+                _dot(),
+                SizedboxSpaccing.width02(context),
+                Text(_vm.formatDate(order.createdAt),
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+              ]),
             ],
           ),
           SizedboxSpaccing.height02(context),
-
-          // ── Delivery Address ─────────────────────────────────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                height: 22,
-                width: 20,
+                height: 22, width: 20,
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: Icon(Icons.location_on, size: 16, color: AppColors.button(context)),
@@ -456,24 +526,21 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Delivery Address',
-                      style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.button(context)),
-                    ),
+                    Text('Delivery Address',
+                        style: AppTextStyles.textSize16(context,
+                            weight: FontWeight.w500, color: AppColors.button(context))),
                     SizedboxSpaccing.height005(context),
-                    Text(
-                      delivery?.destinationFullAddress ?? 'No address available',
-                      style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                    ),
+                    Text(delivery?.destinationFullAddress ?? 'No address available',
+                        style: AppTextStyles.textSize14(context,
+                            weight: FontWeight.w400, color: AppColors.subtitle(context))),
                     SizedboxSpaccing.height005(context),
                     Row(
                       children: [
                         Icon(FontAwesomeIcons.car, size: 12, color: AppColors.subtitle(context)),
                         SizedboxSpaccing.width02(context),
-                        Text(
-                          '${delivery?.distance ?? 'N/A'} from Store',
-                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
-                        ),
+                        Text('${delivery?.distance ?? 'N/A'} from Store',
+                            style: AppTextStyles.textSize14(context,
+                                weight: FontWeight.w400, color: AppColors.button(context))),
                       ],
                     ),
                   ],
@@ -495,12 +562,14 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Contact With Delivery Person', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+        Text('Contact With Delivery Person',
+            style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         SizedboxSpaccing.height01(context),
         Divider(height: 1, color: AppColors.border(context)),
         SizedboxSpaccing.height02(context),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.015),
+          padding: EdgeInsets.symmetric(
+              horizontal: screenHeight * 0.02, vertical: screenHeight * 0.015),
           decoration: BoxDecoration(
             color: AppColors.textFieldFill(context),
             borderRadius: BorderRadius.circular(12),
@@ -512,18 +581,16 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               Row(
                 children: [
                   Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context)),
+                    width: 34, height: 34,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle, color: AppColors.button(context)),
                     child: ClipOval(
-                      child: freelancer?.profilePicture?.url != null && freelancer!.profilePicture!.url!.isNotEmpty
-                          ? Image.network(
-                              freelancer.profilePicture!.url!,
-                              width: 34,
-                              height: 34,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.person, color: Colors.white, size: 20),
-                            )
+                      child: freelancer?.profilePicture?.url != null &&
+                          freelancer!.profilePicture!.url!.isNotEmpty
+                          ? Image.network(freelancer.profilePicture!.url!,
+                          width: 34, height: 34, fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.person, color: Colors.white, size: 20))
                           : const Icon(Icons.person, color: Colors.white, size: 20),
                     ),
                   ),
@@ -532,10 +599,14 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim().isEmpty ? 'N/A' : '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim(),
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                        '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim().isEmpty
+                            ? 'N/A'
+                            : '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim(),
+                        style: AppTextStyles.textSize14(context,
+                            weight: FontWeight.w500, color: AppColors.button(context)),
                       ),
-                      Text(freelancerPhone.isEmpty ? 'N/A' : freelancerPhone, style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
+                      Text(freelancerPhone.isEmpty ? 'N/A' : freelancerPhone,
+                          style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
                     ],
                   ),
                 ],
@@ -543,21 +614,25 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               Row(
                 children: [
                   GestureDetector(
-                    onTap: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? () => _openWhatsApp(freelancerPhone) : null,
+                    onTap: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A'
+                        ? () => _openWhatsApp(freelancerPhone)
+                        : null,
                     child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.border(context)),
+                      width: 34, height: 34,
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle, color: AppColors.border(context)),
                       child: Icon(Icons.message, color: AppColors.textPrimary(context), size: 18),
                     ),
                   ),
                   SizedboxSpaccing.width02(context),
                   GestureDetector(
-                    onTap: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A' ? () => _makePhoneCall(freelancerPhone) : null,
+                    onTap: freelancerPhone.isNotEmpty && freelancerPhone != 'N/A'
+                        ? () => _makePhoneCall(freelancerPhone)
+                        : null,
                     child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.border(context)),
+                      width: 34, height: 34,
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle, color: AppColors.border(context)),
                       child: Icon(Icons.call, color: AppColors.textPrimary(context), size: 18),
                     ),
                   ),
@@ -579,7 +654,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Customer Order Items (${items.length})', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+        Text('Customer Order Items (${items.length})',
+            style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
         SizedboxSpaccing.height01(context),
         Divider(height: 1, color: AppColors.border(context)),
         SizedboxSpaccing.height02(context),
@@ -599,15 +675,18 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(item.name ?? 'N/A', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-                      ),
-                      Text(
-                        '${item.quantity ?? 0} ${item.unit ?? ''}',
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                      ),
+                          child: Text(item.name ?? 'N/A',
+                              style: AppTextStyles.textSize14(context, weight: FontWeight.w400))),
+                      Text('${item.quantity ?? 0} ${item.unit ?? ''}',
+                          style: AppTextStyles.textSize14(context,
+                              weight: FontWeight.w400, color: AppColors.subtitle(context))),
                     ],
                   ),
-                  if (index < items.length - 1) ...[SizedboxSpaccing.height01(context), Divider(height: 1, color: AppColors.border(context)), SizedboxSpaccing.height01(context)],
+                  if (index < items.length - 1) ...[
+                    SizedboxSpaccing.height01(context),
+                    Divider(height: 1, color: AppColors.border(context)),
+                    SizedboxSpaccing.height01(context),
+                  ],
                 ],
               );
             }),
@@ -637,7 +716,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               children: [
                 Icon(FontAwesomeIcons.solidMessage, size: 18, color: AppColors.textPrimary(context)),
                 SizedboxSpaccing.width02(context),
-                Text('Customer Notes', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+                Text('Customer Notes',
+                    style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
               ],
             ),
           ),
@@ -652,10 +732,9 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(width: 1, color: AppColors.border(context)),
               ),
-              child: Text(
-                customerNote,
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
-              ),
+              child: Text(customerNote,
+                  style: AppTextStyles.textSize14(context,
+                      weight: FontWeight.w400, color: AppColors.textPrimary(context))),
             ),
           ),
         ],
@@ -684,93 +763,90 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
           ),
           child: Column(
             children: [
-              // Header row
               Container(
                 padding: EdgeInsets.all(screenHeight * 0.015),
                 decoration: BoxDecoration(
                   color: AppColors.containerBackground(context),
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12), topRight: Radius.circular(12)),
                 ),
                 child: Row(
                   children: [
+                    Expanded(flex: 2,
+                        child: Text('Item Name',
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w600))),
                     Expanded(
-                      flex: 2,
-                      child: Text('Item Name', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-                    ),
+                        child: Text('Weight/Pcs/Qty',
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                            textAlign: TextAlign.center)),
                     Expanded(
-                      child: Text(
-                        'Weight/Pcs/Qty',
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        'Price',
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
+                        child: Text('Price',
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                            textAlign: TextAlign.right)),
                   ],
                 ),
               ),
               Divider(height: 1, color: AppColors.border(context)),
               ...List.generate(items.length, (index) {
                 final item = items[index];
-                final bool isNotFound = item.status?.toLowerCase() == 'not_found' || item.totalPrice == null || item.totalPrice == 0;
+                final bool isNotFound = item.status?.toLowerCase() == 'not_found' ||
+                    item.totalPrice == null ||
+                    item.totalPrice == 0;
 
                 return Column(
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.015, vertical: screenHeight * 0.012),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenHeight * 0.015, vertical: screenHeight * 0.012),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  item.name ?? 'N/A',
-                                  style: AppTextStyles.textSize14(
-                                    context,
-                                    weight: FontWeight.w400,
-                                  ).copyWith(decoration: isNotFound ? TextDecoration.lineThrough : null, decorationColor: isNotFound ? Colors.red : null, decorationThickness: isNotFound ? 2.0 : null),
-                                ),
+                              Expanded(flex: 2,
+                                child: Text(item.name ?? 'N/A',
+                                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400)
+                                        .copyWith(
+                                      decoration: isNotFound ? TextDecoration.lineThrough : null,
+                                      decorationColor: isNotFound ? Colors.red : null,
+                                      decorationThickness: isNotFound ? 2.0 : null,
+                                    )),
                               ),
                               Expanded(
-                                child: Text(
-                                  '${item.quantity ?? 0} ${item.unit ?? ''}',
-                                  style: AppTextStyles.textSize14(
-                                    context,
-                                    weight: FontWeight.w400,
-                                    color: AppColors.subtitle(context),
-                                  ).copyWith(decoration: isNotFound ? TextDecoration.lineThrough : null, decorationColor: isNotFound ? Colors.red : null, decorationThickness: isNotFound ? 2.0 : null),
-                                  textAlign: TextAlign.center,
-                                ),
+                                child: Text('${item.quantity ?? 0} ${item.unit ?? ''}',
+                                    style: AppTextStyles.textSize14(context,
+                                        weight: FontWeight.w400, color: AppColors.subtitle(context))
+                                        .copyWith(
+                                      decoration: isNotFound ? TextDecoration.lineThrough : null,
+                                      decorationColor: isNotFound ? Colors.red : null,
+                                      decorationThickness: isNotFound ? 2.0 : null,
+                                    ),
+                                    textAlign: TextAlign.center),
                               ),
                               Expanded(
-                                child: Text(
-                                  isNotFound ? '' : '৳${item.totalPrice ?? 0}',
-                                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                                  textAlign: TextAlign.right,
-                                ),
+                                child: Text(isNotFound ? '' : '৳${item.totalPrice ?? 0}',
+                                    style: AppTextStyles.textSize14(context,
+                                        weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                                    textAlign: TextAlign.right),
                               ),
                             ],
                           ),
-                          Text(
-                            "Dinmajur's comment:",
-                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline, decorationThickness: 1.0),
+                          Text("Dinmajur's comment:",
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400)
+                                .copyWith(decoration: TextDecoration.underline, decorationThickness: 1.0),
                           ),
                           Text(
                             (item.comment == null || item.comment!.isEmpty) ? 'N/A' : item.comment!,
-                            style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                            style: AppTextStyles.textSize12(context,
+                                weight: FontWeight.w400, color: AppColors.subtitle(context)),
                           ),
                           SizedboxSpaccing.height005(context),
                         ],
                       ),
                     ),
-                    if (index < items.length - 1) Divider(height: 1, color: AppColors.border(context), indent: screenHeight * 0.015, endIndent: screenHeight * 0.015),
+                    if (index < items.length - 1)
+                      Divider(height: 1, color: AppColors.border(context),
+                          indent: screenHeight * 0.015, endIndent: screenHeight * 0.015),
                   ],
                 );
               }),
@@ -795,16 +871,13 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            "Order Confirmed!",
-            style: AppTextStyles.textSize24(context, weight: FontWeight.w600, color: AppColors.button(context)),
-          ),
+          Text("Order Confirmed!",
+              style: AppTextStyles.textSize24(context,
+                  weight: FontWeight.w600, color: AppColors.button(context))),
           SizedboxSpaccing.height012(context),
-          Text(
-            "Dinmajur will accept orders within a short time.",
-            style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
-            textAlign: TextAlign.center,
-          ),
+          Text("Dinmajur will accept orders within a short time.",
+              style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+              textAlign: TextAlign.center),
         ],
       ),
     );
@@ -820,7 +893,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
         children: [
           SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false),
           SizedboxSpaccing.height02(context),
-          PaymentMethodWidget(selectedPaymentMethod: vm.selectedPaymentMethod, paymentMethods: vm.paymentMethods, onPaymentMethodChanged: vm.setPaymentMethod),
+          PaymentMethodWidget(
+              selectedPaymentMethod: vm.selectedPaymentMethod,
+              paymentMethods: vm.paymentMethods,
+              onPaymentMethodChanged: vm.setPaymentMethod),
         ],
       ),
     );
@@ -842,7 +918,8 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
         getButtonColor: (ctx) => AppColors.button(ctx),
         getBorderColor: (ctx) => AppColors.border(ctx),
         getWhiteColor: (ctx) => AppColors.whiteColor,
-        getTextStyle: (ctx, {weight}) => AppTextStyles.textSize14(ctx, weight: weight ?? FontWeight.w400),
+        getTextStyle: (ctx, {weight}) =>
+            AppTextStyles.textSize14(ctx, weight: weight ?? FontWeight.w400),
       ),
     );
   }
@@ -885,8 +962,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Total Amount:', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                  Text('৳${total.toStringAsFixed(0)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                  Text('Total Amount:',
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                  Text('৳${total.toStringAsFixed(0)}',
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                 ],
               ),
             ],
@@ -898,20 +977,75 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   // ── Pay Now Button ────────────────────────────────────────────────────────────
 
-  Widget _buildPayNowButton(Order order) {
+  Widget _buildPayNowButton(Order order,Payment payment) {
     return GestureDetector(
-      onTap: () => _vm.handlePayNow(context: context, order: order),
+      onTap: () => _vm.handlePayNow(context: context,order: order ,payment: payment),
       child: Container(
         height: 48,
         width: double.infinity,
-        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(
+            color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
         child: Center(
-          child: Text(
-            'Pay Now',
-            style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
-          ),
+          child: Text('Pay Now',
+              style: AppTextStyles.textSize16(context,
+                  weight: FontWeight.w600, color: AppColors.whiteColor)),
         ),
       ),
+    );
+  }
+
+  // ── Payment Status Banner ─────────────────────────────────────────────────────
+
+  Widget _buildPaymentStatusBanner(Payment? payment) {
+    if (payment == null) return const SizedBox.shrink();
+
+    final String type = payment.paymentType ?? '';
+
+    if (type != 'ONLINE' && type != 'CASH_ON_DELIVERY') {
+      return const SizedBox.shrink();
+    }
+
+    final bool isOnline = type == 'ONLINE';
+    final bool isCash = type == 'CASH_ON_DELIVERY';
+
+    if (!isOnline && !isCash) return const SizedBox.shrink();
+
+    final Color bannerColor = isOnline
+        ? Colors.blue.withOpacity(0.1)
+        : Colors.green.withOpacity(0.1);
+    final Color borderColor = isOnline ? Colors.blue : Colors.green;
+    final IconData icon = isOnline ? Icons.credit_card : Icons.payments_outlined;
+    final String message = isOnline
+        ? 'Payment done via Online'
+        : 'Payment done via Hand Cash';
+
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: bannerColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: borderColor, size: 22),
+              SizedboxSpaccing.width03(context),
+              Expanded(
+                child: Text(
+                  message,
+                  style: AppTextStyles.textSize14(context,
+                      weight: FontWeight.w600, color: borderColor),
+                ),
+              ),
+              Icon(Icons.check_circle, color: borderColor, size: 20),
+            ],
+          ),
+        ),
+        SizedboxSpaccing.height02(context),
+      ],
     );
   }
 
@@ -919,12 +1053,10 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   Widget _dot() {
     return SizedBox(
-      height: 12,
-      width: 20,
+      height: 12, width: 20,
       child: Center(
         child: Container(
-          height: 12,
-          width: 12,
+          height: 12, width: 12,
           decoration: BoxDecoration(color: AppColors.button(context), shape: BoxShape.circle),
         ),
       ),
@@ -935,10 +1067,9 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-        ),
+        Text(label,
+            style: AppTextStyles.textSize14(context,
+                weight: FontWeight.w400, color: AppColors.subtitle(context))),
         Text(value, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
       ],
     );
@@ -952,9 +1083,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     } else {
-      if (mounted) {
-        Utils.flushBarErrorMessage("Could not launch phone dialer", context);
-      }
+      if (mounted) Utils.flushBarErrorMessage("Could not launch phone dialer", context);
     }
   }
 
@@ -965,9 +1094,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     if (await canLaunchUrl(whatsappUri)) {
       await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
     } else {
-      if (mounted) {
-        Utils.flushBarErrorMessage("Could not open WhatsApp", context);
-      }
+      if (mounted) Utils.flushBarErrorMessage("Could not open WhatsApp", context);
     }
   }
 }

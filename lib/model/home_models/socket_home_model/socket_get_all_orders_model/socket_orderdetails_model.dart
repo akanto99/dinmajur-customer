@@ -10,6 +10,7 @@ class OrderDetailsModel {
   Customer? customer;
   Freelancer? freelancer;
   Delivery? delivery;
+  Payment? payment;
 
   OrderDetailsModel({
     this.order,
@@ -17,6 +18,7 @@ class OrderDetailsModel {
     this.customer,
     this.freelancer,
     this.delivery,
+    this.payment,
   });
 
   factory OrderDetailsModel.fromJson(Map<String, dynamic> json) => OrderDetailsModel(
@@ -25,6 +27,8 @@ class OrderDetailsModel {
     customer: json["customer"] == null ? null : Customer.fromJson(json["customer"]),
     freelancer: json["freelancer"] == null ? null : Freelancer.fromJson(json["freelancer"]),
     delivery: json["delivery"] == null ? null : Delivery.fromJson(json["delivery"]),
+    payment: json["payment"] == null ? null : Payment.fromJson(json["payment"]),
+
   );
 
   Map<String, dynamic> toJson() => {
@@ -33,6 +37,7 @@ class OrderDetailsModel {
     "customer": customer?.toJson(),
     "freelancer": freelancer?.toJson(),
     "delivery": delivery?.toJson(),
+    "payment": payment?.toJson(),
   };
 }
 
@@ -453,6 +458,38 @@ class Retailer {
     "fullAddress": fullAddress,
   };
 }
+class Payment {
+  String? id;
+  int? amount;
+  String? paymentType;
+  String? trackingId;
+  String? status;
+
+  Payment({
+    this.id,
+    this.amount,
+    this.paymentType,
+    this.trackingId,
+    this.status,
+  });
+
+  factory Payment.fromJson(Map<String, dynamic> json) => Payment(
+    id: json["_id"],
+    amount: json["amount"],
+    paymentType: json["paymentType"],
+    trackingId: json["trackingId"],
+    status: json["status"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "amount": amount,
+    "paymentType": paymentType,
+    "trackingId": trackingId,
+    "status": status,
+  };
+}
+
 
 class Logo {
   String? url;

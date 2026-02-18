@@ -3,7 +3,6 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
-import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_failed_mvvm/ssl_view_model.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
@@ -14,6 +13,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_bookedslot_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/book_family_event_cooking_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/grocery_order_view_model/grocery_ordernow_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/get_confirmedbooking_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_housekeeper_category_view_model.dart';
@@ -46,9 +46,6 @@ import 'view/screens/home/dorpdown_categories_selections_and_views/beauty_and_sa
 import 'view_model/auth_view_model_new/customer_authlogin_view_model.dart';
 import 'view_model/auth_view_model_new/customer_otp_view_model.dart';
 import 'view_model/auth_view_model_new/resend_otp_view_model.dart';
-import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/account_update_view_model.dart';
-import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/get_bkash_nagad_view_model.dart';
-import 'view_model/homeview_model/drawer_view_model/payment_method_view_model/payment_method_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'view_model/homeview_model/drawer_view_model/support_view_model/support_view_model.dart';
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/book_premium_home_beauty_salon_view_model.dart';
@@ -139,13 +136,12 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GetNotificationViewModel()),
 
         //==============>Order Now
-        ChangeNotifierProvider(create: (_) => PostSslPaymentFailedViewModel()),///SSL Payment Faild Post APi Hit
-
         ChangeNotifierProvider(create: (_) => PostNearbyRetailersViewModel()),
         ChangeNotifierProvider(create: (_) => PostCheckOutOrderViewModel()),
         ChangeNotifierProvider(create: (_) => GetOrderDetailsViewModel()),
         ChangeNotifierProvider<OrderDetailsSocketProvider>(create: (context) => OrderDetailsSocketProvider()),
         ChangeNotifierProvider(create: (_) => PatchFreelancerRatingViewModel()),
+        ChangeNotifierProvider(create: (_) => GroceryOrdernowViewModel()),
         //==============>Premium House Keeper
         ChangeNotifierProvider(create: (_) => CheckCoverageViewModel()),
         ChangeNotifierProvider(create: (_) => GetallHousekeeperCategoryViewModel()),
@@ -171,9 +167,6 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CheckoutBeautySalonViewModel()),
 
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),
-        ChangeNotifierProvider(create: (_) => GetBkashNagadViewModel()),
-        ChangeNotifierProvider(create: (_) => PostPaymentMethodViewModel()),
-        ChangeNotifierProvider(create: (_) => PatchAccountUpdateViewModel()),
         ChangeNotifierProvider(create: (_) => PostSupportViewModel()),
         ChangeNotifierProvider(create: (_) => RunningOrdersViewModel()),
         ChangeNotifierProvider(create: (_) => CompleteOrdersViewModel()),
