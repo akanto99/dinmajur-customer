@@ -370,7 +370,9 @@ class _OrderNowState extends State<OrderNow> {
         // borderRadius: BorderRadius.circular(24),
         // border: Border.all(width: 1, color: AppColors.border(context)),
       ),
-      child: Column(children: [_buildTabHeaders(screenWidth), _buildTabContent()]),
+      child: Column(children: [
+        // _buildTabHeaders(screenWidth),
+        _buildTabContent()]),
     );
   }
 
@@ -440,7 +442,8 @@ class _OrderNowState extends State<OrderNow> {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [_buildTab("Manual Entry", 0, FontAwesomeIcons.edit),
+            children: [
+              _buildTab("Manual Entry", 0, FontAwesomeIcons.edit),
               // _buildTab("Upload", 1, FontAwesomeIcons.camera), _buildTab("Voice", 2, Icons.mic)
             ],
           ),

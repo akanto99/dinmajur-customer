@@ -59,28 +59,15 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
   Map<String, dynamic> _getPaymentMethodData(String? method) {
     switch (method) {
       case 'bkash':
-        return {
-          "type": "WALLET",
-          "provider": "bkash"
-        };
+        return {"type": "WALLET", "provider": "bkash"};
       case 'nagad':
-        return {
-          "type": "WALLET",
-          "provider": "nagad"
-        };
+        return {"type": "WALLET", "provider": "nagad"};
       case 'cash':
-        return {
-          "type": "OTHER",
-          "provider": "cash_on_delivery"
-        };
+        return {"type": "OTHER", "provider": "cash_on_delivery"};
       default:
-        return {
-          "type": "OTHER",
-          "provider": "cash_on_delivery"
-        };
+        return {"type": "OTHER", "provider": "cash_on_delivery"};
     }
   }
-
 
   Future<void> _openGoogleMapsDirections() async {
     if (customerLatitude == null || customerLongitude == null || storeLatitude == null || storeLongitude == null) {
@@ -190,22 +177,34 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
         ),
 
         Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedboxSpaccing.height02(context),
-                _buildOrderInfoCard(),
-                SizedboxSpaccing.height02(context),
-                _buildTotalItemsSection(),
-                SizedboxSpaccing.height02(context),
-                if (notes != null && notes!.isNotEmpty) _buildNotesSection(),
-                if (notes != null && notes!.isNotEmpty) SizedboxSpaccing.height02(context),
-                _buildPaymentMethodSection(),
-                SizedboxSpaccing.height04(context),
-                _buildActionButtons(),
-                SizedboxSpaccing.height04(context),
-              ],
-            ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                            SizedboxSpaccing.height02(context),
+                            _buildOrderInfoCard(),
+                            SizedboxSpaccing.height02(context),
+                            _buildTotalItemsSection(),
+                            SizedboxSpaccing.height02(context),
+                            if (notes != null && notes!.isNotEmpty) _buildNotesSection(),
+                            if (notes != null && notes!.isNotEmpty) SizedboxSpaccing.height02(context),
+                          ],
+                        ),
+
+                        Column(children: [_buildActionButtons(), SizedboxSpaccing.height04(context)]),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -235,24 +234,11 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                 width: 40,
                 margin: EdgeInsets.only(right: 8),
                 decoration: BoxDecoration(
-                  color: store_logoUrl != null && store_logoUrl!.isNotEmpty
-                      ? Colors.transparent
-                      : AppColors.textPrimary(context),
+                  color: store_logoUrl != null && store_logoUrl!.isNotEmpty ? Colors.transparent : AppColors.textPrimary(context),
                   borderRadius: BorderRadius.circular(6),
-                  image: store_logoUrl != null && store_logoUrl!.isNotEmpty
-                      ? DecorationImage(
-                    image: NetworkImage(store_logoUrl!),
-                    fit: BoxFit.cover,
-                  )
-                      : null,
+                  image: store_logoUrl != null && store_logoUrl!.isNotEmpty ? DecorationImage(image: NetworkImage(store_logoUrl!), fit: BoxFit.cover) : null,
                 ),
-                child: store_logoUrl == null || store_logoUrl!.isEmpty
-                    ? Icon(
-                  Icons.local_grocery_store,
-                  color: AppColors.textPrimary(context),
-                  size: 20,
-                )
-                    : null,
+                child: store_logoUrl == null || store_logoUrl!.isEmpty ? Icon(Icons.local_grocery_store, color: AppColors.textPrimary(context), size: 20) : null,
               ),
               SizedboxSpaccing.width02(context),
               Expanded(
@@ -487,94 +473,94 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
     );
   }
 
-  Widget _buildPaymentMethodSection() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return Container(
-      width: screenWidth * 0.9,
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(width: 1, color: AppColors.border(context)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(screenHeight * 0.02),
-            child: Text('Payment Method', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
-            ),
-            child: Column(
-              children: paymentMethods.asMap().entries.map((entry) {
-                final index = entry.key;
-                final methodData = entry.value;
-                final method = methodData['method'];
-                final title = methodData['title'];
-                final icon = methodData['icon'];
-                final iconColor = methodData['color'];
-                final isSelected = selectedPaymentMethod == method;
-
-                return Padding(
-                  padding: EdgeInsets.only(top: screenHeight * 0.015, bottom: index == paymentMethods.length - 1 ? screenHeight * 0.015 : screenHeight * 0.01),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedPaymentMethod = method;
-                      });
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(screenHeight * 0.015),
-                      decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(12)),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                height: 32,
-                                width: 32,
-                                decoration: BoxDecoration(color: iconColor, borderRadius: BorderRadius.circular(8)),
-                                child: Icon(icon, size: 16, color: AppColors.whiteColor),
-                              ),
-                              SizedboxSpaccing.width03(context),
-                              Text(title, style: AppTextStyles.textSize16(context, weight: FontWeight.w400)),
-                            ],
-                          ),
-                          Container(
-                            height: 24,
-                            width: 24,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
-                            ),
-                            child: isSelected
-                                ? Center(
-                                    child: Container(
-                                      height: 12,
-                                      width: 12,
-                                      decoration: BoxDecoration(color: AppColors.button(context), shape: BoxShape.circle),
-                                    ),
-                                  )
-                                : null,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildPaymentMethodSection() {
+  //   final screenWidth = MediaQuery.of(context).size.width;
+  //   final screenHeight = MediaQuery.of(context).size.height;
+  //
+  //   return Container(
+  //     width: screenWidth * 0.9,
+  //     decoration: BoxDecoration(
+  //       color: AppColors.containerBackground(context),
+  //       borderRadius: BorderRadius.circular(24),
+  //       border: Border.all(width: 1, color: AppColors.border(context)),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Padding(
+  //           padding: EdgeInsets.all(screenHeight * 0.02),
+  //           child: Text('Payment Method', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
+  //         ),
+  //         Container(
+  //           padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
+  //           decoration: BoxDecoration(
+  //             border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
+  //           ),
+  //           child: Column(
+  //             children: paymentMethods.asMap().entries.map((entry) {
+  //               final index = entry.key;
+  //               final methodData = entry.value;
+  //               final method = methodData['method'];
+  //               final title = methodData['title'];
+  //               final icon = methodData['icon'];
+  //               final iconColor = methodData['color'];
+  //               final isSelected = selectedPaymentMethod == method;
+  //
+  //               return Padding(
+  //                 padding: EdgeInsets.only(top: screenHeight * 0.015, bottom: index == paymentMethods.length - 1 ? screenHeight * 0.015 : screenHeight * 0.01),
+  //                 child: GestureDetector(
+  //                   onTap: () {
+  //                     setState(() {
+  //                       selectedPaymentMethod = method;
+  //                     });
+  //                   },
+  //                   child: Container(
+  //                     padding: EdgeInsets.all(screenHeight * 0.015),
+  //                     decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(12)),
+  //                     child: Row(
+  //                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                       children: [
+  //                         Row(
+  //                           children: [
+  //                             Container(
+  //                               height: 32,
+  //                               width: 32,
+  //                               decoration: BoxDecoration(color: iconColor, borderRadius: BorderRadius.circular(8)),
+  //                               child: Icon(icon, size: 16, color: AppColors.whiteColor),
+  //                             ),
+  //                             SizedboxSpaccing.width03(context),
+  //                             Text(title, style: AppTextStyles.textSize16(context, weight: FontWeight.w400)),
+  //                           ],
+  //                         ),
+  //                         Container(
+  //                           height: 24,
+  //                           width: 24,
+  //                           decoration: BoxDecoration(
+  //                             shape: BoxShape.circle,
+  //                             border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
+  //                           ),
+  //                           child: isSelected
+  //                               ? Center(
+  //                                   child: Container(
+  //                                     height: 12,
+  //                                     width: 12,
+  //                                     decoration: BoxDecoration(color: AppColors.button(context), shape: BoxShape.circle),
+  //                                   ),
+  //                                 )
+  //                               : null,
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 ),
+  //               );
+  //             }).toList(),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildActionButtons() {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -613,43 +599,40 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
               return Container(
                 width: screenWidth * 0.42,
                 child: RoundButtonFlexible(
-                    title: "Confirm",
-                    loading: checkOutViewModel.checkoutOrderLoading,
-                    onPress: () async {
+                  title: "Confirm",
+                  loading: checkOutViewModel.checkoutOrderLoading,
+                  onPress: () async {
+                    //  if (selectedPaymentMethod == null) {
+                    // Utils.flushBarErrorMessage("No payment method selected", context);
+                    //    return;
+                    //  }
+                    if (orderItems.isEmpty && uploadedPhotos.isEmpty && (voiceRecordingPath == null || voiceRecordingPath!.isEmpty)) {
+                      Utils.flushBarErrorMessage("Please add items to your order", context);
+                      return;
+                    }
 
-                      if (selectedPaymentMethod == null) {
-                     Utils.flushBarErrorMessage("No payment method selected", context);
-                        return;
-                      }
-                      if (orderItems.isEmpty && uploadedPhotos.isEmpty &&
-                          (voiceRecordingPath == null || voiceRecordingPath!.isEmpty)) {
-                        Utils.flushBarErrorMessage("Please add items to your order", context);
-                        return;
-                      }
+                    Map<String, dynamic> orderData = {
+                      "retailerId": store_userID,
+                      "items": _buildOrderItemsForApi(),
+                      "paymentMethod": _getPaymentMethodData(selectedPaymentMethod),
+                      "customerNote": notes?.trim(),
+                      "estimatedDeliveryTime": deliveryTime,
+                      "budget": budget,
 
-                      Map<String, dynamic> orderData = {
-                        "retailerId": store_userID,
-                        "items": _buildOrderItemsForApi(),
-                        "paymentMethod": _getPaymentMethodData(selectedPaymentMethod),
-                        "customerNote": notes?.trim(),
-                        "estimatedDeliveryTime": deliveryTime,
-                        "budget": budget,
-                        // "deliveryAddress": {
-                        //   "geoLocation": {
-                        //     "type": "Point",
-                        //     "coordinates": [customerLongitude, customerLatitude]
-                        //   },},
-                        // "fullAddress":customerFullAddress,
+                      // "deliveryAddress": {
+                      //   "geoLocation": {
+                      //     "type": "Point",
+                      //     "coordinates": [customerLongitude, customerLatitude]
+                      //   },},
+                      // "fullAddress":customerFullAddress,
+                    };
 
-                      };
+                    print("🛒 Final Order Data: ${jsonEncode(orderData)}");
 
-                      print("🛒 Final Order Data: ${jsonEncode(orderData)}");
-
-                      await checkOutViewModel.checkoutOrderPostApi(context, orderData);
-
-                    },
-                    showRightIcon: true,
-                    showLeftIcon: false
+                    await checkOutViewModel.checkoutOrderPostApi(context, orderData);
+                  },
+                  showRightIcon: true,
+                  showLeftIcon: false,
                 ),
               );
             },

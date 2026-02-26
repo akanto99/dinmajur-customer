@@ -231,7 +231,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 SizedboxSpaccing.height02(context),
                 _buildTotalSection(order),
                 SizedboxSpaccing.height02(context),
-Text(payment.paymentType??"No Payment"),
+// Text(payment.paymentType??"No Payment"),
 
                 _buildPaymentStatusBanner(payment),
 
@@ -242,7 +242,7 @@ Text(payment.paymentType??"No Payment"),
                   SizedboxSpaccing.height02(context),
                   _buildDualTermsCheckbox(),
                   SizedboxSpaccing.height02(context),
-                  _buildPayNowButton(order, payment),
+                  _buildPayNowButton(order, payment, delivery!),
                   SizedboxSpaccing.height02(context),
                 ],
               ],
@@ -931,8 +931,8 @@ Text(payment.paymentType??"No Payment"),
     final screenHeight = MediaQuery.of(context).size.height;
 
     final double subtotal = _vm.calculateSubtotal(order);
-    final double serviceFee = order.serviceFee?.toDouble() ?? 0;
-    final double deliveryFee = order.freelancerEarning?.toDouble() ?? 0;
+    final double serviceFee = order.customerPlatformFee?.toDouble() ?? 0;
+    final double deliveryFee = order.deliveryCharge?.toDouble() ?? 0;
     final double total = _vm.calculateTotal(order);
     final int foundItems = _vm.getFoundItemsCount(order.items);
 
@@ -977,9 +977,9 @@ Text(payment.paymentType??"No Payment"),
 
   // ── Pay Now Button ────────────────────────────────────────────────────────────
 
-  Widget _buildPayNowButton(Order order,Payment payment) {
+  Widget _buildPayNowButton(Order order,Payment payment, Delivery delivery) {
     return GestureDetector(
-      onTap: () => _vm.handlePayNow(context: context,order: order ,payment: payment),
+      onTap: () => _vm.handlePayNow(context: context,order: order ,payment: payment, delivery:delivery),
       child: Container(
         height: 48,
         width: double.infinity,
@@ -1011,37 +1011,30 @@ Text(payment.paymentType??"No Payment"),
     if (!isOnline && !isCash) return const SizedBox.shrink();
 
     final Color bannerColor = isOnline
-        ? Colors.blue.withOpacity(0.1)
-        : Colors.green.withOpacity(0.1);
+        ? Colors.blue.withOpacity(0.05)
+        : Colors.green.withOpacity(0.05);
     final Color borderColor = isOnline ? Colors.blue : Colors.green;
     final IconData icon = isOnline ? Icons.credit_card : Icons.payments_outlined;
     final String message = isOnline
-        ? 'Payment done via Online'
-        : 'Payment done via Hand Cash';
+        ? 'Your online payment has been successfully completed.'
+        : 'You have selected the payment method Hand Cash.\nPlease give payment to freelancer via\nCash On Deliver.';
 
     return Column(
       children: [
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding:  EdgeInsets.all(MediaQuery.of(context).size.height*0.02),
           decoration: BoxDecoration(
             color: bannerColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: borderColor),
+            border: Border.all(color: borderColor,width: 1),
           ),
-          child: Row(
-            children: [
-              Icon(icon, color: borderColor, size: 22),
-              SizedboxSpaccing.width03(context),
-              Expanded(
-                child: Text(
-                  message,
-                  style: AppTextStyles.textSize14(context,
-                      weight: FontWeight.w600, color: borderColor),
-                ),
-              ),
-              Icon(Icons.check_circle, color: borderColor, size: 20),
-            ],
+          alignment: Alignment.center,
+          child:  Text(
+            message,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.textSize16(context,
+                weight: FontWeight.w500),
           ),
         ),
         SizedboxSpaccing.height02(context),

@@ -124,12 +124,18 @@ class ImageModel {
 
 class Meta {
   TransportFee? transportFee;
+   int? minimumOrderAmount;
+  Meta({this.transportFee,
+    this.minimumOrderAmount,
+  });
 
-  Meta({this.transportFee});
+  factory Meta.fromJson(Map<String, dynamic> json) => Meta(transportFee: json["transportFee"] == null ? null : TransportFee.fromJson(json["transportFee"]),
+    minimumOrderAmount: json["minimumOrderAmount"],
+  );
 
-  factory Meta.fromJson(Map<String, dynamic> json) => Meta(transportFee: json["transportFee"] == null ? null : TransportFee.fromJson(json["transportFee"]));
-
-  Map<String, dynamic> toJson() => {"transportFee": transportFee?.toJson()};
+  Map<String, dynamic> toJson() => {"transportFee": transportFee?.toJson(),
+     "minimumOrderAmount": minimumOrderAmount,
+  };
 }
 
 class TransportFee {

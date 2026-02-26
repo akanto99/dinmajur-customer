@@ -37,6 +37,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'configs/utils/routes/routes.dart';
@@ -61,6 +62,7 @@ import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_n
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  WakelockPlus.enable();
   await dotenv.load(fileName: ".env");
 
   final themeProvider = ThemeProvider();

@@ -1,4 +1,3 @@
-import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/drawer.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
@@ -7,7 +6,6 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
-import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
@@ -26,7 +24,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-import 'package:upgrader/upgrader.dart';
 import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
 import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -367,32 +364,8 @@ print(e.toString());
     } else if (storeType == 'Family Event Cooking') {
       _checkCoverage();
     }
-  }  @override
-  // Widget build(BuildContext context) {
-  //   final screenHeight = MediaQuery.of(context).size.height;
-  //   final screenWidth = MediaQuery.of(context).size.width;
-  //
-  //   return UpgradeAlert(
-  //     navigatorKey: NavigationService.navigatorKey,
-  //     barrierDismissible: false,
-  //     showLater: false,
-  //     showIgnore: false,
-  //     showReleaseNotes: false,
-  //     upgrader: Upgrader(
-  //       debugDisplayAlways: kDebugMode, debugLogging: kDebugMode,
-  //       countryCode: 'BD',
-  //       languageCode: 'en',
-  //     ),
-  //     child: Scaffold(
-  //       key: widget.scaffoldKey,
-  //       backgroundColor: AppColors.containerBackground(context),
-  //       drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
-  //       body: SafeArea(
-  //         child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
-  //       ),
-  //     ),
-  //   );
-  // }
+  }
+  @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -406,180 +379,7 @@ print(e.toString());
       ),
     );
   }
-  // Widget body(BuildContext context) {
-  //   final screenWidth = MediaQuery.of(context).size.width;
-  //   final screenHeight = MediaQuery.of(context).size.height;
-  //
-  //   return RefreshIndicator(
-  //     onRefresh: _handleRefresh,
-  //     color: AppColors.textPrimary(context),
-  //     backgroundColor: AppColors.containerBackground(context),
-  //     displacement: 40,
-  //     strokeWidth: 2.0,
-  //     child: Column(
-  //       children: [
-  //         _customAppBar(context),
-  //         Expanded(
-  //           child: SingleChildScrollView(
-  //             physics: AlwaysScrollableScrollPhysics(),
-  //             child: Column(
-  //               children: [
-  //                 SizedboxSpaccing.height025(context),
-  //                 Container(
-  //                   width: screenWidth * 0.9,
-  //                   decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(24)),
-  //                   child: CustomDropdown(
-  //                     titleText: AppLocalizations.of(context)!.select_store_type,
-  //                     items: storeTypes.keys.toList(),
-  //                     selectedItem: selectedStoreType,
-  //                     hintText: AppLocalizations.of(context)!.select_dropdown_hint,
-  //                     onChanged: (String? newValue) {
-  //                       setState(() {
-  //                         selectedStoreType = newValue;
-  //                         selectedServiceFromTrending = null; // Clear trending selection when using dropdown
-  //                         nearbyStores = [];
-  //                         isInsideServiceArea = null;
-  //                         isCheckingCoverage = false;
-  //                       });
-  //
-  //                       if (newValue != null) {
-  //                         if (newValue == 'Premium House Keeper') {
-  //                           _checkCoverage();
-  //                         } else if (newValue == 'Premium Home Beauty & Salon') {
-  //                           _checkCoverage();
-  //                         } else if (newValue == 'Retail') {
-  //                           _fetchNearbyRetailers(newValue);
-  //                         } else if (newValue == 'Family Event Cooking') {
-  //                           _checkCoverage();
-  //                         }
-  //                       }
-  //                     },
-  //                     valueToBengaliMap: storeTypes,
-  //                   ),
-  //                 ),
-  //                 SizedboxSpaccing.height012(context),
-  //
-  //                 // ✅ Updated TrendingServicesWidget with callback
-  //                 TrendingServicesWidget(
-  //                   services: ["House Keeper", "Home Beauty Parlour", "তাৎক্ষণিক বাজার","Family Event Cooking"],
-  //                   onServiceTap: _handleTrendingServiceTap,
-  //                   selectedService: selectedServiceFromTrending, // Pass the selected service
-  //                 ),
-  //                 Center(child: SizedboxSpaccing.height025(context)),
-  //                 DynamicNearestHeader(selectedStoreType: selectedStoreType, storeCount: nearbyStores.length, screenWidth: screenWidth, onSeeAllTap: () => _handleSeeAllNavigation(context)),
-  //                 SizedboxSpaccing.height025(context),
-  //
-  //                 // Conditionally show content based on selection and coverage
-  //                 if (selectedStoreType == 'Premium House Keeper')
-  //                   Consumer<ProfileViewViewModel>(
-  //                     builder: (context, profileViewModel, _) {
-  //                       String customerName = '';
-  //                       String customerPhone = '';
-  //                       String customerAddress = '';
-  //
-  //                       if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-  //                         final userData = profileViewModel.profileviewUserData.data?.data;
-  //
-  //                         if (userData?.user?.fullName != null) {
-  //                           customerName = userData!.user!.fullName!;
-  //                         }
-  //                         if (userData?.user?.phone != null) {
-  //                           customerPhone = userData!.user!.phone!;
-  //                         }
-  //                         if (userData?.addresses?.fullAddress != null) {
-  //                           customerAddress = userData!.addresses!.fullAddress!;
-  //                         }
-  //                       }
-  //
-  //                       return PremiumHouseKeeperCoverageWidget(
-  //                         isCheckingCoverage: isCheckingCoverage,
-  //                         isInsideServiceArea: isInsideServiceArea,
-  //                         customerName: customerName,
-  //                         customerPhone: customerPhone,
-  //                         customerAddress: customerAddress,
-  //                       );
-  //                     },
-  //                   )
-  //                 else if (selectedStoreType == 'Premium Home Beauty & Salon')
-  //                   Consumer<ProfileViewViewModel>(
-  //                     builder: (context, profileViewModel, _) {
-  //                       String customerName = '';
-  //                       String customerPhone = '';
-  //                       String customerAddress = '';
-  //
-  //                       if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-  //                         final userData = profileViewModel.profileviewUserData.data?.data;
-  //
-  //                         if (userData?.user?.fullName != null) {
-  //                           customerName = userData!.user!.fullName!;
-  //                         }
-  //                         if (userData?.user?.phone != null) {
-  //                           customerPhone = userData!.user!.phone!;
-  //                         }
-  //                         if (userData?.addresses?.fullAddress != null) {
-  //                           customerAddress = userData!.addresses!.fullAddress!;
-  //                         }
-  //                       }
-  //
-  //                       return PremiumBeautyAndSalonCoverageWidget(
-  //                         isCheckingCoverage: isCheckingCoverage,
-  //                         isInsideServiceArea: isInsideServiceArea,
-  //                         customerName: customerName,
-  //                         customerPhone: customerPhone,
-  //                         customerAddress: customerAddress,
-  //                       );
-  //                     },
-  //                   )
-  //                 else if (selectedStoreType == 'Retail')
-  //                   GroceryStoresSection(
-  //                     isLoading: isLoadingStores,
-  //                     stores: nearbyStores,
-  //                     storeTypes: storeTypes,
-  //                     selectedStoreType: selectedStoreType,
-  //                     currentPosition: _currentPosition,
-  //                     currentAddress: _currentAddress,
-  //                   )
-  //                   else if (selectedStoreType == 'Family Event Cooking')
-  //                       Consumer<ProfileViewViewModel>(
-  //                         builder: (context, profileViewModel, _) {
-  //                           String customerName = '';
-  //                           String customerPhone = '';
-  //                           String customerAddress = '';
-  //
-  //                           if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-  //                             final userData = profileViewModel.profileviewUserData.data?.data;
-  //
-  //                             if (userData?.user?.fullName != null) {
-  //                               customerName = userData!.user!.fullName!;
-  //                             }
-  //                             if (userData?.user?.phone != null) {
-  //                               customerPhone = userData!.user!.phone!;
-  //                             }
-  //                             if (userData?.addresses?.fullAddress != null) {
-  //                               customerAddress = userData!.addresses!.fullAddress!;
-  //                             }
-  //                           }
-  //
-  //                           return FamilyEventCardCoverageWidget(
-  //                             isCheckingCoverage: isCheckingCoverage,
-  //                             isInsideServiceArea: isInsideServiceArea,
-  //                             customerName: customerName,
-  //                             customerPhone: customerPhone,
-  //                             customerAddress: customerAddress,
-  //                           );
-  //                         },
-  //                       ),
-  //
-  //
-  //                 SizedboxSpaccing.height02(context),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+
   body(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;

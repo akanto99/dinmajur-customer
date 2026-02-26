@@ -257,36 +257,36 @@ class SSLCommerzPaymentService {
           tran_id: trackingId,
           currency: SSLCurrencyType.BDT,
           product_category: productCategory ?? "",
-          sdkType:SSLCSdkType.TESTBOX,
-          // sdkType:SSLCSdkType.LIVE,
+          // sdkType:SSLCSdkType.TESTBOX,
+          sdkType:SSLCSdkType.LIVE,
           // sdkType:useTestMode ?SSLCSdkType.TESTBOX: SSLCSdkType.LIVE,
-            multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay,tap,okwallet,"
-              "dbbl_visa,dbbl_master,city_visa,city_master,city_amex,"
-              "ebl_visa,ebl_master,sbl_visa,sbl_master,brac_visa,brac_master,"
-              "ibbl,mtbl,city,ebl,sbl,brac,dbbl,dutchbangla,ab,scb,ucb,"
-              "premier,nrb,trust,bankasia,midland,union,pubali,sibl,exim,"
-              "southeast,islamibank,al_arafah,social,ific,shahjalal,"
-              "firstsecurity,onebank,qcash,fastcash",
+          //   multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay,tap,okwallet,"
+          //     "dbbl_visa,dbbl_master,city_visa,city_master,city_amex,"
+          //     "ebl_visa,ebl_master,sbl_visa,sbl_master,brac_visa,brac_master,"
+          //     "ibbl,mtbl,city,ebl,sbl,brac,dbbl,dutchbangla,ab,scb,ucb,"
+          //     "premier,nrb,trust,bankasia,midland,union,pubali,sibl,exim,"
+          //     "southeast,islamibank,al_arafah,social,ific,shahjalal,"
+          //     "firstsecurity,onebank,qcash,fastcash",
         )
+      )
+          .addCustomerInfoInitializer(customerInfoInitializer: SSLCCustomerInfoInitializer(
+        customerName: name,
+        customerEmail: email,
+        customerAddress1: address,
+        customerCountry: "Bangladesh",
+        customerPhone: phone, customerState: 'BD',
+        customerCity: '',
+        customerPostCode: '',
+      )
+      ).addProductInitializer( sslcProductInitializer: SSLCProductInitializer(
+        productName: productCategory?? "",
+        productCategory: productCategory?? "",  general: General(
+        general: productCategory??"",
+        productProfile: "general",
+      ),
+
+      )
       );
-      //     .addCustomerInfoInitializer(customerInfoInitializer: SSLCCustomerInfoInitializer(
-      //   customerName: name,
-      //   customerEmail: email,
-      //   customerAddress1: address,
-      //   customerCountry: "Bangladesh",
-      //   customerPhone: phone, customerState: 'BD',
-      //   customerCity: '',
-      //   customerPostCode: '',
-      // )
-      // ).addProductInitializer( sslcProductInitializer: SSLCProductInitializer(
-      //   productName: productCategory?? "",
-      //   productCategory: productCategory?? "",  general: General(
-      //   general: productCategory??"",
-      //   productProfile: "general",
-      // ),
-      //
-      // )
-      // );
 
       print("✅ SSL Commerz configured - launching payment...");
 

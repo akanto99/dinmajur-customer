@@ -124,6 +124,12 @@ class AppColors {
   Theme.of(context).brightness == Brightness.dark
   ? const Color(0xffFAFAFA)
       : const Color(0xff221E20);
+  // (white/black)
+  static Color textSecondary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ?   AppColors.blackColor
+          :AppColors.whiteColor;
+
 ///TextSecondary ()
   static Color textSecondarySubtitle(BuildContext context) =>
   Theme.of(context).brightness == Brightness.dark

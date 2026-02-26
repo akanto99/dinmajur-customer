@@ -765,6 +765,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     // Get transport fee from current view model (it should be same across categories)
     final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final transportFeeValue = viewModel.getAllPremiumHouseKeeperTaskData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
+    final minimumOrderAmount = viewModel.getAllPremiumHouseKeeperTaskData.data?.meta?.minimumOrderAmount;
 
     showDialog(
       context: context,
@@ -777,6 +778,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         selectedDate: _dateController.text,
         selectedTime: _selectedTime!,
         transportFee: transportFeeValue,
+        minimumOrderAmount: minimumOrderAmount,
         onQuantityChanged: (String serviceId, int newQuantity) {
           setState(() {
             if (newQuantity == 0) {
