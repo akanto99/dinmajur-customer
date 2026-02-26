@@ -18,6 +18,7 @@ class CartDialog extends StatefulWidget {
   final Function(String serviceId, int newQuantity) onQuantityChanged;
   final VoidCallback onProceedToCheckout;
     final double transportFee;
+  final int? minimumOrderAmount;
 
   const CartDialog({
     Key? key,
@@ -30,6 +31,7 @@ class CartDialog extends StatefulWidget {
     required this.onQuantityChanged,
     required this.onProceedToCheckout,
         required this.transportFee,
+        required this.minimumOrderAmount,
   }) : super(key: key);
 
   @override
@@ -295,15 +297,17 @@ class _CartDialogState extends State<CartDialog> {
   }
 
   Widget _buildProceedButton(BuildContext context, double subtotal) {
+    final double minOrder = widget.minimumOrderAmount?.toDouble() ?? 300.0;
+
     return Container(
       padding: EdgeInsets.all(15),
       child: GestureDetector(
         onTap: () {
-          if (subtotal < 300) {
+          if (subtotal < minOrder) {
             print(subtotal);
             Utils.flushBarExclamatoryMessage(
               title: "Warning",
-              subtitle: " Minimum order amount is BDT 300 to proceed!",
+              subtitle: "Minimum order amount is BDT ${minOrder.toStringAsFixed(0)} to proceed!",
               context: context,
             );
             return;

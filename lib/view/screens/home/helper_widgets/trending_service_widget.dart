@@ -222,7 +222,7 @@ class TrendingServicesWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onServiceTap != null ? () => onServiceTap!(serviceName) : null,
       child: Container(
-        height: 100,
+        // height: 100,
 
         decoration: BoxDecoration(
           color: AppColors.textFieldFill(context),
@@ -257,7 +257,7 @@ class TrendingServicesWidget extends StatelessWidget {
                   SizedBox(height: 4),
                   Text(
                     "Professional chefs for your gatherings",
-                    style: AppTextStyles.textSize10(
+                    style: AppTextStyles.textSize12(
                       context,
                       weight: FontWeight.w400,
                       color: AppColors.subtitle(context),
@@ -265,8 +265,8 @@ class TrendingServicesWidget extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Container(
-                    height: 20,
-                    width: 86,
+                    height: 28,
+                    width: 106,
                     decoration: BoxDecoration(
                       color:Color(0xff45A986),
                       borderRadius: BorderRadius.circular(100),
@@ -274,9 +274,9 @@ class TrendingServicesWidget extends StatelessWidget {
                     child: Center(
                       child: Text(
                         "New Service",
-                        style: AppTextStyles.textSize10(
+                        style: AppTextStyles.textSize12(
                           context,
-                          weight: FontWeight.w700,
+                          weight: FontWeight.w600,
                           color: AppColors.whiteColor,
                         ),
                       ),

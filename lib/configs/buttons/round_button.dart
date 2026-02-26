@@ -237,31 +237,11 @@ class RoundButtonFlexible extends StatelessWidget {
         decoration: BoxDecoration(
           color: effectiveBgColor,
           borderRadius: BorderRadius.circular(actualBorderRadius),
-          border: borderColor != null
-              ? Border.all(color: borderColor!, width: actualBorderWidth)
-              : null,
-          boxShadow: boxShadow ??
-              (elevation != null && elevation! > 0
-                  ? [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: elevation!,
-                  offset: Offset(0, elevation! / 2),
-                )
-              ]
-                  : null),
+          border: borderColor != null ? Border.all(color: borderColor!, width: actualBorderWidth) : null,
+          boxShadow: boxShadow ?? (elevation != null && elevation! > 0 ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: elevation!, offset: Offset(0, elevation! / 2))] : null),
         ),
         child: Center(
-          child: loading
-              ? _buildLoadingState(context, effectiveLoadingTextColor)
-              : _buildNormalState(
-            context,
-            effectiveTextColor,
-            effectiveIconColor,
-            actualIconSize,
-            actualAlignment,
-            actualSpacing,
-          ),
+          child: loading ? _buildLoadingState(context, effectiveLoadingTextColor) : _buildNormalState(context, effectiveTextColor, effectiveIconColor, actualIconSize, actualAlignment, actualSpacing),
         ),
       ),
     );
@@ -276,31 +256,17 @@ class RoundButtonFlexible extends StatelessWidget {
 
     return Text(
       loadingText,
-      style: loadingTextStyle ??
-          textStyle ??
-          AppTextStyles.textSize16(
-              context,
-              color: loadingColor,
-              weight: FontWeight.w600
-          ),
+      style: loadingTextStyle ?? textStyle ?? AppTextStyles.textSize16(context, color: loadingColor, weight: FontWeight.w600),
     );
   }
 
-  Widget _buildNormalState(
-      BuildContext context,
-      Color textColor,
-      Color iconColor,
-      double iconSize,
-      MainAxisAlignment alignment,
-      double spacing,
-      ) {
+  Widget _buildNormalState(BuildContext context, Color textColor, Color iconColor, double iconSize, MainAxisAlignment alignment, double spacing) {
     final List<Widget> children = [];
 
     // Left Icon
     if (showLeftIcon && leftIcon != null) {
       children.add(Icon(leftIcon, color: iconColor, size: iconSize));
-    } else if (alignment == MainAxisAlignment.spaceEvenly ||
-        alignment == MainAxisAlignment.spaceBetween) {
+    } else if (alignment == MainAxisAlignment.spaceEvenly || alignment == MainAxisAlignment.spaceBetween) {
       children.add(SizedBox(width: iconSize));
     }
 
@@ -313,12 +279,7 @@ class RoundButtonFlexible extends StatelessWidget {
     children.add(
       Text(
         title,
-        style: textStyle ??
-            AppTextStyles.textSize16(
-                context,
-                color: textColor,
-                weight: FontWeight.w600
-            ),
+        style: textStyle ?? AppTextStyles.textSize16(context, color: textColor, weight: FontWeight.w600),
       ),
     );
 
@@ -330,14 +291,10 @@ class RoundButtonFlexible extends StatelessWidget {
     // Right Icon
     if (showRightIcon && rightIcon != null) {
       children.add(Icon(rightIcon, color: iconColor, size: iconSize));
-    } else if (alignment == MainAxisAlignment.spaceEvenly ||
-        alignment == MainAxisAlignment.spaceBetween) {
+    } else if (alignment == MainAxisAlignment.spaceEvenly || alignment == MainAxisAlignment.spaceBetween) {
       children.add(SizedBox(width: iconSize));
     }
 
-    return Row(
-      mainAxisAlignment: alignment,
-      children: children,
-    );
+    return Row(mainAxisAlignment: alignment, children: children);
   }
 }

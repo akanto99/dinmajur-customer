@@ -1260,8 +1260,14 @@ class UniversalPDFReceiptGenerator {
 
       if (Platform.isAndroid) {
         directory = Directory('/storage/emulated/0/Download');
+
         if (!await directory.exists()) {
-          directory = await getExternalStorageDirectory();
+          try {
+            await directory.create(recursive: true);
+          } catch (e) {
+            print("Could not create Downloads: $e");
+            directory = await getExternalStorageDirectory();
+          }
         }
       } else if (Platform.isIOS) {
         directory = await getApplicationDocumentsDirectory();
@@ -1271,15 +1277,9 @@ class UniversalPDFReceiptGenerator {
         throw Exception('Could not access storage directory');
       }
 
-      final String dinmajurPath = '${directory.path}/Dinmajur_Bookings';
-      final Directory dinmajurDir = Directory(dinmajurPath);
-      if (!await dinmajurDir.exists()) {
-        await dinmajurDir.create(recursive: true);
-      }
-
       final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final String fileName = 'Receipt_${trackingId}_$timestamp.pdf';
-      final String filePath = '$dinmajurPath/$fileName';
+      final String fileName = 'FamilyEventCooking_${trackingId}_$timestamp.pdf';
+      final String filePath = '${directory.path}/$fileName';
 
       final File file = File(filePath);
       await file.writeAsBytes(await pdf.save());

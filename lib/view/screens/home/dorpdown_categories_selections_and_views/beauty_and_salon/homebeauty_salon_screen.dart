@@ -1116,7 +1116,8 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                 ],
                 // Add to Cart Button
                 if (quantity == 0)
-                  RoundButtonFlexible(height: 42, showRightIcon: false, backgroundColor: AppColors.textPrimary(context), title: 'Add to Cart', onPress: () => _updateQuantity(service.id ?? '', 1))
+                  RoundButtonFlexible(height: 42, showRightIcon: false, backgroundColor: AppColors.textPrimary(context), title: 'Add to Cart',textColor: AppColors.textSecondary(context), onPress: () => _updateQuantity
+                    (service.id ?? '', 1))
                 else
                   Container(
                     height: 42,

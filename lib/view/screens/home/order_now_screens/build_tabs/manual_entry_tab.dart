@@ -92,13 +92,14 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
         Container(
           decoration: BoxDecoration(
             color: AppColors.containerBackground(context),
-            border: Border(
-              top: BorderSide.none,
-              right: BorderSide(width: 1, color: AppColors.border(context)),
-              left: BorderSide(width: 1, color: AppColors.border(context)),
-              bottom: BorderSide(width: 1, color: AppColors.border(context)),
+            border: Border.all(
+                width: 1, color: AppColors.border(context)
+              // top: BorderSide.none,
+              // right: BorderSide(width: 1, color: AppColors.border(context)),
+              // left: BorderSide(width: 1, color: AppColors.border(context)),
+              // bottom: BorderSide(width: 1, color: AppColors.border(context)),
             ),
-            borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+            borderRadius:  BorderRadius.circular(24),
           ),
           padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
           child: Column(

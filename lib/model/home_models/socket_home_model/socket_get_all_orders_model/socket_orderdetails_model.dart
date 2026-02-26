@@ -69,6 +69,7 @@ class Delivery {
   String? id;
   String? customerId;
   String? retailerId;
+    String? trackingId;
   String? orderId;
   Destination? pickup;
   String? pickupFullAddress;
@@ -85,6 +86,7 @@ class Delivery {
     this.id,
     this.customerId,
     this.retailerId,
+        this.trackingId,
     this.orderId,
     this.pickup,
     this.pickupFullAddress,
@@ -117,6 +119,7 @@ class Delivery {
       id: json["_id"],
       customerId: json["customerId"],
       retailerId: json["retailerId"],
+          trackingId: json["trackingId"],
       orderId: json["orderId"],
       pickup: json["pickup"] == null ? null : Destination.fromJson(json["pickup"]),
       pickupFullAddress: json["pickupFullAddress"],
@@ -135,6 +138,7 @@ class Delivery {
     "_id": id,
     "customerId": customerId,
     "retailerId": retailerId,
+        "trackingId": trackingId,
     "orderId": orderId,
     "pickup": pickup?.toJson(),
     "pickupFullAddress": pickupFullAddress,
@@ -256,10 +260,11 @@ class Order {
   String? customerId;
   String? retailerId;
   String? paymentMethodId;
+  dynamic deliveryCharge;
   int? budget;
   String? estimatedDeliveryTime;
     int? freelancerEarning;
-  int? serviceFee;
+  int? customerPlatformFee;
   List<Item>? items;
   String? status;
   int? vat;
@@ -274,10 +279,11 @@ class Order {
     this.customerId,
     this.retailerId,
     this.paymentMethodId,
+    this.deliveryCharge,
     this.budget,
     this.estimatedDeliveryTime,
         this.freelancerEarning,
-    this.serviceFee,
+    this.customerPlatformFee,
     this.items,
     this.status,
     this.vat,
@@ -308,10 +314,11 @@ class Order {
       customerId: json["customerId"],
       retailerId: json["retailerId"],
       paymentMethodId: json["paymentMethodId"],
+      deliveryCharge: json["deliveryCharge"],
       budget: json["budget"],
       estimatedDeliveryTime: json["estimatedDeliveryTime"]?.toString(),
           freelancerEarning: json["freelancerEarning"],
-    serviceFee: json["serviceFee"],
+      customerPlatformFee: json["customerPlatformFee"],
       items: json["items"] == null ? [] : List<Item>.from(json["items"]!.map((x) => Item.fromJson(x))),
       status: json["status"],
       vat: json["vat"],
@@ -328,10 +335,11 @@ class Order {
     "customerId": customerId,
     "retailerId": retailerId,
     "paymentMethodId": paymentMethodId,
+    "deliveryCharge": deliveryCharge,
     "budget": budget,
     "estimatedDeliveryTime": estimatedDeliveryTime,
         "freelancerEarning": freelancerEarning,
-    "serviceFee": serviceFee,
+    "customerPlatformFee": customerPlatformFee,
     "items": items == null ? [] : List<dynamic>.from(items!.map((x) => x.toJson())),
     "status": status,
     "vat": vat,
@@ -462,14 +470,12 @@ class Payment {
   String? id;
   int? amount;
   String? paymentType;
-  String? trackingId;
   String? status;
 
   Payment({
     this.id,
     this.amount,
     this.paymentType,
-    this.trackingId,
     this.status,
   });
 
@@ -477,7 +483,6 @@ class Payment {
     id: json["_id"],
     amount: json["amount"],
     paymentType: json["paymentType"],
-    trackingId: json["trackingId"],
     status: json["status"],
   );
 
@@ -485,7 +490,6 @@ class Payment {
     "_id": id,
     "amount": amount,
     "paymentType": paymentType,
-    "trackingId": trackingId,
     "status": status,
   };
 }

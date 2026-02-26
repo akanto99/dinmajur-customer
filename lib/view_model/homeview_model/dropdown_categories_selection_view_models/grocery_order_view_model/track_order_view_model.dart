@@ -51,6 +51,32 @@ class TrackOrderViewModel extends ChangeNotifier {
   // ─────────────────────────────────────────────────────────────────────────────
   // INITIALIZE — called once per screen lifetime from initState
   // ─────────────────────────────────────────────────────────────────────────────
+  // Future<void> initialize({
+  //   required BuildContext context,
+  //   required OrderDetailsSocketProvider orderDetailsProvider,
+  //   required SocketProvider socketProvider,
+  // }) async {
+  //   if (!isContextValid(context)) return;
+  //
+  //   print('🎬 [VM] initialize() for orderId: $orderId');
+  //
+  //   _orderDetailsProvider = orderDetailsProvider;
+  //   _socketProvider = socketProvider;
+  //
+  //   // ✅ Always reset provider state so previous screen's data never shows
+  //   _orderDetailsProvider!.reset();
+  //
+  //   // ✅ Setup socket reconnect listener FIRST
+  //   _setupSocketReconnectListener(context: context);
+  //
+  //   // ✅ Then fetch
+  //   await _fetchWithRetry(context: context);
+  //
+  //   _isInitialized = true;
+  //   notifyListeners();
+  //   print('✅ [VM] Initialization complete');
+  // }
+
   Future<void> initialize({
     required BuildContext context,
     required OrderDetailsSocketProvider orderDetailsProvider,
@@ -58,25 +84,28 @@ class TrackOrderViewModel extends ChangeNotifier {
   }) async {
     if (!isContextValid(context)) return;
 
-    print('🎬 [VM] initialize() for orderId: $orderId');
-
     _orderDetailsProvider = orderDetailsProvider;
     _socketProvider = socketProvider;
-
-    // ✅ Always reset provider state so previous screen's data never shows
     _orderDetailsProvider!.reset();
 
-    // ✅ Setup socket reconnect listener FIRST
-    _setupSocketReconnectListener(context: context);
+    // ✅ Connect socket first if not connected
+    if (!_socketProvider!.isConnected) {
+      print('🔌 [VM] Socket not connected — connecting before fetch...');
+      final prefs = await SharedPreferences.getInstance();
+      final accessToken = prefs.getString('accessToken');
+      if (accessToken != null && accessToken.isNotEmpty) {
+        await _socketProvider!.connectWithToken(accessToken: accessToken);
+        // Give it time to establish connection
+        await Future.delayed(const Duration(milliseconds: 1500));
+      }
+    }
 
-    // ✅ Then fetch
+    _setupSocketReconnectListener(context: context);
     await _fetchWithRetry(context: context);
 
     _isInitialized = true;
     notifyListeners();
-    print('✅ [VM] Initialization complete');
   }
-
   // ─────────────────────────────────────────────────────────────────────────────
   // SOCKET RECONNECT LISTENER
   // When the socket reconnects (after network loss/resume), auto-refetch
@@ -136,7 +165,7 @@ class TrackOrderViewModel extends ChangeNotifier {
         if (attempt < maxRetries) {
           print('🔌 [VM] Reconnecting socket before retry...');
           await _reconnectSocket();
-          await Future.delayed(const Duration(seconds: 2));
+          await Future.delayed(const Duration(seconds: 3));
         } else {
           print('❌ [VM] All $maxRetries attempts exhausted');
         }
@@ -272,10 +301,8 @@ class TrackOrderViewModel extends ChangeNotifier {
     });
   }
 
-  double calculateTotal(Order order) =>
-      calculateSubtotal(order) +
-          (order.serviceFee?.toDouble() ?? 0) +
-          (order.freelancerEarning?.toDouble() ?? 0);
+  double calculateTotal(Order order) =>(order.totalAmount?.toDouble() ?? 0) ;
+
 
   int getFoundItemsCount(List<Item>? items) {
     if (items == null) return 0;
@@ -319,6 +346,7 @@ class TrackOrderViewModel extends ChangeNotifier {
     required BuildContext context,
     required Order order,
     required Payment payment,
+    required Delivery delivery,
   }) async {
     if (_selectedPaymentMethod == null) {
       Utils.flushBarErrorMessage("Please select a payment method.", context);
@@ -343,7 +371,8 @@ class TrackOrderViewModel extends ChangeNotifier {
     if (_selectedPaymentMethod == 'cash') {
       await _handleCashPayment(context: context, payment: payment);
     } else if (_selectedPaymentMethod == 'online') {
-      await _handleOnlinePayment(context: context, order: order);
+      print('${payment.toJson()}');
+      await _handleOnlinePayment(context: context, order: order, delivery: delivery);
     }
   }
 
@@ -354,6 +383,7 @@ class TrackOrderViewModel extends ChangeNotifier {
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
+      barrierColor: AppColors.showDialougeBackground(context),
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         backgroundColor: AppColors.containerBackground(context),
@@ -361,12 +391,12 @@ class TrackOrderViewModel extends ChangeNotifier {
           children: [
             Icon(Icons.payments_outlined, color: AppColors.button(context), size: 22),
             SizedboxSpaccing.width02(context),
-            Text('Hand Cash Payment',
+            Text('Waiting for Approval',
                 style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
           ],
         ),
         content: Text(
-          'You have selected Hand Cash. Please pay the delivery person the total amount upon delivery.\n\nDo you want to confirm this order?',
+          'You have selected Hand Cash.\n\nDinmajur needs to approve your cash payment request.\nPlease pay the delivery person the total amount upon delivery.\n\nDo you want to confirm this order?',
           style: AppTextStyles.textSize14(context,
               weight: FontWeight.w400, color: AppColors.subtitle(context)),
         ),
@@ -417,13 +447,14 @@ class TrackOrderViewModel extends ChangeNotifier {
   Future<void> _handleOnlinePayment({
     required BuildContext context,
     required Order order,
+    required Delivery delivery,
   }) async {
     final double total = calculateTotal(order);
     final customer = _orderDetailsProvider?.orderDetailsModel?.customer;
     final delivery = _orderDetailsProvider?.orderDetailsModel?.delivery;
 
     final result = await SSLCommerzPaymentService().initiatePayment(
-      trackingId: order.id ?? '',
+      trackingId: delivery?.trackingId ?? '',
       totalAmount: total,
       productCategory: "Delivery Service",
       customerName: customer?.fullName,
@@ -436,7 +467,7 @@ class TrackOrderViewModel extends ChangeNotifier {
 
     if (result.success) {
       print('💳 [VM] SSL payment success: ${result.transactionId}');
-      // TODO: navigate to success screen
+      handleRefresh(context: context);
     } else if (result.status == 'CANCELLED') {
       Utils.flushBarErrorMessage("Payment was cancelled.", context);
     } else {

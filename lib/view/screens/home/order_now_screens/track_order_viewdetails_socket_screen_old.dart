@@ -1133,7 +1133,7 @@ class _TrackOrderViewdetailsSocketScreenOldState extends State<TrackOrderViewdet
       });
     }
 
-    double serviceFee = order.serviceFee?.toDouble() ?? 0;
+    double serviceFee = order.customerPlatformFee?.toDouble() ?? 0;
     double deliveryFee = order.freelancerEarning?.toDouble() ?? 0;
     double total = subtotal + serviceFee + deliveryFee;
     int foundItems = _getFoundItemsCount(order.items);
@@ -1369,7 +1369,7 @@ class _TrackOrderViewdetailsSocketScreenOldState extends State<TrackOrderViewdet
           0.0;
 
       double total = subtotal +
-          (order.serviceFee?.toDouble() ?? 0) +
+          (order.customerPlatformFee?.toDouble() ?? 0) +
           (order.freelancerEarning?.toDouble() ?? 0);
 
       final customer = _orderDetailsProvider?.orderDetailsModel?.customer;

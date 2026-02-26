@@ -301,7 +301,7 @@ class Order {
   int? subTotalAmount;
   int? totalAmount;
   int? freelancerEarning;
-  int? serviceFee;
+  int? customerPlatformFee;
   String? customerNote;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -323,7 +323,7 @@ class Order {
     this.subTotalAmount,
     this.totalAmount,
     this.freelancerEarning,
-    this.serviceFee,
+    this.customerPlatformFee,
     this.customerNote,
     this.createdAt,
     this.updatedAt,
@@ -346,7 +346,7 @@ class Order {
     subTotalAmount: json["subTotalAmount"],
     totalAmount: json["totalAmount"],
     freelancerEarning: json["freelancerEarning"],
-    serviceFee: json["serviceFee"],
+    customerPlatformFee: json["customerPlatformFee"],
     customerNote: json["customerNote"],
     // ✅ Safe date parsing
     createdAt: _parseDate(json["createdAt"]),
@@ -387,7 +387,7 @@ class Order {
     "subTotalAmount": subTotalAmount,
     "totalAmount": totalAmount,
     "freelancerEarning": freelancerEarning,
-    "serviceFee": serviceFee,
+    "customerPlatformFee": customerPlatformFee,
     "customerNote": customerNote,
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),

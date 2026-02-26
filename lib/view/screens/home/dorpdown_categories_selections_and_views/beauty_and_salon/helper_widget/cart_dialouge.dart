@@ -218,7 +218,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
           ],
 
           SizedBox(height: 10),
-          Divider(color: AppColors.border(context)),
+          // Divider(color: AppColors.border(context)),
         ],
       ),
     );
