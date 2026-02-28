@@ -479,6 +479,7 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
             ),
           ),
           Divider(height: 1, color: AppColors.border(context)),
+          Divider(height: 1, color: AppColors.border(context)),
           Padding(
             padding: EdgeInsets.all(screenHeight * 0.02),
             child: Container(
