@@ -140,61 +140,69 @@ class _ManualEntryTabState extends State<ManualEntryTab> {
           Divider(height: 1, color: AppColors.border(context)),
           SizedboxSpaccing.height02(context),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              DeliveryTimeCard(
-                icon: FontAwesomeIcons.bolt,
-                iconColor: const Color(0xffEF4444),
-                label: 'ASAP',
-                isSelected: selectedDeliveryTime == 'ASAP',
-                onTap: () {
-                  setState(() {
-                    selectedDeliveryTime = 'ASAP';
-                  });
-                  widget.onDeliveryTimeSelected('ASAP');
-                },
+              Expanded(
+                child: DeliveryTimeCard(
+                  icon: FontAwesomeIcons.bolt,
+                  iconColor: const Color(0xffEF4444),
+                  label: 'ASAP',
+                  isSelected: selectedDeliveryTime == 'ASAP',
+                  onTap: () {
+                    setState(() {
+                      selectedDeliveryTime = 'ASAP';
+                    });
+                    widget.onDeliveryTimeSelected('ASAP');
+                  },
+                ),
               ),
-              DeliveryTimeCard(
-                icon: Icons.timelapse,
-                iconColor: AppColors.textPrimary(context),
-                label: '30 mins',
-                isSelected: selectedDeliveryTime == '30 mins',
-                onTap: () {
-                  setState(() {
-                    selectedDeliveryTime = '30 mins';
-                  });
-                  widget.onDeliveryTimeSelected('30 mins');
-                },
+              SizedBox(width: 20,),
+              Expanded(
+                child: DeliveryTimeCard(
+                  icon: Icons.timelapse,
+                  iconColor: AppColors.textPrimary(context),
+                  label: '30 mins',
+                  isSelected: selectedDeliveryTime == '30 mins',
+                  onTap: () {
+                    setState(() {
+                      selectedDeliveryTime = '30 mins';
+                    });
+                    widget.onDeliveryTimeSelected('30 mins');
+                  },
+                ),
               ),
             ],
           ),
           SizedboxSpaccing.height02(context),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              DeliveryTimeCard(
-                icon: Icons.timelapse,
-                iconColor: AppColors.textPrimary(context),
-                label: '1 hour',
-                isSelected: selectedDeliveryTime == '1 hour',
-                onTap: () {
-                  setState(() {
-                    selectedDeliveryTime = '1 hour';
-                  });
-                  widget.onDeliveryTimeSelected('1 hour');
-                },
+              Expanded(
+                child: DeliveryTimeCard(
+                  icon: Icons.timelapse,
+                  iconColor: AppColors.textPrimary(context),
+                  label: '1 hour',
+                  isSelected: selectedDeliveryTime == '1 hour',
+                  onTap: () {
+                    setState(() {
+                      selectedDeliveryTime = '1 hour';
+                    });
+                    widget.onDeliveryTimeSelected('1 hour');
+                  },
+                ),
               ),
-              DeliveryTimeCard(
-                icon: Icons.timelapse,
-                iconColor: AppColors.textPrimary(context),
-                label: '2 hour',
-                isSelected: selectedDeliveryTime == '2 hour',
-                onTap: () {
-                  setState(() {
-                    selectedDeliveryTime = '2 hour';
-                  });
-                  widget.onDeliveryTimeSelected('2 hour');
-                },
+              SizedBox(width: 20,),
+              Expanded(
+                child: DeliveryTimeCard(
+                  icon: Icons.timelapse,
+                  iconColor: AppColors.textPrimary(context),
+                  label: '2 hour',
+                  isSelected: selectedDeliveryTime == '2 hour',
+                  onTap: () {
+                    setState(() {
+                      selectedDeliveryTime = '2 hour';
+                    });
+                    widget.onDeliveryTimeSelected('2 hour');
+                  },
+                ),
               ),
             ],
           ),
@@ -418,7 +426,6 @@ class DeliveryTimeCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: 80,
-        width: 170,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.button(context).withOpacity(0.1) : AppColors.subtitle(context).withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),

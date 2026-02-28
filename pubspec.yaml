@@ -75,8 +75,9 @@ dependencies:
   #  device_info_plus: ^11.5.0
   crop_your_image: ^2.0.0
 
-  internet_connection_checker: ^1.0.0+1
-  connectivity_plus: ^7.0.0
+#  internet_connection_checker: ^1.0.0+1
+#  connectivity_plus: ^7.0.0
+  internet_connection_checker_plus: ^2.9.1+2
 
   #  dotted_line: ^3.2.3
   font_awesome_flutter: ^10.8.0
