@@ -570,6 +570,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
             imageUrl: service.image?.url,
             defaultIcon: Icons.cleaning_services,
             serviceName: service.name ?? '',
+            hasRoom: service.hasRoom,
+            hasHour: service.hasHour,
             viewDetailsText: 'View Task Details',
             onViewDetails: () => _showTaskDetailsDialog(service),
             discountedPrice: discountedPrice,
@@ -579,7 +581,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
             onAdd: () => _updateQuantity(service.id ?? '', 1),
             onRemove: () => _updateQuantity(service.id ?? '', -1),
             onIncrease: () {
-              if (service.hasRoom == false) {
+              final canIncrement = service.hasRoom == true || service.hasHour == true;
+              if (!canIncrement) {
                 Utils.flushBarExclamatoryMessage(
                   title: "Can't Add More",
                   subtitle: "Additional quantity isn't available for this service.",

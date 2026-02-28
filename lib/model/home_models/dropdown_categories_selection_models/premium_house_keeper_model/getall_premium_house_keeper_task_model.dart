@@ -31,6 +31,7 @@ class Datum {
   String? name;
   String? slug;
   bool? hasRoom;
+  bool? hasHour;
   List<HouseKeeperTaskItem>? houseKeeperTaskItems;
   int? position;
   DateTime? createdAt;
@@ -43,13 +44,17 @@ class Datum {
   ImageModel? image;
   ImageModel? icon;
 
-  Datum({this.id, this.name, this.slug, this.hasRoom, this.houseKeeperTaskItems, this.position, this.createdAt, this.updatedAt, this.v, this.discountType, this.discountValue, this.image, this.icon});
+  Datum({this.id, this.name, this.slug,
+    this.hasRoom,
+    this.hasHour,
+    this.houseKeeperTaskItems, this.position, this.createdAt, this.updatedAt, this.v, this.discountType, this.discountValue, this.image, this.icon});
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     id: json["_id"],
     name: json["name"],
     slug: json["slug"],
     hasRoom: json["hasRoom"],
+    hasHour: json["hasHour"],
     houseKeeperTaskItems: json["houseKeeperTaskItems"] == null ? [] : List<HouseKeeperTaskItem>.from(json["houseKeeperTaskItems"]!.map((x) => HouseKeeperTaskItem.fromJson(x))),
     position: json["position"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
@@ -66,6 +71,7 @@ class Datum {
     "name": name,
     "slug": slug,
     "hasRoom": hasRoom,
+    "hasHour": hasHour,
     "houseKeeperTaskItems": houseKeeperTaskItems == null ? [] : List<dynamic>.from(houseKeeperTaskItems!.map((x) => x.toJson())),
     "position": position,
     "createdAt": createdAt?.toIso8601String(),

@@ -10,7 +10,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class DynamicCachedImage extends StatelessWidget {
   /// Image URL to load
   final String? imageUrl;
-
+  final bool? hasRoom;
+  final bool? hasHour;
   /// Quantity controls
   final int quantity;
   final VoidCallback onAdd;
@@ -88,6 +89,8 @@ class DynamicCachedImage extends StatelessWidget {
     required this.onAdd,
     required this.onRemove,
     required this.onIncrease,
+    this.hasRoom = false,
+    this.hasHour = false,
     this.showRoomNumber = false,
     this.roomNumberLabel,
     required this.getButtonColor,
@@ -152,17 +155,36 @@ class DynamicCachedImage extends StatelessWidget {
             ],
           ),
         ),
-        if (roomNumberLabel != null && quantity > 0)...[
+        // if (roomNumberLabel != null && quantity > 0)...[
+        //   SizedboxSpaccing.height005(context),
+        //   Text(
+        //     roomNumberLabel!,
+        //     style: TextStyle(
+        //       fontSize: 10,
+        //       color: AppColors.buttonTextColor(context),
+        //     ),
+        //   ),
+        // ]
+        if (quantity > 0) ...[
           SizedboxSpaccing.height005(context),
-          Text(
-            roomNumberLabel!,
-            style: TextStyle(
-              fontSize: 10,
-              color: AppColors.buttonTextColor(context),
+          if (hasHour == true)
+            Text(
+              'Hourly Service',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.orange, // distinct color for Hours
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          else if (hasRoom == true && roomNumberLabel != null)
+            Text(
+              roomNumberLabel!,
+              style: TextStyle(
+                fontSize: 10,
+                color: AppColors.buttonTextColor(context),
+              ),
             ),
-          ),
-        ]
-
+        ],
       ],
     );
   }

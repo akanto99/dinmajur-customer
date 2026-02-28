@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:dinmajur_customer/respository/auth_repository/login_logout_repository.dart';
+import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_manager.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart'; // ✅ Add SSE import
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
@@ -53,36 +54,28 @@ class LoginLogoutViewModel with ChangeNotifier {
 
       // ✅ Get providers
       final userPreference = Provider.of<UserViewModel>(context, listen: false);
-      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-      final sseService = Provider.of<SSENotificationService>(context, listen: false);
+      final socket         = Provider.of<SocketManager>(context, listen: false);
+      final sseService     = Provider.of<SSENotificationService>(context, listen: false);
+      final oneSignal      = Provider.of<OneSignalNotificationService>(context, listen: false);
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
-      final oneSignalService = Provider.of<OneSignalNotificationService>(context, listen: false);
 
-      print("🔓 Logout: Starting logout process");
 
-      // ✅ STEP 1: Logout from OneSignal
+      // 1. OneSignal logout
       try {
-        await oneSignalService.logoutUser();
-        print("🔔 ✅ OneSignal logout successful");
+        await oneSignal.logoutUser();
       } catch (e) {
         print("⚠️ OneSignal logout failed: $e");
       }
 
-      // ✅ STEP 2: Disconnect Socket
-      try {
-        await socketProvider.disconnect().timeout(Duration(seconds: 3));
-        print("🔌 ✅ Socket disconnected successfully");
-      } catch (e) {
-        print("⚠️ Socket disconnect failed: $e");
-      }
+      // 2. Disconnect socket (clears token so auto-retry stops)
+      socket.disconnect();
 
-      // ✅ STEP 3: Stop SSE Connection
+      // 3. Stop SSE
       try {
         await sseService.stopListening();
-        print("🔔 ✅ SSE connection stopped successfully");
       } catch (e) {
-        print("⚠️ SSE disconnect failed: $e");
+        print("⚠️ SSE stop failed: $e");
       }
 
       // ✅ STEP 4: Call logout API

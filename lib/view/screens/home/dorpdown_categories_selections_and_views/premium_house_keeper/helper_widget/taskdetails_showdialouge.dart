@@ -189,6 +189,8 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
   }
 
   Widget _buildRoomNumberSection(BuildContext context, double screenWidth) {
+    final bool isHourly = widget.service.hasHour == true;
+
     return Container(
       width: screenWidth*0.87,
       padding: EdgeInsets.only(bottom: 5,top:15),
@@ -202,14 +204,18 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
             height: 13,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.textPrimary(context),
+              color: isHourly ? Colors.orange : AppColors.textPrimary(context),
             ),
           ),
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Room Number',
-              style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+              isHourly ? 'Hourly Service' : 'Room Number',
+              style: AppTextStyles.textSize14(
+                context,
+                weight: FontWeight.w500,
+                color: isHourly ? Colors.orange : AppColors.textPrimary(context),
+              ),
             ),
           ),
           Row(
