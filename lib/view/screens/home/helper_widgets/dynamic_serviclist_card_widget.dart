@@ -115,6 +115,8 @@ class DynamicServiceCard extends StatelessWidget {
   final VoidCallback onRemove;
   final VoidCallback onIncrease;
   final bool showRoomNumber;
+  final bool? hasRoom;
+  final bool? hasHour;
   final String? roomNumberLabel;
   final Color Function(BuildContext) getButtonColor;
   final Color Function(BuildContext) getBackgroundColor;
@@ -139,6 +141,8 @@ class DynamicServiceCard extends StatelessWidget {
     required this.onAdd,
     required this.onRemove,
     required this.onIncrease,
+    this.hasRoom = false,
+    this.hasHour = false,
     this.showRoomNumber = false,
     this.roomNumberLabel,
     required this.getButtonColor,
@@ -196,6 +200,8 @@ class DynamicServiceCard extends StatelessWidget {
             onAdd: onAdd,
             onRemove: onRemove,
             onIncrease: onIncrease,
+            hasRoom: hasRoom,
+            hasHour: hasHour,
             showRoomNumber: showRoomNumber,
             roomNumberLabel: roomNumberLabel,
             getButtonColor: getButtonColor,

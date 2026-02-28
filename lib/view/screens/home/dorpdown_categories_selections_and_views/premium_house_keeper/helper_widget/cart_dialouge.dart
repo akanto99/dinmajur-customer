@@ -303,6 +303,7 @@ class _CartDialogState extends State<CartDialog> {
       padding: EdgeInsets.all(15),
       child: GestureDetector(
         onTap: () {
+          print("-------------------------------$minOrder");
           if (subtotal < minOrder) {
             print(subtotal);
             Utils.flushBarExclamatoryMessage(

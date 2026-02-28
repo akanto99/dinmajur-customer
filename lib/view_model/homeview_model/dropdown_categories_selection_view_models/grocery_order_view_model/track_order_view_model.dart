@@ -501,6 +501,7 @@
 //   }
 // }
 
+///Customer
 import 'dart:async';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
