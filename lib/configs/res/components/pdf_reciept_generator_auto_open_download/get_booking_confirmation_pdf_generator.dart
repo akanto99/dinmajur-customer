@@ -523,29 +523,35 @@ class BookingReceiptPdfGenerator {
   }
 
 
-  /// Save PDF to device storage
+  /// Save PDF to device storage (Downloads folder for easy access)
   // static Future<File> _savePdf(pw.Document pdf, String trackingId) async {
   //   try {
-  //     // Get the downloads directory
-  //     final Directory? directory = Platform.isAndroid
-  //         ? await getExternalStorageDirectory()
-  //         : await getApplicationDocumentsDirectory();
+  //     Directory? directory;
+  //
+  //     if (Platform.isAndroid) {
+  //       // Try Downloads folder first
+  //       directory = Directory('/storage/emulated/0/Download');
+  //       if (!await directory.exists()) {
+  //         try {
+  //           await directory.create(recursive: true);
+  //         } catch (e) {
+  //           print("Could not create Downloads: $e");
+  //           // Fallback to external storage directory
+  //           directory = await getExternalStorageDirectory();
+  //         }
+  //       }
+  //     } else if (Platform.isIOS) {
+  //       directory = await getApplicationDocumentsDirectory();
+  //     }
   //
   //     if (directory == null) {
   //       throw Exception('Could not access storage directory');
   //     }
   //
-  //     // Create Dinmajur folder if it doesn't exist
-  //     final String dinmajurPath = '${directory.path}/Dinmajur_Bookings';
-  //     final Directory dinmajurDir = Directory(dinmajurPath);
-  //     if (!await dinmajurDir.exists()) {
-  //       await dinmajurDir.create(recursive: true);
-  //     }
-  //
   //     // Create file name with timestamp
   //     final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-  //     final String fileName = 'Booking_Receipt_${trackingId}_$timestamp.pdf';
-  //     final String filePath = '$dinmajurPath/$fileName';
+  //     final String fileName = 'HouseKeeper_Bookings_${trackingId}_$timestamp.pdf';
+  //     final String filePath = '${directory.path}/$fileName';
   //
   //     // Save PDF
   //     final File file = File(filePath);
@@ -558,37 +564,46 @@ class BookingReceiptPdfGenerator {
   //     rethrow;
   //   }
   // }
-  /// Save PDF to device storage (Downloads folder for easy access)
   static Future<File> _savePdf(pw.Document pdf, String trackingId) async {
     try {
-      Directory? directory;
+      Directory? baseDirectory;
 
       if (Platform.isAndroid) {
-        // Try Downloads folder first
-        directory = Directory('/storage/emulated/0/Download');
-        if (!await directory.exists()) {
+        // Use Downloads folder as the base
+        baseDirectory = Directory('/storage/emulated/0/Download');
+
+        if (!await baseDirectory.exists()) {
           try {
-            await directory.create(recursive: true);
+            await baseDirectory.create(recursive: true);
           } catch (e) {
             print("Could not create Downloads: $e");
             // Fallback to external storage directory
-            directory = await getExternalStorageDirectory();
+            baseDirectory = await getExternalStorageDirectory();
           }
         }
       } else if (Platform.isIOS) {
-        directory = await getApplicationDocumentsDirectory();
+        baseDirectory = await getApplicationDocumentsDirectory();
       }
 
-      if (directory == null) {
+      if (baseDirectory == null) {
         throw Exception('Could not access storage directory');
+      }
+
+      // ✅ Create "Dinajpur Booking" subfolder if it doesn't exist
+      final Directory bookingFolder = Directory('${baseDirectory.path}/Dinajpur Booking');
+      if (!await bookingFolder.exists()) {
+        await bookingFolder.create(recursive: true);
+        print('📁 Created folder: ${bookingFolder.path}');
+      } else {
+        print('📁 Folder already exists: ${bookingFolder.path}');
       }
 
       // Create file name with timestamp
       final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final String fileName = 'HouseKeeper_Bookings_${trackingId}_$timestamp.pdf';
-      final String filePath = '${directory.path}/$fileName';
+      final String filePath = '${bookingFolder.path}/$fileName';
 
-      // Save PDF
+      // Save PDF inside "Dinajpur Booking" folder
       final File file = File(filePath);
       await file.writeAsBytes(await pdf.save());
 

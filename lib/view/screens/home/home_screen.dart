@@ -369,20 +369,25 @@ print(e.toString());
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final homeBody = body(context);
 
     return Scaffold(
       key: widget.scaffoldKey,
       backgroundColor: AppColors.containerBackground(context),
       drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
       body: SafeArea(
-        child: ResPonsiveUi(mobile: body(context), desktop: body(context), tablet: body(context)),
+        child: ResPonsiveUi(
+          mobile: homeBody,
+          desktop: homeBody,
+          tablet: homeBody,
+        ),
       ),
     );
   }
 
   body(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
@@ -881,7 +886,7 @@ print(e.toString());
         width: 30,
         padding: const EdgeInsets.all(2),
         color: Colors.transparent,
-        child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
+        child: RepaintBoundary(child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain)),
       ),
     );
   }

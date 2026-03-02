@@ -665,7 +665,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Downloads/Dinmajur_Bookings',
+                      'Downloads/Dinmajur Booking',
                       style: AppTextStyles.textSize12(context),
                     ),
                   ],

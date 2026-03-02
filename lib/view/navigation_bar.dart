@@ -808,12 +808,16 @@
 //     );
 //   }
 // }
+/// Customer App — NavigationScreen
+///
+/// KEY DESIGN RULES (read before editing):
+/// ─────────────────────────────────────────────────────────────────────────────
+/// 1. Internet checker  → ONLY controls the "no connection" dialog.
+/// 2. SocketManager     → manages itself completely (connect / reconnect / retry).
+/// 3. These two are COMPLETELY INDEPENDENT. Socket disconnect never shows dialog.
+///    Internet restore never directly calls socket — socket watches itself.
+/// ─────────────────────────────────────────────────────────────────────────────
 
-
-
-///Customer App
-///individual Internet connection : when network goes socket dissconnect and sse dissconnect.
-///WHen app resume Internet dialouge performs its action and also socket pereorms its action separatly
 import 'dart:async';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
@@ -857,27 +861,32 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   // ─── Navigation ──────────────────────────────────────────────────────────────
   int _currentIndex = 0;
-  final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late final List<Widget> _pages;
 
   // ─── Internet monitoring ──────────────────────────────────────────────────────
-  // Single instance — avoids creating new checkers on every call
+  // One shared instance — created once, never recreated.
   late final InternetConnection _internetChecker;
-  StreamSubscription<InternetStatus>? _internetSubscription;
+  StreamSubscription<InternetStatus>? _internetSub;
+  Timer? _debounceTimer;
 
   // ─── Dialog guard ─────────────────────────────────────────────────────────────
-  // IMPORTANT: Only set to true when ACTUAL internet is gone (from checker).
-  // Socket disconnecting alone NEVER sets this — those are two different things.
-  bool _isDialogShowing = false;
+  // True ONLY while the "no connection" CupertinoDialog is on screen.
+  // Never set by socket events — only set by internet checker events.
+  bool _isNoConnectionDialogVisible = false;
+
+  // ─── Upgrade check guard ──────────────────────────────────────────────────────
+  // Prevents the upgrade dialog from showing more than once per session.
+  bool _upgradeChecked = false;
 
   // ─── Nav metadata ─────────────────────────────────────────────────────────────
-  final List<String> icons = [
+  final List<String> _icons = [
     "assets/images/navBar/navbar_new/home.svg",
     "assets/images/navBar/navbar_new/offers.svg",
     "assets/images/navBar/navbar_new/order.svg",
     "assets/images/navBar/navbar_new/support.svg",
   ];
-  late List<String> labels;
+  late List<String> _labels;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // LIFECYCLE
@@ -889,7 +898,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     WidgetsBinding.instance.addObserver(this);
 
     _pages = [
-      HomeScreen(scaffoldKey: _key),
+      HomeScreen(scaffoldKey: _scaffoldKey),
       OffersScreen(),
       OrderScreen(),
       DraftScreen(),
@@ -898,7 +907,7 @@ class _NavigationScreenState extends State<NavigationScreen>
 
     WakelockPlus.enable();
 
-    // Single instance with reliable DNS endpoints — same as freelancer app
+    // Reliable DNS endpoints — same across customer & freelancer apps.
     _internetChecker = InternetConnection.createInstance(
       customCheckOptions: [
         InternetCheckOption(uri: Uri.parse('https://one.one.one.one')),
@@ -908,14 +917,14 @@ class _NavigationScreenState extends State<NavigationScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _initServices();
-      _subscribeToInternet(); // Start AFTER init so we don't get spurious events
+      _startInternetMonitoring();
     });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _internetSubscription?.cancel();
+    _stopInternetMonitoring();
     WakelockPlus.disable();
     super.dispose();
   }
@@ -923,8 +932,8 @@ class _NavigationScreenState extends State<NavigationScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _setSystemUIColors();
-    labels = [
+    _syncSystemUIColors();
+    _labels = [
       AppLocalizations.of(context)!.home,
       AppLocalizations.of(context)!.offers,
       AppLocalizations.of(context)!.order,
@@ -933,93 +942,89 @@ class _NavigationScreenState extends State<NavigationScreen>
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // APP LIFECYCLE
+  // APP LIFECYCLE — pause / resume
   // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
     switch (state) {
       case AppLifecycleState.resumed:
-        if (kDebugMode) print('📱 NavigationScreen: App resumed');
-        WakelockPlus.enable();
-        // Recreate fresh subscription — avoids stale buffered events from pause
-        _subscribeToInternet();
-        // Do one real internet ping for anything missed while paused
         _onAppResumed();
         break;
-
       case AppLifecycleState.paused:
-        if (kDebugMode) print('📱 NavigationScreen: App paused');
-        WakelockPlus.disable();
-        // Cancel subscription while backgrounded — saves battery, no ghost events
-        _internetSubscription?.cancel();
-        _internetSubscription = null;
+        _onAppPaused();
         break;
-
       default:
         break;
     }
   }
 
+  void _onAppPaused() {
+    if (kDebugMode) print('📱 App paused');
+    WakelockPlus.disable();
+    // Stop monitoring while app is in background — avoids stale buffered events.
+    _stopInternetMonitoring();
+  }
+
   Future<void> _onAppResumed() async {
     if (!mounted) return;
+    if (kDebugMode) print('📱 App resumed');
+    WakelockPlus.enable();
 
+    // Check actual internet status RIGHT NOW (not from stream buffer).
     final bool hasInternet = await _internetChecker.hasInternetAccess;
     if (!mounted) return;
 
     if (hasInternet) {
-      // Internet is fine — dismiss dialog if it was showing
-      if (_isDialogShowing) {
-        _dismissDialog();
-        if (mounted) setState(() => _isDialogShowing = false);
-      }
-      // SocketManager.handleAppResume() checks if connected:
-      //   - Already connected → fires onConnected callbacks so screens refresh
-      //   - Disconnected → starts _reconnectWithRetry() internally
+      // Internet is fine — dismiss dialog if it was somehow left open.
+      _dismissNoConnectionDialog();
+
+      // Let socket handle its own reconnect logic.
       context.read<SocketManager>().handleAppResume();
+
+      // Ensure SSE is running.
       await _ensureSSERunning();
     } else {
-      // Genuinely offline — show dialog only if not already showing
-      if (!_isDialogShowing) {
-        _onInternetLost();
-      }
+      // Genuinely offline — show dialog if not already showing.
+      _showNoConnectionDialog();
     }
+
+    // Restart stream monitoring AFTER the point-in-time check,
+    // so we don't get stale buffered events from when app was paused.
+    _startInternetMonitoring();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // INIT SERVICES — called once on first mount after login
+  // INIT SERVICES — called once after first mount
   // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> _initServices() async {
     if (!mounted) return;
 
-    final prefs       = await SharedPreferences.getInstance();
-    final accessToken = prefs.getString('accessToken') ?? '';
-    final userId      = prefs.getString('userId') ?? '';
+    final prefs = await SharedPreferences.getInstance();
+    final String accessToken = prefs.getString('accessToken') ?? '';
+    final String userId = prefs.getString('userId') ?? '';
     if (accessToken.isEmpty) return;
 
     // ── OneSignal ─────────────────────────────────────────────────────
     if (userId.isNotEmpty) {
       try {
         await context.read<OneSignalNotificationService>().loginUser(userId);
-        if (kDebugMode) print('🔔 NavigationScreen: OneSignal login done');
+        if (kDebugMode) print('🔔 OneSignal login done');
       } catch (e) {
-        if (kDebugMode) print('⚠️ NavigationScreen: OneSignal error — $e');
+        if (kDebugMode) print('⚠️ OneSignal error — $e');
       }
     }
 
     // ── Socket ────────────────────────────────────────────────────────
+    // Socket manages itself. We only wire the onConnected callback here.
     final socket = context.read<SocketManager>();
-
-    // Wire onConnected ONCE — fires on every (re)connect automatically
     socket.onConnected = _onSocketConnected;
 
     if (socket.isConnected) {
       _onSocketConnected();
     } else {
-      if (kDebugMode) print('🔌 NavigationScreen: Connecting socket…');
       await socket.connect(accessToken);
     }
 
@@ -1028,82 +1033,89 @@ class _NavigationScreenState extends State<NavigationScreen>
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // SOCKET CONNECTED CALLBACK
-  // Fired by SocketManager every time socket (re)connects — NOT by internet loss
+  // SOCKET — callback only, no dialog logic here
   // ═══════════════════════════════════════════════════════════════════════════
 
   void _onSocketConnected() {
     if (!mounted) return;
-    if (kDebugMode) print('🎉 NavigationScreen: Socket connected callback fired');
-    // Add any global socket listeners here if needed in future
-    // e.g. real-time notifications, global order status updates etc.
+    if (kDebugMode) print('🎉 Socket connected');
+    // Add global socket event listeners here if needed.
+    // DO NOT touch _isNoConnectionDialogVisible here — that's internet-only.
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // INTERNET MONITORING
-  // KEY RULE: Only internet checker events control the dialog.
-  //           Socket events are handled entirely by SocketManager internally.
+  // INTERNET MONITORING — fully decoupled from socket
   // ═══════════════════════════════════════════════════════════════════════════
 
-  void _subscribeToInternet() {
-    _internetSubscription?.cancel();
-    _internetSubscription =
-        _internetChecker.onStatusChange.listen((InternetStatus status) {
-          if (!mounted) return;
-          if (status == InternetStatus.disconnected) {
-            _onInternetLost();
-          } else {
-            _onInternetRestored();
-          }
-        });
+  void _startInternetMonitoring() {
+    // Cancel any existing subscription first (safe to call multiple times).
+    _stopInternetMonitoring();
+
+    _internetSub = _internetChecker.onStatusChange.listen((InternetStatus status) {
+      if (!mounted) return;
+
+      // Debounce 2.5s — prevents false triggers on brief network blips or
+      // the stale events that fire right after subscription is created.
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(const Duration(milliseconds: 2500), () {
+        if (!mounted) return;
+        if (status == InternetStatus.disconnected) {
+          _onInternetLost();
+        } else {
+          _onInternetRestored();
+        }
+      });
+    });
   }
 
-  // Called ONLY when internet checker confirms no internet.
-  // Does NOT react to socket disconnects — socket manages itself.
+  void _stopInternetMonitoring() {
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+    _internetSub?.cancel();
+    _internetSub = null;
+  }
+
+  // ── Internet lost ──────────────────────────────────────────────────────────
+  // ONLY shows the dialog. Does NOT touch socket — socket handles itself.
   void _onInternetLost() {
-    if (!mounted || _isDialogShowing) return;
-    if (kDebugMode) print('📵 NavigationScreen: Internet lost');
-
-    // Disconnect services cleanly so they don't hang with stale connections
-    context.read<SocketManager>().disconnect();
-    context.read<SSENotificationService>().stopListening();
-
-    setState(() => _isDialogShowing = true);
+    if (!mounted) return;
+    if (kDebugMode) print('📵 Internet lost');
     _showNoConnectionDialog();
   }
 
-  // Called ONLY when internet checker confirms internet is back.
+  // ── Internet restored ─────────────────────────────────────────────────────
+  // ONLY dismisses the dialog and reconnects SSE.
+  // Socket reconnects itself via its own internal retry logic.
   Future<void> _onInternetRestored() async {
     if (!mounted) return;
-    if (kDebugMode) print('📶 NavigationScreen: Internet restored');
+    if (kDebugMode) print('📶 Internet restored');
 
-    if (_isDialogShowing) {
-      _dismissDialog();
-      if (mounted) setState(() => _isDialogShowing = false);
-    }
+    _dismissNoConnectionDialog();
 
-    await _reconnectAll();
+    // Reconnect services that need a nudge when internet comes back.
+    await _reconnectServicesAfterInternetRestored();
   }
 
-  Future<void> _reconnectAll() async {
+  Future<void> _reconnectServicesAfterInternetRestored() async {
     if (!mounted) return;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('accessToken') ?? '';
+      final String token = prefs.getString('accessToken') ?? '';
       if (token.isEmpty) return;
 
+      // Socket: only connect if not already connected.
+      // SocketManager's internal retry handles most cases automatically.
       final socket = context.read<SocketManager>();
       if (!socket.isConnected) {
-        // connect() destroys old socket, creates fresh one.
-        // onConnected fires automatically once handshake completes.
         await socket.connect(token);
       }
 
+      // SSE: restart if stopped.
       await _ensureSSERunning();
 
-      if (kDebugMode) print('✅ NavigationScreen: All services reconnected');
+      if (kDebugMode) print('✅ Services reconnected after internet restore');
     } catch (e) {
-      if (kDebugMode) print('❌ NavigationScreen: Reconnect error — $e');
+      if (kDebugMode) print('❌ Reconnect error — $e');
     }
   }
 
@@ -1136,41 +1148,8 @@ class _NavigationScreenState extends State<NavigationScreen>
       }
       runningOrderVM.setInitialCount(sseService.currentRunningOrderCount);
     } catch (e) {
-      if (kDebugMode) print('❌ NavigationScreen: SSE error — $e');
+      if (kDebugMode) print('❌ SSE error — $e');
     }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HELPERS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  void _dismissDialog() {
-    try {
-      final navContext = NavigationService.navigatorKey.currentContext;
-      if (navContext != null && Navigator.canPop(navContext)) {
-        Navigator.of(navContext, rootNavigator: true).pop();
-      } else if (mounted && Navigator.canPop(context)) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-    } catch (_) {}
-  }
-
-  void _setSystemUIColors() {
-    final isDarkMode = context.read<ThemeProvider>().isDarkMode;
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor:
-      isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
-      statusBarColor:
-      isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
-      statusBarIconBrightness:
-      isDarkMode ? Brightness.light : Brightness.dark,
-      statusBarBrightness:
-      isDarkMode ? Brightness.dark : Brightness.light,
-      systemNavigationBarIconBrightness:
-      isDarkMode ? Brightness.light : Brightness.dark,
-      systemNavigationBarDividerColor:
-      isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
-    ));
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1178,7 +1157,11 @@ class _NavigationScreenState extends State<NavigationScreen>
   // ═══════════════════════════════════════════════════════════════════════════
 
   void _showNoConnectionDialog() {
-    if (!mounted) return;
+    // Guard: never stack multiple dialogs.
+    if (!mounted || _isNoConnectionDialogVisible) return;
+
+    if (kDebugMode) print('🔴 Showing no-connection dialog');
+    _isNoConnectionDialogVisible = true;
 
     showCupertinoDialog<void>(
       context: context,
@@ -1186,12 +1169,19 @@ class _NavigationScreenState extends State<NavigationScreen>
       builder: (dialogCtx) => CupertinoAlertDialog(
         title: Column(
           children: [
-            const Icon(CupertinoIcons.wifi_exclamationmark,
-                size: 40, color: CupertinoColors.systemRed),
+            const Icon(
+              CupertinoIcons.wifi_exclamationmark,
+              size: 40,
+              color: CupertinoColors.systemRed,
+            ),
             const SizedBox(height: 10),
-            Text('Connection Lost',
-                style: GoogleFonts.hindSiliguri(
-                    fontSize: 16, fontWeight: FontWeight.w600)),
+            Text(
+              'Connection Lost',
+              style: GoogleFonts.hindSiliguri(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
         content: Padding(
@@ -1200,434 +1190,112 @@ class _NavigationScreenState extends State<NavigationScreen>
             'You seem to be offline. Check your connection to stay updated.',
             textAlign: TextAlign.center,
             style: GoogleFonts.hindSiliguri(
-                fontSize: 14, fontWeight: FontWeight.w400),
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ),
         actions: [
           CupertinoDialogAction(
             onPressed: () async {
+              // Pop this dialog instance.
               Navigator.of(dialogCtx).pop();
-              if (mounted) setState(() => _isDialogShowing = false);
+              // NOTE: _isNoConnectionDialogVisible is reset in the .then() below,
+              // but we also need to reset it here so _showNoConnectionDialog()
+              // can be called again if still offline.
+              _isNoConnectionDialogVisible = false;
 
-              final bool hasInternet =
-              await _internetChecker.hasInternetAccess;
+              final bool hasInternet = await _internetChecker.hasInternetAccess;
               if (!mounted) return;
 
               if (hasInternet) {
-                await _reconnectAll();
+                // Back online — reconnect everything.
+                await _reconnectServicesAfterInternetRestored();
               } else {
-                // Still offline — show dialog again
-                if (mounted) setState(() => _isDialogShowing = true);
+                // Still offline — show dialog again.
                 _showNoConnectionDialog();
               }
             },
             child: const Text(
               'Retry',
               style: TextStyle(
-                  color: CupertinoColors.activeBlue,
-                  fontWeight: FontWeight.bold),
+                color: CupertinoColors.activeBlue,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
       ),
     ).then((_) {
-      // Safety reset if dialog closes by any other means
-      if (mounted) setState(() => _isDialogShowing = false);
+      // Safety reset — handles any edge-case where dialog closes unexpectedly
+      // (e.g., system back gesture, Navigator.popUntil from elsewhere).
+      if (mounted) {
+        _isNoConnectionDialogVisible = false;
+      }
     });
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BUILD
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  @override
-  Widget build(BuildContext context) {
-    final isDarkMode   = context.watch<ThemeProvider>().isDarkMode;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth  = MediaQuery.of(context).size.width;
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor:
-        isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
-        statusBarIconBrightness:
-        isDarkMode ? Brightness.light : Brightness.dark,
-        statusBarBrightness:
-        isDarkMode ? Brightness.dark : Brightness.light,
-        systemNavigationBarColor:
-        isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
-        systemNavigationBarIconBrightness:
-        isDarkMode ? Brightness.light : Brightness.dark,
-        systemNavigationBarDividerColor:
-        isDarkMode ? AppColors.blackColor : AppColors.whiteColor,
-        systemNavigationBarContrastEnforced: false,
-      ),
-      child: Builder(
-        builder: (context) {
-          WidgetsBinding.instance.addPostFrameCallback(
-                  (_) => _checkForUpgrade(context));
-
-          return WillPopScope(
-            onWillPop: () async {
-              if (_currentIndex == 0 &&
-                  _key.currentState?.isDrawerOpen == true) {
-                _key.currentState!.closeDrawer();
-                return false;
-              }
-              final value = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  backgroundColor: AppColors.containerBackground(context),
-                  contentPadding: EdgeInsets.symmetric(
-                      horizontal: screenHeight * 0.02,
-                      vertical: screenHeight * 0.02),
-                  insetPadding: EdgeInsets.symmetric(
-                      horizontal: screenHeight * 0.1,
-                      vertical: screenHeight * 0.2),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5)),
-                  content: Text(
-                    'Are you sure you want to exit?',
-                    style: AppTextStyles.textSize16(context,
-                        weight: FontWeight.w600),
-                  ),
-                  actions: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.of(ctx).pop(false),
-                          child: Container(
-                            width: screenWidth * 0.2,
-                            padding: EdgeInsets.symmetric(
-                                vertical: screenHeight * 0.008),
-                            decoration: BoxDecoration(
-                                color: AppColors.textFieldFill(context),
-                                borderRadius: BorderRadius.circular(5)),
-                            child: Center(
-                              child: Text('No',
-                                  style: AppTextStyles.textSize12(context,
-                                      weight: FontWeight.w600)),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: screenWidth * 0.02),
-                        GestureDetector(
-                          onTap: () => SystemNavigator.pop(),
-                          child: Container(
-                            width: screenWidth * 0.2,
-                            padding: EdgeInsets.symmetric(
-                                vertical: screenHeight * 0.008),
-                            decoration: BoxDecoration(
-                                color: AppColors.button(context),
-                                borderRadius: BorderRadius.circular(5)),
-                            child: Center(
-                              child: Text(
-                                'Yes',
-                                style: GoogleFonts.hindSiliguri(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.whiteColor),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-              return value ?? false;
-            },
-            child: Scaffold(
-              backgroundColor: AppColors.containerBackground(context),
-              body: _pages[_currentIndex],
-              bottomNavigationBar: SafeArea(
-                child: Container(
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppColors.globalBlackWhite(context),
-                    boxShadow: [
-                      isDarkMode
-                          ? BoxShadow(
-                          color: Colors.white12.withOpacity(0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, -2))
-                          : const BoxShadow(
-                          color: Colors.white10,
-                          blurRadius: 10,
-                          offset: Offset(0, -2)),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Divider(color: AppColors.border(context), height: 1),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: List.generate(icons.length, (index) {
-                          final bool isSelected = _currentIndex == index;
-                          final bool isOrderTab = index == 2;
-
-                          return GestureDetector(
-                            onTap: () async {
-                              if (index == 0 &&
-                                  _currentIndex == 0 &&
-                                  _key.currentState?.isDrawerOpen == true) {
-                                _key.currentState!.closeDrawer();
-                              } else if (index == 3) {
-                                await _openWhatsAppSupport();
-                              } else {
-                                setState(() => _currentIndex = index);
-                              }
-                            },
-                            child: Container(
-                              width: screenWidth * 0.2,
-                              color: Colors.transparent,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  isOrderTab
-                                      ? Consumer<RunningOrderCountViewModel>(
-                                    builder:
-                                        (context, orderCountVM, _) {
-                                      return Stack(
-                                        clipBehavior: Clip.none,
-                                        children: [
-                                          SvgPicture.asset(
-                                            icons[index],
-                                            width: 18,
-                                            height: 18,
-                                            color: isSelected
-                                                ? AppColors.button(
-                                                context)
-                                                : AppColors.subtitle(
-                                                context),
-                                            semanticsLabel:
-                                            labels[index],
-                                          ),
-                                          if (orderCountVM
-                                              .hasRunningOrders)
-                                            Positioned(
-                                              right: -6,
-                                              top: -4,
-                                              child: Container(
-                                                padding:
-                                                const EdgeInsets
-                                                    .all(2),
-                                                decoration:
-                                                BoxDecoration(
-                                                  color: Colors.red,
-                                                  shape:
-                                                  BoxShape.circle,
-                                                  border: Border.all(
-                                                      color: AppColors
-                                                          .globalBlackWhite(
-                                                          context),
-                                                      width: 1),
-                                                ),
-                                                constraints:
-                                                const BoxConstraints(
-                                                    minWidth: 14,
-                                                    minHeight: 14),
-                                                child: Text(
-                                                  '${orderCountVM.runningOrderCount > 9 ? '9+' : orderCountVM.runningOrderCount}',
-                                                  style: const TextStyle(
-                                                      color:
-                                                      Colors.white,
-                                                      fontSize: 9,
-                                                      fontWeight:
-                                                      FontWeight
-                                                          .bold),
-                                                  textAlign:
-                                                  TextAlign.center,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      );
-                                    },
-                                  )
-                                      : SvgPicture.asset(
-                                    icons[index],
-                                    width: 18,
-                                    height: 18,
-                                    color: isSelected
-                                        ? AppColors.button(context)
-                                        : AppColors.subtitle(context),
-                                    semanticsLabel: labels[index],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    labels[index],
-                                    style: AppTextStyles.textSize12(
-                                      context,
-                                      weight: isSelected
-                                          ? FontWeight.w500
-                                          : FontWeight.w400,
-                                      color: isSelected
-                                          ? AppColors.button(context)
-                                          : AppColors.subtitle(context),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                      Container(height: 1),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SUPPORT / WHATSAPP
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  Future<void> _openWhatsAppSupport() async {
-    const String companyPhone = '8801929600600';
-    const String message =
-        'Hello! I need assistance with Dinmajur platform services.';
-    final String whatsappUrl =
-        'https://wa.me/$companyPhone?text=${Uri.encodeComponent(message)}';
-    final Uri whatsappUri = Uri.parse(whatsappUrl);
+  void _dismissNoConnectionDialog() {
+    if (!_isNoConnectionDialogVisible) return;
 
     try {
-      if (await canLaunchUrl(whatsappUri)) {
-        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-      } else {
-        _showWhatsAppNotInstalledDialog();
+      // Try NavigationService key first (works even if context is stale).
+      final navCtx = NavigationService.navigatorKey.currentContext;
+      if (navCtx != null && Navigator.canPop(navCtx)) {
+        Navigator.of(navCtx, rootNavigator: true).pop();
+        return;
       }
-    } catch (e) {
-      Utils.flushBarErrorMessage('WhatsApp not available', context);
-      await _callSupport();
-    }
-  }
-
-  void _showWhatsAppNotInstalledDialog() {
-    final screenWidth  = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierColor: AppColors.showDialougeBackground(context),
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.containerBackground(context),
-        contentPadding: EdgeInsets.symmetric(
-            horizontal: screenWidth * 0.05, vertical: screenHeight * 0.02),
-        insetPadding:
-        EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-        shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Row(
-          children: [
-            Icon(Icons.phone_android,
-                color: AppColors.button(context), size: 28),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text('WhatsApp Not Found',
-                  style: AppTextStyles.textSize16(context,
-                      weight: FontWeight.w600)),
-            ),
-          ],
-        ),
-        content: Text(
-            'WhatsApp is not installed. Would you like to call our support team instead?',
-            style: AppTextStyles.textSize14(context)),
-        actions: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              GestureDetector(
-                onTap: () async {
-                  Navigator.of(ctx).pop();
-                  await _callSupport();
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                      vertical: screenHeight * 0.014),
-                  decoration: BoxDecoration(
-                      color: AppColors.button(context),
-                      borderRadius: BorderRadius.circular(8)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.phone,
-                          size: 18, color: AppColors.whiteColor),
-                      const SizedBox(width: 8),
-                      Text('Call Support (01929-600600)',
-                          style: AppTextStyles.textSize14(context,
-                              color: AppColors.whiteColor,
-                              weight: FontWeight.w500)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 15),
-              GestureDetector(
-                onTap: () => Navigator.of(ctx).pop(),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                      vertical: screenHeight * 0.012),
-                  decoration: BoxDecoration(
-                    color: AppColors.containerBackground(context),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        width: 1, color: AppColors.border(context)),
-                  ),
-                  child: Center(
-                    child: Text('Cancel',
-                        style: AppTextStyles.textSize14(context,
-                            weight: FontWeight.w500)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _callSupport() async {
-    const String phoneNumber = 'tel:+8801929600600';
-    final Uri phoneUri = Uri.parse(phoneNumber);
-    try {
-      if (await canLaunchUrl(phoneUri)) {
-        await launchUrl(phoneUri);
-      } else {
-        Utils.flushBarErrorMessage('Unable to open phone dialer', context);
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context, rootNavigator: true).pop();
       }
-    } catch (e) {
-      Utils.flushBarErrorMessage('Unable to make phone call', context);
+    } catch (_) {
+      // Silently ignore — dialog may have already been dismissed.
+    } finally {
+      // Always reset the flag so a new dialog can appear if needed.
+      if (mounted) _isNoConnectionDialogVisible = false;
     }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // UPGRADE CHECK
+  // HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  void _checkForUpgrade(BuildContext context) async {
+  void _syncSystemUIColors() {
+    final bool isDark = context.read<ThemeProvider>().isDarkMode;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarColor:
+      isDark ? AppColors.blackColor : AppColors.whiteColor,
+      statusBarColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarIconBrightness:
+      isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarDividerColor:
+      isDark ? AppColors.blackColor : AppColors.whiteColor,
+    ));
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // UPGRADE CHECK — runs ONCE per session
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> _checkForUpgrade() async {
+    // Guard: only run once per session — avoids showing dialog on every rebuild.
+    if (_upgradeChecked) return;
+    _upgradeChecked = true;
+
     final upgrader = Upgrader(countryCode: 'BD', languageCode: 'en');
     await upgrader.initialize();
+    if (!mounted) return;
+
     if (upgrader.shouldDisplayUpgrade()) {
-      _showCustomUpgradeDialog(context, upgrader);
+      _showUpgradeDialog(upgrader);
     }
   }
 
-  void _showCustomUpgradeDialog(BuildContext context, Upgrader upgrader) {
-    final screenWidth  = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  void _showUpgradeDialog(Upgrader upgrader) {
+    final double w = MediaQuery.of(context).size.width;
+    final double h = MediaQuery.of(context).size.height;
 
     showDialog(
       context: context,
@@ -1635,11 +1303,10 @@ class _NavigationScreenState extends State<NavigationScreen>
       barrierColor: AppColors.showDialougeBackground(context),
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.containerBackground(context),
-        insetPadding: EdgeInsets.all(screenHeight * 0.02),
-        shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: EdgeInsets.all(h * 0.02),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: EdgeInsets.all(screenHeight * 0.02),
+          padding: EdgeInsets.all(h * 0.02),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1669,7 +1336,7 @@ class _NavigationScreenState extends State<NavigationScreen>
                   await upgrader.sendUserToAppStore();
                 },
                 child: Container(
-                  width: screenWidth * 0.5,
+                  width: w * 0.5,
                   height: 45,
                   decoration: BoxDecoration(
                       color: AppColors.button(context),
@@ -1684,6 +1351,355 @@ class _NavigationScreenState extends State<NavigationScreen>
               ),
               const SizedBox(height: 20),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SUPPORT / WHATSAPP
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> _openWhatsAppSupport() async {
+    const String phone = '8801929600600';
+    const String message =
+        'Hello! I need assistance with Dinmajur platform services.';
+    final Uri uri = Uri.parse(
+        'https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        _showWhatsAppNotInstalledDialog();
+      }
+    } catch (_) {
+      Utils.flushBarErrorMessage('WhatsApp not available', context);
+      await _callSupport();
+    }
+  }
+
+  void _showWhatsAppNotInstalledDialog() {
+    final double w = MediaQuery.of(context).size.width;
+    final double h = MediaQuery.of(context).size.height;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.containerBackground(context),
+        contentPadding:
+        EdgeInsets.symmetric(horizontal: w * 0.05, vertical: h * 0.02),
+        insetPadding: EdgeInsets.symmetric(horizontal: w * 0.08),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Row(
+          children: [
+            Icon(Icons.phone_android,
+                color: AppColors.button(context), size: 28),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text('WhatsApp Not Found',
+                  style:
+                  AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+            ),
+          ],
+        ),
+        content: Text(
+          'WhatsApp is not installed. Would you like to call our support team instead?',
+          style: AppTextStyles.textSize14(context),
+        ),
+        actions: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  Navigator.of(ctx).pop();
+                  await _callSupport();
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: h * 0.014),
+                  decoration: BoxDecoration(
+                      color: AppColors.button(context),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.phone, size: 18, color: AppColors.whiteColor),
+                      const SizedBox(width: 8),
+                      Text('Call Support (01929-600600)',
+                          style: AppTextStyles.textSize14(context,
+                              color: AppColors.whiteColor,
+                              weight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+              GestureDetector(
+                onTap: () => Navigator.of(ctx).pop(),
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: h * 0.012),
+                  decoration: BoxDecoration(
+                    color: AppColors.containerBackground(context),
+                    borderRadius: BorderRadius.circular(8),
+                    border:
+                    Border.all(width: 1, color: AppColors.border(context)),
+                  ),
+                  child: Center(
+                    child: Text('Cancel',
+                        style: AppTextStyles.textSize14(context,
+                            weight: FontWeight.w500)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _callSupport() async {
+    final Uri uri = Uri.parse('tel:+8801929600600');
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        Utils.flushBarErrorMessage('Unable to open phone dialer', context);
+      }
+    } catch (_) {
+      Utils.flushBarErrorMessage('Unable to make phone call', context);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BUILD
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = context.watch<ThemeProvider>().isDarkMode;
+    final double w = MediaQuery.of(context).size.width;
+    final double h = MediaQuery.of(context).size.height;
+
+    // ✅ Upgrade check is guarded internally — safe to call from build.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpgrade());
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor:
+        isDark ? AppColors.blackColor : AppColors.whiteColor,
+        systemNavigationBarIconBrightness:
+        isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarDividerColor:
+        isDark ? AppColors.blackColor : AppColors.whiteColor,
+        systemNavigationBarContrastEnforced: false,
+      ),
+      child: WillPopScope(
+        onWillPop: () async {
+          if (_currentIndex == 0 &&
+              _scaffoldKey.currentState?.isDrawerOpen == true) {
+            _scaffoldKey.currentState!.closeDrawer();
+            return false;
+          }
+          final bool? exit = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.containerBackground(context),
+              contentPadding:
+              EdgeInsets.symmetric(horizontal: h * 0.02, vertical: h * 0.02),
+              insetPadding:
+              EdgeInsets.symmetric(horizontal: h * 0.1, vertical: h * 0.2),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5)),
+              content: Text(
+                'Are you sure you want to exit?',
+                style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(ctx).pop(false),
+                      child: Container(
+                        width: w * 0.2,
+                        padding:
+                        EdgeInsets.symmetric(vertical: h * 0.008),
+                        decoration: BoxDecoration(
+                            color: AppColors.textFieldFill(context),
+                            borderRadius: BorderRadius.circular(5)),
+                        child: Center(
+                          child: Text('No',
+                              style: AppTextStyles.textSize12(context,
+                                  weight: FontWeight.w600)),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: w * 0.02),
+                    GestureDetector(
+                      onTap: () => SystemNavigator.pop(),
+                      child: Container(
+                        width: w * 0.2,
+                        padding:
+                        EdgeInsets.symmetric(vertical: h * 0.008),
+                        decoration: BoxDecoration(
+                            color: AppColors.button(context),
+                            borderRadius: BorderRadius.circular(5)),
+                        child: Center(
+                          child: Text(
+                            'Yes',
+                            style: GoogleFonts.hindSiliguri(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.whiteColor),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+          return exit ?? false;
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.containerBackground(context),
+          body: _pages[_currentIndex],
+          bottomNavigationBar: SafeArea(
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.globalBlackWhite(context),
+                boxShadow: [
+                  isDark
+                      ? BoxShadow(
+                      color: Colors.white12.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2))
+                      : const BoxShadow(
+                      color: Colors.white10,
+                      blurRadius: 10,
+                      offset: Offset(0, -2)),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Divider(color: AppColors.border(context), height: 1),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: List.generate(_icons.length, (index) {
+                      final bool isSelected = _currentIndex == index;
+                      final bool isOrderTab = index == 2;
+
+                      return GestureDetector(
+                        onTap: () async {
+                          if (index == 0 &&
+                              _currentIndex == 0 &&
+                              _scaffoldKey.currentState?.isDrawerOpen == true) {
+                            _scaffoldKey.currentState!.closeDrawer();
+                          } else if (index == 3) {
+                            await _openWhatsAppSupport();
+                          } else {
+                            setState(() => _currentIndex = index);
+                          }
+                        },
+                        child: Container(
+                          width: w * 0.2,
+                          color: Colors.transparent,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              isOrderTab
+                                  ? Consumer<RunningOrderCountViewModel>(
+                                builder: (context, vm, _) => Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    SvgPicture.asset(
+                                      _icons[index],
+                                      width: 18,
+                                      height: 18,
+                                      color: isSelected
+                                          ? AppColors.button(context)
+                                          : AppColors.subtitle(context),
+                                      semanticsLabel: _labels[index],
+                                    ),
+                                    if (vm.hasRunningOrders)
+                                      Positioned(
+                                        right: -6,
+                                        top: -4,
+                                        child: Container(
+                                          padding:
+                                          const EdgeInsets.all(2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: AppColors
+                                                    .globalBlackWhite(
+                                                    context),
+                                                width: 1),
+                                          ),
+                                          constraints:
+                                          const BoxConstraints(
+                                              minWidth: 14,
+                                              minHeight: 14),
+                                          child: Text(
+                                            vm.runningOrderCount > 9
+                                                ? '9+'
+                                                : '${vm.runningOrderCount}',
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 9,
+                                                fontWeight:
+                                                FontWeight.bold),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              )
+                                  : SvgPicture.asset(
+                                _icons[index],
+                                width: 18,
+                                height: 18,
+                                color: isSelected
+                                    ? AppColors.button(context)
+                                    : AppColors.subtitle(context),
+                                semanticsLabel: _labels[index],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                _labels[index],
+                                style: AppTextStyles.textSize12(
+                                  context,
+                                  weight: isSelected
+                                      ? FontWeight.w500
+                                      : FontWeight.w400,
+                                  color: isSelected
+                                      ? AppColors.button(context)
+                                      : AppColors.subtitle(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  Container(height: 1),
+                ],
+              ),
+            ),
           ),
         ),
       ),

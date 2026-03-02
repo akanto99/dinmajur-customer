@@ -1018,7 +1018,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                       style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
                     ),
                     SizedBox(height: 4),
-                    Text('Downloads/Dinmajur_Bookings', style: AppTextStyles.textSize12(context)),
+                    Text('Downloads/Dinmajur Booking', style: AppTextStyles.textSize12(context)),
                   ],
                 ),
               ),

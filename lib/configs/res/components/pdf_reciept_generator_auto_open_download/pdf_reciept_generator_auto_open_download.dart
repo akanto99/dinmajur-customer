@@ -453,31 +453,38 @@ class ReceiptPdfGenerator {
     );
   }
 
-  /// Save PDF to device storage
+
   // static Future<File> _savePdf(pw.Document pdf, String orderId) async {
   //   try {
-  //     // Get the downloads directory
-  //     final Directory? directory = Platform.isAndroid
-  //         ? await getExternalStorageDirectory()
-  //         : await getApplicationDocumentsDirectory();
+  //     Directory? directory;
+  //
+  //     if (Platform.isAndroid) {
+  //       // Try Downloads folder first
+  //       directory = Directory('/storage/emulated/0/Download');
+  //
+  //       if (!await directory.exists()) {
+  //         try {
+  //           await directory.create(recursive: true);
+  //         } catch (e) {
+  //           print("Could not create Downloads: $e");
+  //           // Fallback to external storage directory
+  //           directory = await getExternalStorageDirectory();
+  //         }
+  //       }
+  //     } else if (Platform.isIOS) {
+  //       directory = await getApplicationDocumentsDirectory();
+  //     }
   //
   //     if (directory == null) {
   //       throw Exception('Could not access storage directory');
   //     }
   //
-  //     // Create Dinmajur folder if it doesn't exist
-  //     final String dinmajurPath = '${directory.path}/Dinmajur_Receipts';
-  //     final Directory dinmajurDir = Directory(dinmajurPath);
-  //     if (!await dinmajurDir.exists()) {
-  //       await dinmajurDir.create(recursive: true);
-  //     }
-  //
   //     // Create file name with timestamp
   //     final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-  //     final String fileName = 'Receipt_${orderId}_$timestamp.pdf';
-  //     final String filePath = '$dinmajurPath/$fileName';
+  //     final String fileName = 'Grocery_order_${orderId}_$timestamp.pdf';
+  //     final String filePath = '${directory.path}/$fileName';
   //
-  //     // Save PDF
+  //     // Save PDF directly to Downloads (no subfolder)
   //     final File file = File(filePath);
   //     await file.writeAsBytes(await pdf.save());
   //
@@ -490,35 +497,40 @@ class ReceiptPdfGenerator {
   // }
   static Future<File> _savePdf(pw.Document pdf, String orderId) async {
     try {
-      Directory? directory;
+      Directory? baseDirectory;
 
       if (Platform.isAndroid) {
-        // Try Downloads folder first
-        directory = Directory('/storage/emulated/0/Download');
+        baseDirectory = Directory('/storage/emulated/0/Download');
 
-        if (!await directory.exists()) {
+        if (!await baseDirectory.exists()) {
           try {
-            await directory.create(recursive: true);
+            await baseDirectory.create(recursive: true);
           } catch (e) {
             print("Could not create Downloads: $e");
-            // Fallback to external storage directory
-            directory = await getExternalStorageDirectory();
+            baseDirectory = await getExternalStorageDirectory();
           }
         }
       } else if (Platform.isIOS) {
-        directory = await getApplicationDocumentsDirectory();
+        baseDirectory = await getApplicationDocumentsDirectory();
       }
 
-      if (directory == null) {
+      if (baseDirectory == null) {
         throw Exception('Could not access storage directory');
       }
 
-      // Create file name with timestamp
+      // ✅ Create "Dinajpur Booking" subfolder if it doesn't exist
+      final Directory bookingFolder = Directory('${baseDirectory.path}/Dinajpur Booking');
+      if (!await bookingFolder.exists()) {
+        await bookingFolder.create(recursive: true);
+        print('📁 Created folder: ${bookingFolder.path}');
+      } else {
+        print('📁 Folder already exists: ${bookingFolder.path}');
+      }
+
       final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final String fileName = 'Grocery_order_${orderId}_$timestamp.pdf';
-      final String filePath = '${directory.path}/$fileName';
+      final String filePath = '${bookingFolder.path}/$fileName';
 
-      // Save PDF directly to Downloads (no subfolder)
       final File file = File(filePath);
       await file.writeAsBytes(await pdf.save());
 

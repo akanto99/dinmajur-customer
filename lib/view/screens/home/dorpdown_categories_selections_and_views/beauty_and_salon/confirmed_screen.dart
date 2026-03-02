@@ -286,7 +286,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Downloads/Dinmajur_Bookings',
+                      'Downloads/Dinmajur Booking',
                       style: AppTextStyles.textSize12(context),
                     ),
                   ],
