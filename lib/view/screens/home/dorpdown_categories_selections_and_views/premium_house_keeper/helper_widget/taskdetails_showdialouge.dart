@@ -240,13 +240,14 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
               _buildQuantityButton(
                 icon: FontAwesomeIcons.plus,
                 onTap: () {
-                  if (widget.service.hasRoom == false) {
+                  final canIncrement = widget.service.hasRoom==true || widget.service.hasHour==true;
+                  if (!canIncrement) {
                     Utils.flushBarExclamatoryMessage(
                       title: "Can't Add More",
                       subtitle: "Additional quantity isn't available for this service.",
                       context: context,
                     );
-                  } else {
+                  }else {
                     setState(() => tempQuantity++);
                   }
                 },

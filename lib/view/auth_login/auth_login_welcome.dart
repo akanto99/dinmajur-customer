@@ -26,15 +26,12 @@ class WelcomeLoginScreen extends StatefulWidget {
 class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final FocusNode _phoneFocus = FocusNode();
-
-  late final Upgrader _upgrader;
-  bool _upgradeChecked = false;
-
   @override
   void initState() {
     super.initState();
-    _upgrader = Upgrader(countryCode: 'BD', languageCode: 'en');
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpgrade(context));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpgrade(context);
+    });
   }
 
   @override
@@ -46,47 +43,51 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final body = _body();
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body())),
+      body: SafeArea(child: ResPonsiveUi(mobile: body, desktop: body, tablet: body)),
     );
   }
 
   Widget _body() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final screenHeight = MediaQuery.sizeOf(context).height;
 
     return Column(  // ← no SingleChildScrollView
       children: [
         // ── Top: SVG Part ─────────────────────────────────────────────
         Expanded(
-          child: ColoredBox(
-            color: AppColors.border(context),
-            child: Stack(
-              children: [
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    height: screenHeight*0.4,
-                    child: SvgPicture.asset(
-                      "assets/images/login/welcome.svg",
-                      width: screenWidth,
-                      fit: BoxFit.cover,
+          child: RepaintBoundary(
+            child: ColoredBox(
+              color: AppColors.border(context),
+              child: Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      height: screenHeight*0.4,
+                      child: SvgPicture.asset(
+                        "assets/images/login/welcome.svg",
+                        width: screenWidth,
+                        fit: BoxFit.cover,
+                        placeholderBuilder: (context) => const SizedBox.shrink(),
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: LanguageSlideSwitcher(
-                    backgroundColor: AppColors.textPrimary(context),
-                    activeColor: Colors.white,
-                    inactiveColor: AppColors.textPrimary(context),
-                    borderRadius: BorderRadius.circular(25),
-                    animationDuration: const Duration(milliseconds: 250),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: LanguageSlideSwitcher(
+                      backgroundColor: AppColors.textPrimary(context),
+                      activeColor: Colors.white,
+                      inactiveColor: AppColors.textPrimary(context),
+                      borderRadius: BorderRadius.circular(25),
+                      animationDuration: const Duration(milliseconds: 250),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -178,18 +179,17 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
   }
 
   void _checkForUpgrade(BuildContext context) async {
-    if (_upgradeChecked || !mounted) return;
-    _upgradeChecked = true;
-
-    await _upgrader.initialize();
-    if (!mounted) return;
-
-    if (_upgrader.shouldDisplayUpgrade()) {
-      _showCustomUpgradeDialog(context, _upgrader);
+    final upgrader = Upgrader(countryCode: 'BD', languageCode: 'en',
+      // debugDisplayAlways: true,
+      // debugLogging: true,
+    );
+    await upgrader.initialize();
+    if (upgrader.shouldDisplayUpgrade()) {
+      _showFreelancerUpgradeDialog(context, upgrader);
     }
   }
 
-  void _showCustomUpgradeDialog(BuildContext context, Upgrader upgrader) {
+  void _showFreelancerUpgradeDialog(BuildContext context, Upgrader upgrader) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -197,7 +197,8 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
       context: context,
       barrierDismissible: false,
       barrierColor: AppColors.showDialougeBackground(context),
-      builder: (_) => Dialog(
+      builder:
+          (ctx) => Dialog(
         backgroundColor: AppColors.containerBackground(context),
         insetPadding: EdgeInsets.all(screenHeight * 0.02),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -222,22 +223,14 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () async {
-                  Navigator.of(context).pop();
+                  Navigator.of(ctx).pop();
                   await upgrader.sendUserToAppStore();
                 },
                 child: Container(
                   width: screenWidth * 0.5,
                   height: 45,
-                  decoration: BoxDecoration(
-                    color: AppColors.button(context),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Update Now',
-                      style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
-                    ),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+                  child: Center(child: Text('Update Now', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600))),
                 ),
               ),
               const SizedBox(height: 20),

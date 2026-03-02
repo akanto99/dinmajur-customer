@@ -163,7 +163,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           if (service.discountType != null && service.discountValue != null && price > 0) {
             if (service.discountType == 'PERCENTAGE') {
               price = price - (price * service.discountValue! / 100);
-            } else if (service.discountType == 'FIXED') {
+            } else if (service.discountType == 'FLAT') {
               price = price - service.discountValue!.toDouble();
             }
           }
@@ -196,7 +196,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
           double discount = 0;
           if (service.discountType == 'PERCENTAGE') {
             discount = originalPrice * service.discountValue! / 100;
-          } else if (service.discountType == 'FIXED') {
+          } else if (service.discountType == 'FLAT') {
             discount = service.discountValue!.toDouble();
           }
 

@@ -342,7 +342,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
       onTap: isBooked ? null : () => widget.onTimeSelected(time),
       child: Container(
         height: 40,
-        width: 160,
+        width: 150,
         decoration: BoxDecoration(
           color: isBooked
               ? AppColors.darkRedColor.withOpacity(0.05)

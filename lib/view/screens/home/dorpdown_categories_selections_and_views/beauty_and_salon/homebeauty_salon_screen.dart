@@ -764,20 +764,24 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           width: screenWidth * 0.9,
                           child: Column(
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Premium",
-                                    style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Text(
-                                    " Home Beauty & Salon",
-                                    style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: Color(0xffD78503)),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: "Premium",
+                                      style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
+                                    ),
+                                    TextSpan(
+                                      text: " Home Beauty & Salon",
+                                      style: AppTextStyles.textSize20(
+                                        context,
+                                        weight: FontWeight.w600,
+                                        color: Color(0xffD78503),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                               SizedboxSpaccing.height01(context),
                               Text(

@@ -1254,32 +1254,78 @@ class UniversalPDFReceiptGenerator {
     );
   }
 
+  // static Future<File> _savePdf(pw.Document pdf, String trackingId) async {
+  //   try {
+  //     Directory? directory;
+  //
+  //     if (Platform.isAndroid) {
+  //       directory = Directory('/storage/emulated/0/Download');
+  //
+  //       if (!await directory.exists()) {
+  //         try {
+  //           await directory.create(recursive: true);
+  //         } catch (e) {
+  //           print("Could not create Downloads: $e");
+  //           directory = await getExternalStorageDirectory();
+  //         }
+  //       }
+  //     } else if (Platform.isIOS) {
+  //       directory = await getApplicationDocumentsDirectory();
+  //     }
+  //
+  //     if (directory == null) {
+  //       throw Exception('Could not access storage directory');
+  //     }
+  //
+  //     final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+  //     final String fileName = 'FamilyEventCooking_${trackingId}_$timestamp.pdf';
+  //     final String filePath = '${directory.path}/$fileName';
+  //
+  //     final File file = File(filePath);
+  //     await file.writeAsBytes(await pdf.save());
+  //
+  //     print('✅ PDF saved to: $filePath');
+  //     return file;
+  //   } catch (e) {
+  //     print('❌ Error saving PDF: $e');
+  //     rethrow;
+  //   }
+  // }
   static Future<File> _savePdf(pw.Document pdf, String trackingId) async {
     try {
-      Directory? directory;
+      Directory? baseDirectory;
 
       if (Platform.isAndroid) {
-        directory = Directory('/storage/emulated/0/Download');
+        baseDirectory = Directory('/storage/emulated/0/Download');
 
-        if (!await directory.exists()) {
+        if (!await baseDirectory.exists()) {
           try {
-            await directory.create(recursive: true);
+            await baseDirectory.create(recursive: true);
           } catch (e) {
             print("Could not create Downloads: $e");
-            directory = await getExternalStorageDirectory();
+            baseDirectory = await getExternalStorageDirectory();
           }
         }
       } else if (Platform.isIOS) {
-        directory = await getApplicationDocumentsDirectory();
+        baseDirectory = await getApplicationDocumentsDirectory();
       }
 
-      if (directory == null) {
+      if (baseDirectory == null) {
         throw Exception('Could not access storage directory');
+      }
+
+      // ✅ Create "Dinajpur Booking" subfolder if it doesn't exist
+      final Directory bookingFolder = Directory('${baseDirectory.path}/Dinajpur Booking');
+      if (!await bookingFolder.exists()) {
+        await bookingFolder.create(recursive: true);
+        print('📁 Created folder: ${bookingFolder.path}');
+      } else {
+        print('📁 Folder already exists: ${bookingFolder.path}');
       }
 
       final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final String fileName = 'FamilyEventCooking_${trackingId}_$timestamp.pdf';
-      final String filePath = '${directory.path}/$fileName';
+      final String filePath = '${bookingFolder.path}/$fileName';
 
       final File file = File(filePath);
       await file.writeAsBytes(await pdf.save());

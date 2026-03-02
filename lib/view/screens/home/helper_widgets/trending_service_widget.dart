@@ -191,9 +191,11 @@ class TrendingServicesWidget extends StatelessWidget {
                 height: 80,
                 width: 80,
                 // color: Colors.deepOrange,
-                child: SvgPicture.asset(
-                  _getServiceIcon(serviceName),
-                  // color: Colors.red
+                child: RepaintBoundary(
+                  child: SvgPicture.asset(
+                    _getServiceIcon(serviceName),
+                    // color: Colors.red
+                  ),
                 ),
               ),
             ),

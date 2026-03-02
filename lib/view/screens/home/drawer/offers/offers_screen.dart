@@ -186,11 +186,11 @@ class _OffersScreenState extends State<OffersScreen> {
                 child: Container(
                   height: 50,
                   padding: EdgeInsets.symmetric(horizontal: 24),
-                  decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: AppColors.border(context), borderRadius: BorderRadius.circular(12)),
                   child: Center(
                     child: Text(
                       'Apply',
-                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
                     ),
                   ),
                 ),
