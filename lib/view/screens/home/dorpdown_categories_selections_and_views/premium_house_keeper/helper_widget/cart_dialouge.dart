@@ -16,6 +16,7 @@ class CartDialog extends StatefulWidget {
   final String selectedDate;
   final String selectedTime;
   final Function(String serviceId, int newQuantity) onQuantityChanged;
+  final bool restrictQuantityForNoRoomNoHourServices;
   final VoidCallback onProceedToCheckout;
     final double transportFee;
   final int? minimumOrderAmount;
@@ -29,6 +30,7 @@ class CartDialog extends StatefulWidget {
     required this.selectedDate,
     required this.selectedTime,
     required this.onQuantityChanged,
+    this.restrictQuantityForNoRoomNoHourServices = true,
     required this.onProceedToCheckout,
         required this.transportFee,
         required this.minimumOrderAmount,
@@ -186,7 +188,7 @@ class _CartDialogState extends State<CartDialog> {
       cartItems: cartItems,
       serviceQuantities: _localServiceQuantities,
       onQuantityChanged: _handleQuantityChanged,
-      enableQuantityLimit: true,
+      enableQuantityLimit: widget.restrictQuantityForNoRoomNoHourServices,
       autoCloseOnEmpty: true,
     );
   }

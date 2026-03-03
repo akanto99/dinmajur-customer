@@ -72,49 +72,70 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
     return widget.serviceQuantities.values.fold(0, (sum, qty) => sum + qty);
   }
 
-  // Get service data dynamically (works for both Item and Datum types)
   Map<String, dynamic> _getServiceData(dynamic service) {
-    String name = '';
-    double price = 0;
-    double originalPrice = 0;
-    bool hasQuantityLimit = false;
+    String name = 'Unknown';
+    double price = 0.0;
+    double originalPrice = 0.0;
+    bool hasQuantityLimit = true;
+    bool canHaveMultiple = false;
 
-    // Check if it's Beauty Salon service (Item type)
+    if (service == null) {
+      // fallback - safe default
+      return {
+        'name': name,
+        'price': price,
+        'originalPrice': originalPrice,
+        'hasQuantityLimit': hasQuantityLimit,
+        'hasDiscount': false,
+        'canHaveMultiple': canHaveMultiple,
+      };
+    }
+
+    // ──────────────────────────────────────────────
+    // Beauty salon / generic Item branch
+    // ──────────────────────────────────────────────
     if (service.runtimeType.toString().contains('Item')) {
-      name = service.name ?? '';
-      price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
-      originalPrice = service.originalPrice?.toDouble() ?? 0;
+      name = service.name ?? 'Unnamed Service';
+      price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0.0;
+      originalPrice = service.originalPrice?.toDouble() ?? price;
+      canHaveMultiple = true;           // usually no limit for salon/products
       hasQuantityLimit = false;
     }
-    // Check if it's House Keeper service (Datum type)
+    // ──────────────────────────────────────────────
+    // Housekeeper / Datum branch
+    // ──────────────────────────────────────────────
     else {
-      name = service.name ?? '';
-      originalPrice = 0;
+      name = service.name ?? 'Unnamed Task';
 
-      // Calculate price from selected items
+      // Find matching cart item to get selected sub-items
       final cartItem = widget.cartItems.firstWhere(
-            (item) => item['service'] == service,
-        orElse: () => {'selectedItems': <String>{}},
+            (item) => item['service']?.id == service.id,
+        orElse: () => <String, dynamic>{'selectedItems': <String>{}},
       );
 
-      Set<String> selectedItems = cartItem['selectedItems'] ?? <String>{};
+      final selectedItems = (cartItem['selectedItems'] as Set<String>?) ?? <String>{};
 
-      for (var taskItem in service.houseKeeperTaskItems ?? []) {
+      originalPrice = 0.0;
+      for (final taskItem in service.houseKeeperTaskItems ?? <dynamic>[]) {
         if (selectedItems.contains(taskItem.id ?? '')) {
-          originalPrice += taskItem.price?.toDouble() ?? 0;
+          originalPrice += (taskItem.price as num?)?.toDouble() ?? 0.0;
         }
       }
 
       price = originalPrice;
-      if (service.discountType != null && service.discountValue != null && price > 0) {
+
+      if (service.discountType != null &&
+          service.discountValue != null &&
+          price > 0) {
         if (service.discountType == 'PERCENTAGE') {
-          price = price - (price * service.discountValue! / 100);
+          price -= (price * (service.discountValue as num) / 100);
         } else if (service.discountType == 'FLAT') {
-          price = price - service.discountValue!.toDouble();
+          price -= (service.discountValue as num).toDouble();
         }
       }
 
-      hasQuantityLimit = service.hasRoom == false;
+      canHaveMultiple = (service.hasRoom == true) || (service.hasHour == true);
+      hasQuantityLimit = !canHaveMultiple;
     }
 
     return {
@@ -123,6 +144,7 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
       'originalPrice': originalPrice,
       'hasQuantityLimit': hasQuantityLimit,
       'hasDiscount': originalPrice > price,
+      'canHaveMultiple': canHaveMultiple,
     };
   }
 
@@ -200,6 +222,7 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
                     serviceId,
                     qty,
                     serviceData['hasQuantityLimit'],
+                    serviceData['canHaveMultiple'] as bool? ?? false,
                   ),
                 ],
               ),
@@ -215,6 +238,7 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
       String serviceId,
       int qty,
       bool hasQuantityLimit,
+      bool canHaveMultiple,          // ← add this parameter
       ) {
     return Container(
       decoration: BoxDecoration(
@@ -226,6 +250,7 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
       ),
       child: Row(
         children: [
+          // Minus button (unchanged)
           GestureDetector(
             onTap: () {
               if (qty > 1) {
@@ -233,7 +258,6 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
               } else {
                 widget.onQuantityChanged(serviceId, 0);
               }
-
               setState(() {});
 
               if (widget.autoCloseOnEmpty && _getTotalItems() == 0) {
@@ -254,6 +278,8 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
               ),
             ),
           ),
+
+          // Quantity display (unchanged)
           Container(
             width: widget.quantityDisplayWidth ?? 30,
             child: Center(
@@ -264,19 +290,22 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
               ),
             ),
           ),
+
+          // Plus button – now uses the passed value
           GestureDetector(
             onTap: () {
-              if (widget.enableQuantityLimit && hasQuantityLimit) {
+              if (widget.enableQuantityLimit && !canHaveMultiple) {
                 Utils.flushBarExclamatoryMessage(
                   title: widget.cannotAddMoreTitle ?? "Can't Add More",
                   subtitle: widget.cannotAddMoreMessage ??
-                      "Additional quantity isn't available for this service.",
+                      "Additional quantity is not available for this service.",
                   context: context,
                 );
-              } else {
-                widget.onQuantityChanged(serviceId, qty + 1);
-                setState(() {});
+                return;
               }
+
+              widget.onQuantityChanged(serviceId, qty + 1);
+              setState(() {});
             },
             child: Container(
               width: widget.quantityControlWidth ?? 25,
