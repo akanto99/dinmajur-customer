@@ -795,6 +795,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         onProceedToCheckout: () {
           _showCheckoutScreen();
         },
+        restrictQuantityForNoRoomNoHourServices: true,
       ),
     );
   }

@@ -1240,7 +1240,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                 if (service.discountType != null && service.discountValue != null && originalPrice > 0) {
                   if (service.discountType == 'PERCENTAGE') {
                     discountedPrice = originalPrice - (originalPrice * service.discountValue! / 100);
-                  } else if (service.discountType == 'FIXED') {
+                  } else if (service.discountType == 'FLAT') {
                     discountedPrice = originalPrice - service.discountValue!.toDouble();
                   }
                 }
