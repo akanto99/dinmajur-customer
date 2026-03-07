@@ -22,6 +22,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
@@ -166,32 +167,53 @@ print(e.toString());
     debugPrint('Location marked as posted.');
   }
 
+  String _stripSuffix(String raw) =>
+      raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
+
+  String _normalizeCity(String city) {
+    const variants = {
+      'chittagong', 'chattogram', 'chottogram', 'chattagam',
+      'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ',
+    };
+    if (variants.contains(city.toLowerCase().trim())) return 'Chittagong';
+    return city;
+  }
+
   Future<void> _postLocationToApi(double longitude, double latitude, String fullAddress) async {
     try {
+      // ── Extract city & country ──
+      String city = '';
+      String country = '';
+      try {
+        final placemarks = await placemarkFromCoordinates(latitude, longitude);
+        if (placemarks.isNotEmpty) {
+          final p = placemarks.first;
+          final rawCity = p.subAdministrativeArea?.isNotEmpty == true
+              ? p.subAdministrativeArea!
+              : p.administrativeArea ?? '';
+          city = _normalizeCity(_stripSuffix(rawCity));
+          country = p.country ?? '';
+        }
+      } catch (_) {}
+
       final locationData = {
         "geoLocation": {
           "type": "Point",
           "coordinates": [longitude, latitude],
         },
         "fullAddress": fullAddress,
+        "city": city,
+        "country": country,
         "type": "DELIVERY_ADDRESS",
       };
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
       await addLocationViewModel.addLocationPostApi(context, locationData, false);
-      debugPrint('Location posted successfully to API');
     } catch (e) {
       debugPrint('Error posting location to API: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Failed to save location: ${e.toString()}'),
-                backgroundColor: Colors.orange,
-                duration: Duration(seconds: 3)
-            )
-        );
-      }
     }
   }
+
+
   /// Method to fetch nearby retailers
   Future<void> _fetchNearbyRetailers(String businessType) async {
     if (!mounted) return;

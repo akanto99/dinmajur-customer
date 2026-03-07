@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/get_locationlist_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -176,35 +177,55 @@ class AddNewLocationController {
   }
 
   // ============ POST LOCATION TO API ============
+  String _stripSuffix(String raw) =>
+      raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
 
+  String _normalizeCity(String city) {
+    const variants = {
+      'chittagong', 'chattogram', 'chottogram', 'chattagam',
+      'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ',
+    };
+    if (variants.contains(city.toLowerCase().trim())) return 'Chittagong';
+    return city;
+  }
   Future<void> _postLocationToApi(
       double longitude,
       double latitude,
       String fullAddress,
       ) async {
     try {
+      // ── Extract city & country ──
+      String city = '';
+      String country = '';
+      try {
+        final placemarks = await placemarkFromCoordinates(latitude, longitude);
+        if (placemarks.isNotEmpty) {
+          final p = placemarks.first;
+          final rawCity = p.subAdministrativeArea?.isNotEmpty == true
+              ? p.subAdministrativeArea!
+              : p.administrativeArea ?? '';
+          city = _normalizeCity(_stripSuffix(rawCity));
+          country = p.country ?? '';
+        }
+      } catch (_) {}
+
       final locationData = {
         "geoLocation": {
           "type": "Point",
           "coordinates": [longitude, latitude],
         },
         "fullAddress": fullAddress,
+        "city": city,
+        "country": country,
         "type": "DELIVERY_ADDRESS",
       };
 
       final addLocationViewModel = context.read<AddLocationViewModel>();
-      await addLocationViewModel.addLocationPostApi(context, locationData,true);
-
-      debugPrint('Location data to post: $locationData');
+      await addLocationViewModel.addLocationPostApi(context, locationData, true);
     } catch (e) {
       debugPrint('Error posting location to API: $e');
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save location: ${e.toString()}'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 3),
-        ),
+        SnackBar(content: Text('Failed to save location: ${e.toString()}'), backgroundColor: Colors.orange),
       );
     }
   }
@@ -235,6 +256,8 @@ class AddNewLocationController {
           "type": "Point",
           "coordinates": [coordinates[0], coordinates[1]],
         },
+        "city":selectedLocationData.city ?? '',
+        "country":selectedLocationData.country ?? '',
         "fullAddress": selectedLocationData.fullAddress ?? '',
         "type": selectedLocationData.type ?? "DELIVERY_ADDRESS",
       };
