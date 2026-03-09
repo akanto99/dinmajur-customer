@@ -498,6 +498,8 @@ print(e.toString());
                         String customerName = '';
                         String customerPhone = '';
                         String customerAddress = '';
+                        Map<String, dynamic>? customerLocation;
+
 
                         if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
                           final userData = profileViewModel.profileviewUserData.data?.data;
@@ -510,7 +512,21 @@ print(e.toString());
                           if (userData?.addresses?.fullAddress != null) {
                             customerAddress = userData!.addresses!.fullAddress!;
                           }
+                          final addressData = userData?.addresses;
+                          if (addressData != null) {
+                            customerLocation = {
+                              "fullAddress": addressData.fullAddress ?? '',
+                              "country": addressData.country ?? '',
+                              "city": addressData.city ?? '',
+                              "geoLocation": {
+                                "type": addressData.geoLocation?.type ?? "Point",
+                                "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                "timestamp": DateTime.now().toUtc().toIso8601String(),
+                              },
+                            };
+                          }
                         }
+
 
                         return PremiumHouseKeeperCoverageWidget(
                           isCheckingCoverage: isCheckingCoverage,
@@ -518,6 +534,8 @@ print(e.toString());
                           customerName: customerName,
                           customerPhone: customerPhone,
                           customerAddress: customerAddress,
+                          customerLocation: customerLocation,
+
                         );
                       },
                     )
@@ -527,6 +545,7 @@ print(e.toString());
                         String customerName = '';
                         String customerPhone = '';
                         String customerAddress = '';
+                        Map<String, dynamic>? customerLocation;
 
                         if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
                           final userData = profileViewModel.profileviewUserData.data?.data;
@@ -539,14 +558,27 @@ print(e.toString());
                           if (userData?.addresses?.fullAddress != null) {
                             customerAddress = userData!.addresses!.fullAddress!;
                           }
+                          final addressData = userData?.addresses;
+                          if (addressData != null) {
+                            customerLocation = {
+                              "fullAddress": addressData.fullAddress ?? '',
+                              "country": addressData.country ?? '',
+                              "city": addressData.city ?? '',
+                              "geoLocation": {
+                                "type": addressData.geoLocation?.type ?? "Point",
+                                "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                "timestamp": DateTime.now().toUtc().toIso8601String(),
+                              },
+                            };
+                          }
                         }
-
                         return PremiumBeautyAndSalonCoverageWidget(
                           isCheckingCoverage: isCheckingCoverage,
                           isInsideServiceArea: isInsideServiceArea,
                           customerName: customerName,
                           customerPhone: customerPhone,
                           customerAddress: customerAddress,
+                          customerLocation: customerLocation,
                         );
                       },
                     )
@@ -565,6 +597,7 @@ print(e.toString());
                             String customerName = '';
                             String customerPhone = '';
                             String customerAddress = '';
+                        Map<String, dynamic>? customerLocation;
 
                             if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
                               final userData = profileViewModel.profileviewUserData.data?.data;
@@ -577,6 +610,19 @@ print(e.toString());
                               if (userData?.addresses?.fullAddress != null) {
                                 customerAddress = userData!.addresses!.fullAddress!;
                               }
+                              final addressData = userData?.addresses;
+                              if (addressData != null) {
+                                customerLocation = {
+                                  "fullAddress": addressData.fullAddress ?? '',
+                                  "country": addressData.country ?? '',
+                                  "city": addressData.city ?? '',
+                                  "geoLocation": {
+                                    "type": addressData.geoLocation?.type ?? "Point",
+                                    "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                    "timestamp": DateTime.now().toUtc().toIso8601String(),
+                                  },
+                                };
+                              }
                             }
 
                             return FamilyEventCardCoverageWidget(
@@ -585,6 +631,8 @@ print(e.toString());
                               customerName: customerName,
                               customerPhone: customerPhone,
                               customerAddress: customerAddress,
+                              customerLocation: customerLocation,
+
                             );
                           },
                         ),
@@ -853,50 +901,65 @@ print(e.toString());
 
   void _handleSeeAllNavigation(BuildContext context) {
     if (selectedStoreType == null) {
-      debugPrint('No store type selected');
       Utils.flushBarErrorMessage("No store type selected", context);
       return;
     }
 
-    // Prepare common arguments
     Map<String, dynamic> arguments = {'storeType': selectedStoreType};
 
     if (selectedStoreType == 'Retail') {
-      // Add Retail-specific data
-      arguments.addAll({'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress});
-    } else if (selectedStoreType == 'Premium House Keeper' || selectedStoreType == 'Premium Home Beauty & Salon') {
-      // Get customer data from profile for premium services
+      // ── Grocery: pass stores + position ──────────────────────
+      arguments.addAll({
+        'stores': nearbyStores,
+        'storeTypes': storeTypes,
+        'currentPosition': _currentPosition,
+        'currentAddress': _currentAddress,
+      });
+    } else if (
+    selectedStoreType == 'Premium House Keeper' ||
+        selectedStoreType == 'Premium Home Beauty & Salon' ||
+        selectedStoreType == 'Family Event Cooking'          // ✅ added
+    ) {
+      // ── Service types: pass customer profile data ─────────────
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 
-      String customerName = '';
-      String customerPhone = '';
+      String customerName    = '';
+      String customerPhone   = '';
       String customerAddress = '';
+      Map<String, dynamic>? customerLocation;
 
       if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
         final userData = profileViewModel.profileviewUserData.data?.data;
 
-        if (userData?.user?.fullName != null) {
-          customerName = userData!.user!.fullName!;
-        }
-        if (userData?.user?.phone != null) {
-          customerPhone = userData!.user!.phone!;
-        }
-        if (userData?.addresses?.fullAddress != null) {
-          customerAddress = userData!.addresses!.fullAddress!;
+        if (userData?.user?.fullName != null)          customerName    = userData!.user!.fullName!;
+        if (userData?.user?.phone != null)             customerPhone   = userData!.user!.phone!;
+        if (userData?.addresses?.fullAddress != null)  customerAddress = userData!.addresses!.fullAddress!;
+
+        final addressData = userData?.addresses;
+        if (addressData != null) {
+          customerLocation = {
+            "fullAddress": addressData.fullAddress ?? '',
+            "country":     addressData.country ?? '',
+            "city":        addressData.city ?? '',
+            "geoLocation": {
+              "type":        addressData.geoLocation?.type ?? "Point",
+              "coordinates": addressData.geoLocation?.coordinates ?? [],
+              "timestamp":   DateTime.now().toUtc().toIso8601String(),
+            },
+          };
         }
       }
 
-      // Add Premium service-specific data
       arguments.addAll({
-        'isCheckingCoverage': isCheckingCoverage,
+        'isCheckingCoverage':  isCheckingCoverage,
         'isInsideServiceArea': isInsideServiceArea,
-        'customerName': customerName,
-        'customerPhone': customerPhone,
-        'customerAddress': customerAddress,
+        'customerName':        customerName,
+        'customerPhone':       customerPhone,
+        'customerAddress':     customerAddress,
+        'customerLocation':    customerLocation,  // ✅ always included
       });
     }
 
-    // Navigate to unified screen
     Navigator.pushNamed(context, RoutesName.unifiedSeeAllScreen, arguments: arguments);
   }
 
@@ -913,34 +976,6 @@ print(e.toString());
     );
   }
 
-
-  // void _checkAndShowNameDialog(String userName) {
-  //   // Show dialog only once and only if name is empty or 'Unknown User'
-  //   if (!_nameDialogShown &&
-  //       (userName.trim().isEmpty || userName == 'Unknown User')) {
-  //
-  //     _nameDialogShown = true;
-  //
-  //     WidgetsBinding.instance.addPostFrameCallback((_) async {
-  //       // ✅ Show dialog and wait for it to close
-  //       await showNameEntryDialog(context);
-  //
-  //       // ✅ After dialog closes, start location flow
-  //       if (mounted && !_locationFlowStarted) {
-  //         _locationFlowStarted = true;
-  //         await _checkAndGetLocation();
-  //       }
-  //     });
-  //   } else {
-  //     // ✅ If no dialog needed, start location flow immediately
-  //     if (!_locationFlowStarted) {
-  //       _locationFlowStarted = true;
-  //       WidgetsBinding.instance.addPostFrameCallback((_) {
-  //         _checkAndGetLocation();
-  //       });
-  //     }
-  //   }
-  // }
   void _checkAndShowNameDialog(String userName) {
     if (!_nameDialogShown &&
         (userName.trim().isEmpty || userName == 'Unknown User')) {

@@ -724,6 +724,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/notifier/checkout_notifier.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
 import 'package:flutter/material.dart';
@@ -744,6 +745,8 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
   final Function(String)? onAddressUpdate;
   final double transportFee;
   final List<Datum> allServices; // ✅ NEW: All services from all categories
+    final Map<String, dynamic>? customerLocation;
+
 
   const CheckoutHouseKeeperScreen({
     Key? key,
@@ -759,6 +762,8 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
     this.onAddressUpdate,
     required this.transportFee,
     required this.allServices, // ✅ NEW
+        this.customerLocation,
+
   }) : super(key: key);
 
   @override
@@ -771,6 +776,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _specialRequestController = TextEditingController();
   bool _isTermsAccepted = false;
+  Map<String, dynamic>? _updatedLocation; // ✅ ADD THIS For addNew Location widget
 
   @override
   void initState() {
@@ -778,8 +784,20 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     _fullNameController.text = widget.customerName;
     _phoneController.text = widget.customerPhone;
     _addressController.text = widget.customerAddress;
+    _updatedLocation = widget.customerLocation;
+    _restoreSessionLocation();
   }
-
+  Future<void> _restoreSessionLocation() async {
+    final sessionData = await CheckoutSessionLocationService.getAll();
+    if (sessionData.location != null && sessionData.address != null) {
+      if (mounted) {
+        setState(() {
+          _updatedLocation = sessionData.location;
+          _addressController.text = sessionData.address!;
+        });
+      }
+    }
+  }
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -913,7 +931,8 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     Map<String, dynamic> bookingData = await checkoutViewModel.prepareBookingData(
       fullName: _fullNameController.text,
       phone: _phoneController.text,
-      address: _addressController.text,
+      customerLocation: _updatedLocation,
+      address: _updatedLocation?['fullAddress'] ?? _addressController.text,
       houseSize: checkoutViewModel.selectedHouseSize,
       specialRequest: _specialRequestController.text,
       selectedFrequency: widget.selectedFrequency,
@@ -1080,25 +1099,23 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
-        String newAddress = '';
+        final String newAddress = result['fullAddress'] ?? '';
 
-        if (result['addressType'] == 'saved') {
-          newAddress = result['fullAddress'] ?? '';
-          print('✅ Updated with saved address: $newAddress');
-        } else if (result['addressType'] == 'new') {
-          newAddress = result['fullAddress'] ?? '';
-          print('✅ Updated with new address: $newAddress');
-        }
+        if (newAddress.isNotEmpty) {
+          _addressController.text = newAddress;
 
-        _addressController.text = newAddress;
+          // ✅ Capture the full location data returned from AddLocationScreenWidget
+          if (result['location'] != null) {
+            _updatedLocation = result['location'] as Map<String, dynamic>;
+          }
 
-        if (widget.onAddressUpdate != null && newAddress.isNotEmpty) {
-          widget.onAddressUpdate!(newAddress);
+          if (widget.onAddressUpdate != null) {
+            widget.onAddressUpdate!(newAddress);
+          }
         }
       });
     }
   }
-
   Widget _buildCustomerDetailsCard() {
     final screenHeight = MediaQuery.of(context).size.height * 1;
     return Container(

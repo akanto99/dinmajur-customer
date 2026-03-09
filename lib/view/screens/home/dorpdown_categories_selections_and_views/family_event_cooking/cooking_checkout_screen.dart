@@ -824,6 +824,7 @@ import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payme
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/notifier/cooking_checkout_notifier.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/book_family_event_cooking_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -848,6 +849,7 @@ class CookingCheckoutScreen extends StatefulWidget {
   final DateTime? selectedDate;
   final String? selectedServiceTime;
   final Function(String)? onAddressUpdate;
+      final Map<String, dynamic>? customerLocation;
 
   const CookingCheckoutScreen({
     Key? key,
@@ -866,6 +868,7 @@ class CookingCheckoutScreen extends StatefulWidget {
     required this.selectedDate,
     required this.selectedServiceTime,
     this.onAddressUpdate,
+            this.customerLocation,
   }) : super(key: key);
 
   @override
@@ -876,12 +879,26 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   final TextEditingController _addressController = TextEditingController();
   bool _isTermsAccepted = false;
 
+    Map<String, dynamic>? _updatedLocation;
   @override
   void initState() {
     super.initState();
     _addressController.text = widget.customerAddress;
+        _updatedLocation = widget.customerLocation;
+    _restoreSessionLocation();
   }
 
+    Future<void> _restoreSessionLocation() async {
+    final sessionData = await CheckoutSessionLocationService.getAll();
+    if (sessionData.location != null && sessionData.address != null) {
+      if (mounted) {
+        setState(() {
+          _updatedLocation = sessionData.location;
+          _addressController.text = sessionData.address!;
+        });
+      }
+    }
+  }
   @override
   void dispose() {
     _addressController.dispose();
@@ -985,7 +1002,8 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     Map<String, dynamic> bookingPayload = {
       "booking": {
         "paymentType": checkoutVM.getPaymentMethodData(checkoutVM.selectedPaymentMethod).toUpperCase(),
-        "fullAddress": _addressController.text,
+        "fullAddress":  _updatedLocation?['fullAddress'] ??_addressController.text,
+        "location": _updatedLocation,
         "fullName":widget.customerName,
         "phone":widget.customerPhone,
         "date": widget.selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
@@ -1177,10 +1195,35 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     }
   }
 
+// ✅ AFTER — reads label from the actual data model
   String _getGuestRangeText() {
-    final ranges = ['25-30', '30-35', '40-50'];
-    if (widget.selectedGuestRangeIndex < ranges.length) {
-      return ranges[widget.selectedGuestRangeIndex];
+    // Collect unique guest ranges in the same order as FamilyEventCookingScreen does
+    final List<GuestRange> guestRanges = [];
+    final Set<String> seenIds = {};
+
+    for (var category in widget.categories) {
+      for (var package in category.packages ?? []) {
+        // REGULAR type — prices on the package
+        for (var price in package.prices ?? []) {
+          if (price.guestRange != null && !seenIds.contains(price.guestRange!.id)) {
+            seenIds.add(price.guestRange!.id!);
+            guestRanges.add(price.guestRange!);
+          }
+        }
+        // MANUAL type — prices on the items
+        for (var item in package.items ?? []) {
+          for (var price in item.prices ?? []) {
+            if (price.guestRange != null && !seenIds.contains(price.guestRange!.id)) {
+              seenIds.add(price.guestRange!.id!);
+              guestRanges.add(price.guestRange!);
+            }
+          }
+        }
+      }
+    }
+
+    if (widget.selectedGuestRangeIndex < guestRanges.length) {
+      return guestRanges[widget.selectedGuestRangeIndex].label ?? '';
     }
     return '';
   }
@@ -1252,26 +1295,48 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     );
   }
 
+  // Future<void> _handleEditAddress() async {
+  //   final result = await Navigator.pushNamed(
+  //     context,
+  //     RoutesName.addLocationScreenWidget,
+  //   );
+  //
+  //   if (result != null && result is Map<String, dynamic>) {
+  //     setState(() {
+  //       String newAddress = '';
+  //
+  //       if (result['addressType'] == 'saved') {
+  //         newAddress = result['fullAddress'] ?? '';
+  //       } else if (result['addressType'] == 'new') {
+  //         newAddress = result['fullAddress'] ?? '';
+  //       }
+  //
+  //       _addressController.text = newAddress;
+  //
+  //       if (widget.onAddressUpdate != null && newAddress.isNotEmpty) {
+  //         widget.onAddressUpdate!(newAddress);
+  //       }
+  //     });
+  //   }
+  // }
   Future<void> _handleEditAddress() async {
-    final result = await Navigator.pushNamed(
-      context,
-      RoutesName.addLocationScreenWidget,
-    );
+    final result = await Navigator.pushNamed(context, RoutesName.addLocationScreenWidget);
 
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
-        String newAddress = '';
+        final String newAddress = result['fullAddress'] ?? '';
 
-        if (result['addressType'] == 'saved') {
-          newAddress = result['fullAddress'] ?? '';
-        } else if (result['addressType'] == 'new') {
-          newAddress = result['fullAddress'] ?? '';
-        }
+        if (newAddress.isNotEmpty) {
+          _addressController.text = newAddress;
 
-        _addressController.text = newAddress;
+          // ✅ Capture the full location data returned from AddLocationScreenWidget
+          if (result['location'] != null) {
+            _updatedLocation = result['location'] as Map<String, dynamic>;
+          }
 
-        if (widget.onAddressUpdate != null && newAddress.isNotEmpty) {
-          widget.onAddressUpdate!(newAddress);
+          if (widget.onAddressUpdate != null) {
+            widget.onAddressUpdate!(newAddress);
+          }
         }
       });
     }

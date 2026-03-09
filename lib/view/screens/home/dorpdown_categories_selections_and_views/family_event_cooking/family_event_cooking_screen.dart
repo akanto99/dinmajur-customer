@@ -10,6 +10,7 @@ import 'package:dinmajur_customer/model/home_models/dropdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/cooking_cart_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/familyevent_cooking_packageimage.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/notifier/cooking_checkout_notifier.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_categorytab.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_scrollable_categorytab.dart';
@@ -26,8 +27,9 @@ class FamilyEventCookingScreen extends StatefulWidget {
   final String customerPhone;
   final String customerAddress;
   final bool isFromHome;
+    final Map<String, dynamic>? customerLocation;
 
-  const FamilyEventCookingScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress, this.isFromHome = false}) : super(key: key);
+  const FamilyEventCookingScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress, this.isFromHome = false, this.customerLocation}) : super(key: key);
 
   @override
   State<FamilyEventCookingScreen> createState() => _FamilyEventCookingScreenState();
@@ -38,7 +40,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   int _selectedTabIndex = 0;
   int _selectedGuestRangeIndex = 0; // Default to 25-30
   // final Map<int, GlobalKey> _categoryKeys = {};
-
+  Map<String, dynamic>? _customerLocation;
   // Track selected packages per category for REGULAR type (only one category can have selections)
   Map<String, String?> _selectedPackages = {}; // categoryId -> packageId
 
@@ -75,7 +77,12 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.isFromHome) {
+      CheckoutSessionLocationService.clear();
+    }
     _currentCustomerAddress = widget.customerAddress;
+    _customerLocation = widget.customerLocation;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false).fetchGetAllFamilyEventCookingGetDataApi();
@@ -921,6 +928,14 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     final categories = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
     final transportFeeValue = viewModel.getAllFamilyEventCookingData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
+        final sessionData = await CheckoutSessionLocationService.getAll();
+    if (sessionData.location != null && sessionData.address != null) {
+      setState(() {
+        _customerLocation = sessionData.location;
+        _currentCustomerAddress = sessionData.address!;
+      });
+    }
+
     // Navigate to CheckoutScreen using named route
     final result = await Navigator.pushNamed(
       context,
@@ -929,6 +944,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         'customerName': widget.customerName,
         'customerPhone': widget.customerPhone,
         'customerAddress': _currentCustomerAddress,
+        'customerLocation': _customerLocation,   // ✅ now session location if edited
         'userId': userId,
         'categories': categories,
         'selectedPackages': _selectedPackages,
