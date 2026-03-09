@@ -61,6 +61,8 @@ class Addresses {
   String? userId;
   String? type;
   String? fullAddress;
+  String? city;
+  String? country;
   GeoLocation? geoLocation;
   bool? addressesDefault;
   DateTime? createdAt;
@@ -72,6 +74,8 @@ class Addresses {
     this.userId,
     this.type,
     this.fullAddress,
+    this.city,
+    this.country,
     this.geoLocation,
     this.addressesDefault,
     this.createdAt,
@@ -84,6 +88,8 @@ class Addresses {
     userId: json["userId"],
     type: json["type"],
     fullAddress: json["fullAddress"],
+    city: json["city"],
+    country: json["country"],
     geoLocation: json["geoLocation"] == null ? null : GeoLocation.fromJson(json["geoLocation"]),
     addressesDefault: json["default"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
@@ -96,6 +102,8 @@ class Addresses {
     "userId": userId,
     "type": type,
     "fullAddress": fullAddress,
+    "city": city,
+    "country": country,
     "geoLocation": geoLocation?.toJson(),
     "default": addressesDefault,
     "createdAt": createdAt?.toIso8601String(),

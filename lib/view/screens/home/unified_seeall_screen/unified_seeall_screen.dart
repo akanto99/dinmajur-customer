@@ -8,6 +8,7 @@ import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beauty_and_salon_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cookingcard_widget.dart'; // ✅
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -22,6 +23,7 @@ class UnifiedSeeAllScreen extends StatefulWidget {
   final String? customerName;
   final String? customerPhone;
   final String? customerAddress;
+  final Map<String, dynamic>? customerLocation; // ✅
 
   const UnifiedSeeAllScreen({
     Key? key,
@@ -35,6 +37,7 @@ class UnifiedSeeAllScreen extends StatefulWidget {
     this.customerName,
     this.customerPhone,
     this.customerAddress,
+    this.customerLocation,
   }) : super(key: key);
 
   @override
@@ -54,7 +57,6 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
 
   Widget body() {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     return Column(
       children: [
         GestureDetector(onTap: () => Navigator.pop(context), child: AppBarHeader(_getAppBarTitle())),
@@ -63,29 +65,37 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
     );
   }
 
+
   String _getAppBarTitle() {
-    if (widget.storeType == 'Retail') {
-      return 'All Grocery Stores (${widget.stores?.length ?? 0})';
-    } else if (widget.storeType == 'Premium House Keeper') {
-      return 'Premium House Keeper';
-    } else if (widget.storeType == 'Premium Home Beauty & Salon') {
-      return 'Beauty & Salon';
+    switch (widget.storeType) {
+      case 'Retail':
+        return 'All Grocery Stores (${widget.stores?.length ?? 0})';
+      case 'Premium House Keeper':
+        return 'Premium House Keeper';
+      case 'Premium Home Beauty & Salon':
+        return 'Beauty & Salon';
+      case 'Family Event Cooking': // ✅
+        return 'Family Event Cooking';
+      default:
+        return 'All Services';
     }
-    return 'All Services';
   }
 
   Widget _buildBody(BuildContext context, double screenWidth) {
-    if (widget.storeType == 'Retail') {
-      return _buildGroceryStoresList(context, screenWidth);
-    } else if (widget.storeType == 'Premium House Keeper') {
-      return _buildPremiumHouseKeeperView(context, screenWidth);
-    } else if (widget.storeType == 'Premium Home Beauty & Salon') {
-      return _buildPremiumBeautySalonView(context, screenWidth);
+    switch (widget.storeType) {
+      case 'Retail':
+        return _buildGroceryStoresList(context, screenWidth);
+      case 'Premium House Keeper':
+        return _buildPremiumHouseKeeperView(context, screenWidth);
+      case 'Premium Home Beauty & Salon':
+        return _buildPremiumBeautySalonView(context, screenWidth);
+      case 'Family Event Cooking': // ✅
+        return _buildFamilyEventCookingView(context, screenWidth);
+      default:
+        return _buildEmptyState(context, screenWidth);
     }
-    return _buildEmptyState(context, screenWidth);
   }
 
-  // ============================================================
   Widget _buildGroceryStoresList(BuildContext context, double screenWidth) {
     if (widget.stores == null || widget.stores!.isEmpty) {
       return _buildEmptyState(context, screenWidth);
@@ -97,8 +107,7 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
       padding: EdgeInsets.all(screenWidth * 0.05),
       itemCount: widget.stores!.length,
       itemBuilder: (context, index) {
-        final store = widget.stores![index];
-        return _buildStoreCard(context, store, screenHeight, screenWidth);
+        return _buildStoreCard(context, widget.stores![index], screenHeight, screenWidth);
       },
     );
   }
@@ -106,19 +115,19 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
   Widget _buildStoreCard(BuildContext context, Map<String, dynamic> store, double screenHeight, double screenWidth) {
     final distanceData = store['distance'] as Map<String, dynamic>?;
     final distanceText = distanceData?['text'] ?? '0 m';
-    final fullAddress = store['fullAddress'] ?? 'Address not found';
-    final bool isAvailable = store['isAvailable'];
     final durationData = store['duration'] as Map<String, dynamic>?;
     final durationText = durationData?['text'] ?? '0 min';
+    final fullAddress = store['fullAddress'] ?? 'Address not found';
+    final bool isAvailable = store['isAvailable'] ?? false;
     final businessName = store['businessName'] ?? 'Store name unavailable';
     final businessType = store['businessType'] ?? 'Unknown';
     final userID = store['userId'] ?? '';
     final logo = store['logo'] as Map<String, dynamic>?;
-    final logoUrl = logo?['url'];
+    final logoUrl = logo?['url'] as String?;
     final geoLocation = store['geoLocation'] as Map<String, dynamic>?;
     final coordinates = geoLocation?['coordinates'] as List?;
-    final storeLatitude = coordinates != null && coordinates.length >= 2 ? coordinates[1] : null;
-    final storeLongitude = coordinates != null && coordinates.length >= 2 ? coordinates[0] : null;
+    final storeLatitude = (coordinates != null && coordinates.length >= 2) ? coordinates[1] : null;
+    final storeLongitude = (coordinates != null && coordinates.length >= 2) ? coordinates[0] : null;
 
     return Container(
       width: screenWidth * 0.9,
@@ -132,13 +141,14 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Logo + name + availability ──────────────────────
           Row(
             children: [
               if (logoUrl != null)
                 Container(
                   height: 40,
                   width: 40,
-                  margin: EdgeInsets.only(right: 8),
+                  margin: const EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(width: 1, color: AppColors.border(context)),
@@ -184,9 +194,12 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
               ),
             ],
           ),
+
           SizedboxSpaccing.height01(context),
           Divider(height: 1, color: AppColors.border(context)),
           SizedboxSpaccing.height005(context),
+
+          // ── Address + distance ──────────────────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -231,7 +244,10 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
               ),
             ],
           ),
+
           SizedboxSpaccing.height02(context),
+
+          // ── Order Now button ────────────────────────────────
           RoundButton(
             title: "Order Now",
             onPress: () => Navigator.pushNamed(
@@ -260,7 +276,6 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
     );
   }
 
-  // ============================================================
   Widget _buildPremiumHouseKeeperView(BuildContext context, double screenWidth) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(screenWidth * 0.05),
@@ -270,11 +285,11 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
         customerName: widget.customerName ?? '',
         customerPhone: widget.customerPhone ?? '',
         customerAddress: widget.customerAddress ?? '',
+        customerLocation: widget.customerLocation, // ✅
       ),
     );
   }
 
-  // ============================================================
   Widget _buildPremiumBeautySalonView(BuildContext context, double screenWidth) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(screenWidth * 0.05),
@@ -284,23 +299,37 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
         customerName: widget.customerName ?? '',
         customerPhone: widget.customerPhone ?? '',
         customerAddress: widget.customerAddress ?? '',
+        customerLocation: widget.customerLocation, // ✅
       ),
     );
   }
 
-  // ============================================================
+  Widget _buildFamilyEventCookingView(BuildContext context, double screenWidth) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(screenWidth * 0.05),
+      child: FamilyEventCardCoverageWidget(
+        isCheckingCoverage: widget.isCheckingCoverage ?? false,
+        isInsideServiceArea: widget.isInsideServiceArea,
+        customerName: widget.customerName ?? '',
+        customerPhone: widget.customerPhone ?? '',
+        customerAddress: widget.customerAddress ?? '',
+        customerLocation: widget.customerLocation, // ✅
+      ),
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context, double screenWidth) {
     return Center(
       child: Container(
         width: screenWidth * 0.9,
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.store_outlined, size: 80, color: AppColors.subtitle(context)),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text('No Services Found', style: AppTextStyles.textSize20(context, weight: FontWeight.w600)),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'No services available in your area.',
               style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),

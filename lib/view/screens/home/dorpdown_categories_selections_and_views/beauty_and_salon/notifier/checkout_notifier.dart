@@ -417,6 +417,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     required String timeSlot,
     required List<Map<String, dynamic>> tasks,
     required String? paymentMethod,
+    Map<String, dynamic>? customerLocation,
   }) {
     String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
     // Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
@@ -428,6 +429,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
       'time': serviceTime,
       'timeSlot':timeSlot,
       'phone': phone.trim(),
+      if (customerLocation != null) 'location': customerLocation,
       'fullAddress': address.trim(),
       'notes': specialRequest?.trim().isEmpty == true
           ? null
