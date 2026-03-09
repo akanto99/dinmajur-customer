@@ -107,11 +107,14 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
   }
 
 
-  bool _isChittagongAddress(dynamic locationData) {
-    final addr = (locationData.fullAddress ?? '').toLowerCase();
-    return addr.contains('chittagong') ||
-        addr.contains('chattogram') ||
-        addr.contains('ctg');
+  bool _isServiceableAddress(dynamic locationData) {
+    final city = (locationData.city ?? '').toLowerCase().trim();
+    const serviceableCities = {
+      'chittagong', 'chattogram', 'chottogram', 'chattagam', 'ctg',
+      'চট্টগ্রাম', 'চিটাগাং',
+      'dhaka', 'ঢাকা',
+    };
+    return serviceableCities.contains(city);
   }
 
 
@@ -365,12 +368,12 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
     final locationType = locationData.type ?? 'DELIVERY_ADDRESS';
     final locationId   = locationData.id ?? '';
 
-    final isChittagong = _isChittagongAddress(locationData);
-    final isSelected   = _selectedLocationId == locationId && isChittagong;
+    final isServiceable = _isServiceableAddress(locationData);
+    final isSelected    = _selectedLocationId == locationId && isServiceable;
 
     return GestureDetector(
       onTap: () {
-        if (isChittagong) {
+        if (isServiceable) {
           setState(() {
             _selectedLocationId   = locationId;
             _selectedLocationData = locationData;
@@ -388,7 +391,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.containerBackground(context)
-              : isChittagong
+              : isServiceable
               ? AppColors.containerBackground(context)
               : AppColors.textFieldFill(context).withOpacity(0.5),
           borderRadius: BorderRadius.circular(8),
@@ -396,7 +399,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
             width: 1,
             color: isSelected
                 ? AppColors.button(context)
-                : isChittagong
+                : isServiceable
                 ? AppColors.border(context)
                 : AppColors.border(context).withOpacity(0.3),
           ),
@@ -415,7 +418,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
                     borderRadius: BorderRadius.circular(8),
                     color: isSelected
                         ? AppColors.button(context).withOpacity(0.1)
-                        : isChittagong
+                        : isServiceable
                         ? AppColors.textFieldFill(context)
                         : AppColors.subtitle(context).withOpacity(0.1),
                   ),
@@ -423,7 +426,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
                     child: Icon(
                       FontAwesomeIcons.mapLocationDot,
                       size: 20,
-                      color: isChittagong
+                      color: isServiceable
                           ? AppColors.darkRedColor.withOpacity(0.7)
                           : AppColors.subtitle(context).withOpacity(0.5),
                     ),
@@ -443,13 +446,13 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
                               style: AppTextStyles.textSize14(
                                 context,
                                 weight: FontWeight.w600,
-                                color: isChittagong
+                                color: isServiceable
                                     ? AppColors.textPrimary(context)
                                     : AppColors.subtitle(context),
                               ),
                             ),
                           ),
-                          if (!isChittagong)
+                          if (!isServiceable)
                             Text(
                               'Not Available',
                               style: AppTextStyles.textSize10(context,
@@ -464,7 +467,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
                         style: AppTextStyles.textSize12(
                           context,
                           weight: FontWeight.w400,
-                          color: isChittagong
+                          color: isServiceable
                               ? AppColors.subtitle(context)
                               : AppColors.subtitle(context).withOpacity(0.6),
                         ),
