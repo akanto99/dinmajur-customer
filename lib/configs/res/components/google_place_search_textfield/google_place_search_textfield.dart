@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -14,13 +15,7 @@ class GooglePlaceSearchResult {
   final double latitude;
   final double longitude;
 
-  const GooglePlaceSearchResult({
-    required this.fullAddress,
-    required this.city,
-    required this.country,
-    required this.latitude,
-    required this.longitude,
-  });
+  const GooglePlaceSearchResult({required this.fullAddress, required this.city, required this.country, required this.latitude, required this.longitude});
 
   Map<String, dynamic> toLocationData() {
     return {
@@ -42,12 +37,7 @@ class _Prediction {
   final String mainText;
   final String secondaryText;
 
-  const _Prediction({
-    required this.description,
-    required this.placeId,
-    required this.mainText,
-    required this.secondaryText,
-  });
+  const _Prediction({required this.description, required this.placeId, required this.mainText, required this.secondaryText});
 
   factory _Prediction.fromJson(Map<String, dynamic> j) => _Prediction(
     description: j['description'] ?? '',
@@ -84,12 +74,10 @@ class GooglePlaceSearchTextField extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<GooglePlaceSearchTextField> createState() =>
-      _GooglePlaceSearchTextFieldState();
+  State<GooglePlaceSearchTextField> createState() => _GooglePlaceSearchTextFieldState();
 }
 
-class _GooglePlaceSearchTextFieldState
-    extends State<GooglePlaceSearchTextField> {
+class _GooglePlaceSearchTextFieldState extends State<GooglePlaceSearchTextField> {
   List<_Prediction> _predictions = [];
   Timer? _debounce;
   bool _isPlaceSelected = false;
@@ -134,18 +122,16 @@ class _GooglePlaceSearchTextFieldState
     try {
       final uri = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-            '?input=${Uri.encodeComponent(query)}'
-            '&components=country:${widget.countries.join('|country:')}'
-            '&key=$_apiKey',
+        '?input=${Uri.encodeComponent(query)}'
+        '&components=country:${widget.countries.join('|country:')}'
+        '&key=$_apiKey',
       );
       final res = await http.get(uri);
       if (!mounted) return;
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
         if (data['status'] == 'OK') {
-          final list = (data['predictions'] as List)
-              .map((p) => _Prediction.fromJson(p))
-              .toList();
+          final list = (data['predictions'] as List).map((p) => _Prediction.fromJson(p)).toList();
           setState(() {
             _predictions = list;
             _showSuggestions = list.isNotEmpty && !_isPlaceSelected;
@@ -159,29 +145,35 @@ class _GooglePlaceSearchTextFieldState
     if (mounted) setState(() => _showSuggestions = false);
   }
 
+  bool _isPredictionServiceable(_Prediction prediction) {
+    final text = prediction.description.toLowerCase();
+    const serviceableKeywords = ['chittagong', 'chattogram', 'chottogram', 'chattagam', 'ctg', 'চট্টগ্রাম', 'চিটাগাং', 'dhaka', 'ঢাকা'];
+    return serviceableKeywords.any((kw) => text.contains(kw));
+  }
+
   Future<void> _onPredictionTapped(_Prediction prediction) async {
+    // ✅ Block non-serviceable cities
+    if (!_isPredictionServiceable(prediction)) {
+      Utils.flushBarErrorMessage("Service is not available in this area", context);
+      return;
+    }
+
     _isPlaceSelected = true;
-    // ✅ Use prediction description as the display address (human-friendly)
-    //    e.g. "Khulshi Town Center, Abdul Malek Lane, Chattogram"
     _lastSelectedText = prediction.description;
     widget.controller.text = prediction.description;
-    widget.controller.selection = TextSelection.fromPosition(
-      TextPosition(offset: prediction.description.length),
-    );
+    widget.controller.selection = TextSelection.fromPosition(TextPosition(offset: prediction.description.length));
     setState(() => _showSuggestions = false);
     FocusScope.of(context).unfocus();
-    // ✅ Pass description so it is used as fullAddress in location data
     await _fetchPlaceDetails(prediction.placeId, prediction.description);
   }
 
-  Future<void> _fetchPlaceDetails(
-      String placeId, String predictionDescription) async {
+  Future<void> _fetchPlaceDetails(String placeId, String predictionDescription) async {
     try {
       final uri = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json'
-            '?place_id=$placeId'
-            '&fields=geometry,formatted_address,address_components'
-            '&key=$_apiKey',
+        '?place_id=$placeId'
+        '&fields=geometry,formatted_address,address_components'
+        '&key=$_apiKey',
       );
       final res = await http.get(uri);
       if (!mounted || res.statusCode != 200) return;
@@ -222,36 +214,24 @@ class _GooglePlaceSearchTextFieldState
 
       // ✅ Controller already shows predictionDescription (set in _onPredictionTapped)
       //    No need to update it again — just keep it as is
-      widget.onPlaceSelected(GooglePlaceSearchResult(
-        fullAddress: predictionDescription, // ✅ human-friendly description
-        city: city,
-        country: country,
-        latitude: lat,
-        longitude: lng,
-      ));
+      widget.onPlaceSelected(
+        GooglePlaceSearchResult(
+          fullAddress: predictionDescription, // ✅ human-friendly description
+          city: city,
+          country: country,
+          latitude: lat,
+          longitude: lng,
+        ),
+      );
     } catch (e) {
       debugPrint('_fetchPlaceDetails: $e');
     }
   }
 
-  String _stripSuffix(String raw) => raw
-      .replaceAll(
-      RegExp(
-          r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$',
-          caseSensitive: false),
-      '')
-      .trim();
+  String _stripSuffix(String raw) => raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
 
   String _normalizeCity(String city) {
-    const variants = {
-      'chittagong',
-      'chattogram',
-      'chottogram',
-      'chattagam',
-      'চট্টগ্রাম',
-      'চট্টগ্রাম জেলা',
-      'চট্টগ্রাম বিভাগ',
-    };
+    const variants = {'chittagong', 'chattogram', 'chottogram', 'chattagam', 'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ'};
     if (variants.contains(city.toLowerCase().trim())) return 'Chittagong';
     return city;
   }
@@ -259,8 +239,7 @@ class _GooglePlaceSearchTextFieldState
   @override
   Widget build(BuildContext context) {
     final double actualHeight = widget.height ?? 50;
-    final double actualWidth =
-        widget.width ?? MediaQuery.of(context).size.width * 0.9;
+    final double actualWidth = widget.width ?? MediaQuery.of(context).size.width * 0.9;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,19 +249,14 @@ class _GooglePlaceSearchTextFieldState
           height: actualHeight,
           width: actualWidth,
           decoration: BoxDecoration(
-            color: widget.backgroundColor ??
-                AppColors.containerBackground(context),
+            color: widget.backgroundColor ?? AppColors.containerBackground(context),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              width: 1,
-              color: widget.borderColor ?? AppColors.border(context),
-            ),
+            border: Border.all(width: 1, color: widget.borderColor ?? AppColors.border(context)),
           ),
           child: TextFormField(
             controller: widget.controller,
             keyboardType: TextInputType.streetAddress,
-            style: widget.inputTextStyle ??
-                AppTextStyles.textSize14(context, weight: FontWeight.w400),
+            style: widget.inputTextStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w400),
             onChanged: (_) => _isUserInput = true,
             onTap: () {
               if (widget.controller.text.isNotEmpty && !_isPlaceSelected) {
@@ -292,16 +266,9 @@ class _GooglePlaceSearchTextFieldState
             },
             decoration: InputDecoration(
               hintText: widget.placeholder,
-              hintStyle: widget.hintTextStyle ??
-                  AppTextStyles.textSize14(
-                    context,
-                    weight: FontWeight.w400,
-                    color: AppColors.subtitle(context),
-                  ),
-              border:
-              const OutlineInputBorder(borderSide: BorderSide.none),
-              contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              hintStyle: widget.hintTextStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+              border: const OutlineInputBorder(borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             ),
           ),
         ),
@@ -314,15 +281,8 @@ class _GooglePlaceSearchTextFieldState
             decoration: BoxDecoration(
               color: AppColors.containerBackground(context),
               borderRadius: BorderRadius.circular(8),
-              border:
-              Border.all(width: 1, color: AppColors.border(context)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(width: 1, color: AppColors.border(context)),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2))],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -330,45 +290,54 @@ class _GooglePlaceSearchTextFieldState
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
                 itemCount: _predictions.length,
-                separatorBuilder: (_, __) =>
-                    Divider(height: 1, color: AppColors.border(context)),
+                separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.border(context)),
                 itemBuilder: (context, i) {
                   final p = _predictions[i];
+                  final bool serviceable = _isPredictionServiceable(p);
+
                   return Material(
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () => _onPredictionTapped(p),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         child: Row(
                           children: [
                             Icon(
                               Icons.location_on,
-                              color: AppColors.button(context),
+                              // ✅ Grey icon for non-serviceable
+                              color: serviceable ? AppColors.button(context) : AppColors.subtitle(context),
                               size: 18,
                             ),
                             SizedboxSpaccing.width03(context),
                             Expanded(
                               child: Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    p.mainText,
-                                    style: AppTextStyles.textSize14(
-                                        context,
-                                        weight: FontWeight.w500),
-                                    overflow: TextOverflow.ellipsis,
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          p.mainText,
+                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: serviceable ? AppColors.textPrimary(context) : AppColors.subtitle(context)),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (!serviceable)
+                                        Container(
+                                          margin: const EdgeInsets.only(left: 6),
+                                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                                          child: Text(
+                                            'Not Available',
+                                            style: AppTextStyles.textSize10(context, color: Colors.orange, weight: FontWeight.w500),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                   if (p.secondaryText.isNotEmpty)
                                     Text(
                                       p.secondaryText,
-                                      style: AppTextStyles.textSize12(
-                                        context,
-                                        weight: FontWeight.w400,
-                                        color: AppColors.subtitle(context),
-                                      ),
+                                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                 ],
