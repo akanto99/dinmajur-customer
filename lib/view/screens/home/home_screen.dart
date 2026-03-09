@@ -304,10 +304,6 @@ print(e.toString());
           isInsideServiceArea = responseData?.data?.insideServiceArea ?? false;
           isCheckingCoverage = false;
         });
-
-        if (isInsideServiceArea == false) {
-          Utils.flushBarErrorMessage(responseData?.message ?? "Service is not available in your location.", context);
-        }
       } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
         setState(() {
           isInsideServiceArea = false;
@@ -487,6 +483,7 @@ print(e.toString());
                       selectedStoreType: selectedStoreType,
                       storeCount: nearbyStores.length,
                       screenWidth: screenWidth,
+                      isInsideServiceArea: isInsideServiceArea,
                       onSeeAllTap: () => _handleSeeAllNavigation(context)
                   ),
                   SizedboxSpaccing.height025(context),

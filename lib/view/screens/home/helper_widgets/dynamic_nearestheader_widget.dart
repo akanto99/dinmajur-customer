@@ -8,8 +8,10 @@ class DynamicNearestHeader extends StatelessWidget {
   final int storeCount;
   final double screenWidth;
   final VoidCallback? onSeeAllTap;
-
-  const DynamicNearestHeader({Key? key, this.selectedStoreType, required this.storeCount, required this.screenWidth, this.onSeeAllTap}) : super(key: key);
+  final bool? isInsideServiceArea;
+  const DynamicNearestHeader({Key? key, this.selectedStoreType, required this.storeCount, required this.screenWidth, this.onSeeAllTap,
+    this.isInsideServiceArea,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -42,22 +44,20 @@ class DynamicNearestHeader extends StatelessWidget {
   }
 
   String _getHeaderTitle() {
-    // Default state - no selection
-    if (selectedStoreType == null) {
-      return 'Nearest';
-    }
+    if (selectedStoreType == null) return 'Nearest';
 
-    // Retail (Grocery) - show actual count
     if (selectedStoreType == 'Retail') {
       return 'Nearest ($storeCount)';
     }
 
-    // Premium services - always show (1)
-    if (selectedStoreType == 'Premium House Keeper' || selectedStoreType == 'Premium Home Beauty & Salon') {
-      return 'Nearest (1)';
+    if (selectedStoreType == 'Premium House Keeper' ||
+        selectedStoreType == 'Premium Home Beauty & Salon' ||
+        selectedStoreType == 'Family Event Cooking') {
+      // ✅ Only show (1) if service is confirmed available
+      if (isInsideServiceArea == true) return 'Nearest (1)';
+      return 'Nearest (0)'; // not available or still checking
     }
 
-    // Fallback
     return 'Nearest';
   }
 
