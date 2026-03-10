@@ -54,6 +54,11 @@ class Datum {
   String? beautySalonBookingId;
   String? eventCookingBookingId;
   String? type;
+  Freelancer? freelancer;
+  Customer? customer;
+  String? paymentType;
+  String? fullAddress;
+  dynamic paymentStatus;
   String? status;
   double? total;
   DateTime? createdAt;
@@ -61,9 +66,12 @@ class Datum {
   Datum({
     this.orderId,
     this.houseKeeperBookingId,
-    this.beautySalonBookingId,
-    this.eventCookingBookingId,
     this.type,
+    this.freelancer,
+    this.customer,
+    this.paymentType,
+    this.fullAddress,
+    this.paymentStatus,
     this.status,
     this.total,
     this.createdAt,
@@ -72,9 +80,12 @@ class Datum {
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     orderId: json["orderId"],
     houseKeeperBookingId: json["houseKeeperBookingId"],
-    beautySalonBookingId: json["beautySalonBookingId"],
-    eventCookingBookingId: json["eventCookingBookingId"],
     type: json["type"],
+    freelancer: json["freelancer"] == null ? null : Freelancer.fromJson(json["freelancer"]),
+    customer: json["customer"] == null ? null : Customer.fromJson(json["customer"]),
+    paymentType: json["paymentType"],
+    fullAddress: json["fullAddress"],
+    paymentStatus: json["paymentStatus"],
     status: json["status"],
     total: json["total"]?.toDouble(),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
@@ -83,12 +94,147 @@ class Datum {
   Map<String, dynamic> toJson() => {
     "orderId": orderId,
     "houseKeeperBookingId": houseKeeperBookingId,
-    "beautySalonBookingId": beautySalonBookingId,
-    "eventCookingBookingId": eventCookingBookingId,
     "type": type,
+    "freelancer": freelancer?.toJson(),
+    "customer": customer?.toJson(),
+    "paymentType": paymentType,
+    "fullAddress": fullAddress,
+    "paymentStatus": paymentStatus,
     "status": status,
     "total": total,
     "createdAt": createdAt?.toIso8601String(),
+  };
+}
+
+class Customer {
+  String? id;
+  String? phone;
+  String? role;
+  String? fullName;
+
+  Customer({
+    this.id,
+    this.phone,
+    this.role,
+    this.fullName,
+  });
+
+  factory Customer.fromJson(Map<String, dynamic> json) => Customer(
+    id: json["_id"],
+    phone: json["phone"],
+    role: json["role"],
+    fullName: json["fullName"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "phone": phone,
+    "role": role,
+    "fullName": fullName,
+  };
+}
+
+class Freelancer {
+  String? id;
+  String? phone;
+  String? role;
+  DateTime? dateOfBirth;
+  String? email;
+  int? experience;
+  String? firstName;
+  String? gender;
+  String? lastName;
+  ProfilePicture? profilePicture;
+  List<Skill>? skills;
+
+  Freelancer({
+    this.id,
+    this.phone,
+    this.role,
+    this.dateOfBirth,
+    this.email,
+    this.experience,
+    this.firstName,
+    this.gender,
+    this.lastName,
+    this.profilePicture,
+    this.skills,
+  });
+
+  factory Freelancer.fromJson(Map<String, dynamic> json) => Freelancer(
+    id: json["_id"],
+    phone: json["phone"],
+    role: json["role"],
+    dateOfBirth: json["dateOfBirth"] == null ? null : DateTime.parse(json["dateOfBirth"]),
+    email: json["email"],
+    experience: json["experience"],
+    firstName: json["firstName"],
+    gender: json["gender"],
+    lastName: json["lastName"],
+    profilePicture: json["profilePicture"] == null ? null : ProfilePicture.fromJson(json["profilePicture"]),
+    skills: json["skills"] == null ? [] : List<Skill>.from(json["skills"]!.map((x) => Skill.fromJson(x))),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "phone": phone,
+    "role": role,
+    "dateOfBirth": dateOfBirth?.toIso8601String(),
+    "email": email,
+    "experience": experience,
+    "firstName": firstName,
+    "gender": gender,
+    "lastName": lastName,
+    "profilePicture": profilePicture?.toJson(),
+    "skills": skills == null ? [] : List<dynamic>.from(skills!.map((x) => x.toJson())),
+  };
+}
+
+class ProfilePicture {
+  String? url;
+  String? key;
+
+  ProfilePicture({
+    this.url,
+    this.key,
+  });
+
+  factory ProfilePicture.fromJson(Map<String, dynamic> json) => ProfilePicture(
+    url: json["url"],
+    key: json["key"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "url": url,
+    "key": key,
+  };
+}
+
+class Skill {
+  String? id;
+  String? userId;
+  String? category;
+  List<String>? items;
+
+  Skill({
+    this.id,
+    this.userId,
+    this.category,
+    this.items,
+  });
+
+  factory Skill.fromJson(Map<String, dynamic> json) => Skill(
+    id: json["_id"],
+    userId: json["userId"],
+    category: json["category"],
+    items: json["items"] == null ? [] : List<String>.from(json["items"]!.map((x) => x)),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "userId": userId,
+    "category": category,
+    "items": items == null ? [] : List<dynamic>.from(items!.map((x) => x)),
   };
 }
 
