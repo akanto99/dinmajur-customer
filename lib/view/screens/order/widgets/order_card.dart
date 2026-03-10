@@ -154,7 +154,7 @@ class OrderCard extends StatelessWidget {
               _buildFooter(context, screenHeight),
 
               // ── Completed actions ─────────────────────────────────────────
-              if (isCompletedTab) ...[
+              if (isCompletedTab && (datum.paymentStatus == null || datum.isReview == false)) ...[
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
                 SizedboxSpaccing.height02(context),
@@ -227,10 +227,10 @@ class OrderCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("৳${_formatTotal(datum.total)}", style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+          Text("৳${_formatTotal(datum.total)}", style: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.textPrimary(context))),
           Row(
             children: [
-              Text("View Details ", style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+              Text("View Details ", style: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.textPrimary(context))),
               SizedboxSpaccing.width01(context),
               const Icon(FontAwesomeIcons.arrowRight, size: 15),
             ],
