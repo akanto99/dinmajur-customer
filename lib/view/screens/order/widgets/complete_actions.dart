@@ -8,25 +8,47 @@ class CompletedActions extends StatelessWidget {
   final Datum datum;
   final Future<void> Function(BuildContext context, Datum datum) onPayNow;
 
-  const CompletedActions({super.key, required this.datum, required this.onPayNow});
+  const CompletedActions({
+    super.key,
+    required this.datum,
+    required this.onPayNow,
+  });
+
+  String get _bookingId {
+    switch (datum.type) {
+      case 'ORDER':         return datum.orderId ?? '';
+      case 'HOUSEKEEPER':   return datum.houseKeeperBookingId ?? '';
+      case 'BEAUTY_SALON':  return datum.beautySalonBookingId ?? '';
+      case 'EVENT_COOKING': return datum.eventCookingBookingId ?? '';
+      default:              return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bool isCashOnDelivery = datum.paymentType == 'CASH_ON_DELIVERY';
+    final bool showPayNow = datum.paymentStatus == null;
+    final bool isReview = datum.isReview == false;
 
     return Row(
       children: [
-        if (isCashOnDelivery) ...[
+        if (showPayNow) ...[
           Expanded(
             child: GestureDetector(
               onTap: () => onPayNow(context, datum),
               child: Container(
                 height: 42,
-                decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: AppColors.textPrimary(context),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Center(
                   child: Text(
                     "Pay Now",
-                    style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.textSecondary(context)),
+                    style: AppTextStyles.textSize14(
+                      context,
+                      weight: FontWeight.w600,
+                      color: AppColors.textSecondary(context),
+                    ),
                   ),
                 ),
               ),
@@ -34,9 +56,11 @@ class CompletedActions extends StatelessWidget {
           ),
           const SizedBox(width: 15),
         ],
+
+               if (isReview) ...[ // Write Review
         Expanded(
           child: GestureDetector(
-            onTap: () => showWriteReviewSheet(context, datum),
+            onTap: () => showWriteReviewSheet(context, datum, _bookingId),
             child: Container(
               height: 42,
               decoration: BoxDecoration(
@@ -45,11 +69,14 @@ class CompletedActions extends StatelessWidget {
                 border: Border.all(color: AppColors.border(context), width: 1),
               ),
               child: Center(
-                child: Text("Write Review", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                child: Text(
+                  "Write Review",
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                ),
               ),
             ),
           ),
-        ),
+        ), ],
       ],
     );
   }

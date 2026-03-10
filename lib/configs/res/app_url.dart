@@ -61,7 +61,7 @@ class AppUrl {
   static var orderDetailsGetAPI = baseUrl + '/orders';
   static var groceryPaymnetPatchAPI = baseUrl + '/customers/payments/type';
   //Freelancer Rating
-  static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
+  static var freelancerRatingPatchAPI = baseUrl + '/customers/reviews';
   //========>Premium house Keeper
   static var checkCoverageGetAPI = baseUrl + '/customers/check-coverage';
   static var getAllPremiumHouseKeeperCategoryGetAPI = baseUrl + '/house-keeper-categories/get-all';

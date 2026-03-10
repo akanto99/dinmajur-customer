@@ -914,6 +914,7 @@
 //     }
 //   }
 // }
+
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -989,7 +990,6 @@ class _OrderScreenState extends State<OrderScreen> {
     }
   }
 
-  // ─── SSL Pay Now ────────────────────────────────────────────────────────────
   Future<void> _handlePayNow(BuildContext context, Datum datum) async {
     String trackingId = '';
     String productCategory = '';
@@ -1031,6 +1031,11 @@ class _OrderScreenState extends State<OrderScreen> {
 
       if (result.success) {
         Utils.flushBarSuccessMessage("Payment successful!", context);
+
+        // ✅ Refresh ONLY this specific order by its booking ID — safe against
+        // list reordering because we match by ID, not by index.
+        _orderViewModel.refreshSingleCompletedOrder(trackingId);
+
       } else if (result.status == 'CANCELLED') {
         Utils.flushBarErrorMessage("Payment cancelled", context);
       } else {

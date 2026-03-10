@@ -836,58 +836,58 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     print('Booking Data: $bookingData');
 
-    // try {
-    //   // Call booking API
-    //   await bookingViewModel.bookPremiumHomeBeautySalonPostApi(context, bookingData, (String? trackingId) async {
-    //     print('Success! TrackingId: $trackingId');
-    //
-    //     if (trackingId == null || trackingId.isEmpty) {
-    //       Navigator.pushReplacementNamed(
-    //         context,
-    //         RoutesName.failedOrderScreenWidget,
-    //         arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking. Please try again.'},
-    //       );
-    //       return;
-    //     }
-    //
-    //     if (checkoutVM.selectedPaymentMethod == 'online') {
-    //       final paymentResult = await checkoutVM.initiatePayment(
-    //         trackingId: trackingId,
-    //         totalAmount: totalAmount,
-    //         customerName: _fullNameController.text.trim(),
-    //         customerPhone: _phoneController.text.trim(),
-    //         customerEmail: null,
-    //         customerAddress: _addressController.text.trim(),
-    //       );
-    //       await _handlePaymentResult(viewModel: checkoutVM, paymentResult: paymentResult, trackingId: trackingId);
-    //     } else if (checkoutVM.selectedPaymentMethod == 'cash') {
-    //       _clearAllData();
-    //     Navigator.pop(context, {
-    //     'cleared': true,        // ✅ signal cart should clear
-    //     'updatedLocation': _updatedLocation,
-    //   });
-    //       Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': "COD"});
-    //     } else {
-    //       Navigator.pushReplacementNamed(
-    //         context,
-    //         RoutesName.failedOrderScreenWidget,
-    //         arguments: {'trackingId': trackingId, 'valId': 'N/A', 'reason': 'Invalid payment method', 'errorMessage': 'The selected payment method is not available.'},
-    //       );
-    //     }
-    //   });
-    // } catch (e) {
-    //   print('Booking error: $e');
-    //
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     if (mounted) {
-    //       Navigator.pushReplacementNamed(
-    //         context,
-    //         RoutesName.failedOrderScreenWidget,
-    //         arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking failed', 'errorMessage': 'An error occurred while processing your booking. Please try again.'},
-    //       );
-    //     }
-    //   });
-    // }
+    try {
+      // Call booking API
+      await bookingViewModel.bookPremiumHomeBeautySalonPostApi(context, bookingData, (String? trackingId) async {
+        print('Success! TrackingId: $trackingId');
+
+        if (trackingId == null || trackingId.isEmpty) {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking. Please try again.'},
+          );
+          return;
+        }
+
+        if (checkoutVM.selectedPaymentMethod == 'online') {
+          final paymentResult = await checkoutVM.initiatePayment(
+            trackingId: trackingId,
+            totalAmount: totalAmount,
+            customerName: _fullNameController.text.trim(),
+            customerPhone: _phoneController.text.trim(),
+            customerEmail: null,
+            customerAddress: _addressController.text.trim(),
+          );
+          await _handlePaymentResult(viewModel: checkoutVM, paymentResult: paymentResult, trackingId: trackingId);
+        } else if (checkoutVM.selectedPaymentMethod == 'cash') {
+          _clearAllData();
+        Navigator.pop(context, {
+        'cleared': true,        // ✅ signal cart should clear
+        'updatedLocation': _updatedLocation,
+      });
+          Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': "COD"});
+        } else {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {'trackingId': trackingId, 'valId': 'N/A', 'reason': 'Invalid payment method', 'errorMessage': 'The selected payment method is not available.'},
+          );
+        }
+      });
+    } catch (e) {
+      print('Booking error: $e');
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking failed', 'errorMessage': 'An error occurred while processing your booking. Please try again.'},
+          );
+        }
+      });
+    }
   }
 
   @override

@@ -50,6 +50,7 @@ class Data {
 
 class Datum {
   String? orderId;
+  String? id;
   String? houseKeeperBookingId;
   String? beautySalonBookingId;
   String? eventCookingBookingId;
@@ -59,19 +60,24 @@ class Datum {
   String? paymentType;
   String? fullAddress;
   dynamic paymentStatus;
+  bool? isReview;
   String? status;
   double? total;
   DateTime? createdAt;
 
   Datum({
     this.orderId,
+    this.id,
     this.houseKeeperBookingId,
+    this.beautySalonBookingId,
+    this.eventCookingBookingId,
     this.type,
     this.freelancer,
     this.customer,
     this.paymentType,
     this.fullAddress,
     this.paymentStatus,
+    this.isReview,
     this.status,
     this.total,
     this.createdAt,
@@ -79,13 +85,17 @@ class Datum {
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     orderId: json["orderId"],
+    id: json["_id"],
     houseKeeperBookingId: json["houseKeeperBookingId"],
+    beautySalonBookingId: json["beautySalonBookingId"],
+    eventCookingBookingId: json["eventCookingBookingId"],
     type: json["type"],
     freelancer: json["freelancer"] == null ? null : Freelancer.fromJson(json["freelancer"]),
     customer: json["customer"] == null ? null : Customer.fromJson(json["customer"]),
     paymentType: json["paymentType"],
     fullAddress: json["fullAddress"],
     paymentStatus: json["paymentStatus"],
+    isReview: json["isReview"],
     status: json["status"],
     total: json["total"]?.toDouble(),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
@@ -93,13 +103,17 @@ class Datum {
 
   Map<String, dynamic> toJson() => {
     "orderId": orderId,
+    "id": id,
     "houseKeeperBookingId": houseKeeperBookingId,
+    "beautySalonBookingId": beautySalonBookingId,
+    "eventCookingBookingId": eventCookingBookingId,
     "type": type,
     "freelancer": freelancer?.toJson(),
     "customer": customer?.toJson(),
     "paymentType": paymentType,
     "fullAddress": fullAddress,
     "paymentStatus": paymentStatus,
+    "isReview": isReview,
     "status": status,
     "total": total,
     "createdAt": createdAt?.toIso8601String(),
