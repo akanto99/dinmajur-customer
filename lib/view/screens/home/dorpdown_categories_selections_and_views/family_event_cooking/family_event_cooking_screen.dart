@@ -14,6 +14,7 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_botto
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_scrollable_categorytab.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/getall_family_event_cooking_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -748,9 +749,44 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 if (package.items != null && package.items!.isNotEmpty) ...[
                   SizedBox(height: 8),
                   ...package.items!.map(
-                    (item) => Padding(
+                        (item) => Padding(
                       padding: EdgeInsets.only(bottom: 4),
-                      child: Text(item.name ?? '', style: AppTextStyles.textSize14(context)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.name ?? '', style: AppTextStyles.textSize14(context)),
+                          SizedBox(height: 4),
+                          if (item.description != null && item.description!.isNotEmpty)
+                            Html(
+                              data: item.description!,
+                              style: {
+                                "body": Style(
+                                  margin: Margins.zero,
+                                  padding: HtmlPaddings.zero,
+                                ),
+                                "h1,h2,h3,h4,h5,h6": Style(
+                                  margin: Margins.zero,
+                                ),
+                                "p": Style(
+                                  margin: Margins.zero,
+                                  padding: HtmlPaddings.zero,
+                                ),
+                                "ul": Style(
+                                  margin: Margins.zero,
+                                  padding: HtmlPaddings.only(left: 15), // control list indent
+                                ),
+                                "ol": Style(
+                                  margin: Margins.zero,
+                                  padding: HtmlPaddings.only(left: 15), // control numbering alignment
+                                ),
+                                "li": Style(
+                                  margin: Margins.zero,
+                                  padding: HtmlPaddings.zero,
+                                ),
+                              },
+                            )
+                        ],
+                      ),
                     ),
                   ),
                 ],
