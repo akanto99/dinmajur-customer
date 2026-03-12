@@ -1,7 +1,7 @@
 /// For Web View SSL Implementation using payment url
 // import 'package:dinmajur_customer/configs/res/color.dart';
 // import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
-// import 'package:dinmajur_customer/configs/res/components/iagree_terms&condition/iagree_terms&condition.dart';
+// import 'package:dinmajur_customer/configs/res/components/_terms&condition/_terms&condition.dart';
 // import 'package:dinmajur_customer/configs/res/components/payment_method/payment_method_component.dart';
 // import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 // import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -966,7 +966,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       throw Exception('No active category selected');
     }
 
-    // Find the active category
     Datum? activeCategory;
     for (var category in widget.categories) {
       if (category.id == widget.activeCategoryId) {
@@ -981,13 +980,12 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
 
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
 
-    // Base booking data
     Map<String, dynamic> bookingPayload = {
       "booking": {
         "paymentType": checkoutVM.getPaymentMethodData(checkoutVM.selectedPaymentMethod).toUpperCase(),
         "fullAddress": _addressController.text,
-        "fullName":widget.customerName,
-        "phone":widget.customerPhone,
+        "fullName": widget.customerName,
+        "phone": widget.customerPhone,
         "date": widget.selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
         "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
       },
@@ -995,14 +993,9 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     };
 
     if (activeCategory.type == 'REGULAR') {
-      // REGULAR type: Single package selection
       final selectedPackageId = widget.selectedPackages[activeCategory.id];
+      if (selectedPackageId == null) throw Exception('No package selected');
 
-      if (selectedPackageId == null) {
-        throw Exception('No package selected');
-      }
-
-      // Find the selected package to get price ID
       String? priceId;
       for (var package in activeCategory.packages ?? []) {
         if (package.id == selectedPackageId) {
@@ -1013,25 +1006,34 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         }
       }
 
-      bookingPayload["packages"] =[
-        {
-          "packageId": selectedPackageId,
-          "priceId": priceId,
-        }
+      bookingPayload["packages"] = [
+        {"packageId": selectedPackageId, "priceId": priceId},
       ];
-    } else if (activeCategory.type == 'MANUAL') {
-      // MANUAL type: Multiple items selection
-      bookingPayload["eventCookingCategoryId"] = activeCategory.id;
 
-      // Group items by package
+    } else if (activeCategory.type == 'CUSTOM') {
+      // Same structure as REGULAR — single package, priceId from customPrice
+      final selectedPackageId = widget.selectedPackages[activeCategory.id];
+      if (selectedPackageId == null) throw Exception('No package selected');
+
+      String? priceId;
+      for (var package in activeCategory.packages ?? []) {
+        if (package.id == selectedPackageId) {
+          priceId = package.customPrice?.id;
+          break;
+        }
+      }
+
+      bookingPayload["packages"] = [
+        {"packageId": selectedPackageId, "priceId": priceId},
+      ];
+
+    } else if (activeCategory.type == 'MANUAL') {
       Map<String, List<Map<String, String>>> packageItemsMap = {};
 
       for (var package in activeCategory.packages ?? []) {
         for (var item in package.items ?? []) {
           final key = '${package.id}_${item.id}';
-
           if (widget.selectedManualItems[activeCategory.id]?.contains(key) ?? false) {
-            // Get the price ID for this item
             String? priceId;
             if (widget.selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
               priceId = item.prices![widget.selectedGuestRangeIndex].id;
@@ -1040,22 +1042,17 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             if (!packageItemsMap.containsKey(package.id)) {
               packageItemsMap[package.id!] = [];
             }
-
             packageItemsMap[package.id]!.add({
               "itemId": item.id!,
-              "priceId": priceId ?? item.id!, // Fallback to item.id if price not found
+              "priceId": priceId ?? item.id!,
             });
           }
         }
       }
 
-      // Convert map to packages array
       List<Map<String, dynamic>> packages = [];
       packageItemsMap.forEach((packageId, items) {
-        packages.add({
-          "packageId": packageId,
-          "items": items,
-        });
+        packages.add({"packageId": packageId, "items": items});
       });
 
       bookingPayload["packages"] = packages;
@@ -1178,13 +1175,36 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   }
 
   String _getGuestRangeText() {
-    final ranges = ['25-30', '30-35', '40-50'];
-    if (widget.selectedGuestRangeIndex < ranges.length) {
-      return ranges[widget.selectedGuestRangeIndex];
+    // Collect unique guest ranges in the same order as FamilyEventCookingScreen does
+    final List<GuestRange> guestRanges = [];
+    final Set<String> seenIds = {};
+
+    for (var category in widget.categories) {
+      for (var package in category.packages ?? []) {
+        // REGULAR type — prices on the package
+        for (var price in package.prices ?? []) {
+          if (price.guestRange != null && !seenIds.contains(price.guestRange!.id)) {
+            seenIds.add(price.guestRange!.id!);
+            guestRanges.add(price.guestRange!);
+          }
+        }
+        // MANUAL type — prices on the items
+        for (var item in package.items ?? []) {
+          for (var price in item.prices ?? []) {
+            if (price.guestRange != null && !seenIds.contains(price.guestRange!.id)) {
+              seenIds.add(price.guestRange!.id!);
+              guestRanges.add(price.guestRange!);
+            }
+          }
+        }
+      }
+    }
+
+    if (widget.selectedGuestRangeIndex < guestRanges.length) {
+      return guestRanges[widget.selectedGuestRangeIndex].label ?? '';
     }
     return '';
   }
-
   @override
   Widget build(BuildContext context) {
     return Consumer2<CookingCheckoutViewModel, PostBookFamilyEventCookingViewModel>(
@@ -1235,7 +1255,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                             getButtonColor: (context) => AppColors.button(context),
                             getBorderColor: (context) => AppColors.border(context),
                             getWhiteColor: (context) => AppColors.whiteColor,
-                            getTextStyle: (context, {weight}) => AppTextStyles.textSize12(context, weight: weight ?? FontWeight.w400),
+                            getTextStyle: (context, {weight}) => AppTextStyles.textSize14(context, weight: weight ?? FontWeight.w400),
                           ),
                           SizedboxSpaccing.height03(context)
                         ],
@@ -1344,6 +1364,15 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    // Check if active category is CUSTOM
+    bool isCustomCategory = false;
+    for (var category in widget.categories) {
+      if (category.id == widget.activeCategoryId) {
+        isCustomCategory = category.type == 'CUSTOM';
+        break;
+      }
+    }
+
     return Column(
       children: [
         SectionHeader(title: 'Booking Summary', titleWidth: screenWidth * 0.6, showSeeAll: false),
@@ -1358,35 +1387,19 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Show selected package/items details
               _buildSelectedItemsSection(),
               SizedboxSpaccing.height015(context),
               _buildSummaryRow('Date', DateFormat('MMMM dd, yyyy').format(widget.selectedDate ?? DateTime.now())),
-              SizedboxSpaccing.height015(context),
-              _buildSummaryRow('Number of Guests', _getGuestRangeText()),
+              if (!isCustomCategory) ...[
+                SizedboxSpaccing.height015(context),
+                _buildSummaryRow('Number of Guests', _getGuestRangeText()),
+              ],
               SizedboxSpaccing.height015(context),
               _buildSummaryRow('Slot', widget.selectedServiceTime ?? 'Not selected'),
               SizedboxSpaccing.height015(context),
               _buildPriceRow('Subtotal', widget.totalPrice),
               SizedboxSpaccing.height015(context),
               _buildPriceRow('Transport', widget.transportFee),
-              // if (widget.savedAmount > 0) ...[
-              //   SizedboxSpaccing.height015(context),
-              //   _buildPriceRow('You Saved', widget.savedAmount, isGreen: true),
-              // ],
-              // SizedboxSpaccing.height02(context),
-              // Divider(height: 1, color: AppColors.border(context)),
-              // SizedboxSpaccing.height02(context),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //   children: [
-              //     Text('Total Amount', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              //     Text(
-              //       '৳${(widget.totalPrice + widget.transportFee).toStringAsFixed(0)}',
-              //       style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.buttonTextColor(context)),
-              //     ),
-              //   ],
-              // ),
             ],
           ),
         ),
@@ -1405,12 +1418,13 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
           return _buildRegularPackageDetails(category);
         } else if (category.type == 'MANUAL') {
           return _buildManualItemsDetails(category);
+        } else if (category.type == 'CUSTOM') {
+          return _buildCustomPackageDetails(category);
         }
       }
     }
     return SizedBox.shrink();
   }
-
 // Build REGULAR package details
   Widget _buildRegularPackageDetails(Datum category) {
     final selectedPackageId = widget.selectedPackages[category.id];
@@ -1595,7 +1609,45 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       ],
     );
   }
+  Widget _buildCustomPackageDetails(Datum category) {
+    final selectedPackageId = widget.selectedPackages[category.id];
+    if (selectedPackageId == null) return SizedBox.shrink();
 
+    for (var package in category.packages ?? []) {
+      if (package.id == selectedPackageId) {
+        final salePrice = package.customPrice?.salePrice?.toDouble() ?? 0;
+        final originalPrice = package.customPrice?.originalPrice?.toDouble() ?? 0;
+        final savedAmount = originalPrice - salePrice;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              package.name ?? '',
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+            ),
+            Row(
+              children: [
+                Text(
+                  '৳${salePrice.toStringAsFixed(2)}',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                ),
+                if (savedAmount > 0) ...[
+                  SizedBox(width: 8),
+                  Text(
+                    '৳${originalPrice.toStringAsFixed(0)}',
+                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))
+                        .copyWith(decoration: TextDecoration.lineThrough),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        );
+      }
+    }
+    return SizedBox.shrink();
+  }
   Widget _buildConfirmButton(
       BuildContext context,
       CookingCheckoutViewModel checkoutVM,

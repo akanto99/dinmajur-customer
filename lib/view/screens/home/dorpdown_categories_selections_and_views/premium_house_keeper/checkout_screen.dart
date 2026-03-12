@@ -1062,7 +1062,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                   getButtonColor: (context) => AppColors.button(context),
                   getBorderColor: (context) => AppColors.border(context),
                   getWhiteColor: (context) => AppColors.whiteColor,
-                  getTextStyle: (context, {weight}) => AppTextStyles.textSize12(context, weight: weight ?? FontWeight.w400),
+                  getTextStyle: (context, {weight}) => AppTextStyles.textSize14(context, weight: weight ?? FontWeight.w400),
                 ),
                 SizedboxSpaccing.height03(context)
               ],

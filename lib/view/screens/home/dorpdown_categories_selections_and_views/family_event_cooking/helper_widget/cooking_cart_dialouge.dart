@@ -53,7 +53,6 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
     for (var category in widget.categories) {
       if (category.id == widget.activeCategoryId) {
         if (category.type == 'REGULAR') {
-          // Handle REGULAR packages
           final selectedPackageId = widget.selectedPackages[category.id];
           if (selectedPackageId != null) {
             for (var package in category.packages ?? []) {
@@ -66,7 +65,6 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   originalPrice = package.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
                 }
 
-                // Store Package object (not Datum)
                 cartItems.add({
                   'package': package,
                   'category': category,
@@ -80,7 +78,6 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             }
           }
         } else if (category.type == 'MANUAL') {
-          // Handle MANUAL items
           for (var package in category.packages ?? []) {
             for (var item in package.items ?? []) {
               final key = '${package.id}_${item.id}';
@@ -93,7 +90,6 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   originalPrice = item.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
                 }
 
-                // Store Package object and Item object
                 cartItems.add({
                   'package': package,
                   'category': category,
@@ -102,6 +98,27 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   'originalPrice': originalPrice,
                   'type': 'MANUAL'
                 });
+              }
+            }
+          }
+        } else if (category.type == 'CUSTOM') {
+          // CUSTOM: same as REGULAR — one selected package, price from customPrice
+          final selectedPackageId = widget.selectedPackages[category.id];
+          if (selectedPackageId != null) {
+            for (var package in category.packages ?? []) {
+              if (package.id == selectedPackageId) {
+                final salePrice = package.customPrice?.salePrice?.toDouble() ?? 0;
+                final originalPrice = package.customPrice?.originalPrice?.toDouble() ?? 0;
+
+                cartItems.add({
+                  'package': package,
+                  'category': category,
+                  'item': null,
+                  'salePrice': salePrice,
+                  'originalPrice': originalPrice,
+                  'type': 'CUSTOM'
+                });
+                break;
               }
             }
           }

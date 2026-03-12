@@ -8,8 +8,13 @@ extension EventCookingReceiptAdapter on Data {
   /// Convert Event Cooking booking data to UniversalReceiptData for PDF generation
   UniversalReceiptData toUniversalReceiptData() {
     // Determine booking type (REGULAR or MANUAL)
-    final bool hasManualItems = items?.any((item) => item.isManual) ?? false;
-    final String bookingType = hasManualItems ? 'MANUAL' : 'REGULAR';
+    final String bookingType;
+    if (eventCookingCategory is EventCookingCategory) {
+      bookingType = (eventCookingCategory as EventCookingCategory).type ?? 'REGULAR';
+    } else {
+      final bool hasManualItems = items?.any((item) => item.isManual) ?? false;
+      bookingType = hasManualItems ? 'MANUAL' : 'REGULAR';
+    }
 
     // Extract guest range from first item's price details
     String? guestRange;
