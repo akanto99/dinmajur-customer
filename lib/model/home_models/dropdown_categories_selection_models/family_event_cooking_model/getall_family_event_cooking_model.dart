@@ -96,6 +96,63 @@ class Image {
   };
 }
 
+
+// Add this class to your getall_family_event_cooking_model.dart
+
+// ── CustomPrice model ─────────────────────────────────────────────────────
+class CustomPrice {
+  String? id;
+  String? type;
+  int? originalPrice;
+  double? salePrice;
+  DiscountType? discountType;
+  int? discountValue;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  int? v;
+
+  CustomPrice({
+    this.id,
+    this.type,
+    this.originalPrice,
+    this.salePrice,
+    this.discountType,
+    this.discountValue,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
+
+  factory CustomPrice.fromJson(Map<String, dynamic> json) => CustomPrice(
+    id: json["_id"],
+    type: json["type"],
+    originalPrice: json["originalPrice"],
+    salePrice: json["salePrice"]?.toDouble(),
+    discountType: discountTypeValues.map[json["discountType"]] ??
+        DiscountType.NONE,
+    discountValue: json["discountValue"],
+    createdAt: json["createdAt"] == null
+        ? null
+        : DateTime.parse(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null
+        ? null
+        : DateTime.parse(json["updatedAt"]),
+    v: json["__v"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "type": type,
+    "originalPrice": originalPrice,
+    "salePrice": salePrice,
+    "discountType": discountTypeValues.reverse[discountType],
+    "discountValue": discountValue,
+    "createdAt": createdAt?.toIso8601String(),
+    "updatedAt": updatedAt?.toIso8601String(),
+    "__v": v,
+  };
+}
+
 class Package {
   String? id;
   String? name;
@@ -103,6 +160,7 @@ class Package {
   List<Price>? prices;
   List<Item>? items;
   Image? image;
+    CustomPrice? customPrice; // <-- NEW field for CUSTOM type
 
   Package({
     this.id,
@@ -111,6 +169,7 @@ class Package {
     this.prices,
     this.items,
     this.image,
+    this.customPrice,
   });
 
   factory Package.fromJson(Map<String, dynamic> json) => Package(
@@ -120,7 +179,9 @@ class Package {
     prices: json["prices"] == null ? [] : List<Price>.from(json["prices"]!.map((x) => Price.fromJson(x))),
     items: json["items"] == null ? [] : List<Item>.from(json["items"]!.map((x) => Item.fromJson(x))),
     image: json["image"] == null ? null : Image.fromJson(json["image"]),
-
+    customPrice: json["customPrice"] == null
+        ? null
+        : CustomPrice.fromJson(json["customPrice"])
   );
 
   Map<String, dynamic> toJson() => {
@@ -130,7 +191,7 @@ class Package {
     "prices": prices == null ? [] : List<dynamic>.from(prices!.map((x) => x.toJson())),
     "items": items == null ? [] : List<dynamic>.from(items!.map((x) => x.toJson())),
     "image": image?.toJson(),
-
+    "customPrice": customPrice?.toJson()
   };
 }
 
