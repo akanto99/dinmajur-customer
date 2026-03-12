@@ -86,6 +86,8 @@ class _GooglePlaceSearchTextFieldState extends State<GooglePlaceSearchTextField>
   bool _isUserInput = false;
 
   String get _apiKey => dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  final Map<String, bool> _serviceabilityCache = {};
+
 
   @override
   void initState() {
@@ -151,17 +153,87 @@ class _GooglePlaceSearchTextFieldState extends State<GooglePlaceSearchTextField>
     return serviceableKeywords.any((kw) => text.contains(kw));
   }
 
+
+  Future<bool> _isPredictionServiceableAsync(_Prediction prediction) async {
+    // Return cached result if available
+    if (_serviceabilityCache.containsKey(prediction.placeId)) {
+      return _serviceabilityCache[prediction.placeId]!;
+    }
+
+    try {
+      final uri = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/details/json'
+            '?place_id=${prediction.placeId}'
+            '&fields=address_components'
+            '&key=$_apiKey',
+      );
+      final res = await http.get(uri);
+      if (res.statusCode != 200) return false;
+
+      final data = json.decode(res.body);
+      if (data['status'] != 'OK') return false;
+
+      final components = data['result']['address_components'] as List<dynamic>;
+
+      String level2 = '';
+      String level1 = '';
+
+      for (final c in components) {
+        final types = List<String>.from(c['types'] as List);
+        final name = (c['long_name'] as String? ?? '').toLowerCase().trim();
+
+        if (types.contains('administrative_area_level_2') && level2.isEmpty) {
+          level2 = name;
+        }
+        if (types.contains('administrative_area_level_1') && level1.isEmpty) {
+          level1 = name;
+        }
+      }
+
+      print('=== Serviceability Check ===');
+      print('Prediction: ${prediction.description}');
+      print('Level2: $level2');
+      print('Level1: $level1');
+
+      const serviceableKeywords = [
+        'chittagong', 'chattogram', 'chottogram', 'chattagam', 'ctg',
+        'চট্টগ্রাম', 'চিটাগাং',
+        'dhaka', 'ঢাকা',
+      ];
+
+      // ✅ Check administrative_area_level_2 first, then level_1 as fallback
+      final checkText = level2.isNotEmpty ? level2 : level1;
+      final result = serviceableKeywords.any((kw) => checkText.contains(kw));
+
+      print('CheckText: $checkText');
+      print('Serviceable: $result');
+      print('============================');
+
+      _serviceabilityCache[prediction.placeId] = result;
+      return result;
+
+    } catch (e) {
+      debugPrint('_isPredictionServiceableAsync error: $e');
+      return false;
+    }
+  }
+
   Future<void> _onPredictionTapped(_Prediction prediction) async {
-    // ✅ Block non-serviceable cities
-    if (!_isPredictionServiceable(prediction)) {
-      Utils.flushBarErrorMessage("Service is not available in this area", context);
+    final isServiceable = await _isPredictionServiceableAsync(prediction);
+
+    if (!isServiceable) {
+      if (mounted) {
+        Utils.flushBarErrorMessage("Service is not available in this area", context);
+      }
       return;
     }
 
     _isPlaceSelected = true;
     _lastSelectedText = prediction.description;
     widget.controller.text = prediction.description;
-    widget.controller.selection = TextSelection.fromPosition(TextPosition(offset: prediction.description.length));
+    widget.controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: prediction.description.length),
+    );
     setState(() => _showSuggestions = false);
     FocusScope.of(context).unfocus();
     await _fetchPlaceDetails(prediction.placeId, prediction.description);
@@ -293,60 +365,82 @@ class _GooglePlaceSearchTextFieldState extends State<GooglePlaceSearchTextField>
                 separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.border(context)),
                 itemBuilder: (context, i) {
                   final p = _predictions[i];
-                  final bool serviceable = _isPredictionServiceable(p);
 
-                  return Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _onPredictionTapped(p),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              // ✅ Grey icon for non-serviceable
-                              color: serviceable ? AppColors.button(context) : AppColors.subtitle(context),
-                              size: 18,
-                            ),
-                            SizedboxSpaccing.width03(context),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                  return FutureBuilder<bool>(
+                    future: _isPredictionServiceableAsync(p),
+                    initialData: true, // show as available while loading
+                    builder: (context, snapshot) {
+                      final bool serviceable = snapshot.data ?? true;
+
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _onPredictionTapped(p),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  color: serviceable
+                                      ? AppColors.button(context)
+                                      : AppColors.subtitle(context),
+                                  size: 18,
+                                ),
+                                SizedboxSpaccing.width03(context),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Text(
-                                          p.mainText,
-                                          style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: serviceable ? AppColors.textPrimary(context) : AppColors.subtitle(context)),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      if (!serviceable)
-                                        Container(
-                                          margin: const EdgeInsets.only(left: 6),
-                                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                                          child: Text(
-                                            'Not Available',
-                                            style: AppTextStyles.textSize10(context, color: Colors.orange, weight: FontWeight.w500),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              p.mainText,
+                                              style: AppTextStyles.textSize14(
+                                                context,
+                                                weight: FontWeight.w500,
+                                                color: serviceable
+                                                    ? AppColors.textPrimary(context)
+                                                    : AppColors.subtitle(context),
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ),
+                                          if (!serviceable)
+                                            Container(
+                                              margin: const EdgeInsets.only(left: 6),
+                                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                                              child: Text(
+                                                'Not Available',
+                                                style: AppTextStyles.textSize10(
+                                                  context,
+                                                  color: Colors.orange,
+                                                  weight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      if (p.secondaryText.isNotEmpty)
+                                        Text(
+                                          p.secondaryText,
+                                          style: AppTextStyles.textSize12(
+                                            context,
+                                            weight: FontWeight.w400,
+                                            color: AppColors.subtitle(context),
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                     ],
                                   ),
-                                  if (p.secondaryText.isNotEmpty)
-                                    Text(
-                                      p.secondaryText,
-                                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               ),

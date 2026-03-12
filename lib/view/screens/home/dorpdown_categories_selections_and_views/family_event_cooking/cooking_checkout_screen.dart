@@ -1031,6 +1031,23 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         }
       }
 
+      bookingPayload["packages"] = [
+        {"packageId": selectedPackageId, "priceId": priceId},
+      ];
+
+    } else if (activeCategory.type == 'CUSTOM') {
+      // Same structure as REGULAR — single package, priceId from customPrice
+      final selectedPackageId = widget.selectedPackages[activeCategory.id];
+      if (selectedPackageId == null) throw Exception('No package selected');
+
+      String? priceId;
+      for (var package in activeCategory.packages ?? []) {
+        if (package.id == selectedPackageId) {
+          priceId = package.customPrice?.id;
+          break;
+        }
+      }
+
       bookingPayload["packages"] =[
         {
           "packageId": selectedPackageId,
@@ -1195,7 +1212,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     }
   }
 
-// ✅ AFTER — reads label from the actual data model
   String _getGuestRangeText() {
     // Collect unique guest ranges in the same order as FamilyEventCookingScreen does
     final List<GuestRange> guestRanges = [];
@@ -1278,7 +1294,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                             getButtonColor: (context) => AppColors.button(context),
                             getBorderColor: (context) => AppColors.border(context),
                             getWhiteColor: (context) => AppColors.whiteColor,
-                            getTextStyle: (context, {weight}) => AppTextStyles.textSize12(context, weight: weight ?? FontWeight.w400),
+                            getTextStyle: (context, {weight}) => AppTextStyles.textSize14(context, weight: weight ?? FontWeight.w400),
                           ),
                           SizedboxSpaccing.height03(context)
                         ],
@@ -1295,30 +1311,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     );
   }
 
-  // Future<void> _handleEditAddress() async {
-  //   final result = await Navigator.pushNamed(
-  //     context,
-  //     RoutesName.addLocationScreenWidget,
-  //   );
-  //
-  //   if (result != null && result is Map<String, dynamic>) {
-  //     setState(() {
-  //       String newAddress = '';
-  //
-  //       if (result['addressType'] == 'saved') {
-  //         newAddress = result['fullAddress'] ?? '';
-  //       } else if (result['addressType'] == 'new') {
-  //         newAddress = result['fullAddress'] ?? '';
-  //       }
-  //
-  //       _addressController.text = newAddress;
-  //
-  //       if (widget.onAddressUpdate != null && newAddress.isNotEmpty) {
-  //         widget.onAddressUpdate!(newAddress);
-  //       }
-  //     });
-  //   }
-  // }
   Future<void> _handleEditAddress() async {
     final result = await Navigator.pushNamed(context, RoutesName.addLocationScreenWidget);
 
@@ -1409,6 +1401,15 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    // Check if active category is CUSTOM
+    bool isCustomCategory = false;
+    for (var category in widget.categories) {
+      if (category.id == widget.activeCategoryId) {
+        isCustomCategory = category.type == 'CUSTOM';
+        break;
+      }
+    }
+
     return Column(
       children: [
         SectionHeader(title: 'Booking Summary', titleWidth: screenWidth * 0.6, showSeeAll: false),
@@ -1427,31 +1428,16 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
               _buildSelectedItemsSection(),
               SizedboxSpaccing.height015(context),
               _buildSummaryRow('Date', DateFormat('MMMM dd, yyyy').format(widget.selectedDate ?? DateTime.now())),
-              SizedboxSpaccing.height015(context),
-              _buildSummaryRow('Number of Guests', _getGuestRangeText()),
+              if (!isCustomCategory) ...[
+                SizedboxSpaccing.height015(context),
+                _buildSummaryRow('Number of Guests', _getGuestRangeText()),
+              ],
               SizedboxSpaccing.height015(context),
               _buildSummaryRow('Slot', widget.selectedServiceTime ?? 'Not selected'),
               SizedboxSpaccing.height015(context),
               _buildPriceRow('Subtotal', widget.totalPrice),
               SizedboxSpaccing.height015(context),
               _buildPriceRow('Transport', widget.transportFee),
-              // if (widget.savedAmount > 0) ...[
-              //   SizedboxSpaccing.height015(context),
-              //   _buildPriceRow('You Saved', widget.savedAmount, isGreen: true),
-              // ],
-              // SizedboxSpaccing.height02(context),
-              // Divider(height: 1, color: AppColors.border(context)),
-              // SizedboxSpaccing.height02(context),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //   children: [
-              //     Text('Total Amount', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              //     Text(
-              //       '৳${(widget.totalPrice + widget.transportFee).toStringAsFixed(0)}',
-              //       style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.buttonTextColor(context)),
-              //     ),
-              //   ],
-              // ),
             ],
           ),
         ),
@@ -1470,6 +1456,8 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
           return _buildRegularPackageDetails(category);
         } else if (category.type == 'MANUAL') {
           return _buildManualItemsDetails(category);
+        } else if (category.type == 'CUSTOM') {
+          return _buildCustomPackageDetails(category);
         }
       }
     }
@@ -1660,7 +1648,45 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       ],
     );
   }
+  Widget _buildCustomPackageDetails(Datum category) {
+    final selectedPackageId = widget.selectedPackages[category.id];
+    if (selectedPackageId == null) return SizedBox.shrink();
 
+    for (var package in category.packages ?? []) {
+      if (package.id == selectedPackageId) {
+        final salePrice = package.customPrice?.salePrice?.toDouble() ?? 0;
+        final originalPrice = package.customPrice?.originalPrice?.toDouble() ?? 0;
+        final savedAmount = originalPrice - salePrice;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              package.name ?? '',
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+            ),
+            Row(
+              children: [
+                Text(
+                  '৳${salePrice.toStringAsFixed(2)}',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
+                ),
+                if (savedAmount > 0) ...[
+                  SizedBox(width: 8),
+                  Text(
+                    '৳${originalPrice.toStringAsFixed(0)}',
+                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))
+                        .copyWith(decoration: TextDecoration.lineThrough),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        );
+      }
+    }
+    return SizedBox.shrink();
+  }
   Widget _buildConfirmButton(
       BuildContext context,
       CookingCheckoutViewModel checkoutVM,
