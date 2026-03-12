@@ -86,7 +86,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       CheckoutSessionLocationService.clear();
     }
     _currentCustomerAddress = widget.customerAddress;
-
+    _customerLocation = widget.customerLocation;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false).fetchGetAllFamilyEventCookingGetDataApi();
     });
@@ -916,7 +916,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                   ...package.items!.map(
                     (item) => Padding(
                       padding: EdgeInsets.only(bottom: 4),
-                      child: Text(item.name ?? '', style: AppTextStyles.textSize14(context)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.name ?? '', style: AppTextStyles.textSize14(context)),
+                          Text(item.description ?? '', style: AppTextStyles.textSize14(context)),
+                        ],
+                      ),
                     ),
                   ),
                 ],
