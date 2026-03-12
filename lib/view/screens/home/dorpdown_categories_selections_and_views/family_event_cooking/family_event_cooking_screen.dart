@@ -52,7 +52,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   late String _currentCustomerAddress;
 
 
-  // Add this helper method to your state class
+  bool _isCurrentTabCustom(List<Datum> data) {
+    final safeIndex = _selectedTabIndex.clamp(0, data.length - 1);
+    return data[safeIndex].type == 'CUSTOM';
+  }
+
   int _getSelectedManualItemCount() {
     if (_activeCategoryId == null) return 0;
     return _selectedManualItems[_activeCategoryId]?.length ?? 0;
@@ -82,7 +86,6 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       CheckoutSessionLocationService.clear();
     }
     _currentCustomerAddress = widget.customerAddress;
-    _customerLocation = widget.customerLocation;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false).fetchGetAllFamilyEventCookingGetDataApi();
@@ -197,43 +200,44 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
 
   double _calculateTotal() {
     if (_activeCategoryId == null) return 0.0;
-
     final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
     final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
-
     double total = 0;
 
     for (var category in data) {
-      if (category.id == _activeCategoryId) {
-        if (category.type == 'REGULAR') {
-          // Calculate for REGULAR packages (only one package selected)
-          final selectedPackageId = _selectedPackages[category.id];
-          if (selectedPackageId != null) {
-            for (var package in category.packages ?? []) {
-              if (package.id == selectedPackageId) {
-                if (_selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
-                  total += package.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
-                }
-                break;
-              }
-            }
-          }
-        } else if (category.type == 'MANUAL') {
-          // Calculate for MANUAL items (multiple items can be selected)
+      if (category.id != _activeCategoryId) continue;
+
+      if (category.type == 'REGULAR') {
+        final selectedPackageId = _selectedPackages[category.id];
+        if (selectedPackageId != null) {
           for (var package in category.packages ?? []) {
-            for (var item in package.items ?? []) {
-              if (_isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '')) {
-                if (_selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
-                  total += item.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
-                }
-              }
+            if (package.id == selectedPackageId && _selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
+              total += package.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
+              break;
             }
           }
         }
-        break;
+      } else if (category.type == 'MANUAL') {
+        for (var package in category.packages ?? []) {
+          for (var item in package.items ?? []) {
+            if (_isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '') && _selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
+              total += item.prices![_selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
+            }
+          }
+        }
+      } else if (category.type == 'CUSTOM') {
+        final selectedPackageId = _selectedPackages[category.id];
+        if (selectedPackageId != null) {
+          for (var package in category.packages ?? []) {
+            if (package.id == selectedPackageId) {
+              total += package.customPrice?.salePrice?.toDouble() ?? 0;
+              break;
+            }
+          }
+        }
       }
+      break;
     }
-
     return total;
   }
 
@@ -246,40 +250,41 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     double totalSaved = 0;
 
     for (var category in data) {
-      if (category.id == _activeCategoryId) {
-        if (category.type == 'REGULAR') {
-          final selectedPackageId = _selectedPackages[category.id];
-          if (selectedPackageId != null) {
-            for (var package in category.packages ?? []) {
-              if (package.id == selectedPackageId) {
-                if (_selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
-                  final priceInfo = package.prices![_selectedGuestRangeIndex];
-                  final originalPrice = priceInfo.originalPrice?.toDouble() ?? 0;
-                  final salePrice = priceInfo.salePrice?.toDouble() ?? 0;
-                  totalSaved += (originalPrice - salePrice);
-                }
-                break;
-              }
-            }
-          }
-        } else if (category.type == 'MANUAL') {
+      if (category.id != _activeCategoryId) continue;
+
+      if (category.type == 'REGULAR') {
+        final selectedPackageId = _selectedPackages[category.id];
+        if (selectedPackageId != null) {
           for (var package in category.packages ?? []) {
-            for (var item in package.items ?? []) {
-              if (_isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '')) {
-                if (_selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
-                  final priceInfo = item.prices![_selectedGuestRangeIndex];
-                  final originalPrice = priceInfo.originalPrice?.toDouble() ?? 0;
-                  final salePrice = priceInfo.salePrice?.toDouble() ?? 0;
-                  totalSaved += (originalPrice - salePrice);
-                }
-              }
+            if (package.id == selectedPackageId && _selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
+              final p = package.prices![_selectedGuestRangeIndex];
+              totalSaved += ((p.originalPrice?.toDouble() ?? 0) - (p.salePrice?.toDouble() ?? 0));
+              break;
             }
           }
         }
-        break;
+      } else if (category.type == 'MANUAL') {
+        for (var package in category.packages ?? []) {
+          for (var item in package.items ?? []) {
+            if (_isManualItemSelected(category.id ?? '', package.id ?? '', item.id ?? '') && _selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
+              final p = item.prices![_selectedGuestRangeIndex];
+              totalSaved += ((p.originalPrice?.toDouble() ?? 0) - (p.salePrice?.toDouble() ?? 0));
+            }
+          }
+        }
+      } else if (category.type == 'CUSTOM') {
+        final selectedPackageId = _selectedPackages[category.id];
+        if (selectedPackageId != null) {
+          for (var package in category.packages ?? []) {
+            if (package.id == selectedPackageId && package.customPrice != null) {
+              totalSaved += ((package.customPrice!.originalPrice?.toDouble() ?? 0) - (package.customPrice!.salePrice?.toDouble() ?? 0));
+              break;
+            }
+          }
+        }
       }
+      break;
     }
-
     return totalSaved;
   }
 
@@ -290,12 +295,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
 
     for (var category in data) {
-      if (category.id == _activeCategoryId) {
-        if (category.type == 'REGULAR') {
-          return _selectedPackages[_activeCategoryId] != null ? 1 : 0;
-        } else if (category.type == 'MANUAL') {
-          return _selectedManualItems[_activeCategoryId]?.length ?? 0;
-        }
+      if (category.id != _activeCategoryId) continue;
+      if (category.type == 'REGULAR') {
+        return _selectedPackages[_activeCategoryId] != null ? 1 : 0;
+      } else if (category.type == 'MANUAL') {
+        return _selectedManualItems[_activeCategoryId]?.length ?? 0;
+      } else if (category.type == 'CUSTOM') {
+        return _selectedPackages[_activeCategoryId] != null ? 1 : 0;
       }
     }
 
@@ -362,9 +368,9 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 );
               }
 
-              if (data.isEmpty) {
-                return _buildEmptyState();
-              }
+              if (data.isEmpty) return _buildEmptyState();
+
+              final isCustomTab = _isCurrentTabCustom(data);
 
               return CustomScrollView(
                 controller: _mainScrollController,
@@ -429,11 +435,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           defaultIcon: Icons.restaurant,
                           supportSvg: false,
                         ),
+                        // Guest range hidden for CUSTOM
+                        if (!isCustomTab)
+                          ...[
+                            _buildGuestRangeSelector(screenWidth, data),
 
-                        // Guest Range Selector
-                        _buildGuestRangeSelector(screenWidth,data),
-
-                        SizedboxSpaccing.height02(context),
+                            SizedboxSpaccing.height02(context),
+                          ],
 
                         // Info Banner
                         Container(
@@ -690,16 +698,19 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (category.type == 'REGULAR')
-                  ...((category.packages ?? []).asMap().entries.map((pkgEntry) {
-                    final package = pkgEntry.value;
-                    final isLast = pkgEntry.key == (category.packages?.length ?? 0) - 1;
-                    return _buildRegularPackageCard(category, package, screenWidth, isLast);
+                  ...((category.packages ?? []).asMap().entries.map((e) {
+                    final isLast = e.key == (category.packages?.length ?? 0) - 1;
+                    return _buildRegularPackageCard(category, e.value, screenWidth, isLast);
                   }))
                 else if (category.type == 'MANUAL')
-                  ...((category.packages ?? []).asMap().entries.map((pkgEntry) {
-                    final package = pkgEntry.value;
-                    final isLast = pkgEntry.key == (category.packages?.length ?? 0) - 1;
-                    return _buildManualPackageSection(category, package, screenWidth, isLast);
+                  ...((category.packages ?? []).asMap().entries.map((e) {
+                    final isLast = e.key == (category.packages?.length ?? 0) - 1;
+                    return _buildManualPackageSection(category, e.value, screenWidth, isLast);
+                  }))
+                else if (category.type == 'CUSTOM')
+                  ...((category.packages ?? []).asMap().entries.map((e) {
+                    final isLast = e.key == (category.packages?.length ?? 0) - 1;
+                    return _buildCustomPackageCard(category, e.value, screenWidth, isLast);
                   })),
                 SizedboxSpaccing.height04(context),
               ],
@@ -866,6 +877,66 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       ),
     );
   }
+
+  Widget _buildCustomPackageCard(Datum category, Package package, double screenWidth, bool isLast) {
+    final isSelected = _isPackageSelected(category.id ?? '', package.id ?? '');
+    final salePrice = package.customPrice?.salePrice?.toDouble() ?? 0;
+    final originalPrice = package.customPrice?.originalPrice?.toDouble() ?? 0;
+    final hasDiscount = originalPrice > salePrice;
+    final canSelect = _canSelectFromCategory(category.id ?? '');
+
+    return Container(
+      padding: EdgeInsets.only(top: 16, bottom: isLast ? 0 : 8),
+      decoration: BoxDecoration(
+        border: isLast ? null : Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(package.name ?? '', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text('Price - ৳${salePrice.toStringAsFixed(2)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                    if (hasDiscount) ...[
+                      SizedBox(width: 8),
+                      Text(
+                        '৳${originalPrice.toStringAsFixed(0)}',
+                        style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context).withOpacity(0.5)).copyWith(decoration: TextDecoration.lineThrough),
+                      ),
+                    ],
+                  ],
+                ),
+                if (package.items != null && package.items!.isNotEmpty) ...[
+                  SizedBox(height: 8),
+                  ...package.items!.map(
+                    (item) => Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(item.name ?? '', style: AppTextStyles.textSize14(context)),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          FamilyEventCookingPackageImage(
+            imageUrl: package.image?.url,
+            isSelected: isSelected,
+            canSelect: canSelect,
+            onToggle: () => _togglePackageSelection(category.id ?? '', package.id ?? ''),
+            getButtonColor: (context) => AppColors.button(context),
+            getBorderColor: (context) => AppColors.border(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Cart & checkout ──────────────────────────────────────────────────────
 
   void _showCartDialog() {
     final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);

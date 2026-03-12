@@ -68,6 +68,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
           },
         },
       };
+      print(selectedAddressData);
     } else {
       // ── Google Place selected (guaranteed by check above) ─────────
       selectedAddressData = {

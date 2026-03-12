@@ -1,11 +1,11 @@
 class AppUrl {
-  static var baseUrl = 'https://7c5c-103-153-170-227.ngrok-free.app/api/v1' ;// Staging Server
-  static var socketUrl = 'https://7c5c-103-153-170-227.ngrok-free.app' ;// Staging
+  static var baseUrl = 'https://274d-103-153-170-227.ngrok-free.app/api/v1' ;// Staging Server
+  static var socketUrl = 'https://274d-103-153-170-227.ngrok-free.app' ;// Staging
 
   // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
 
-
+  //
   // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
   // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
@@ -61,7 +61,7 @@ class AppUrl {
   static var orderDetailsGetAPI = baseUrl + '/orders';
   static var groceryPaymnetPatchAPI = baseUrl + '/customers/payments/type';
   //Freelancer Rating
-  static var freelancerRatingPatchAPI = baseUrl + '/customers/reviews';
+  static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
   //========>Premium house Keeper
   static var checkCoverageGetAPI = baseUrl + '/customers/check-coverage';
   static var getAllPremiumHouseKeeperCategoryGetAPI = baseUrl + '/house-keeper-categories/get-all';
