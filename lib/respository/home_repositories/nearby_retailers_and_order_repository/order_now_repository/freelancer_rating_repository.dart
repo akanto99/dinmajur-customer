@@ -6,6 +6,7 @@ class PatchFreelancerRatingRepository {
   BaseApiServices _apiServices = NetworkApiService();
 
   Future<dynamic> freelancerRatingPatchApi( dynamic data) async {
+
     try {
       dynamic response = await _apiServices.getPatchApiResponse(
         "${AppUrl.freelancerRatingPatchAPI}",

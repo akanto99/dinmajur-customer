@@ -140,21 +140,18 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
 
   // For REGULAR type packages
   void _togglePackageSelection(String categoryId, String packageId) {
-    if (_activeCategoryId != null && _activeCategoryId != categoryId) {
-      Utils.flushBarErrorMessage('You can only select from one category at a time', context);
-      return;
-    }
-
     setState(() {
+      if (_activeCategoryId != null && _activeCategoryId != categoryId) {
+        _selectedPackages.clear();
+        _selectedManualItems.clear();
+      }
+
       _activeCategoryId = categoryId;
 
-      // Check if this package is already selected
       if (_selectedPackages[categoryId] == packageId) {
-        // Deselect
         _selectedPackages[categoryId] = null;
         _activeCategoryId = null;
       } else {
-        // Select this package (replaces any previously selected package in this category)
         _selectedPackages[categoryId] = packageId;
       }
     });
@@ -162,12 +159,12 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
 
   // For MANUAL type items
   void _toggleManualItemSelection(String categoryId, String packageId, String itemId) {
-    if (_activeCategoryId != null && _activeCategoryId != categoryId) {
-      Utils.flushBarErrorMessage('You can only select from one category at a time', context);
-      return;
-    }
-
     setState(() {
+      if (_activeCategoryId != null && _activeCategoryId != categoryId) {
+        _selectedPackages.clear();
+        _selectedManualItems.clear();
+      }
+
       _activeCategoryId = categoryId;
 
       final key = '${packageId}_${itemId}';
@@ -413,10 +410,26 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           iconSize: 68,
                           height: 130,
                           selectedIndex: _selectedTabIndex,
+                          // onCategoryTap: (index) {
+                          //   final selectedCategory = data[index];
+                          //   print('Category ID: ${selectedCategory.id ?? ''}');
+                          //   setState(() => _selectedTabIndex = index);
+                          //   _mainScrollController.animateTo(
+                          //     0,
+                          //     duration: Duration(milliseconds: 300),
+                          //     curve: Curves.easeInOut,
+                          //   );
+                          // },
                           onCategoryTap: (index) {
                             final selectedCategory = data[index];
                             print('Category ID: ${selectedCategory.id ?? ''}');
-                            setState(() => _selectedTabIndex = index);
+                            setState(() {
+                              _selectedTabIndex = index;
+                              // Clear all selections when switching category tab
+                              _selectedPackages.clear();
+                              _selectedManualItems.clear();
+                              _activeCategoryId = null;
+                            });
                             _mainScrollController.animateTo(
                               0,
                               duration: Duration(milliseconds: 300),
@@ -818,9 +831,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     final hasDiscount = originalPrice > salePrice;
 
     return GestureDetector(
-      onTap: canSelect
-          ? () => _toggleManualItemSelection(category.id ?? '', package.id ?? '', item.id ?? '')
-          : () => Utils.flushBarErrorMessage('You can only select from one category at a time', context),
+      onTap: () => _toggleManualItemSelection(category.id ?? '', package.id ?? '', item.id ?? ''),
       child: Container(
         margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
         padding: EdgeInsets.all(12),

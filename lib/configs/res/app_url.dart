@@ -1,6 +1,6 @@
 class AppUrl {
-  static var baseUrl = 'https://05e3-103-153-170-227.ngrok-free.app/api/v1' ;// Staging Server
-  static var socketUrl = 'https://05e3-103-153-170-227.ngrok-free.app' ;// Staging
+  static var baseUrl = 'https://6fb1-103-153-170-227.ngrok-free.app/api/v1' ;// Staging Server
+  static var socketUrl = 'https://6fb1-103-153-170-227.ngrok-free.app' ;// Staging
 
   // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
@@ -61,7 +61,7 @@ class AppUrl {
   static var orderDetailsGetAPI = baseUrl + '/orders';
   static var groceryPaymnetPatchAPI = baseUrl + '/customers/payments/type';
   //Freelancer Rating
-  static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
+  static var freelancerRatingPatchAPI = baseUrl + '/customers/reviews';
   //========>Premium house Keeper
   static var checkCoverageGetAPI = baseUrl + '/customers/check-coverage';
   static var getAllPremiumHouseKeeperCategoryGetAPI = baseUrl + '/house-keeper-categories/get-all';
@@ -79,6 +79,11 @@ class AppUrl {
   static var getAllFamilyEventCookingGetAPI = baseUrl + '/event-cooking-categories/get-all';
   static var bookFamilyEventCookingPostAPI = baseUrl + '/event-cooking-bookings';
   static var getFamilyEventCookingGetAPI = baseUrl + '/event-cooking-bookings';
+  //Home Screen ALL SERVICE
+  static var getAllServiceGetAPI = baseUrl + '/services/get-all';
+  static var getAllCategoryGetAPI = baseUrl + '/categories/by-service/69b692ba21fe44a3003183a6';
+
+
 
 
 

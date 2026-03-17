@@ -54,10 +54,10 @@ class CompletedActions extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 15),
-        ],
 
-               if (isReview) ...[ // Write Review
+        ],
+        if (showPayNow && isReview) const SizedBox(width: 15),
+               if (isReview) ...[
         Expanded(
           child: GestureDetector(
             onTap: () => showWriteReviewSheet(context, datum, _bookingId),
