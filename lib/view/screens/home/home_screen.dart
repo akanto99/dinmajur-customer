@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/widget/api_services_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/drawer.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/notifications/resuable_notifications.dart';
@@ -16,6 +17,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_service_widget.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +27,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import '../../../model/home_models/all_service_models/get_all_service_models.dart';
 import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
 import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -87,6 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     // _checkAndGetLocation();
+    final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
+    allServiceViewModel.fetchGetAllServices();
   }
 
   Future<void> _handleRefresh() async {
@@ -155,8 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _isLoadingLocation = false;
         });
-print(e.toString());
-    Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
+        print(e.toString());
+        Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
       }
     }
   }
@@ -167,14 +172,10 @@ print(e.toString());
     debugPrint('Location marked as posted.');
   }
 
-  String _stripSuffix(String raw) =>
-      raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
+  String _stripSuffix(String raw) => raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
 
   String _normalizeCity(String city) {
-    const variants = {
-      'chittagong', 'chattogram', 'chottogram', 'chattagam',
-      'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ',
-    };
+    const variants = {'chittagong', 'chattogram', 'chottogram', 'chattagam', 'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ'};
     if (variants.contains(city.toLowerCase().trim())) return 'Chittagong';
     return city;
   }
@@ -188,9 +189,7 @@ print(e.toString());
         final placemarks = await placemarkFromCoordinates(latitude, longitude);
         if (placemarks.isNotEmpty) {
           final p = placemarks.first;
-          final rawCity = p.subAdministrativeArea?.isNotEmpty == true
-              ? p.subAdministrativeArea!
-              : p.administrativeArea ?? '';
+          final rawCity = p.subAdministrativeArea?.isNotEmpty == true ? p.subAdministrativeArea! : p.administrativeArea ?? '';
           city = _normalizeCity(_stripSuffix(rawCity));
           country = p.country ?? '';
         }
@@ -212,7 +211,6 @@ print(e.toString());
       debugPrint('Error posting location to API: $e');
     }
   }
-
 
   /// Method to fetch nearby retailers
   Future<void> _fetchNearbyRetailers(String businessType) async {
@@ -333,35 +331,13 @@ print(e.toString());
         return "Premium Home Beauty & Salon";
       case "তাৎক্ষণিক বাজার":
         return "Retail";
-        case "Family Event Cooking":
+      case "Family Event Cooking":
         return "Family Event Cooking";
       default:
         return serviceName;
     }
   }
 
-  /// ✅ Method to handle trending service selection
-  // void _handleTrendingServiceTap(String serviceName) {
-  //   final storeType = _mapServiceToStoreType(serviceName);
-  //
-  //   setState(() {
-  //     selectedStoreType = storeType;
-  //     selectedServiceFromTrending = serviceName; // Track the trending service
-  //     nearbyStores = [];
-  //     isInsideServiceArea = null;
-  //     isCheckingCoverage = false;
-  //   });
-  //   // Trigger the appropriate action based on store type
-  //   if (storeType == 'Premium House Keeper') {
-  //     _checkCoverage();
-  //   } else if (storeType == 'Premium Home Beauty & Salon') {
-  //     _checkCoverage();
-  //   } else if (storeType == 'Retail') {
-  //     _fetchNearbyRetailers(storeType);
-  //   }else if (storeType == 'Family Event Cooking') {
-  //     _checkCoverage();
-  //   }
-  // }
   void _handleTrendingServiceTap(String serviceName) {
     final storeType = _mapServiceToStoreType(serviceName);
 
@@ -383,6 +359,7 @@ print(e.toString());
       _checkCoverage();
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -394,11 +371,7 @@ print(e.toString());
       backgroundColor: AppColors.containerBackground(context),
       drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: homeBody,
-          desktop: homeBody,
-          tablet: homeBody,
-        ),
+        child: ResPonsiveUi(mobile: homeBody, desktop: homeBody, tablet: homeBody),
       ),
     );
   }
@@ -424,10 +397,7 @@ print(e.toString());
                   SizedboxSpaccing.height025(context),
                   Container(
                     width: screenWidth * 0.9,
-                    decoration: BoxDecoration(
-                        color: AppColors.containerBackground(context),
-                        borderRadius: BorderRadius.circular(24)
-                    ),
+                    decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(24)),
                     child: CustomDropdown(
                       // titleText: AppLocalizations.of(context)!.select_store_type,
                       items: storeTypes.keys.toList(),
@@ -464,122 +434,110 @@ print(e.toString());
                       valueToBengaliMap: storeTypes,
                     ),
                   ),
-                  SizedboxSpaccing.height025(context),
 
-                  // ✅ Updated TrendingServicesWidget with location check
+                  Center(child: SizedboxSpaccing.height025(context)),
+
+                  // A - Always
                   TrendingServicesWidget(
-                    services: [
-                      "House Keeper",
-                      "Beauty Parlour",
-                      "তাৎক্ষণিক বাজার",
-                      "Family Event Cooking"
-                    ],
+                    services: ["House Keeper", "Beauty Parlour", "তাৎক্ষণিক বাজার", "Family Event Cooking"],
                     onServiceTap: _handleTrendingServiceTapWithLocationCheck,
                     selectedService: selectedServiceFromTrending,
                   ),
 
                   Center(child: SizedboxSpaccing.height025(context)),
-                  DynamicNearestHeader(
+
+                  // ✅ Default order A-B-C (no selection)
+                  if (selectedStoreType == null) ...[
+                    // B
+                    Container(width: screenWidth * 0.9, child: AllServicesGridWidget()),
+                    SizedboxSpaccing.height025(context),
+                  ],
+
+                  // ✅ When A clicked: show C here (B goes below)
+                  if (selectedStoreType != null) ...[
+                    // C
+                    DynamicNearestHeader(
                       selectedStoreType: selectedStoreType,
                       storeCount: nearbyStores.length,
                       screenWidth: screenWidth,
                       isInsideServiceArea: isInsideServiceArea,
-                      onSeeAllTap: () => _handleSeeAllNavigation(context)
-                  ),
-                  SizedboxSpaccing.height025(context),
+                      onSeeAllTap: () => _handleSeeAllNavigation(context),
+                    ),
+                    SizedboxSpaccing.height025(context),
 
-                  // Rest of your conditional widgets...
-                  if (selectedStoreType == 'Premium House Keeper')
-                    Consumer<ProfileViewViewModel>(
-                      builder: (context, profileViewModel, _) {
-                        String customerName = '';
-                        String customerPhone = '';
-                        String customerAddress = '';
-                        Map<String, dynamic>? customerLocation;
-
-
-                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                          final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) {
-                            customerName = userData!.user!.fullName!;
+                    if (selectedStoreType == 'Premium House Keeper')
+                      Consumer<ProfileViewViewModel>(
+                        builder: (context, profileViewModel, _) {
+                          String customerName = '';
+                          String customerPhone = '';
+                          String customerAddress = '';
+                          Map<String, dynamic>? customerLocation;
+                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                            final userData = profileViewModel.profileviewUserData.data?.data;
+                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                            final addressData = userData?.addresses;
+                            if (addressData != null) {
+                              customerLocation = {
+                                "fullAddress": addressData.fullAddress ?? '',
+                                "country": addressData.country ?? '',
+                                "city": addressData.city ?? '',
+                                "geoLocation": {
+                                  "type": addressData.geoLocation?.type ?? "Point",
+                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
+                                },
+                              };
+                            }
                           }
-                          if (userData?.user?.phone != null) {
-                            customerPhone = userData!.user!.phone!;
+                          return PremiumHouseKeeperCoverageWidget(
+                            isCheckingCoverage: isCheckingCoverage,
+                            isInsideServiceArea: isInsideServiceArea,
+                            customerName: customerName,
+                            customerPhone: customerPhone,
+                            customerAddress: customerAddress,
+                            customerLocation: customerLocation,
+                          );
+                        },
+                      )
+                    else if (selectedStoreType == 'Premium Home Beauty & Salon')
+                      Consumer<ProfileViewViewModel>(
+                        builder: (context, profileViewModel, _) {
+                          String customerName = '';
+                          String customerPhone = '';
+                          String customerAddress = '';
+                          Map<String, dynamic>? customerLocation;
+                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                            final userData = profileViewModel.profileviewUserData.data?.data;
+                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                            final addressData = userData?.addresses;
+                            if (addressData != null) {
+                              customerLocation = {
+                                "fullAddress": addressData.fullAddress ?? '',
+                                "country": addressData.country ?? '',
+                                "city": addressData.city ?? '',
+                                "geoLocation": {
+                                  "type": addressData.geoLocation?.type ?? "Point",
+                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
+                                },
+                              };
+                            }
                           }
-                          if (userData?.addresses?.fullAddress != null) {
-                            customerAddress = userData!.addresses!.fullAddress!;
-                          }
-                          final addressData = userData?.addresses;
-                          if (addressData != null) {
-                            customerLocation = {
-                              "fullAddress": addressData.fullAddress ?? '',
-                              "country": addressData.country ?? '',
-                              "city": addressData.city ?? '',
-                              "geoLocation": {
-                                "type": addressData.geoLocation?.type ?? "Point",
-                                "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                "timestamp": DateTime.now().toUtc().toIso8601String(),
-                              },
-                            };
-                          }
-                        }
-
-
-                        return PremiumHouseKeeperCoverageWidget(
-                          isCheckingCoverage: isCheckingCoverage,
-                          isInsideServiceArea: isInsideServiceArea,
-                          customerName: customerName,
-                          customerPhone: customerPhone,
-                          customerAddress: customerAddress,
-                          customerLocation: customerLocation,
-
-                        );
-                      },
-                    )
-                  else if (selectedStoreType == 'Premium Home Beauty & Salon')
-                    Consumer<ProfileViewViewModel>(
-                      builder: (context, profileViewModel, _) {
-                        String customerName = '';
-                        String customerPhone = '';
-                        String customerAddress = '';
-                        Map<String, dynamic>? customerLocation;
-
-                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                          final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) {
-                            customerName = userData!.user!.fullName!;
-                          }
-                          if (userData?.user?.phone != null) {
-                            customerPhone = userData!.user!.phone!;
-                          }
-                          if (userData?.addresses?.fullAddress != null) {
-                            customerAddress = userData!.addresses!.fullAddress!;
-                          }
-                          final addressData = userData?.addresses;
-                          if (addressData != null) {
-                            customerLocation = {
-                              "fullAddress": addressData.fullAddress ?? '',
-                              "country": addressData.country ?? '',
-                              "city": addressData.city ?? '',
-                              "geoLocation": {
-                                "type": addressData.geoLocation?.type ?? "Point",
-                                "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                "timestamp": DateTime.now().toUtc().toIso8601String(),
-                              },
-                            };
-                          }
-                        }
-                        return PremiumBeautyAndSalonCoverageWidget(
-                          isCheckingCoverage: isCheckingCoverage,
-                          isInsideServiceArea: isInsideServiceArea,
-                          customerName: customerName,
-                          customerPhone: customerPhone,
-                          customerAddress: customerAddress,
-                          customerLocation: customerLocation,
-                        );
-                      },
-                    )
-                  else if (selectedStoreType == 'Retail')
+                          return PremiumBeautyAndSalonCoverageWidget(
+                            isCheckingCoverage: isCheckingCoverage,
+                            isInsideServiceArea: isInsideServiceArea,
+                            customerName: customerName,
+                            customerPhone: customerPhone,
+                            customerAddress: customerAddress,
+                            customerLocation: customerLocation,
+                          );
+                        },
+                      )
+                    else if (selectedStoreType == 'Retail')
                       GroceryStoresSection(
                         isLoading: isLoadingStores,
                         stores: nearbyStores,
@@ -589,50 +547,48 @@ print(e.toString());
                         currentAddress: _currentAddress,
                       )
                     else if (selectedStoreType == 'Family Event Cooking')
-                        Consumer<ProfileViewViewModel>(
-                          builder: (context, profileViewModel, _) {
-                            String customerName = '';
-                            String customerPhone = '';
-                            String customerAddress = '';
-                        Map<String, dynamic>? customerLocation;
-
-                            if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                              final userData = profileViewModel.profileviewUserData.data?.data;
-                              if (userData?.user?.fullName != null) {
-                                customerName = userData!.user!.fullName!;
-                              }
-                              if (userData?.user?.phone != null) {
-                                customerPhone = userData!.user!.phone!;
-                              }
-                              if (userData?.addresses?.fullAddress != null) {
-                                customerAddress = userData!.addresses!.fullAddress!;
-                              }
-                              final addressData = userData?.addresses;
-                              if (addressData != null) {
-                                customerLocation = {
-                                  "fullAddress": addressData.fullAddress ?? '',
-                                  "country": addressData.country ?? '',
-                                  "city": addressData.city ?? '',
-                                  "geoLocation": {
-                                    "type": addressData.geoLocation?.type ?? "Point",
-                                    "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                    "timestamp": DateTime.now().toUtc().toIso8601String(),
-                                  },
-                                };
-                              }
+                      Consumer<ProfileViewViewModel>(
+                        builder: (context, profileViewModel, _) {
+                          String customerName = '';
+                          String customerPhone = '';
+                          String customerAddress = '';
+                          Map<String, dynamic>? customerLocation;
+                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                            final userData = profileViewModel.profileviewUserData.data?.data;
+                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                            final addressData = userData?.addresses;
+                            if (addressData != null) {
+                              customerLocation = {
+                                "fullAddress": addressData.fullAddress ?? '',
+                                "country": addressData.country ?? '',
+                                "city": addressData.city ?? '',
+                                "geoLocation": {
+                                  "type": addressData.geoLocation?.type ?? "Point",
+                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
+                                },
+                              };
                             }
+                          }
+                          return FamilyEventCardCoverageWidget(
+                            isCheckingCoverage: isCheckingCoverage,
+                            isInsideServiceArea: isInsideServiceArea,
+                            customerName: customerName,
+                            customerPhone: customerPhone,
+                            customerAddress: customerAddress,
+                            customerLocation: customerLocation,
+                          );
+                        },
+                      ),
 
-                            return FamilyEventCardCoverageWidget(
-                              isCheckingCoverage: isCheckingCoverage,
-                              isInsideServiceArea: isInsideServiceArea,
-                              customerName: customerName,
-                              customerPhone: customerPhone,
-                              customerAddress: customerAddress,
-                              customerLocation: customerLocation,
+                    SizedboxSpaccing.height025(context),
 
-                            );
-                          },
-                        ),
+                    // B goes below C when A is selected
+                    Container(width: screenWidth * 0.9, child: AllServicesGridWidget()),
+                    SizedboxSpaccing.height025(context),
+                  ],
 
                   SizedboxSpaccing.height02(context),
                 ],
@@ -643,7 +599,6 @@ print(e.toString());
       ),
     );
   }
-
 
   Widget _customAppBar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -803,14 +758,12 @@ print(e.toString());
                                     Text(
                                       displayAddress,
                                       style: AppTextStyles.textSize12(
-                                          context,
-                                          weight: FontWeight.w400,
-                                          color: isAddressMissing
-                                              ? Colors.red  // ✅ Red if missing
-                                              : (_isLoadingLocation
-                                              ? AppColors.subtitle(context)
-                                              : AppColors.textPrimary(context)
-                                          )
+                                        context,
+                                        weight: FontWeight.w400,
+                                        color: isAddressMissing
+                                            ? Colors
+                                                  .red // ✅ Red if missing
+                                            : (_isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -906,54 +859,45 @@ print(e.toString());
 
     if (selectedStoreType == 'Retail') {
       // ── Grocery: pass stores + position ──────────────────────
-      arguments.addAll({
-        'stores': nearbyStores,
-        'storeTypes': storeTypes,
-        'currentPosition': _currentPosition,
-        'currentAddress': _currentAddress,
-      });
-    } else if (
-    selectedStoreType == 'Premium House Keeper' ||
+      arguments.addAll({'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress});
+    } else if (selectedStoreType == 'Premium House Keeper' ||
         selectedStoreType == 'Premium Home Beauty & Salon' ||
-        selectedStoreType == 'Family Event Cooking'          // ✅ added
-    ) {
+        selectedStoreType ==
+            'Family Event Cooking' // ✅ added
+            ) {
       // ── Service types: pass customer profile data ─────────────
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 
-      String customerName    = '';
-      String customerPhone   = '';
+      String customerName = '';
+      String customerPhone = '';
       String customerAddress = '';
       Map<String, dynamic>? customerLocation;
 
       if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
         final userData = profileViewModel.profileviewUserData.data?.data;
 
-        if (userData?.user?.fullName != null)          customerName    = userData!.user!.fullName!;
-        if (userData?.user?.phone != null)             customerPhone   = userData!.user!.phone!;
-        if (userData?.addresses?.fullAddress != null)  customerAddress = userData!.addresses!.fullAddress!;
+        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
 
         final addressData = userData?.addresses;
         if (addressData != null) {
           customerLocation = {
             "fullAddress": addressData.fullAddress ?? '',
-            "country":     addressData.country ?? '',
-            "city":        addressData.city ?? '',
-            "geoLocation": {
-              "type":        addressData.geoLocation?.type ?? "Point",
-              "coordinates": addressData.geoLocation?.coordinates ?? [],
-              "timestamp":   DateTime.now().toUtc().toIso8601String(),
-            },
+            "country": addressData.country ?? '',
+            "city": addressData.city ?? '',
+            "geoLocation": {"type": addressData.geoLocation?.type ?? "Point", "coordinates": addressData.geoLocation?.coordinates ?? [], "timestamp": DateTime.now().toUtc().toIso8601String()},
           };
         }
       }
 
       arguments.addAll({
-        'isCheckingCoverage':  isCheckingCoverage,
+        'isCheckingCoverage': isCheckingCoverage,
         'isInsideServiceArea': isInsideServiceArea,
-        'customerName':        customerName,
-        'customerPhone':       customerPhone,
-        'customerAddress':     customerAddress,
-        'customerLocation':    customerLocation,  // ✅ always included
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+        'customerAddress': customerAddress,
+        'customerLocation': customerLocation, // ✅ always included
       });
     }
 
@@ -968,15 +912,15 @@ print(e.toString());
         width: 30,
         padding: const EdgeInsets.all(2),
         color: Colors.transparent,
-        child: RepaintBoundary(child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain)),
+        child: RepaintBoundary(
+          child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
+        ),
       ),
     );
   }
 
   void _checkAndShowNameDialog(String userName) {
-    if (!_nameDialogShown &&
-        (userName.trim().isEmpty || userName == 'Unknown User')) {
-
+    if (!_nameDialogShown && (userName.trim().isEmpty || userName == 'Unknown User')) {
       _nameDialogShown = true;
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -997,68 +941,60 @@ print(e.toString());
       }
     }
   }
+
   bool _hasValidLocation() {
     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 
     if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
       final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
 
-      if (addressData?.fullAddress != null &&
-          addressData!.fullAddress!.isNotEmpty &&
-          addressData.fullAddress != "Tap to set location...") {
+      if (addressData?.fullAddress != null && addressData!.fullAddress!.isNotEmpty && addressData.fullAddress != "Tap to set location...") {
         return true;
       }
     }
 
     return false;
   }
-  void _showLocationRequiredDialog() {
 
+  void _showLocationRequiredDialog() {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-            backgroundColor: AppColors.containerBackground(context),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Container(
+          backgroundColor: AppColors.containerBackground(context),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Container(
             padding: EdgeInsets.all(15),
-        child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Location Required',style: AppTextStyles.textSize20(context),),
-          SizedboxSpaccing.height02(context),
-          Text('Please set your delivery location first to view available services.',style: AppTextStyles.textSize14(context),),
-          SizedboxSpaccing.height02(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              SizedboxSpaccing.width02(context),
-              GestureDetector(
-                onTap: (){
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, RoutesName.addlocation);
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.button(context),
-                    borderRadius: BorderRadius.circular(100)
-                  ),
-                  child:Text('Set Location',style: AppTextStyles.textSize14(context, color: AppColors.whiteColor),)
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Location Required', style: AppTextStyles.textSize20(context)),
+                SizedboxSpaccing.height02(context),
+                Text('Please set your delivery location first to view available services.', style: AppTextStyles.textSize14(context)),
+                SizedboxSpaccing.height02(context),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+                    SizedboxSpaccing.width02(context),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, RoutesName.addlocation);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+                        child: Text('Set Location', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
+                      ),
+                    ),
+                  ],
                 ),
-              )
-
-
-            ],
-          )
-        ])));
-      }
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1072,5 +1008,4 @@ print(e.toString());
     // If location exists, proceed with original logic
     _handleTrendingServiceTap(serviceName);
   }
-
 }
