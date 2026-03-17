@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
 import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/servicesview_getallcategories_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beautysalon_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
@@ -360,6 +361,23 @@ class Routes {
               // valId: args['valId'],
               trackingId: args['trackingId'] as String? ?? '',
               valId: args['valId'] as String? ?? '',
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+
+
+
+
+        ///ALl Service
+      case RoutesName.servicesViewScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => ServicesViewScreen(
+              serviceId: args['serviceId'],
             ),
             settings: settings,
           );
