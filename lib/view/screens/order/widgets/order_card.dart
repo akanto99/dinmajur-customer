@@ -154,11 +154,17 @@ class OrderCard extends StatelessWidget {
               _buildFooter(context, screenHeight),
 
               // ── Completed actions ─────────────────────────────────────────
-              if (isCompletedTab && (datum.paymentStatus == null || datum.isReview == false)) ...[
+              // Show actions section for running tab (Pay Now) or completed tab (Write Review)
+              if (isRunningTab && datum.paymentStatus == null) ...[
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
                 SizedboxSpaccing.height02(context),
-                CompletedActions(datum: datum, onPayNow: onPayNow),
+                CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: true),
+              ] else if (isCompletedTab && datum.isReview == false) ...[
+                SizedboxSpaccing.height015(context),
+                Divider(height: 1, color: AppColors.border(context)),
+                SizedboxSpaccing.height02(context),
+                CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: false),
               ],
             ],
           ),

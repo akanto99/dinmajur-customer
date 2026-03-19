@@ -7,11 +7,14 @@ import 'package:flutter/material.dart';
 class CompletedActions extends StatelessWidget {
   final Datum datum;
   final Future<void> Function(BuildContext context, Datum datum) onPayNow;
+  final bool isRunningTab;
+
 
   const CompletedActions({
     super.key,
     required this.datum,
     required this.onPayNow,
+    this.isRunningTab = false,
   });
 
   String get _bookingId {
@@ -27,11 +30,16 @@ class CompletedActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool showPayNow = datum.paymentStatus == null;
-    final bool isReview = datum.isReview == false;
+    final bool showReview = datum.isReview == false;
+
+    // Running tab: only Pay Now
+    // Completed tab: only Write Review
+    final bool shouldShowPayNow = isRunningTab && showPayNow;
+    final bool shouldShowReview = !isRunningTab && showReview;
 
     return Row(
       children: [
-        if (showPayNow) ...[
+        if (shouldShowPayNow)
           Expanded(
             child: GestureDetector(
               onTap: () => onPayNow(context, datum),
@@ -55,28 +63,26 @@ class CompletedActions extends StatelessWidget {
             ),
           ),
 
-        ],
-        if (showPayNow && isReview) const SizedBox(width: 15),
-               if (isReview) ...[
-        Expanded(
-          child: GestureDetector(
-            onTap: () => showWriteReviewSheet(context, datum, _bookingId),
-            child: Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color: AppColors.containerBackground(context),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.border(context), width: 1),
-              ),
-              child: Center(
-                child: Text(
-                  "Write Review",
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+        if (shouldShowReview)
+          Expanded(
+            child: GestureDetector(
+              onTap: () => showWriteReviewSheet(context, datum, _bookingId),
+              child: Container(
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.containerBackground(context),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border(context), width: 1),
+                ),
+                child: Center(
+                  child: Text(
+                    "Write Review",
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                  ),
                 ),
               ),
             ),
           ),
-        ), ],
       ],
     );
   }

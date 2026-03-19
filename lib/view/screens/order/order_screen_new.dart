@@ -1034,7 +1034,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
         // ✅ Refresh ONLY this specific order by its booking ID — safe against
         // list reordering because we match by ID, not by index.
-        _orderViewModel.refreshSingleCompletedOrder(trackingId);
+        _orderViewModel.refreshSingleOrder(trackingId);
 
       } else if (result.status == 'CANCELLED') {
         Utils.flushBarErrorMessage("Payment cancelled", context);
