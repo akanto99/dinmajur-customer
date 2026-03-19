@@ -233,11 +233,11 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
         return;
       }
 
-      Navigator.pushNamed(
-        context,
-        RoutesName.servicesViewScreen,
-        arguments: {'serviceId': service.id},
-      );
+      // Navigator.pushNamed(
+      //   context,
+      //   RoutesName.servicesViewScreen,
+      //   arguments: {'serviceId': service.id},
+      // );
     } catch (e) {
       debugPrint('Coverage check failed: $e');
     } finally {
@@ -264,17 +264,13 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                 children: [
                   Text(
                     "All Services",
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w500,
-                      color: AppColors.textPrimary(context),
-                    ),
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                   ),
                   SizedboxSpaccing.height012(context),
                   Row(
                     children: List.generate(
                       3,
-                          (index) => Expanded(
+                      (index) => Expanded(
                         child: Padding(
                           padding: EdgeInsets.only(right: index == 2 ? 0 : 8),
                           child: _buildShimmerCard(context),
@@ -300,11 +296,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                 children: [
                   Text(
                     "All Services",
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w500,
-                      color: AppColors.textPrimary(context),
-                    ),
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                   ),
                   SizedboxSpaccing.height012(context),
                   _buildServicesGrid(context, services),
@@ -390,19 +382,11 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                       width: 80,
                       child: service.image?.url != null
                           ? CachedNetworkImage(
-                        imageUrl: service.image!.url!,
-                        fit: BoxFit.contain,
-                        errorWidget: (context, url, error) => Icon(
-                          Icons.design_services_outlined,
-                          color: AppColors.subtitle(context),
-                          size: 32,
-                        ),
-                      )
-                          : Icon(
-                        Icons.design_services_outlined,
-                        color: AppColors.subtitle(context),
-                        size: 32,
-                      ),
+                              imageUrl: service.image!.url!,
+                              fit: BoxFit.contain,
+                              errorWidget: (context, url, error) => Icon(Icons.design_services_outlined, color: AppColors.subtitle(context), size: 32),
+                            )
+                          : Icon(Icons.design_services_outlined, color: AppColors.subtitle(context), size: 32),
                     ),
                   ),
                 ),
@@ -413,19 +397,9 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                 Container(
                   height: 100,
                   width: 100,
-                  decoration: BoxDecoration(
-                    color: AppColors.containerBackground(context).withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.containerBackground(context).withOpacity(0.5), borderRadius: BorderRadius.circular(12)),
                   child: Center(
-                    child: SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: AppColors.textPrimary(context),
-                      ),
-                    ),
+                    child: SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.textPrimary(context))),
                   ),
                 ),
             ],
@@ -436,13 +410,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.textSize12(
-              context,
-              weight: isLoading ? FontWeight.w600 : FontWeight.w500,
-              color: isLoading
-                  ? AppColors.textPrimary(context)
-                  : AppColors.textPrimary(context),
-            ),
+            style: AppTextStyles.textSize12(context, weight: isLoading ? FontWeight.w600 : FontWeight.w500, color: isLoading ? AppColors.textPrimary(context) : AppColors.textPrimary(context)),
           ),
         ],
       ),
@@ -455,19 +423,13 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
         Container(
           height: 100,
           width: 100,
-          decoration: BoxDecoration(
-            color: AppColors.border(context),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: AppColors.border(context), borderRadius: BorderRadius.circular(12)),
         ),
         SizedBox(height: 8),
         Container(
           height: 12,
           width: 60,
-          decoration: BoxDecoration(
-            color: AppColors.border(context),
-            borderRadius: BorderRadius.circular(4),
-          ),
+          decoration: BoxDecoration(color: AppColors.border(context), borderRadius: BorderRadius.circular(4)),
         ),
       ],
     );

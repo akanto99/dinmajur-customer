@@ -194,7 +194,7 @@ class SSLCommerzPaymentService {
   Future<SSLPaymentResult> initiatePayment({
     required String trackingId,
     required double totalAmount,
-    String ? productCategory,
+    String? productCategory,
     bool useTestMode = false,
     String? customerName,
     String? customerPhone,
@@ -204,19 +204,11 @@ class SSLCommerzPaymentService {
     try {
       // Validate
       if (trackingId.isEmpty) {
-        return SSLPaymentResult(
-          success: false,
-          status: 'ERROR',
-          errorMessage: 'Tracking ID cannot be empty',
-        );
+        return SSLPaymentResult(success: false, status: 'ERROR', errorMessage: 'Tracking ID cannot be empty');
       }
 
       if (totalAmount <= 0) {
-        return SSLPaymentResult(
-          success: false,
-          status: 'ERROR',
-          errorMessage: 'Total amount must be greater than 0',
-        );
+        return SSLPaymentResult(success: false, status: 'ERROR', errorMessage: 'Total amount must be greater than 0');
       }
 
       final storeId = dotenv.env['SSL_STORE_ID'];
@@ -224,11 +216,7 @@ class SSLCommerzPaymentService {
       final storeIpnUrl = dotenv.env['SSL_STORE_IPN_URL'];
 
       if (storeId == null || storePassword == null) {
-        return SSLPaymentResult(
-          success: false,
-          status: 'ERROR',
-          errorMessage: 'SSL Commerz credentials not configured',
-        );
+        return SSLPaymentResult(success: false, status: 'ERROR', errorMessage: 'SSL Commerz credentials not configured');
       }
 
       // Use provided customer info or defaults
@@ -248,45 +236,47 @@ class SSLCommerzPaymentService {
       print("═══════════════════════════════════════════");
 
       // Initialize SSL Commerz with ALL required fields
-      Sslcommerz sslcommerz = Sslcommerz(
-        initializer: SSLCommerzInitialization(
-          ipn_url: storeIpnUrl,
-          store_id: storeId,
-          store_passwd: storePassword,
-          total_amount: totalAmount,
-          tran_id: trackingId,
-          currency: SSLCurrencyType.BDT,
-          product_category: productCategory ?? "",
-          sdkType:SSLCSdkType.TESTBOX,
-          // sdkType:SSLCSdkType.LIVE,
-          // sdkType:useTestMode ?SSLCSdkType.TESTBOX: SSLCSdkType.LIVE,
-          //   multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay,tap,okwallet,"
-          //     "dbbl_visa,dbbl_master,city_visa,city_master,city_amex,"
-          //     "ebl_visa,ebl_master,sbl_visa,sbl_master,brac_visa,brac_master,"
-          //     "ibbl,mtbl,city,ebl,sbl,brac,dbbl,dutchbangla,ab,scb,ucb,"
-          //     "premier,nrb,trust,bankasia,midland,union,pubali,sibl,exim,"
-          //     "southeast,islamibank,al_arafah,social,ific,shahjalal,"
-          //     "firstsecurity,onebank,qcash,fastcash",
-        )
-      );
-      //     .addCustomerInfoInitializer(customerInfoInitializer: SSLCCustomerInfoInitializer(
-      //   customerName: name,
-      //   customerEmail: email,
-      //   customerAddress1: address,
-      //   customerCountry: "Bangladesh",
-      //   customerPhone: phone, customerState: 'BD',
-      //   customerCity: '',
-      //   customerPostCode: '',
-      // )
-      // ).addProductInitializer( sslcProductInitializer: SSLCProductInitializer(
-      //   productName: productCategory?? "",
-      //   productCategory: productCategory?? "",  general: General(
-      //   general: productCategory??"",
-      //   productProfile: "general",
-      // ),
-      //
-      // )
-      // );
+      Sslcommerz sslcommerz =
+          Sslcommerz(
+                initializer: SSLCommerzInitialization(
+                  ipn_url: storeIpnUrl,
+                  store_id: storeId,
+                  store_passwd: storePassword,
+                  total_amount: totalAmount,
+                  tran_id: trackingId,
+                  currency: SSLCurrencyType.BDT,
+                  product_category: productCategory ?? "",
+                  sdkType: SSLCSdkType.LIVE,
+                  // sdkType:SSLCSdkType.LIVE,
+                  // sdkType:useTestMode ?SSLCSdkType.TESTBOX: SSLCSdkType.LIVE,
+                  //   multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay,tap,okwallet,"
+                  //     "dbbl_visa,dbbl_master,city_visa,city_master,city_amex,"
+                  //     "ebl_visa,ebl_master,sbl_visa,sbl_master,brac_visa,brac_master,"
+                  //     "ibbl,mtbl,city,ebl,sbl,brac,dbbl,dutchbangla,ab,scb,ucb,"
+                  //     "premier,nrb,trust,bankasia,midland,union,pubali,sibl,exim,"
+                  //     "southeast,islamibank,al_arafah,social,ific,shahjalal,"
+                  //     "firstsecurity,onebank,qcash,fastcash",
+                ),
+              )
+              .addCustomerInfoInitializer(
+                customerInfoInitializer: SSLCCustomerInfoInitializer(
+                  customerName: name,
+                  customerEmail: email,
+                  customerAddress1: address,
+                  customerCountry: "Bangladesh",
+                  customerPhone: phone,
+                  customerState: 'BD',
+                  customerCity: '',
+                  customerPostCode: '',
+                ),
+              )
+              .addProductInitializer(
+                sslcProductInitializer: SSLCProductInitializer(
+                  productName: productCategory ?? "",
+                  productCategory: productCategory ?? "",
+                  general: General(general: productCategory ?? "", productProfile: "general"),
+                ),
+              );
 
       print("✅ SSL Commerz configured - launching payment...");
 
@@ -299,11 +289,7 @@ class SSLCommerzPaymentService {
 
       if (result is PlatformException) {
         print("❌ Platform Exception: ${result}");
-        return SSLPaymentResult(
-          success: false,
-          status: 'FAILED',
-          errorMessage: result.toString(),
-        );
+        return SSLPaymentResult(success: false, status: 'FAILED', errorMessage: result.toString());
       }
 
       String? status = result.status?.toString().toUpperCase();
@@ -325,21 +311,13 @@ class SSLCommerzPaymentService {
 
       // User cancelled
       if (status == 'CANCELLED' || status == 'CANCELED') {
-        return SSLPaymentResult(
-          success: false,
-          status: 'CANCELLED',
-          errorMessage: 'Payment was cancelled by user',
-        );
+        return SSLPaymentResult(success: false, status: 'CANCELLED', errorMessage: 'Payment was cancelled by user');
       }
 
       // SDK failed to initialize (no transaction data)
       if (status == 'FAILED' && tranId == null && valId == null && amount == null) {
         print("❌ CRITICAL: Payment gateway failed to initialize");
-        return SSLPaymentResult(
-          success: false,
-          status: 'FAILED',
-          errorMessage: 'Payment gateway failed to open. Please check your internet connection and SSL Commerz credentials.',
-        );
+        return SSLPaymentResult(success: false, status: 'FAILED', errorMessage: 'Payment gateway failed to open. Please check your internet connection and SSL Commerz credentials.');
       }
 
       bool isSuccess = status == 'VALID' || status == 'VALIDATED' || status == 'SUCCESS';
@@ -356,23 +334,11 @@ class SSLCommerzPaymentService {
         );
       }
 
-      return SSLPaymentResult(
-        success: isSuccess,
-        status: status ?? 'UNKNOWN',
-        amount: amount,
-        cardType: cardType,
-        transactionId: tranId,
-        validationId: valId,
-      );
-
+      return SSLPaymentResult(success: isSuccess, status: status ?? 'UNKNOWN', amount: amount, cardType: cardType, transactionId: tranId, validationId: valId);
     } catch (e, stackTrace) {
       print("💥 SSL Commerz Error: $e");
       print("Stack: $stackTrace");
-      return SSLPaymentResult(
-        success: false,
-        status: 'ERROR',
-        errorMessage: 'Payment failed: ${e.toString()}',
-      );
+      return SSLPaymentResult(success: false, status: 'ERROR', errorMessage: 'Payment failed: ${e.toString()}');
     }
   }
 }
@@ -386,15 +352,7 @@ class SSLPaymentResult {
   final String? validationId;
   final String? errorMessage;
 
-  SSLPaymentResult({
-    required this.success,
-    required this.status,
-    this.amount,
-    this.cardType,
-    this.transactionId,
-    this.validationId,
-    this.errorMessage,
-  });
+  SSLPaymentResult({required this.success, required this.status, this.amount, this.cardType, this.transactionId, this.validationId, this.errorMessage});
 
   @override
   String toString() {
