@@ -467,4 +467,42 @@ class RunningOrdersViewModel with ChangeNotifier {
       }
     }
   }
+
+  Future<void> refreshSingleOrder(String bookingId) async {
+    // Try running orders first
+    final runningIndex = _runningAllOrders.indexWhere(
+          (order) =>
+      order.orderId == bookingId ||
+          order.houseKeeperBookingId == bookingId ||
+          order.beautySalonBookingId == bookingId ||
+          order.eventCookingBookingId == bookingId,
+    );
+
+    if (runningIndex != -1) {
+      // It's in running list — refresh from running API
+      for (int page = 1; page <= _runningCurrentPage; page++) {
+        final value = await _myRepo.fetchRunningOrderGetApi(page: page, limit: _runningLimit);
+        final updatedOrder = (value.data?.data ?? []).firstWhereOrNull(
+              (order) =>
+          order.orderId == bookingId ||
+              order.houseKeeperBookingId == bookingId ||
+              order.beautySalonBookingId == bookingId ||
+              order.eventCookingBookingId == bookingId,
+        );
+
+        if (updatedOrder != null) {
+          _runningAllOrders[runningIndex] = updatedOrder;
+          setRunningOrdersData(ApiResponse.completed(GetAllOrderModel(
+            success: runningOrdersData.data?.success,
+            message: runningOrdersData.data?.message,
+            data: Data(meta: runningOrdersData.data?.data?.meta, data: List.from(_runningAllOrders)),
+          )));
+          return;
+        }
+      }
+    } else {
+      // It's in completed list — refresh from completed API
+      await refreshSingleCompletedOrder(bookingId);
+    }
+  }
 }

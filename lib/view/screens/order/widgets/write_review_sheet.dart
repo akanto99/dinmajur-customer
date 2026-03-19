@@ -79,7 +79,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
       fields,
       onSuccess: () {
         navigator.pop();
-        orderVm.refreshSingleCompletedOrder(widget.bookingId);
+        orderVm.refreshSingleOrder(widget.bookingId);
       },
     );
   }
