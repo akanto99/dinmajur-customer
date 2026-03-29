@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
 import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/service_checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/servicesview_getallcategories_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beautysalon_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
@@ -377,12 +378,39 @@ class Routes {
         if (args != null) {
           return MaterialPageRoute(
             builder: (BuildContext context) => ServicesViewScreen(
-              serviceId: args['serviceId'],
+              serviceId:       args['serviceId'] as String,
+              customerName:    args['customerName'] as String? ?? '',
+              customerPhone:   args['customerPhone'] as String? ?? '',
+              customerAddress: args['customerAddress'] as String? ?? '',
+              isFromHome:      args['isFromHome'] as bool? ?? false,
+              customerLocation: args['customerLocation'] as Map<String, dynamic>?,
             ),
             settings: settings,
           );
         }
         return _errorRoute();
+      case RoutesName.serviceCheckoutScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => ServiceCheckoutScreen(
+              serviceId: args['serviceId'] ,
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+              customerLocation: args['customerLocation'],
+              userId: args['userId'],
+              categories: args['categories'],
+              serviceQuantities: args['serviceQuantities'],
+              totalPrice: args['totalPrice'],
+              transportFee: args['transportFee'],
+              onAddressUpdate: args['onAddressUpdate'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
 
 
     //drawer===========>

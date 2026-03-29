@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/widget/api_services_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/drawer.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/notifications/resuable_notifications.dart';
@@ -16,6 +17,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_service_widget.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +27,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import '../../../model/home_models/all_service_models/get_all_service_models.dart';
 import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
 import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -87,6 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     // _checkAndGetLocation();
+    final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
+    allServiceViewModel.fetchGetAllServices();
   }
 
   Future<void> _handleRefresh() async {
@@ -333,28 +338,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// ✅ Method to handle trending service selection
-  // void _handleTrendingServiceTap(String serviceName) {
-  //   final storeType = _mapServiceToStoreType(serviceName);
-  //
-  //   setState(() {
-  //     selectedStoreType = storeType;
-  //     selectedServiceFromTrending = serviceName; // Track the trending service
-  //     nearbyStores = [];
-  //     isInsideServiceArea = null;
-  //     isCheckingCoverage = false;
-  //   });
-  //   // Trigger the appropriate action based on store type
-  //   if (storeType == 'Premium House Keeper') {
-  //     _checkCoverage();
-  //   } else if (storeType == 'Premium Home Beauty & Salon') {
-  //     _checkCoverage();
-  //   } else if (storeType == 'Retail') {
-  //     _fetchNearbyRetailers(storeType);
-  //   }else if (storeType == 'Family Event Cooking') {
-  //     _checkCoverage();
-  //   }
-  // }
   void _handleTrendingServiceTap(String serviceName) {
     final storeType = _mapServiceToStoreType(serviceName);
 
@@ -451,9 +434,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       valueToBengaliMap: storeTypes,
                     ),
                   ),
-                  SizedboxSpaccing.height025(context),
 
-                  // ✅ Updated TrendingServicesWidget with location check
+                  Center(child: SizedboxSpaccing.height025(context)),
+
+                  // A - Always
                   TrendingServicesWidget(
                     services: ["House Keeper", "Beauty Parlour", "তাৎক্ষণিক বাজার", "Family Event Cooking"],
                     onServiceTap: _handleTrendingServiceTapWithLocationCheck,
@@ -461,17 +445,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   Center(child: SizedboxSpaccing.height025(context)),
-                  DynamicNearestHeader(
-                    selectedStoreType: selectedStoreType,
-                    storeCount: nearbyStores.length,
-                    screenWidth: screenWidth,
-                    isInsideServiceArea: isInsideServiceArea,
-                    onSeeAllTap: () => _handleSeeAllNavigation(context),
-                  ),
-                  SizedboxSpaccing.height025(context),
 
-                  // Rest of your conditional widgets...
-                  if (selectedStoreType == 'Premium House Keeper')
+                  // ✅ Default order A-B-C (no selection)
+                  if (selectedStoreType == null) ...[
                     Consumer<ProfileViewViewModel>(
                       builder: (context, profileViewModel, _) {
                         String customerName = '';
@@ -481,15 +457,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
                           final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) {
-                            customerName = userData!.user!.fullName!;
-                          }
-                          if (userData?.user?.phone != null) {
-                            customerPhone = userData!.user!.phone!;
-                          }
-                          if (userData?.addresses?.fullAddress != null) {
-                            customerAddress = userData!.addresses!.fullAddress!;
-                          }
+                          if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                          if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                          if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
                           final addressData = userData?.addresses;
                           if (addressData != null) {
                             customerLocation = {
@@ -505,112 +475,196 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                         }
 
-                        return PremiumHouseKeeperCoverageWidget(
-                          isCheckingCoverage: isCheckingCoverage,
-                          isInsideServiceArea: isInsideServiceArea,
-                          customerName: customerName,
-                          customerPhone: customerPhone,
-                          customerAddress: customerAddress,
-                          customerLocation: customerLocation,
-                        );
-                      },
-                    )
-                  else if (selectedStoreType == 'Premium Home Beauty & Salon')
-                    Consumer<ProfileViewViewModel>(
-                      builder: (context, profileViewModel, _) {
-                        String customerName = '';
-                        String customerPhone = '';
-                        String customerAddress = '';
-                        Map<String, dynamic>? customerLocation;
-
-                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                          final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) {
-                            customerName = userData!.user!.fullName!;
-                          }
-                          if (userData?.user?.phone != null) {
-                            customerPhone = userData!.user!.phone!;
-                          }
-                          if (userData?.addresses?.fullAddress != null) {
-                            customerAddress = userData!.addresses!.fullAddress!;
-                          }
-                          final addressData = userData?.addresses;
-                          if (addressData != null) {
-                            customerLocation = {
-                              "fullAddress": addressData.fullAddress ?? '',
-                              "country": addressData.country ?? '',
-                              "city": addressData.city ?? '',
-                              "geoLocation": {
-                                "type": addressData.geoLocation?.type ?? "Point",
-                                "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                "timestamp": DateTime.now().toUtc().toIso8601String(),
-                              },
-                            };
-                          }
-                        }
-                        return PremiumBeautyAndSalonCoverageWidget(
-                          isCheckingCoverage: isCheckingCoverage,
-                          isInsideServiceArea: isInsideServiceArea,
-                          customerName: customerName,
-                          customerPhone: customerPhone,
-                          customerAddress: customerAddress,
-                          customerLocation: customerLocation,
-                        );
-                      },
-                    )
-                  else if (selectedStoreType == 'Retail')
-                    GroceryStoresSection(
-                      isLoading: isLoadingStores,
-                      stores: nearbyStores,
-                      storeTypes: storeTypes,
-                      selectedStoreType: selectedStoreType,
-                      currentPosition: _currentPosition,
-                      currentAddress: _currentAddress,
-                    )
-                  else if (selectedStoreType == 'Family Event Cooking')
-                    Consumer<ProfileViewViewModel>(
-                      builder: (context, profileViewModel, _) {
-                        String customerName = '';
-                        String customerPhone = '';
-                        String customerAddress = '';
-                        Map<String, dynamic>? customerLocation;
-
-                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                          final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) {
-                            customerName = userData!.user!.fullName!;
-                          }
-                          if (userData?.user?.phone != null) {
-                            customerPhone = userData!.user!.phone!;
-                          }
-                          if (userData?.addresses?.fullAddress != null) {
-                            customerAddress = userData!.addresses!.fullAddress!;
-                          }
-                          final addressData = userData?.addresses;
-                          if (addressData != null) {
-                            customerLocation = {
-                              "fullAddress": addressData.fullAddress ?? '',
-                              "country": addressData.country ?? '',
-                              "city": addressData.city ?? '',
-                              "geoLocation": {
-                                "type": addressData.geoLocation?.type ?? "Point",
-                                "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                "timestamp": DateTime.now().toUtc().toIso8601String(),
-                              },
-                            };
-                          }
-                        }
-
-                        return FamilyEventCardCoverageWidget(
-                          isCheckingCoverage: isCheckingCoverage,
-                          isInsideServiceArea: isInsideServiceArea,
-                          customerName: customerName,
-                          customerPhone: customerPhone,
-                          customerAddress: customerAddress,
-                          customerLocation: customerLocation,
+                        return Container(
+                          width: screenWidth * 0.9,
+                          child: AllServicesGridWidget(
+                            selectedServiceId: null, // ✅ pass null or a tracked ID if needed
+                            customerName: customerName,
+                            customerPhone: customerPhone,
+                            customerAddress: customerAddress,
+                            customerLocation: customerLocation,
+                          ),
                         );
                       },
                     ),
+                    SizedboxSpaccing.height025(context),
+                  ],
+
+                  // ✅ When A clicked: show C here (B goes below)
+                  if (selectedStoreType != null) ...[
+                    // C
+                    DynamicNearestHeader(
+                      selectedStoreType: selectedStoreType,
+                      storeCount: nearbyStores.length,
+                      screenWidth: screenWidth,
+                      isInsideServiceArea: isInsideServiceArea,
+                      onSeeAllTap: () => _handleSeeAllNavigation(context),
+                    ),
+                    SizedboxSpaccing.height025(context),
+
+                    if (selectedStoreType == 'Premium House Keeper')
+                      Consumer<ProfileViewViewModel>(
+                        builder: (context, profileViewModel, _) {
+                          String customerName = '';
+                          String customerPhone = '';
+                          String customerAddress = '';
+                          Map<String, dynamic>? customerLocation;
+                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                            final userData = profileViewModel.profileviewUserData.data?.data;
+                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                            final addressData = userData?.addresses;
+                            if (addressData != null) {
+                              customerLocation = {
+                                "fullAddress": addressData.fullAddress ?? '',
+                                "country": addressData.country ?? '',
+                                "city": addressData.city ?? '',
+                                "geoLocation": {
+                                  "type": addressData.geoLocation?.type ?? "Point",
+                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
+                                },
+                              };
+                            }
+                          }
+                          return PremiumHouseKeeperCoverageWidget(
+                            isCheckingCoverage: isCheckingCoverage,
+                            isInsideServiceArea: isInsideServiceArea,
+                            customerName: customerName,
+                            customerPhone: customerPhone,
+                            customerAddress: customerAddress,
+                            customerLocation: customerLocation,
+                          );
+                        },
+                      )
+                    else if (selectedStoreType == 'Premium Home Beauty & Salon')
+                      Consumer<ProfileViewViewModel>(
+                        builder: (context, profileViewModel, _) {
+                          String customerName = '';
+                          String customerPhone = '';
+                          String customerAddress = '';
+                          Map<String, dynamic>? customerLocation;
+                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                            final userData = profileViewModel.profileviewUserData.data?.data;
+                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                            final addressData = userData?.addresses;
+                            if (addressData != null) {
+                              customerLocation = {
+                                "fullAddress": addressData.fullAddress ?? '',
+                                "country": addressData.country ?? '',
+                                "city": addressData.city ?? '',
+                                "geoLocation": {
+                                  "type": addressData.geoLocation?.type ?? "Point",
+                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
+                                },
+                              };
+                            }
+                          }
+                          return PremiumBeautyAndSalonCoverageWidget(
+                            isCheckingCoverage: isCheckingCoverage,
+                            isInsideServiceArea: isInsideServiceArea,
+                            customerName: customerName,
+                            customerPhone: customerPhone,
+                            customerAddress: customerAddress,
+                            customerLocation: customerLocation,
+                          );
+                        },
+                      )
+                    else if (selectedStoreType == 'Retail')
+                      GroceryStoresSection(
+                        isLoading: isLoadingStores,
+                        stores: nearbyStores,
+                        storeTypes: storeTypes,
+                        selectedStoreType: selectedStoreType,
+                        currentPosition: _currentPosition,
+                        currentAddress: _currentAddress,
+                      )
+                    else if (selectedStoreType == 'Family Event Cooking')
+                      Consumer<ProfileViewViewModel>(
+                        builder: (context, profileViewModel, _) {
+                          String customerName = '';
+                          String customerPhone = '';
+                          String customerAddress = '';
+                          Map<String, dynamic>? customerLocation;
+                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                            final userData = profileViewModel.profileviewUserData.data?.data;
+                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                            final addressData = userData?.addresses;
+                            if (addressData != null) {
+                              customerLocation = {
+                                "fullAddress": addressData.fullAddress ?? '',
+                                "country": addressData.country ?? '',
+                                "city": addressData.city ?? '',
+                                "geoLocation": {
+                                  "type": addressData.geoLocation?.type ?? "Point",
+                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
+                                },
+                              };
+                            }
+                          }
+                          return FamilyEventCardCoverageWidget(
+                            isCheckingCoverage: isCheckingCoverage,
+                            isInsideServiceArea: isInsideServiceArea,
+                            customerName: customerName,
+                            customerPhone: customerPhone,
+                            customerAddress: customerAddress,
+                            customerLocation: customerLocation,
+                          );
+                        },
+                      ),
+
+                    SizedboxSpaccing.height025(context),
+
+                    // B goes below C when A is selected
+                    Consumer<ProfileViewViewModel>(
+                      builder: (context, profileViewModel, _) {
+                        String customerName = '';
+                        String customerPhone = '';
+                        String customerAddress = '';
+                        Map<String, dynamic>? customerLocation;
+
+                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                          final userData = profileViewModel.profileviewUserData.data?.data;
+                          if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                          if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                          if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                          final addressData = userData?.addresses;
+                          if (addressData != null) {
+                            customerLocation = {
+                              "fullAddress": addressData.fullAddress ?? '',
+                              "country": addressData.country ?? '',
+                              "city": addressData.city ?? '',
+                              "geoLocation": {
+                                "type": addressData.geoLocation?.type ?? "Point",
+                                "coordinates": addressData.geoLocation?.coordinates ?? [],
+                                "timestamp": DateTime.now().toUtc().toIso8601String(),
+                              },
+                            };
+                          }
+                        }
+
+                        return Container(
+                          width: screenWidth * 0.9,
+                          child: AllServicesGridWidget(
+                            selectedServiceId: null, // ✅ pass null or a tracked ID if needed
+                            customerName: customerName,
+                            customerPhone: customerPhone,
+                            customerAddress: customerAddress,
+                            customerLocation: customerLocation,
+                          ),
+                        );
+                      },
+                    ),
+
+                    SizedboxSpaccing.height025(context),
+                  ],
 
                   SizedboxSpaccing.height02(context),
                 ],

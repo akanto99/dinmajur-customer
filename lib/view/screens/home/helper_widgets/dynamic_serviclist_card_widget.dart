@@ -1,5 +1,3 @@
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/cached_image/cached_image.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';

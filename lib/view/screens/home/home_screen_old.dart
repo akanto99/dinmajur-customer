@@ -1,5 +1,5 @@
-// Old Play Store Home Screen
-//
+/// Old Play Store Home Screen
+
 // import 'package:dinmajur_customer/configs/res/color.dart';
 // import 'package:dinmajur_customer/view/screens/home/drawer/drawer.dart';
 // import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
@@ -169,14 +169,10 @@
 //     debugPrint('Location marked as posted.');
 //   }
 //
-//   String _stripSuffix(String raw) =>
-//       raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
+//   String _stripSuffix(String raw) => raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
 //
 //   String _normalizeCity(String city) {
-//     const variants = {
-//       'chittagong', 'chattogram', 'chottogram', 'chattagam',
-//       'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ',
-//     };
+//     const variants = {'chittagong', 'chattogram', 'chottogram', 'chattagam', 'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ'};
 //     if (variants.contains(city.toLowerCase().trim())) return 'Chittagong';
 //     return city;
 //   }
@@ -190,9 +186,7 @@
 //         final placemarks = await placemarkFromCoordinates(latitude, longitude);
 //         if (placemarks.isNotEmpty) {
 //           final p = placemarks.first;
-//           final rawCity = p.subAdministrativeArea?.isNotEmpty == true
-//               ? p.subAdministrativeArea!
-//               : p.administrativeArea ?? '';
+//           final rawCity = p.subAdministrativeArea?.isNotEmpty == true ? p.subAdministrativeArea! : p.administrativeArea ?? '';
 //           city = _normalizeCity(_stripSuffix(rawCity));
 //           country = p.country ?? '';
 //         }
@@ -214,7 +208,6 @@
 //       debugPrint('Error posting location to API: $e');
 //     }
 //   }
-//
 //
 //   /// Method to fetch nearby retailers
 //   Future<void> _fetchNearbyRetailers(String businessType) async {
@@ -385,6 +378,7 @@
 //       _checkCoverage();
 //     }
 //   }
+//
 //   @override
 //   Widget build(BuildContext context) {
 //     final screenHeight = MediaQuery.of(context).size.height;
@@ -396,11 +390,7 @@
 //       backgroundColor: AppColors.containerBackground(context),
 //       drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
 //       body: SafeArea(
-//         child: ResPonsiveUi(
-//           mobile: homeBody,
-//           desktop: homeBody,
-//           tablet: homeBody,
-//         ),
+//         child: ResPonsiveUi(mobile: homeBody, desktop: homeBody, tablet: homeBody),
 //       ),
 //     );
 //   }
@@ -426,10 +416,7 @@
 //                   SizedboxSpaccing.height025(context),
 //                   Container(
 //                     width: screenWidth * 0.9,
-//                     decoration: BoxDecoration(
-//                         color: AppColors.containerBackground(context),
-//                         borderRadius: BorderRadius.circular(24)
-//                     ),
+//                     decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(24)),
 //                     child: CustomDropdown(
 //                       // titleText: AppLocalizations.of(context)!.select_store_type,
 //                       items: storeTypes.keys.toList(),
@@ -470,23 +457,18 @@
 //
 //                   // ✅ Updated TrendingServicesWidget with location check
 //                   TrendingServicesWidget(
-//                     services: [
-//                       "House Keeper",
-//                       "Beauty Parlour",
-//                       "তাৎক্ষণিক বাজার",
-//                       "Family Event Cooking"
-//                     ],
+//                     services: ["House Keeper", "Beauty Parlour", "তাৎক্ষণিক বাজার", "Family Event Cooking"],
 //                     onServiceTap: _handleTrendingServiceTapWithLocationCheck,
 //                     selectedService: selectedServiceFromTrending,
 //                   ),
 //
 //                   Center(child: SizedboxSpaccing.height025(context)),
 //                   DynamicNearestHeader(
-//                       selectedStoreType: selectedStoreType,
-//                       storeCount: nearbyStores.length,
-//                       screenWidth: screenWidth,
-//                       isInsideServiceArea: isInsideServiceArea,
-//                       onSeeAllTap: () => _handleSeeAllNavigation(context)
+//                     selectedStoreType: selectedStoreType,
+//                     storeCount: nearbyStores.length,
+//                     screenWidth: screenWidth,
+//                     isInsideServiceArea: isInsideServiceArea,
+//                     onSeeAllTap: () => _handleSeeAllNavigation(context),
 //                   ),
 //                   SizedboxSpaccing.height025(context),
 //
@@ -498,7 +480,6 @@
 //                         String customerPhone = '';
 //                         String customerAddress = '';
 //                         Map<String, dynamic>? customerLocation;
-//
 //
 //                         if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
 //                           final userData = profileViewModel.profileviewUserData.data?.data;
@@ -526,7 +507,6 @@
 //                           }
 //                         }
 //
-//
 //                         return PremiumHouseKeeperCoverageWidget(
 //                           isCheckingCoverage: isCheckingCoverage,
 //                           isInsideServiceArea: isInsideServiceArea,
@@ -534,7 +514,6 @@
 //                           customerPhone: customerPhone,
 //                           customerAddress: customerAddress,
 //                           customerLocation: customerLocation,
-//
 //                         );
 //                       },
 //                     )
@@ -582,59 +561,58 @@
 //                       },
 //                     )
 //                   else if (selectedStoreType == 'Retail')
-//                       GroceryStoresSection(
-//                         isLoading: isLoadingStores,
-//                         stores: nearbyStores,
-//                         storeTypes: storeTypes,
-//                         selectedStoreType: selectedStoreType,
-//                         currentPosition: _currentPosition,
-//                         currentAddress: _currentAddress,
-//                       )
-//                     else if (selectedStoreType == 'Family Event Cooking')
-//                         Consumer<ProfileViewViewModel>(
-//                           builder: (context, profileViewModel, _) {
-//                             String customerName = '';
-//                             String customerPhone = '';
-//                             String customerAddress = '';
-//                             Map<String, dynamic>? customerLocation;
+//                     GroceryStoresSection(
+//                       isLoading: isLoadingStores,
+//                       stores: nearbyStores,
+//                       storeTypes: storeTypes,
+//                       selectedStoreType: selectedStoreType,
+//                       currentPosition: _currentPosition,
+//                       currentAddress: _currentAddress,
+//                     )
+//                   else if (selectedStoreType == 'Family Event Cooking')
+//                     Consumer<ProfileViewViewModel>(
+//                       builder: (context, profileViewModel, _) {
+//                         String customerName = '';
+//                         String customerPhone = '';
+//                         String customerAddress = '';
+//                         Map<String, dynamic>? customerLocation;
 //
-//                             if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-//                               final userData = profileViewModel.profileviewUserData.data?.data;
-//                               if (userData?.user?.fullName != null) {
-//                                 customerName = userData!.user!.fullName!;
-//                               }
-//                               if (userData?.user?.phone != null) {
-//                                 customerPhone = userData!.user!.phone!;
-//                               }
-//                               if (userData?.addresses?.fullAddress != null) {
-//                                 customerAddress = userData!.addresses!.fullAddress!;
-//                               }
-//                               final addressData = userData?.addresses;
-//                               if (addressData != null) {
-//                                 customerLocation = {
-//                                   "fullAddress": addressData.fullAddress ?? '',
-//                                   "country": addressData.country ?? '',
-//                                   "city": addressData.city ?? '',
-//                                   "geoLocation": {
-//                                     "type": addressData.geoLocation?.type ?? "Point",
-//                                     "coordinates": addressData.geoLocation?.coordinates ?? [],
-//                                     "timestamp": DateTime.now().toUtc().toIso8601String(),
-//                                   },
-//                                 };
-//                               }
-//                             }
+//                         if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+//                           final userData = profileViewModel.profileviewUserData.data?.data;
+//                           if (userData?.user?.fullName != null) {
+//                             customerName = userData!.user!.fullName!;
+//                           }
+//                           if (userData?.user?.phone != null) {
+//                             customerPhone = userData!.user!.phone!;
+//                           }
+//                           if (userData?.addresses?.fullAddress != null) {
+//                             customerAddress = userData!.addresses!.fullAddress!;
+//                           }
+//                           final addressData = userData?.addresses;
+//                           if (addressData != null) {
+//                             customerLocation = {
+//                               "fullAddress": addressData.fullAddress ?? '',
+//                               "country": addressData.country ?? '',
+//                               "city": addressData.city ?? '',
+//                               "geoLocation": {
+//                                 "type": addressData.geoLocation?.type ?? "Point",
+//                                 "coordinates": addressData.geoLocation?.coordinates ?? [],
+//                                 "timestamp": DateTime.now().toUtc().toIso8601String(),
+//                               },
+//                             };
+//                           }
+//                         }
 //
-//                             return FamilyEventCardCoverageWidget(
-//                               isCheckingCoverage: isCheckingCoverage,
-//                               isInsideServiceArea: isInsideServiceArea,
-//                               customerName: customerName,
-//                               customerPhone: customerPhone,
-//                               customerAddress: customerAddress,
-//                               customerLocation: customerLocation,
-//
-//                             );
-//                           },
-//                         ),
+//                         return FamilyEventCardCoverageWidget(
+//                           isCheckingCoverage: isCheckingCoverage,
+//                           isInsideServiceArea: isInsideServiceArea,
+//                           customerName: customerName,
+//                           customerPhone: customerPhone,
+//                           customerAddress: customerAddress,
+//                           customerLocation: customerLocation,
+//                         );
+//                       },
+//                     ),
 //
 //                   SizedboxSpaccing.height02(context),
 //                 ],
@@ -645,7 +623,6 @@
 //       ),
 //     );
 //   }
-//
 //
 //   Widget _customAppBar(BuildContext context) {
 //     final screenWidth = MediaQuery.of(context).size.width;
@@ -805,14 +782,12 @@
 //                                     Text(
 //                                       displayAddress,
 //                                       style: AppTextStyles.textSize12(
-//                                           context,
-//                                           weight: FontWeight.w400,
-//                                           color: isAddressMissing
-//                                               ? Colors.red  // ✅ Red if missing
-//                                               : (_isLoadingLocation
-//                                               ? AppColors.subtitle(context)
-//                                               : AppColors.textPrimary(context)
-//                                           )
+//                                         context,
+//                                         weight: FontWeight.w400,
+//                                         color: isAddressMissing
+//                                             ? Colors
+//                                                   .red // ✅ Red if missing
+//                                             : (_isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
 //                                       ),
 //                                       overflow: TextOverflow.ellipsis,
 //                                     ),
@@ -908,54 +883,45 @@
 //
 //     if (selectedStoreType == 'Retail') {
 //       // ── Grocery: pass stores + position ──────────────────────
-//       arguments.addAll({
-//         'stores': nearbyStores,
-//         'storeTypes': storeTypes,
-//         'currentPosition': _currentPosition,
-//         'currentAddress': _currentAddress,
-//       });
-//     } else if (
-//     selectedStoreType == 'Premium House Keeper' ||
+//       arguments.addAll({'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress});
+//     } else if (selectedStoreType == 'Premium House Keeper' ||
 //         selectedStoreType == 'Premium Home Beauty & Salon' ||
-//         selectedStoreType == 'Family Event Cooking'          // ✅ added
-//     ) {
+//         selectedStoreType ==
+//             'Family Event Cooking' // ✅ added
+//             ) {
 //       // ── Service types: pass customer profile data ─────────────
 //       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 //
-//       String customerName    = '';
-//       String customerPhone   = '';
+//       String customerName = '';
+//       String customerPhone = '';
 //       String customerAddress = '';
 //       Map<String, dynamic>? customerLocation;
 //
 //       if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
 //         final userData = profileViewModel.profileviewUserData.data?.data;
 //
-//         if (userData?.user?.fullName != null)          customerName    = userData!.user!.fullName!;
-//         if (userData?.user?.phone != null)             customerPhone   = userData!.user!.phone!;
-//         if (userData?.addresses?.fullAddress != null)  customerAddress = userData!.addresses!.fullAddress!;
+//         if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+//         if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+//         if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
 //
 //         final addressData = userData?.addresses;
 //         if (addressData != null) {
 //           customerLocation = {
 //             "fullAddress": addressData.fullAddress ?? '',
-//             "country":     addressData.country ?? '',
-//             "city":        addressData.city ?? '',
-//             "geoLocation": {
-//               "type":        addressData.geoLocation?.type ?? "Point",
-//               "coordinates": addressData.geoLocation?.coordinates ?? [],
-//               "timestamp":   DateTime.now().toUtc().toIso8601String(),
-//             },
+//             "country": addressData.country ?? '',
+//             "city": addressData.city ?? '',
+//             "geoLocation": {"type": addressData.geoLocation?.type ?? "Point", "coordinates": addressData.geoLocation?.coordinates ?? [], "timestamp": DateTime.now().toUtc().toIso8601String()},
 //           };
 //         }
 //       }
 //
 //       arguments.addAll({
-//         'isCheckingCoverage':  isCheckingCoverage,
+//         'isCheckingCoverage': isCheckingCoverage,
 //         'isInsideServiceArea': isInsideServiceArea,
-//         'customerName':        customerName,
-//         'customerPhone':       customerPhone,
-//         'customerAddress':     customerAddress,
-//         'customerLocation':    customerLocation,  // ✅ always included
+//         'customerName': customerName,
+//         'customerPhone': customerPhone,
+//         'customerAddress': customerAddress,
+//         'customerLocation': customerLocation, // ✅ always included
 //       });
 //     }
 //
@@ -970,15 +936,15 @@
 //         width: 30,
 //         padding: const EdgeInsets.all(2),
 //         color: Colors.transparent,
-//         child: RepaintBoundary(child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain)),
+//         child: RepaintBoundary(
+//           child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
+//         ),
 //       ),
 //     );
 //   }
 //
 //   void _checkAndShowNameDialog(String userName) {
-//     if (!_nameDialogShown &&
-//         (userName.trim().isEmpty || userName == 'Unknown User')) {
-//
+//     if (!_nameDialogShown && (userName.trim().isEmpty || userName == 'Unknown User')) {
 //       _nameDialogShown = true;
 //
 //       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -999,68 +965,60 @@
 //       }
 //     }
 //   }
+//
 //   bool _hasValidLocation() {
 //     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 //
 //     if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
 //       final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
 //
-//       if (addressData?.fullAddress != null &&
-//           addressData!.fullAddress!.isNotEmpty &&
-//           addressData.fullAddress != "Tap to set location...") {
+//       if (addressData?.fullAddress != null && addressData!.fullAddress!.isNotEmpty && addressData.fullAddress != "Tap to set location...") {
 //         return true;
 //       }
 //     }
 //
 //     return false;
 //   }
+//
 //   void _showLocationRequiredDialog() {
-//
 //     showDialog(
-//         context: context,
-//         builder: (context) {
-//           return Dialog(
-//               backgroundColor: AppColors.containerBackground(context),
-//               shape: RoundedRectangleBorder(
-//                 borderRadius: BorderRadius.circular(10),
-//               ),
-//               child: Container(
-//                   padding: EdgeInsets.all(15),
-//                   child: Column(
-//                       mainAxisSize: MainAxisSize.min,
-//                       children: [
-//                         Text('Location Required',style: AppTextStyles.textSize20(context),),
-//                         SizedboxSpaccing.height02(context),
-//                         Text('Please set your delivery location first to view available services.',style: AppTextStyles.textSize14(context),),
-//                         SizedboxSpaccing.height02(context),
-//                         Row(
-//                           mainAxisAlignment: MainAxisAlignment.center,
-//                           children: [
-//                             TextButton(
-//                               onPressed: () => Navigator.pop(context),
-//                               child: Text('Cancel'),
-//                             ),
-//                             SizedboxSpaccing.width02(context),
-//                             GestureDetector(
-//                               onTap: (){
-//                                 Navigator.pop(context);
-//                                 Navigator.pushNamed(context, RoutesName.addlocation);
-//                               },
-//                               child: Container(
-//                                   padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-//                                   decoration: BoxDecoration(
-//                                       color: AppColors.button(context),
-//                                       borderRadius: BorderRadius.circular(100)
-//                                   ),
-//                                   child:Text('Set Location',style: AppTextStyles.textSize14(context, color: AppColors.whiteColor),)
-//                               ),
-//                             )
-//
-//
-//                           ],
-//                         )
-//                       ])));
-//         }
+//       context: context,
+//       builder: (context) {
+//         return Dialog(
+//           backgroundColor: AppColors.containerBackground(context),
+//           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+//           child: Container(
+//             padding: EdgeInsets.all(15),
+//             child: Column(
+//               mainAxisSize: MainAxisSize.min,
+//               children: [
+//                 Text('Location Required', style: AppTextStyles.textSize20(context)),
+//                 SizedboxSpaccing.height02(context),
+//                 Text('Please set your delivery location first to view available services.', style: AppTextStyles.textSize14(context)),
+//                 SizedboxSpaccing.height02(context),
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+//                     SizedboxSpaccing.width02(context),
+//                     GestureDetector(
+//                       onTap: () {
+//                         Navigator.pop(context);
+//                         Navigator.pushNamed(context, RoutesName.addlocation);
+//                       },
+//                       child: Container(
+//                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+//                         decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+//                         child: Text('Set Location', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           ),
+//         );
+//       },
 //     );
 //   }
 //
@@ -1074,7 +1032,6 @@
 //     // If location exists, proceed with original logic
 //     _handleTrendingServiceTap(serviceName);
 //   }
-//
 // }
 
 

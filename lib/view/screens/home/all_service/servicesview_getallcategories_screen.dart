@@ -3,20 +3,36 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart' hide Image;
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/widget/services_cartdialouge_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_scrollable_categorytab.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/checkout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_slot_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ServicesViewScreen extends StatefulWidget {
   final String serviceId;
+  final String customerName;
+  final String customerPhone;
+  final String customerAddress;
+  final bool isFromHome;
+  final Map<String, dynamic>? customerLocation;
 
-  const ServicesViewScreen({Key? key, required this.serviceId}) : super(key: key);
+  const ServicesViewScreen({Key? key, required this.serviceId, required this.customerName, required this.customerPhone, required this.customerAddress, this.isFromHome = false, this.customerLocation})
+    : super(key: key);
 
   @override
   State<ServicesViewScreen> createState() => _ServicesViewScreenState();
@@ -26,14 +42,25 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
   final ScrollController _mainScrollController = ScrollController();
   int _selectedTabIndex = 0;
   final Map<int, GlobalKey> _categoryKeys = {};
-  bool _isScrolling = false;
+  bool _isScrollingFlag = false;
+
+  Map<String, int> _serviceQuantities = {};
+  late String _currentCustomerAddress;
+  Map<String, dynamic>? _customerLocation;
 
   @override
   void initState() {
     super.initState();
+
+    if (widget.isFromHome) CheckoutSessionLocationService.clear();
+
+    _currentCustomerAddress = widget.customerAddress;
+    _customerLocation = widget.customerLocation;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false)
-          .fetchServicesViewGetAllCategoriesGetApi(widget.serviceId);
+      Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false).fetchServicesViewGetAllCategoriesGetApi(widget.serviceId);
+
+      Provider.of<GetSlotViewModel>(context, listen: false).fetchGetSlotDataApi(DateTime.now(), widget.serviceId);
     });
   }
 
@@ -51,8 +78,6 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     }
   }
 
-  bool _isScrollingFlag = false;
-
   void _scrollToCategory(int index) {
     if (_categoryKeys[index]?.currentContext == null) return;
 
@@ -61,35 +86,71 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
       _selectedTabIndex = index;
     });
 
-    Future.delayed(Duration(milliseconds: 100), () {
-      final RenderBox? renderBox =
-      _categoryKeys[index]?.currentContext?.findRenderObject() as RenderBox?;
+    Future.delayed(const Duration(milliseconds: 100), () {
+      final RenderBox? renderBox = _categoryKeys[index]?.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox == null) {
         setState(() => _isScrollingFlag = false);
         return;
       }
 
-      final position = renderBox.localToGlobal(
-        Offset.zero,
-        ancestor: context.findRenderObject(),
-      );
-      final offset =
-          _mainScrollController.offset + (position.dy - 60) - 20;
+      final position = renderBox.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
+      final offset = _mainScrollController.offset + (position.dy - 60) - 20;
 
-      _mainScrollController
-          .animateTo(
-        offset,
-        duration: Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      )
-          .then((_) {
-        setState(() => _isScrollingFlag = false);
-      });
+      _mainScrollController.animateTo(offset, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut).then((_) => setState(() => _isScrollingFlag = false));
     });
   }
 
+  void _updateQuantity(String taskId, int change) {
+    setState(() {
+      int next = (_serviceQuantities[taskId] ?? 0) + change;
+      if (next >= 0) _serviceQuantities[taskId] = next;
+    });
+  }
+
+  int _getTotalItems() => _serviceQuantities.entries.where((e) => e.value > 0).length;
+
+  double _calculateTotal() {
+    final categories = _getCategories();
+    double total = 0;
+    for (final cat in categories) {
+      for (final task in (cat.tasks ?? [])) {
+        final qty = _serviceQuantities[task.id ?? ''] ?? 0;
+        if (qty > 0) {
+          final price = task.price?.salePrice?.toDouble() ?? task.price?.basePrice?.toDouble() ?? 0;
+          total += price * qty;
+        }
+      }
+    }
+    return total;
+  }
+
+  double _calculateSaved() {
+    final categories = _getCategories();
+    double saved = 0;
+    for (final cat in categories) {
+      for (final task in (cat.tasks ?? [])) {
+        final qty = _serviceQuantities[task.id ?? ''] ?? 0;
+        if (qty > 0) {
+          final base = task.price?.basePrice?.toDouble() ?? 0;
+          final sale = task.price?.salePrice?.toDouble() ?? base;
+          if (base > sale) saved += (base - sale) * qty;
+        }
+      }
+    }
+    return saved;
+  }
+
+  List<Category> _getCategories() {
+    final viewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
+    return viewModel.servicesViewGetAllCategoryData.data?.data?.categories ?? [];
+  }
+
+  // ── Build ──
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return WillPopScope(
       onWillPop: () async {
         Navigator.pop(context, null);
@@ -98,20 +159,13 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),
         body: SafeArea(
-          child: ResPonsiveUi(
-            mobile: _body(),
-            desktop: _body(),
-            tablet: _body(),
-          ),
+          child: ResPonsiveUi(mobile: _body(screenWidth, screenHeight), desktop: _body(screenWidth, screenHeight), tablet: _body(screenWidth, screenHeight)),
         ),
       ),
     );
   }
 
-  Widget _body() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
+  Widget _body(double screenWidth, double screenHeight) {
     return Column(
       children: [
         GestureDetector(
@@ -122,16 +176,10 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
           child: Consumer<ServicesViewGetAllCategoriesViewModel>(
             builder: (context, viewModel, _) {
               final status = viewModel.servicesViewGetAllCategoryData.status;
-              final categories =
-                  viewModel.servicesViewGetAllCategoryData.data?.data?.categories ?? [];
+              final categories = viewModel.servicesViewGetAllCategoryData.data?.data?.categories ?? [];
 
               if (status == Status.LOADING) {
-                return Center(
-                  child: LoadingAnimationWidget.progressiveDots(
-                    color: AppColors.button(context),
-                    size: 50,
-                  ),
-                );
+                return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
               }
 
               if (status == Status.ERROR) {
@@ -139,19 +187,14 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      SizedBox(height: 16),
-                      Text(
-                        'Failed to load services',
-                        style: AppTextStyles.textSize16(context, color: Colors.red),
-                      ),
-                      SizedBox(height: 16),
+                      const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text('Failed to load services', style: AppTextStyles.textSize16(context, color: Colors.red)),
+                      const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () => viewModel
-                            .fetchServicesViewGetAllCategoriesGetApi(widget.serviceId),
-                        child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.button(context)),
+                        onPressed: () => viewModel.fetchServicesViewGetAllCategoriesGetApi(widget.serviceId),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),
@@ -160,11 +203,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
               if (categories.isEmpty) {
                 return Center(
-                  child: Text(
-                    'No categories found',
-                    style: AppTextStyles.textSize14(
-                        context, color: AppColors.subtitle(context)),
-                  ),
+                  child: Text('No categories found', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
                 );
               }
 
@@ -173,12 +212,11 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
               return CustomScrollView(
                 controller: _mainScrollController,
                 slivers: [
-                  // ── Category Tabs (sticky top) ──
                   SliverToBoxAdapter(
                     child: Column(
                       children: [
                         SizedboxSpaccing.height03(context),
-                        Container(
+                        SizedBox(
                           width: screenWidth * 0.9,
                           child: Column(
                             children: [
@@ -191,12 +229,8 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                                       style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
                                     ),
                                     TextSpan(
-                                      text: " ${viewModel.servicesViewGetAllCategoryData.data?.data?.categories?.first.name ?? 'Services'}",
-                                      style: AppTextStyles.textSize20(
-                                        context,
-                                        weight: FontWeight.w600,
-                                        color: Color(0xffD78503),
-                                      ),
+                                      text: " ${categories.first.name ?? 'Services'}",
+                                      style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: const Color(0xffD78503)),
                                     ),
                                   ],
                                 ),
@@ -216,8 +250,8 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                           iconSize: 60,
                           selectedIndex: _selectedTabIndex,
                           onCategoryTap: _scrollToCategory,
-                          getName: (category) => category.name ?? '',
-                          getImageUrl: (category) => category.image,
+                          getName: (c) => c.name ?? '',
+                          getImageUrl: (c) => c.image,
                           getButtonColor: (ctx) => AppColors.button(ctx),
                           getBackgroundColor: (ctx) => AppColors.border(ctx),
                           getBorderColor: (ctx) => AppColors.border(ctx),
@@ -225,57 +259,52 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                           getSelectedImageColor: (ctx) => AppColors.whiteColor,
                           getTextColor: (ctx) => AppColors.textPrimary(ctx),
                           getTextStyle: (ctx, isSelected) =>
-                              AppTextStyles.textSize12(
-                                ctx,
-                                weight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
-                                color: isSelected
-                                    ? AppColors.button(ctx)
-                                    : AppColors.textPrimary(ctx),
-                              ),
+                              AppTextStyles.textSize12(ctx, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(ctx) : AppColors.textPrimary(ctx)),
                           defaultIcon: Icons.design_services_outlined,
                           supportSvg: false,
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
 
-                  // ── Category Sections ──
+                  // ── Category sections ──
                   ...categories.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final category = entry.value;
-                    final tasks = category.tasks ?? [];
+                    return _buildCategorySection(index: entry.key, category: entry.value, tasks: entry.value.tasks ?? [], screenWidth: screenWidth, screenHeight: screenHeight);
+                  }),
 
-                    return _buildCategorySection(
-                      index: index,
-                      category: category,
-                      tasks: tasks,
-                      screenWidth: screenWidth,
-                      screenHeight: screenHeight,
-                    );
-                  }).toList(),
-
-                  SliverToBoxAdapter(
-                    child: SizedBox(height: screenHeight / 1.5),
-                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: screenHeight / 1.5)),
                 ],
               );
             },
           ),
         ),
+
+        // ── Bottom cart bar ──
+        if (_getTotalItems() > 0)
+          DynamicBottomCartBar(
+            totalServices: _getTotalItems(),
+            totalPrice: _calculateTotal(),
+            savedAmount: _calculateSaved(),
+            onCartTap: _showCartDialog,
+            screenWidth: MediaQuery.of(context).size.width,
+            screenHeight: MediaQuery.of(context).size.height,
+            getButtonColor: (ctx) => AppColors.button(ctx),
+            getBlackColor: (ctx) => AppColors.blackColor,
+            getWhiteColor: (ctx) => AppColors.whiteColor,
+            getTextStyle: (ctx, {weight, color}) {
+              if (weight == FontWeight.w700) {
+                return AppTextStyles.textSize20(ctx, weight: weight, color: color ?? Colors.white);
+              }
+              return AppTextStyles.textSize14(ctx, color: color ?? AppColors.whiteColor);
+            },
+          ),
       ],
     );
   }
 
-  Widget _buildCategorySection({
-    required int index,
-    required Category category,
-    required List<Task> tasks,
-    required double screenWidth,
-    required double screenHeight,
-  }) {
+  // ── Category section ──
+  Widget _buildCategorySection({required int index, required Category category, required List<Task> tasks, required double screenWidth, required double screenHeight}) {
     return SliverStickyHeader(
       header: Container(
         key: _categoryKeys[index],
@@ -284,15 +313,10 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         child: Center(
           child: Container(
             width: screenWidth * 0.9,
-            padding: EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.containerBackground(context),
-              border: Border(
-                bottom: BorderSide(
-                  width: 1,
-                  color: AppColors.border(context),
-                ),
-              ),
+              border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
             ),
             child: Text(
               category.name ?? '',
@@ -304,76 +328,111 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         ),
       ),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-              (context, taskIndex) {
-            if (taskIndex >= tasks.length) return null;
+        delegate: SliverChildBuilderDelegate((context, taskIndex) {
+          if (taskIndex >= tasks.length) return null;
 
-            final task = tasks[taskIndex];
-            final bool isLastItem = taskIndex == tasks.length - 1;
+          final task = tasks[taskIndex];
+          final bool isLastItem = taskIndex == tasks.length - 1;
+          final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
+          final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
+          final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
+          final bool showDiscount = task.price?.discountType != DiscountType.NONE && originalPrice > salePrice;
+          final int quantity = _serviceQuantities[task.id ?? ''] ?? 0;
 
-            final imageUrl = task.images != null && task.images!.isNotEmpty
-                ? task.images!.first.url
-                : null;
-
-            final double originalPrice =
-                task.price?.basePrice?.toDouble() ?? 0;
-            final double salePrice =
-                task.price?.salePrice?.toDouble() ?? originalPrice;
-            final bool showDiscount =
-                task.price?.discountType != DiscountType.NONE &&
-                    originalPrice > salePrice;
-
-            return Container(
-              width: screenWidth,
-              child: Center(
-                child: Container(
-                  width: screenWidth * 0.9,
-                  child: DynamicServiceCard(
-                    imageUrl: imageUrl,
-                    defaultIcon: Icons.design_services_outlined,
-                    serviceName: task.name ?? '',
-                    viewDetailsText: 'View Task Details',
-                    onViewDetails: () => _showTaskDetailsDialog(task),
-                    discountedPrice: salePrice,
-                    originalPrice: originalPrice,
-                    showDiscount: showDiscount,
-                    quantity: 0, // no cart needed for now
-                    onAdd: () {},
-                    onRemove: () {},
-                    onIncrease: () {},
-                    showRoomNumber: false,
-                    isLastItem: isLastItem,
-                    getButtonColor: (ctx) => AppColors.button(ctx),
-                    getBackgroundColor: (ctx) =>
-                        AppColors.containerBackground(ctx),
-                    getBorderColor: (ctx) => AppColors.border(ctx),
-                    getSubtitleColor: (ctx) => AppColors.subtitle(ctx),
-                    getTextColor: (ctx) => AppColors.textPrimary(ctx),
-                    getTextStyle: (ctx, {weight, color}) =>
-                        AppTextStyles.textSize16(
-                          ctx,
-                          weight: weight ?? FontWeight.normal,
-                          color: color ?? AppColors.textPrimary(ctx),
-                        ),
-                    getSpacing: (ctx) => SizedboxSpaccing.width02(ctx),
-                  ),
-                ),
+          return Center(
+            child: SizedBox(
+              width: screenWidth * 0.9,
+              child: DynamicServiceCard(
+                imageUrl: imageUrl,
+                defaultIcon: Icons.design_services_outlined,
+                serviceName: task.name ?? '',
+                viewDetailsText: 'View Task Details',
+                onViewDetails: () => _showTaskDetailsDialog(task),
+                discountedPrice: salePrice,
+                originalPrice: originalPrice,
+                showDiscount: showDiscount,
+                quantity: quantity,
+                onAdd: () => _updateQuantity(task.id ?? '', 1),
+                onRemove: () => _updateQuantity(task.id ?? '', -1),
+                onIncrease: () => _updateQuantity(task.id ?? '', 1),
+                showRoomNumber: quantity > 0,
+                isLastItem: isLastItem,
+                getButtonColor: (ctx) => AppColors.button(ctx),
+                getBackgroundColor: (ctx) => AppColors.containerBackground(ctx),
+                getBorderColor: (ctx) => AppColors.border(ctx),
+                getSubtitleColor: (ctx) => AppColors.subtitle(ctx),
+                getTextColor: (ctx) => AppColors.textPrimary(ctx),
+                getTextStyle: (ctx, {weight, color}) => AppTextStyles.textSize16(ctx, weight: weight ?? FontWeight.normal, color: color ?? AppColors.textPrimary(ctx)),
+                getSpacing: (ctx) => SizedboxSpaccing.width02(ctx),
               ),
-            );
-          },
-          childCount: tasks.length,
-        ),
+            ),
+          );
+        }, childCount: tasks.length),
       ),
     );
   }
 
+  // ── Cart dialog ──
+  void _showCartDialog() {
+    final viewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(
+        context, listen: false);
+    final checkoutVM =
+    Provider.of<CheckoutAllServicesViewModel>(context, listen: false);
+    final slotVM = Provider.of<GetSlotViewModel>(context, listen: false);
+
+    final categories =
+        viewModel.servicesViewGetAllCategoryData.data?.data?.categories ?? [];
+    final double transportFeeValue = viewModel
+        .servicesViewGetAllCategoryData.data?.data?.transportFee
+        ?.toDouble() ??
+        0.0;
+
+    showDialog(
+      context: context,
+      barrierColor: AppColors.showDialougeBackground(context),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return ServicesCartDialogWidget(
+            categories: categories,
+            serviceQuantities: _serviceQuantities,
+            onQuantityUpdate: (taskId, newQuantity) {
+              setState(() => _serviceQuantities[taskId] = newQuantity);
+              setDialogState(() {});
+              if (_getTotalItems() == 0) Navigator.pop(context);
+            },
+            onProceedToCheckout: _navigateCheckOutScreen,
+            selectedDate: checkoutVM.selectedDate,
+            selectedServiceTime: checkoutVM.selectedServiceTime,
+            transportFee: transportFeeValue,
+            slotViewModel: slotVM,
+            serviceId: widget.serviceId,
+            onDateSelected: (DateTime selectedDate) {
+              // setSelectedDate already clears the previous slot selection
+              checkoutVM.setSelectedDate(selectedDate);
+              slotVM.fetchGetSlotDataApi(selectedDate, widget.serviceId);
+              setDialogState(() {});
+            },
+            // ✅ onTimeSelected now receives both time and slotId
+            onTimeSelected: (String time, String slotId) {
+              checkoutVM.setServiceTime(time, slotId);
+              setDialogState(() {});
+            },
+            dateController: TextEditingController(
+              text: checkoutVM.selectedDate != null
+                  ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!)
+                  : '',
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ── Task details dialog ──
   void _showTaskDetailsDialog(Task task) {
-    final imageUrl = task.images != null && task.images!.isNotEmpty
-        ? task.images!.first.url
-        : null;
+    final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
     final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
-    final double salePrice =
-        task.price?.salePrice?.toDouble() ?? originalPrice;
+    final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
 
     showDialog(
       context: context,
@@ -382,12 +441,11 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         backgroundColor: AppColors.containerBackground(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Image
               if (imageUrl != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
@@ -399,81 +457,46 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                     errorBuilder: (_, __, ___) => Container(
                       height: 200,
                       color: AppColors.border(context),
-                      child: Icon(Icons.design_services_outlined,
-                          size: 60, color: AppColors.subtitle(context)),
+                      child: Icon(Icons.design_services_outlined, size: 60, color: AppColors.subtitle(context)),
                     ),
                   ),
                 ),
-              SizedBox(height: 12),
-
-              // Name
-              Text(
-                task.name ?? '',
-                style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-              ),
-              SizedBox(height: 8),
-
-              // Price
+              const SizedBox(height: 12),
+              Text(task.name ?? '', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  Text(
-                    '৳${salePrice.toStringAsFixed(2)}',
-                    style: AppTextStyles.textSize16(
-                        context, weight: FontWeight.w600),
-                  ),
+                  Text('৳${salePrice.toStringAsFixed(2)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                   if (originalPrice > salePrice) ...[
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       '৳${originalPrice.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.subtitle(context),
-                        decoration: TextDecoration.lineThrough,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.subtitle(context), decoration: TextDecoration.lineThrough),
                     ),
                   ],
                 ],
               ),
-              SizedBox(height: 12),
-
-              // Description
+              const SizedBox(height: 12),
               if (task.description != null && task.description!.isNotEmpty) ...[
-                Text('Description',
-                    style: AppTextStyles.textSize14(context,
-                        weight: FontWeight.w600)),
-                SizedBox(height: 4),
-                Text(task.description!,
-                    style: AppTextStyles.textSize12(context)),
-                SizedBox(height: 12),
+                Text('Description', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(task.description!, style: AppTextStyles.textSize12(context)),
+                const SizedBox(height: 12),
               ],
-
-              // Details
               if (task.details != null && task.details!.isNotEmpty) ...[
-                Text('Details',
-                    style: AppTextStyles.textSize14(context,
-                        weight: FontWeight.w600)),
-                SizedBox(height: 4),
-                Text(task.details!,
-                    style: AppTextStyles.textSize12(context)),
-                SizedBox(height: 12),
+                Text('Details', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(task.details!, style: AppTextStyles.textSize12(context)),
+                const SizedBox(height: 12),
               ],
-
-              // Close button
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.button(context),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
                   child: Center(
-                    child: Text(
-                      'Close',
-                      style: AppTextStyles.textSize14(context,
-                          color: AppColors.whiteColor),
-                    ),
+                    child: Text('Close', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
                   ),
                 ),
               ),
@@ -482,5 +505,65 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         ),
       ),
     );
+  }
+
+  // ── Navigate to checkout ──
+  void _navigateCheckOutScreen() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId') ?? '';
+
+    if (userId.isEmpty) {
+      Utils.flushBarErrorMessage('User ID not found. Please login again.', context);
+      return;
+    }
+
+    final categories = _getCategories();
+
+    // ── Session location override ──
+    final sessionData = await CheckoutSessionLocationService.getAll();
+    if (sessionData.location != null && sessionData.address != null) {
+      setState(() {
+        _customerLocation = sessionData.location;
+        _currentCustomerAddress = sessionData.address!;
+      });
+    }
+
+    final checkoutVM = Provider.of<CheckoutAllServicesViewModel>(context, listen: false);
+
+    final double transportFee = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false).servicesViewGetAllCategoryData.data?.data?.transportFee?.toDouble() ?? 0.0;
+
+    final result = await Navigator.pushNamed(
+      context,
+      RoutesName.serviceCheckoutScreen,
+      arguments: {
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': _currentCustomerAddress,
+        'customerLocation': _customerLocation,
+        'userId': userId,
+        'serviceId': widget.serviceId,
+        'categories': categories,
+        'serviceQuantities': _serviceQuantities,
+        'totalPrice': _calculateTotal(),
+        'transportFee': transportFee,
+        'selectedDate': checkoutVM.selectedDate,
+        'selectedServiceTime': checkoutVM.selectedServiceTime,
+        'onAddressUpdate': (String newAddress) {
+          setState(() => _currentCustomerAddress = newAddress);
+        },
+      },
+    );
+
+    if (result is Map<String, dynamic>) {
+      if (result['updatedLocation'] != null) {
+        setState(() {
+          _customerLocation = result['updatedLocation'] as Map<String, dynamic>;
+          _currentCustomerAddress = (_customerLocation?['fullAddress'] as String?) ?? _currentCustomerAddress;
+        });
+      }
+      if (result['cleared'] == true) {
+        setState(() => _serviceQuantities.clear());
+      }
+    }
   }
 }

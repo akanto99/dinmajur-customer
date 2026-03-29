@@ -250,7 +250,10 @@ import 'package:dinmajur_customer/socket_connection_model/socket_provider_servic
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/notifier/cooking_checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view_model/authview_model/login_logout_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/book_service_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/checkout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_slot_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_bookedslot_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/book_family_event_cooking_view_model.dart';
@@ -413,6 +416,9 @@ void main() async {
         ///Home Screen Get All Service
         ChangeNotifierProvider(create: (_) => GetAllServiceViewModel()),
         ChangeNotifierProvider(create: (_) => ServicesViewGetAllCategoriesViewModel()),
+        ChangeNotifierProvider(create: (_) => GetSlotViewModel()),
+        ChangeNotifierProvider(create: (_) => CheckoutAllServicesViewModel()),
+        ChangeNotifierProvider(create: (_) => BookServiceViewModel()),
 
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),
         ChangeNotifierProvider(create: (_) => PostSupportViewModel()),
