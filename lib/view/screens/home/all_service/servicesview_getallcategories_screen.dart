@@ -8,7 +8,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart' hide Image;
 import 'package:dinmajur_customer/view/screens/home/all_service/widget/services_cartdialouge_widget.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/widget/services_viewdetails_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_scrollable_categorytab.dart';
@@ -430,79 +430,30 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
   // ── Task details dialog ──
   void _showTaskDetailsDialog(Task task) {
-    final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
+    final imageUrl = task.images != null && task.images!.isNotEmpty
+        ? task.images!.first.url
+        : null;
     final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
     final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
+    final bool showDiscount = task.price?.discountType != DiscountType.NONE &&
+        originalPrice > salePrice;
 
     showDialog(
       context: context,
       barrierColor: AppColors.showDialougeBackground(context),
-      builder: (context) => Dialog(
-        backgroundColor: AppColors.containerBackground(context),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (imageUrl != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    imageUrl,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 200,
-                      color: AppColors.border(context),
-                      child: Icon(Icons.design_services_outlined, size: 60, color: AppColors.subtitle(context)),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 12),
-              Text(task.name ?? '', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text('৳${salePrice.toStringAsFixed(2)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                  if (originalPrice > salePrice) ...[
-                    const SizedBox(width: 8),
-                    Text(
-                      '৳${originalPrice.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 12, color: AppColors.subtitle(context), decoration: TextDecoration.lineThrough),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (task.description != null && task.description!.isNotEmpty) ...[
-                Text('Description', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(task.description!, style: AppTextStyles.textSize12(context)),
-                const SizedBox(height: 12),
-              ],
-              if (task.details != null && task.details!.isNotEmpty) ...[
-                Text('Details', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(task.details!, style: AppTextStyles.textSize12(context)),
-                const SizedBox(height: 12),
-              ],
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
-                  child: Center(
-                    child: Text('Close', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => ServicesViewDetailsDialouge(
+        imageUrl: imageUrl,
+        serviceName: task.name ?? '',
+        discountedPrice: salePrice,
+        originalPrice: originalPrice,
+        showDiscount: showDiscount,
+        description: task.description,
+        details: task.details,
+        onClose: () => Navigator.pop(context),
+        getButtonColor: (ctx) => AppColors.button(ctx),
+        getBackgroundColor: (ctx) => AppColors.containerBackground(ctx),
+        getBorderColor: (ctx) => AppColors.border(ctx),
+        getTextColor: (ctx) => AppColors.textPrimary(ctx),
       ),
     );
   }
