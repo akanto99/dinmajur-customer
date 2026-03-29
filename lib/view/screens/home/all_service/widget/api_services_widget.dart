@@ -13,8 +13,19 @@ import 'package:provider/provider.dart';
 
 class AllServicesGridWidget extends StatefulWidget {
   final String? selectedServiceId;
+  final String customerName;
+  final String customerPhone;
+  final String customerAddress;
+  final Map<String, dynamic>? customerLocation;
 
-  const AllServicesGridWidget({Key? key, this.selectedServiceId}) : super(key: key);
+  const AllServicesGridWidget({
+    Key? key,
+    this.selectedServiceId,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+    required this.customerLocation,
+  }) : super(key: key);
 
   @override
   State<AllServicesGridWidget> createState() => _AllServicesGridWidgetState();
@@ -39,7 +50,6 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
       final isInside = checkCoverageViewModel.checkCoverageData.data?.data?.insideServiceArea ?? false;
 
       if (!isInside) {
-        // Optional: show a message if not in coverage
         Utils.flushBarErrorMessage("Service not available in your area", context);
         return;
       }
@@ -47,7 +57,14 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
       Navigator.pushNamed(
         context,
         RoutesName.servicesViewScreen,
-        arguments: {'serviceId': service.id},
+        arguments: {
+          'serviceId': service.id,
+          'customerName': widget.customerName,
+          'customerPhone': widget.customerPhone,
+          'customerAddress': widget.customerAddress,
+          'isFromHome': true,                      // ✅ added
+          'customerLocation': widget.customerLocation,
+        },
       );
     } catch (e) {
       debugPrint('Coverage check failed: $e');

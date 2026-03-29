@@ -73,6 +73,7 @@ class RoutesName {
 
   ///All Service
   static const String servicesViewScreen= 'servicesViewScreen_view';
+  static const String serviceCheckoutScreen= 'serviceCheckoutScreen_view';
 
 
 
