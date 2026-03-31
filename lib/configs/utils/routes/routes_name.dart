@@ -45,6 +45,7 @@ class RoutesName {
   static const String failedCancelledPaymentScreen = 'failed_cancelled_payment_screen';///House-Keeper Reusable Component
   static const String beautyFailedCancelledPaymentScreen = 'beauty_failed_cancelled_payment_screen';///Beauty Salon Reusable Component
   static const String cookingFailedCancelledPaymentScreen = 'cooking_failed_cancelled_payment_screen';///Family EVent Cancel Failed
+  static const String serviceFailedScreen = 'serviceFailedScreen_screen';///Service Failed Screen
 
   ///Order Now DropDown- 1
   static const String orderScreen = 'orderScreen_view';
@@ -74,6 +75,7 @@ class RoutesName {
   ///All Service
   static const String servicesViewScreen= 'servicesViewScreen_view';
   static const String serviceCheckoutScreen= 'serviceCheckoutScreen_view';
+  static const String serviceConfirmedScreen= 'serviceConfirmedScreen_view';
 
 
 

@@ -254,6 +254,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_mod
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/checkout_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_slot_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/getservice_confirmationdetails_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_bookedslot_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/book_family_event_cooking_view_model.dart';
@@ -419,6 +420,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GetSlotViewModel()),
         ChangeNotifierProvider(create: (_) => CheckoutAllServicesViewModel()),
         ChangeNotifierProvider(create: (_) => BookServiceViewModel()),
+        ChangeNotifierProvider(create: (_) => GetServiceConfirmationDetailsViewModel()),
 
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),
         ChangeNotifierProvider(create: (_) => PostSupportViewModel()),

@@ -8,7 +8,7 @@ class BookServiceRepository {
   Future<dynamic> bookServicePostApi(dynamic data) async {
     try {
       dynamic response = await _apiServices.gePostApiWithHeaderesponse(
-        AppUrl.bookPremiumHomeBeautySalonPostAPI,
+        AppUrl.createServiceBookingPostAPI,
         data,
       );
       return response;

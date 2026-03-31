@@ -181,27 +181,27 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
           SizedboxSpaccing.height015(context),
 
           // City Dropdown
-          DynamicDropdown(
-            items: ['Chittagong', 'Dhaka'],
-            selectedItem: _selectedCity,
-            onChanged: (String? newValue) {
-              if (newValue != null) setState(() => _selectedCity = newValue);
-            },
-            titleStyle: AppTextStyles.textSize14(context,
-                weight: FontWeight.w500, color: AppColors.textPrimary(context)),
-            hintText: "Choose your city",
-            height: 50,
-            width: screenWidth * 0.9,
-            borderRadius: 8,
-            backgroundColor: AppColors.containerBackground(context),
-            borderColor: AppColors.border(context),
-            dropdownBackgroundColor: AppColors.containerBackground(context),
-            selectedTextStyle: AppTextStyles.textSize14(context,
-                color: AppColors.textPrimary(context)),
-            itemTextStyle: AppTextStyles.textSize14(context,
-                color: AppColors.textPrimary(context)),
-          ),
-          SizedboxSpaccing.height015(context),
+          // DynamicDropdown(
+          //   items: ['Chittagong', 'Dhaka'],
+          //   selectedItem: _selectedCity,
+          //   onChanged: (String? newValue) {
+          //     if (newValue != null) setState(() => _selectedCity = newValue);
+          //   },
+          //   titleStyle: AppTextStyles.textSize14(context,
+          //       weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+          //   hintText: "Choose your city",
+          //   height: 50,
+          //   width: screenWidth * 0.9,
+          //   borderRadius: 8,
+          //   backgroundColor: AppColors.containerBackground(context),
+          //   borderColor: AppColors.border(context),
+          //   dropdownBackgroundColor: AppColors.containerBackground(context),
+          //   selectedTextStyle: AppTextStyles.textSize14(context,
+          //       color: AppColors.textPrimary(context)),
+          //   itemTextStyle: AppTextStyles.textSize14(context,
+          //       color: AppColors.textPrimary(context)),
+          // ),
+          // SizedboxSpaccing.height015(context),
 
           // Google Place Search
           GooglePlaceSearchTextField(

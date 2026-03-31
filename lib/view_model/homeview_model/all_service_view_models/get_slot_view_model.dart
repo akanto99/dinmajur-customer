@@ -1,5 +1,5 @@
 import 'package:dinmajur_customer/data/response/api_response.dart';
-import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/get_bookedslot_model.dart';
+import 'package:dinmajur_customer/model/home_models/all_service_models/get_timeslot_model.dart';
 import 'package:dinmajur_customer/respository/home_repositories/all_service_repositories/get_slot_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -7,9 +7,9 @@ import 'package:intl/intl.dart';
 class GetSlotViewModel with ChangeNotifier {
   final _myRepo = GetSlotRepository();
 
-  ApiResponse<GetBookedTimeSlotModel> getSlotData = ApiResponse.loading();
+  ApiResponse<GetTimeSlotModel> getSlotData = ApiResponse.loading();
 
-  void setGetSlotData(ApiResponse<GetBookedTimeSlotModel> response) {
+  void setGetSlotData(ApiResponse<GetTimeSlotModel> response) {
     getSlotData = response;
     notifyListeners();
   }

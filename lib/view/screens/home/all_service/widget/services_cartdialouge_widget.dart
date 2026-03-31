@@ -1,15 +1,17 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart';
-import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/get_bookedslot_model.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/widget/dynamic_cart_servicelist_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/cart_coponents/cart_header_components.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_slot_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../../../../../model/home_models/all_service_models/get_timeslot_model.dart';
 
 class ServicesCartDialogWidget extends StatefulWidget {
   final String? serviceId;
@@ -19,13 +21,13 @@ class ServicesCartDialogWidget extends StatefulWidget {
   final VoidCallback onProceedToCheckout;
   final DateTime? selectedDate;
   final String? selectedServiceTime;
-
-  /// ✅ Now carries BOTH the display time and the slot _id
   final Function(String time, String slotId) onTimeSelected;
   final Function(DateTime) onDateSelected;
   final TextEditingController dateController;
   final double transportFee;
   final GetSlotViewModel slotViewModel;
+    final int? minimumOrderAmount;
+
 
   const ServicesCartDialogWidget({
     Key? key,
@@ -41,6 +43,8 @@ class ServicesCartDialogWidget extends StatefulWidget {
     required this.dateController,
     required this.transportFee,
     required this.slotViewModel,
+            required this.minimumOrderAmount,
+
   }) : super(key: key);
 
   @override
@@ -49,7 +53,7 @@ class ServicesCartDialogWidget extends StatefulWidget {
 
 class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
   late Map<String, int> _localServiceQuantities;
-  List<BookedSlotDatum> _cachedSlots = [];
+  List<TimeSlot> _cachedSlots = [];
 
   @override
   void initState() {
@@ -128,7 +132,7 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
                     _buildCartItemsList(context, cartItems),
                     _buildPriceSummary(context, subtotal, transport, saved, total, originalTotal),
                     _buildDateTimeSelection(context, screenWidth),
-                    SizedBox(height: 15,)
+                    SizedBox(height: 15),
                   ],
                 ),
               ),
@@ -258,7 +262,8 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
     return AnimatedBuilder(
       animation: widget.slotViewModel,
       builder: (context, _) {
-        final List<BookedSlotDatum> slots = widget.slotViewModel.getSlotData.data?.data ?? [];
+        // ✅ Correct: read from GetTimeSlotModel -> timeSlots (List<TimeSlot>)
+        final List<TimeSlot> slots = widget.slotViewModel.getSlotData.data?.timeSlots ?? [];
 
         if (slots.isNotEmpty) _cachedSlots = slots;
         final displaySlots = slots.isEmpty ? _cachedSlots : slots;
@@ -291,19 +296,15 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
     );
   }
 
-  Widget _slotButton(BuildContext context, BookedSlotDatum slot) {
-    final String time = slot.time ?? '';
+  Widget _slotButton(BuildContext context, TimeSlot slot) {
+    // ✅ Correct fields: timeLabel for display, id for API, availability.isBooked for status
+    final String time = slot.timeLabel ?? '';
     final String slotId = slot.id ?? '';
-
-    // ✅ isBooked now correctly reads from availability.isBooked via the getter
-    final bool isBooked = slot.isBooked;
+    final bool isBooked = slot.availability?.isBooked ?? false;
     final bool isSelected = widget.selectedServiceTime == time;
 
     return GestureDetector(
-      onTap: isBooked
-          ? null
-          // ✅ Pass BOTH time (for display) and slotId (for API)
-          : () => widget.onTimeSelected(time, slotId),
+      onTap: isBooked ? null : () => widget.onTimeSelected(time, slotId),
       child: Container(
         height: 40,
         width: 150,
@@ -354,12 +355,28 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
   }
 
   // ── Checkout button ───────────────────────────────────────────────────────
-
   Widget _buildCheckoutButton(BuildContext context, double subtotal, double screenWidth) {
+    final double minOrder = widget.minimumOrderAmount?.toDouble() ?? 300.0;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15,left: 15,right: 15),
+      padding: const EdgeInsets.only(bottom: 15, left: 15, right: 15),
       child: GestureDetector(
         onTap: () {
+          if (subtotal < minOrder) {
+            Utils.flushBarExclamatoryMessage(title: "Warning", subtitle: "Minimum order amount is BDT ${minOrder.toStringAsFixed(0)} to proceed!", context: context);
+            return;
+          }
+
+          if (widget.selectedDate == null) {
+            Utils.flushBarErrorMessage("Please select a booking date", context);
+            return;
+          }
+
+          if (widget.selectedServiceTime == null || widget.selectedServiceTime!.isEmpty) {
+            Utils.flushBarErrorMessage("Please select a time slot", context);
+            return;
+          }
+
           Navigator.pop(context);
           widget.onProceedToCheckout();
         },

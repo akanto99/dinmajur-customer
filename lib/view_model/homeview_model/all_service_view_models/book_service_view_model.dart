@@ -14,11 +14,7 @@ class BookServiceViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> bookServicePostApi(
-      BuildContext context,
-      dynamic fields,
-      Function(String? trackingId) onSuccess
-      ) async {
+  Future<void> bookServicePostApi(BuildContext context, dynamic fields, Function(String? trackingId) onSuccess) async {
     setBookServiceLoading(true);
     try {
       dynamic response = await _myRepo.bookServicePostApi(fields);
@@ -28,20 +24,17 @@ class BookServiceViewModel with ChangeNotifier {
 
       String? trackingId;
 
-
       if (response != null && response['data'] != null) {
-        trackingId = response['data']['trackingId']?.toString();
+        final booking = response['data']['booking'];
+        trackingId = booking?['trackingId']?.toString();
 
-        if (kDebugMode) {
-          print('Tracking ID: $trackingId');
-        }
+        if (kDebugMode) print('Tracking ID: $trackingId');
 
         onSuccess(trackingId);
       } else {
-        if (kDebugMode) print('Warning: trackingId not found in response');
+        if (kDebugMode) print('Warning: data not found in response');
         onSuccess(null);
       }
-
     } catch (error) {
       setBookServiceLoading(false);
       _handleError(error, context);
@@ -56,10 +49,7 @@ class BookServiceViewModel with ChangeNotifier {
       int jsonStartIndex = errorBody.indexOf('{');
       if (jsonStartIndex != -1) {
         final decoded = jsonDecode(errorBody.substring(jsonStartIndex));
-        errorMessage = decoded['message'] ??
-            (decoded['errorMessages'] is List && decoded['errorMessages'].isNotEmpty
-                ? decoded['errorMessages'][0]['message']
-                : errorMessage);
+        errorMessage = decoded['message'] ?? (decoded['errorMessages'] is List && decoded['errorMessages'].isNotEmpty ? decoded['errorMessages'][0]['message'] : errorMessage);
       }
     } catch (_) {
       errorMessage = 'Unexpected error occurred';

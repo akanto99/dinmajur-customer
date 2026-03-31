@@ -4,6 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../model/home_models/all_service_models/getservice_confirmationdetails_model.dart' as service_model;
 import '../../../../model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/get_beautysalon_model.dart';
 
 // ==================== GENERIC RECEIPT DATA MODELS ====================
@@ -677,6 +678,57 @@ extension BeautySalonReceiptAdapter on Data {
         grandTotal: grandTotal ?? 0,
       ),
       footerMessage: 'Thank you for choosing our beauty and salon service!',
+      contactNumber: '01929600600',
+    );
+  }
+}
+
+// ==================== ADAPTER FOR SERVICE MODEL ====================
+
+extension ServiceReceiptAdapter on service_model.Data {
+  ReceiptData toReceiptData() {
+    final services = serviceBookingItems?.map((item) {
+      final subItems = item.serviceTaskItemIds?.map((taskItem) {
+        return ReceiptSubItem(
+          name: taskItem.name ?? '',
+          price: taskItem.salePrice ?? 0,
+        );
+      }).toList() ?? [];
+
+      num totalPrice = 0;
+      for (var subItem in subItems) {
+        totalPrice += subItem.price * (item.quantity ?? 1);
+      }
+
+      return ReceiptServiceItem(
+        serviceName: item.serviceTaskId?.name ?? 'Service',
+        items: subItems,
+        quantity: item.quantity ?? 1,
+        totalPrice: totalPrice,
+      );
+    }).toList() ?? [];
+
+    return ReceiptData(
+      trackingId: trackingId ?? 'N/A',
+      customerName: fullName,
+      phone: phone,
+      email: (email != null && email!.isNotEmpty) ? email : 'N/A',
+      address: fullAddress,
+      notes: notes,
+      status: status,
+      date: date,
+      time: time,
+      paymentMethod: paymentType,
+      services: services,
+      paymentSummary: ReceiptPaymentSummary(
+        subTotal: subTotal ?? 0,
+        vat: vat ?? 0,
+        transportationFee: fare ?? 0,
+        discount: discountValue ?? 0,
+        total: total ?? 0,
+        grandTotal: grandTotal ?? 0,
+      ),
+      footerMessage: 'Thank you for choosing our service!',
       contactNumber: '01929600600',
     );
   }

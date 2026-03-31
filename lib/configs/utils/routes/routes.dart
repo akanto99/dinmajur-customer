@@ -5,6 +5,8 @@ import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart'
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/service_checkout_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/service_confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/service_failed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/servicesview_getallcategories_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beautysalon_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
@@ -157,6 +159,18 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
           builder: (BuildContext context) => CookingFailedCancelledPaymentScreen(
+            trackingId: args?['trackingId'],
+            valId: args?['valId'],
+            reason: args?['reason'],
+            errorMessage: args?['errorMessage'],
+            isCancelled: args?['isCancelled'] ?? false,
+          ),
+        );
+    ///Service Failed Screen
+      case RoutesName.serviceFailedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (BuildContext context) => ServiceFailedScreen(
             trackingId: args?['trackingId'],
             valId: args?['valId'],
             reason: args?['reason'],
@@ -405,6 +419,20 @@ class Routes {
               totalPrice: args['totalPrice'],
               transportFee: args['transportFee'],
               onAddressUpdate: args['onAddressUpdate'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.serviceConfirmedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => ServiceConfirmedScreen(
+              //   trackingId: args['trackingId'],
+              // valId: args['valId'],
+              trackingId: args['trackingId'] as String? ?? '',
+              valId: args['valId'] as String? ?? '',
             ),
             settings: settings,
           );

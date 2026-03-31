@@ -1,17 +1,18 @@
 import 'package:dinmajur_customer/configs/res/app_url.dart';
 import 'package:dinmajur_customer/data/network/BaseApiServices.dart';
 import 'package:dinmajur_customer/data/network/NetworkApiService.dart';
-import 'package:dinmajur_customer/model/home_models/all_service_models/get_timeslot_model.dart';
+import 'package:dinmajur_customer/model/home_models/all_service_models/getservice_confirmationdetails_model.dart';
 
-class GetSlotRepository {
+
+class GetServicesConfirmationRepository {
   BaseApiServices _apiServices = NetworkApiService();
 
-  Future<GetTimeSlotModel> fetchSlotGetApi(String bookedDate, String serviceId) async {
+  Future<ServiceConfirmationDetailsModel> fetchServiceViewGetApi(String byTrackId) async {
     try {
       dynamic response = await _apiServices.getGetApiResponse(
-        "${AppUrl.getSlotGetAPI}$bookedDate&serviceId=$serviceId",
+        "${AppUrl.getServiceTrackingIdGetAPI}/$byTrackId",
       );
-      return GetTimeSlotModel.fromJson(response);
+      return ServiceConfirmationDetailsModel.fromJson(response);
     } catch (e) {
       throw e;
     }

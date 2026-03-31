@@ -67,6 +67,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     _fullNameController.text = widget.customerName;
     _phoneController.text = widget.customerPhone;
     _addressController.text = widget.customerAddress;
+    _addressController.text = widget.customerAddress;
     _updatedLocation = widget.customerLocation;
 
     _restoreSessionLocation();
@@ -107,13 +108,13 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
 
     if (paymentResult.success) {
       _clearAllData();
-      Navigator.pushReplacementNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A'});
+      Navigator.pushReplacementNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A'});
     } else if (paymentResult.status == 'FAILED') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         Navigator.pushReplacementNamed(
           context,
-          RoutesName.beautyFailedCancelledPaymentScreen,
+          RoutesName.serviceFailedScreen,
           arguments: {
             'trackingId': trackingId,
             'valId': paymentResult.validationId ?? 'N/A',
@@ -128,7 +129,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
         if (!mounted) return;
         Navigator.pushReplacementNamed(
           context,
-          RoutesName.beautyFailedCancelledPaymentScreen,
+          RoutesName.serviceFailedScreen,
           arguments: {
             'trackingId': trackingId,
             'valId': paymentResult.validationId ?? 'N/A',
@@ -194,10 +195,6 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
 
     // ✅ Use the stored slot _id directly — no list lookup needed
     final String timeSlotId = checkoutVM.selectedTimeSlotId ?? '';
-    if (timeSlotId.isEmpty) {
-      Utils.flushBarErrorMessage("Please select a time slot", context);
-      return;
-    }
 
     // ── Amounts ──
     final double subtotal = checkoutVM.calculateTotal(serviceQuantities: _serviceQuantities, categories: widget.categories);
@@ -206,17 +203,22 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     // ── Build payload ──
     final List<Map<String, dynamic>> tasks = checkoutVM.prepareTasksData(serviceQuantities: _serviceQuantities, categories: widget.categories);
 
-    // ✅ Only timeSlotId goes to the API — no date/serviceTime strings
     final Map<String, dynamic> bookingData = checkoutVM.prepareBookingData(
-      userId: widget.userId,
+      serviceId: widget.serviceId,
+      customerId: widget.userId,
+      paymentMethod: checkoutVM.selectedPaymentMethod,
+      address: _updatedLocation?['fullAddress'] ?? _addressController.text,
       fullName: _fullNameController.text,
       phone: _phoneController.text,
-      customerLocation: _updatedLocation,
-      address: _updatedLocation?['fullAddress'] ?? _addressController.text,
+      email: "",
       specialRequest: _specialRequestController.text,
+      selectedDate: checkoutVM.selectedDate.toString(),
       timeSlotId: timeSlotId,
+      platform: "app",
+
+      customerLocation: _updatedLocation,
       tasks: tasks,
-      paymentMethod: checkoutVM.selectedPaymentMethod,
+
     );
 
     debugPrint('📦 Booking Data: $bookingData');
@@ -229,7 +231,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
           if (!mounted) return;
           Navigator.pushReplacementNamed(
             context,
-            RoutesName.failedOrderScreenWidget,
+            RoutesName.serviceFailedScreen,
             arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking. Please try again.'},
           );
           return;
@@ -245,30 +247,23 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
             customerAddress: _addressController.text.trim(),
           );
           await _handlePaymentResult(viewModel: checkoutVM, paymentResult: paymentResult, trackingId: trackingId);
-        } else if (checkoutVM.selectedPaymentMethod == 'cash') {
+        } else if (
+        checkoutVM.selectedPaymentMethod == 'cash') {
           if (!mounted) return;
           _clearAllData();
           Navigator.pop(context, {'cleared': true, 'updatedLocation': _updatedLocation});
-          Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': 'COD'});
+          Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': 'COD'});
         } else {
           if (!mounted) return;
           Navigator.pushReplacementNamed(
             context,
-            RoutesName.failedOrderScreenWidget,
+            RoutesName.serviceFailedScreen,
             arguments: {'trackingId': trackingId, 'valId': 'N/A', 'reason': 'Invalid payment method', 'errorMessage': 'The selected payment method is not available.'},
           );
         }
       });
     } catch (e) {
       debugPrint('❌ Booking error: $e');
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(
-          context,
-          RoutesName.failedOrderScreenWidget,
-          arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking failed', 'errorMessage': 'An error occurred while processing your booking. Please try again.'},
-        );
-      });
     }
   }
 
