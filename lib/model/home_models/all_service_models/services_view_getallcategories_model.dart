@@ -21,19 +21,31 @@ class ServicesViewGetAllCategoryModel {
 class Data {
   String? serviceId;
   int? totalCategories;
+  int? minimumOrderAmount;
   int? transportFee;
   List<Category>? categories;
 
-  Data({this.serviceId,this.transportFee, this.totalCategories, this.categories});
+  Data({this.serviceId,
+    this.transportFee,
+    this.minimumOrderAmount,
+    this.totalCategories,
+    this.categories
+  });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     serviceId: json["serviceId"],
     transportFee: json["transportFee"],
+    minimumOrderAmount: json["minimumOrderAmount"],
     totalCategories: json["totalCategories"],
     categories: json["categories"] == null ? [] : List<Category>.from(json["categories"]!.map((x) => Category.fromJson(x))),
   );
 
-  Map<String, dynamic> toJson() => {"serviceId": serviceId,"transportFee": transportFee, "totalCategories": totalCategories, "categories": categories == null ? [] : List<dynamic>.from(categories!.map((x) => x.toJson()))};
+  Map<String, dynamic> toJson() => {
+    "serviceId": serviceId,
+    "transportFee": transportFee,
+    "minimumOrderAmount": minimumOrderAmount,
+    "totalCategories": totalCategories,
+    "categories": categories == null ? [] : List<dynamic>.from(categories!.map((x) => x.toJson()))};
 }
 
 class Category {

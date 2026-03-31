@@ -9,11 +9,8 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
-import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beauty_and_salon_widget.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cookingcard_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_service_widget.dart';
@@ -27,9 +24,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-import '../../../model/home_models/all_service_models/get_all_service_models.dart';
 import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
-import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/nearby_retailers_view_model.dart';
@@ -44,12 +39,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? selectedServiceFromTrending;
-  String? selectedStoreType;
-  List<dynamic> nearbyStores = [];
-  bool isLoadingStores = false;
   bool _nameDialogShown = false;
   bool _locationFlowStarted = false;
+
+// Retail (তাৎক্ষণিক বাজার) nearest section
+  List<dynamic> nearbyStores = [];
+  bool isLoadingStores = false;
+  bool _showRetailNearest = false;
+
+  String? _trendingLoadingService;
+
+
 
   // Location related variables
   final LocationService _locationService = LocationService();
@@ -63,11 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
   static const String _locationPostedKey = 'location_posted_once';
 
   ///Check Coverage
-  bool isCheckingCoverage = false;
-  bool? isInsideServiceArea;
-
-  // ✅ Add SSE listener flag
-  bool _sseListenerInitialized = false;
 
   @override
   void didChangeDependencies() {
@@ -87,22 +82,24 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       profileViewModel.fetchProfileViewUserDataApi();
+
+      final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
+      allServiceViewModel.fetchGetAllServices();
     });
 
     // _checkAndGetLocation();
-    final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
-    allServiceViewModel.fetchGetAllServices();
+
   }
 
   Future<void> _handleRefresh() async {
     try {
       debugPrint('🔄 HomeScreen: Pull to refresh triggered');
-
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       await profileViewModel.refreshProfileData();
 
-      if (selectedStoreType == 'Retail') {
-        await _fetchNearbyRetailers(selectedStoreType!);
+      // ✅ Refresh retail stores only if the nearest section is visible
+      if (_showRetailNearest) {
+        await _fetchNearbyRetailers('Retail');
       }
     } catch (e) {
       if (mounted) {
@@ -282,83 +279,154 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _checkCoverage() async {
-    if (!mounted) return;
 
-    setState(() {
-      isCheckingCoverage = true;
-      isInsideServiceArea = null;
-    });
+  /// Routes a trending service name to its destination screen.
+  /// For Retail → fetch nearby stores; for others → check coverage → navigate.
+  Future<void> _handleTrendingServiceTap(String serviceName) async {
+    if (_trendingLoadingService != null) return; // prevent double-tap
+
+    if (!_hasValidLocation()) {
+      _showLocationRequiredDialog();
+      return;
+    }
+
+    // ── তাৎক্ষণিক বাজার: fetch stores, show nearest if found ──
+    if (serviceName == "তাৎক্ষণিক বাজার") {
+      setState(() {
+        _trendingLoadingService = serviceName;
+        _showRetailNearest = false;
+        nearbyStores = [];
+      });
+
+      try {
+        await _fetchNearbyRetailers('Retail');
+        if (!mounted) return;
+
+        if (nearbyStores.isEmpty) {
+          Utils.flushBarErrorMessage(
+            "No stores found in your area",
+            context,
+          );
+        } else {
+          setState(() => _showRetailNearest = true);
+        }
+      } finally {
+        if (mounted) setState(() => _trendingLoadingService = null);
+      }
+      return;
+    }
+
+    // ── All other trending cards: coverage check → navigate ──
+    setState(() => _trendingLoadingService = serviceName);
 
     try {
-      final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(context, listen: false);
-
+      final checkCoverageViewModel =
+      Provider.of<CheckCoverageViewModel>(context, listen: false);
       await checkCoverageViewModel.fetchCheckCoverageDataApi();
       if (!mounted) return;
 
-      if (checkCoverageViewModel.checkCoverageData.status == Status.COMPLETED) {
-        final responseData = checkCoverageViewModel.checkCoverageData.data;
-        setState(() {
-          isInsideServiceArea = responseData?.data?.insideServiceArea ?? false;
-          isCheckingCoverage = false;
-        });
-      } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
-        setState(() {
-          isInsideServiceArea = false;
-          isCheckingCoverage = false;
-        });
+      final isInside =
+          checkCoverageViewModel.checkCoverageData.data?.data?.insideServiceArea ??
+              false;
 
-        String errorMsg = checkCoverageViewModel.checkCoverageData.message ?? "Failed to check service coverage";
-        Utils.flushBarErrorMessage(errorMsg, context);
+      if (!isInside) {
+        Utils.flushBarErrorMessage(
+          "Service not available in your area",
+          context,
+        );
+        return;
       }
+
+      // ── Build customer data from profile ──
+      final profileViewModel =
+      Provider.of<ProfileViewViewModel>(context, listen: false);
+      String customerName = '';
+      String customerPhone = '';
+      String customerAddress = '';
+      Map<String, dynamic>? customerLocation;
+
+      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+        final userData = profileViewModel.profileviewUserData.data?.data;
+        customerName = userData?.user?.fullName ?? '';
+        customerPhone = userData?.user?.phone ?? '';
+        customerAddress = userData?.addresses?.fullAddress ?? '';
+        final addr = userData?.addresses;
+        if (addr != null) {
+          customerLocation = {
+            "fullAddress": addr.fullAddress ?? '',
+            "country": addr.country ?? '',
+            "city": addr.city ?? '',
+            "geoLocation": {
+              "type": addr.geoLocation?.type ?? "Point",
+              "coordinates": addr.geoLocation?.coordinates ?? [],
+              "timestamp": DateTime.now().toUtc().toIso8601String(),
+            },
+          };
+        }
+      }
+
+      // ── Navigate based on service ──
+      _navigateTrendingService(
+        serviceName: serviceName,
+        customerName: customerName,
+        customerPhone: customerPhone,
+        customerAddress: customerAddress,
+        customerLocation: customerLocation,
+      );
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          isInsideServiceArea = false;
-          isCheckingCoverage = false;
-        });
-        Utils.flushBarErrorMessage("Failed to check service coverage", context);
-      }
+      debugPrint('Trending coverage check error: $e');
+    } finally {
+      if (mounted) setState(() => _trendingLoadingService = null);
     }
   }
 
-  /// ✅ Method to map trending service names to store types
-  String _mapServiceToStoreType(String serviceName) {
+  void _navigateTrendingService({
+    required String serviceName,
+    required String customerName,
+    required String customerPhone,
+    required String customerAddress,
+    required Map<String, dynamic>? customerLocation,
+  }) {
     switch (serviceName) {
       case "House Keeper":
-        return "Premium House Keeper";
+        Navigator.pushNamed(
+          context,
+          RoutesName.bookNowPremiumHouseKeeper, // use your actual route
+          arguments: {
+            'customerName': customerName,
+            'customerPhone': customerPhone,
+            'customerAddress': customerAddress,
+            'customerLocation': customerLocation,
+          },
+        );
+        break;
       case "Beauty Parlour":
-        return "Premium Home Beauty & Salon";
-      case "তাৎক্ষণিক বাজার":
-        return "Retail";
+        Navigator.pushNamed(
+          context,
+          RoutesName.bookNowHomeBeautySalonScreen, // use your actual route
+          arguments: {
+            'customerName': customerName,
+            'customerPhone': customerPhone,
+            'customerAddress': customerAddress,
+            'customerLocation': customerLocation,
+          },
+        );
+        break;
       case "Family Event Cooking":
-        return "Family Event Cooking";
-      default:
-        return serviceName;
+        Navigator.pushNamed(
+          context,
+          RoutesName.familyEventCookingScreen, // use your actual route
+          arguments: {
+            'customerName': customerName,
+            'customerPhone': customerPhone,
+            'customerAddress': customerAddress,
+            'customerLocation': customerLocation,
+          },
+        );
+        break;
     }
   }
 
-  void _handleTrendingServiceTap(String serviceName) {
-    final storeType = _mapServiceToStoreType(serviceName);
-
-    setState(() {
-      selectedStoreType = storeType;
-      selectedServiceFromTrending = serviceName;
-      nearbyStores = [];
-      isInsideServiceArea = null;
-      isCheckingCoverage = false;
-    });
-
-    if (storeType == 'Premium House Keeper') {
-      _checkCoverage();
-    } else if (storeType == 'Premium Home Beauty & Salon') {
-      _checkCoverage();
-    } else if (storeType == 'Retail') {
-      _fetchNearbyRetailers(storeType);
-    } else if (storeType == 'Family Event Cooking') {
-      _checkCoverage();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -377,7 +445,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   body(BuildContext context) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
 
     return RefreshIndicator(
@@ -391,279 +458,98 @@ class _HomeScreenState extends State<HomeScreen> {
           _customAppBar(context),
           Expanded(
             child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
                   SizedboxSpaccing.height025(context),
-                  Container(
-                    width: screenWidth * 0.9,
-                    decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(24)),
-                    child: CustomDropdown(
-                      // titleText: AppLocalizations.of(context)!.select_store_type,
-                      items: storeTypes.keys.toList(),
-                      selectedItem: selectedStoreType,
-                      // hintText: AppLocalizations.of(context)!.select_dropdown_hint,
-                      hintText: AppLocalizations.of(context)!.select_store_type,
-                      onChanged: (String? newValue) {
-                        // ✅ Check location before allowing selection
-                        if (!_hasValidLocation()) {
-                          _showLocationRequiredDialog();
-                          return;
-                        }
 
-                        setState(() {
-                          selectedStoreType = newValue;
-                          selectedServiceFromTrending = null;
-                          nearbyStores = [];
-                          isInsideServiceArea = null;
-                          isCheckingCoverage = false;
-                        });
-
-                        if (newValue != null) {
-                          if (newValue == 'Premium House Keeper') {
-                            _checkCoverage();
-                          } else if (newValue == 'Premium Home Beauty & Salon') {
-                            _checkCoverage();
-                          } else if (newValue == 'Retail') {
-                            _fetchNearbyRetailers(newValue);
-                          } else if (newValue == 'Family Event Cooking') {
-                            _checkCoverage();
-                          }
-                        }
-                      },
-                      valueToBengaliMap: storeTypes,
-                    ),
+                  // ── A: Trending Services ──
+                  Consumer<ProfileViewViewModel>(
+                    builder: (context, profileViewModel, _) {
+                      return TrendingServicesWidget(
+                        services: const [
+                          "House Keeper",
+                          "Beauty Parlour",
+                          "তাৎক্ষণিক বাজার",
+                          "Family Event Cooking",
+                        ],
+                        onServiceTap: _handleTrendingServiceTapWithLocationCheck,
+                        selectedService: null,
+                        loadingService: _trendingLoadingService,
+                      );
+                    },
                   ),
 
-                  Center(child: SizedboxSpaccing.height025(context)),
+                  SizedboxSpaccing.height025(context),
 
-                  // A - Always
-                  TrendingServicesWidget(
-                    services: ["House Keeper", "Beauty Parlour", "তাৎক্ষণিক বাজার", "Family Event Cooking"],
-                    onServiceTap: _handleTrendingServiceTapWithLocationCheck,
-                    selectedService: selectedServiceFromTrending,
+                  // ── B: All Services Grid ── (always below trending)
+                  Consumer<ProfileViewViewModel>(
+                    builder: (context, profileViewModel, _) {
+                      String customerName = '';
+                      String customerPhone = '';
+                      String customerAddress = '';
+                      Map<String, dynamic>? customerLocation;
+
+                      if (profileViewModel.profileviewUserData.status ==
+                          Status.COMPLETED) {
+                        final userData =
+                            profileViewModel.profileviewUserData.data?.data;
+                        if (userData?.user?.fullName != null)
+                          customerName = userData!.user!.fullName!;
+                        if (userData?.user?.phone != null)
+                          customerPhone = userData!.user!.phone!;
+                        if (userData?.addresses?.fullAddress != null)
+                          customerAddress = userData!.addresses!.fullAddress!;
+                        final addressData = userData?.addresses;
+                        if (addressData != null) {
+                          customerLocation = {
+                            "fullAddress": addressData.fullAddress ?? '',
+                            "country": addressData.country ?? '',
+                            "city": addressData.city ?? '',
+                            "geoLocation": {
+                              "type":
+                              addressData.geoLocation?.type ?? "Point",
+                              "coordinates":
+                              addressData.geoLocation?.coordinates ?? [],
+                              "timestamp":
+                              DateTime.now().toUtc().toIso8601String(),
+                            },
+                          };
+                        }
+                      }
+
+                      return SizedBox(
+                        width: screenWidth * 0.9,
+                        child: AllServicesGridWidget(
+                          selectedServiceId: null,
+                          customerName: customerName,
+                          customerPhone: customerPhone,
+                          customerAddress: customerAddress,
+                          customerLocation: customerLocation,
+                        ),
+                      );
+                    },
                   ),
 
-                  Center(child: SizedboxSpaccing.height025(context)),
-
-                  // ✅ Default order A-B-C (no selection)
-                  if (selectedStoreType == null) ...[
-                    Consumer<ProfileViewViewModel>(
-                      builder: (context, profileViewModel, _) {
-                        String customerName = '';
-                        String customerPhone = '';
-                        String customerAddress = '';
-                        Map<String, dynamic>? customerLocation;
-
-                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                          final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-                          if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-                          if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-                          final addressData = userData?.addresses;
-                          if (addressData != null) {
-                            customerLocation = {
-                              "fullAddress": addressData.fullAddress ?? '',
-                              "country": addressData.country ?? '',
-                              "city": addressData.city ?? '',
-                              "geoLocation": {
-                                "type": addressData.geoLocation?.type ?? "Point",
-                                "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                "timestamp": DateTime.now().toUtc().toIso8601String(),
-                              },
-                            };
-                          }
-                        }
-
-                        return Container(
-                          width: screenWidth * 0.9,
-                          child: AllServicesGridWidget(
-                            selectedServiceId: null, // ✅ pass null or a tracked ID if needed
-                            customerName: customerName,
-                            customerPhone: customerPhone,
-                            customerAddress: customerAddress,
-                            customerLocation: customerLocation,
-                          ),
-                        );
-                      },
-                    ),
+                  // ── C: Retail nearest section (only when stores found) ──
+                  if (_showRetailNearest) ...[
                     SizedboxSpaccing.height025(context),
-                  ],
-
-                  // ✅ When A clicked: show C here (B goes below)
-                  if (selectedStoreType != null) ...[
-                    // C
                     DynamicNearestHeader(
-                      selectedStoreType: selectedStoreType,
+                      selectedStoreType: 'Retail',
                       storeCount: nearbyStores.length,
                       screenWidth: screenWidth,
-                      isInsideServiceArea: isInsideServiceArea,
-                      onSeeAllTap: () => _handleSeeAllNavigation(context),
+                      isInsideServiceArea: null,
+                      onSeeAllTap: () => _handleRetailSeeAll(context),
                     ),
                     SizedboxSpaccing.height025(context),
-
-                    if (selectedStoreType == 'Premium House Keeper')
-                      Consumer<ProfileViewViewModel>(
-                        builder: (context, profileViewModel, _) {
-                          String customerName = '';
-                          String customerPhone = '';
-                          String customerAddress = '';
-                          Map<String, dynamic>? customerLocation;
-                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                            final userData = profileViewModel.profileviewUserData.data?.data;
-                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-                            final addressData = userData?.addresses;
-                            if (addressData != null) {
-                              customerLocation = {
-                                "fullAddress": addressData.fullAddress ?? '',
-                                "country": addressData.country ?? '',
-                                "city": addressData.city ?? '',
-                                "geoLocation": {
-                                  "type": addressData.geoLocation?.type ?? "Point",
-                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
-                                },
-                              };
-                            }
-                          }
-                          return PremiumHouseKeeperCoverageWidget(
-                            isCheckingCoverage: isCheckingCoverage,
-                            isInsideServiceArea: isInsideServiceArea,
-                            customerName: customerName,
-                            customerPhone: customerPhone,
-                            customerAddress: customerAddress,
-                            customerLocation: customerLocation,
-                          );
-                        },
-                      )
-                    else if (selectedStoreType == 'Premium Home Beauty & Salon')
-                      Consumer<ProfileViewViewModel>(
-                        builder: (context, profileViewModel, _) {
-                          String customerName = '';
-                          String customerPhone = '';
-                          String customerAddress = '';
-                          Map<String, dynamic>? customerLocation;
-                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                            final userData = profileViewModel.profileviewUserData.data?.data;
-                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-                            final addressData = userData?.addresses;
-                            if (addressData != null) {
-                              customerLocation = {
-                                "fullAddress": addressData.fullAddress ?? '',
-                                "country": addressData.country ?? '',
-                                "city": addressData.city ?? '',
-                                "geoLocation": {
-                                  "type": addressData.geoLocation?.type ?? "Point",
-                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
-                                },
-                              };
-                            }
-                          }
-                          return PremiumBeautyAndSalonCoverageWidget(
-                            isCheckingCoverage: isCheckingCoverage,
-                            isInsideServiceArea: isInsideServiceArea,
-                            customerName: customerName,
-                            customerPhone: customerPhone,
-                            customerAddress: customerAddress,
-                            customerLocation: customerLocation,
-                          );
-                        },
-                      )
-                    else if (selectedStoreType == 'Retail')
-                      GroceryStoresSection(
-                        isLoading: isLoadingStores,
-                        stores: nearbyStores,
-                        storeTypes: storeTypes,
-                        selectedStoreType: selectedStoreType,
-                        currentPosition: _currentPosition,
-                        currentAddress: _currentAddress,
-                      )
-                    else if (selectedStoreType == 'Family Event Cooking')
-                      Consumer<ProfileViewViewModel>(
-                        builder: (context, profileViewModel, _) {
-                          String customerName = '';
-                          String customerPhone = '';
-                          String customerAddress = '';
-                          Map<String, dynamic>? customerLocation;
-                          if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                            final userData = profileViewModel.profileviewUserData.data?.data;
-                            if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-                            if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-                            if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-                            final addressData = userData?.addresses;
-                            if (addressData != null) {
-                              customerLocation = {
-                                "fullAddress": addressData.fullAddress ?? '',
-                                "country": addressData.country ?? '',
-                                "city": addressData.city ?? '',
-                                "geoLocation": {
-                                  "type": addressData.geoLocation?.type ?? "Point",
-                                  "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                  "timestamp": DateTime.now().toUtc().toIso8601String(),
-                                },
-                              };
-                            }
-                          }
-                          return FamilyEventCardCoverageWidget(
-                            isCheckingCoverage: isCheckingCoverage,
-                            isInsideServiceArea: isInsideServiceArea,
-                            customerName: customerName,
-                            customerPhone: customerPhone,
-                            customerAddress: customerAddress,
-                            customerLocation: customerLocation,
-                          );
-                        },
-                      ),
-
-                    SizedboxSpaccing.height025(context),
-
-                    // B goes below C when A is selected
-                    Consumer<ProfileViewViewModel>(
-                      builder: (context, profileViewModel, _) {
-                        String customerName = '';
-                        String customerPhone = '';
-                        String customerAddress = '';
-                        Map<String, dynamic>? customerLocation;
-
-                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                          final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-                          if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-                          if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-                          final addressData = userData?.addresses;
-                          if (addressData != null) {
-                            customerLocation = {
-                              "fullAddress": addressData.fullAddress ?? '',
-                              "country": addressData.country ?? '',
-                              "city": addressData.city ?? '',
-                              "geoLocation": {
-                                "type": addressData.geoLocation?.type ?? "Point",
-                                "coordinates": addressData.geoLocation?.coordinates ?? [],
-                                "timestamp": DateTime.now().toUtc().toIso8601String(),
-                              },
-                            };
-                          }
-                        }
-
-                        return Container(
-                          width: screenWidth * 0.9,
-                          child: AllServicesGridWidget(
-                            selectedServiceId: null, // ✅ pass null or a tracked ID if needed
-                            customerName: customerName,
-                            customerPhone: customerPhone,
-                            customerAddress: customerAddress,
-                            customerLocation: customerLocation,
-                          ),
-                        );
-                      },
+                    GroceryStoresSection(
+                      isLoading: isLoadingStores,
+                      stores: nearbyStores,
+                      storeTypes: storeTypes,
+                      selectedStoreType: 'Retail',
+                      currentPosition: _currentPosition,
+                      currentAddress: _currentAddress,
                     ),
-
-                    SizedboxSpaccing.height025(context),
                   ],
 
                   SizedboxSpaccing.height02(context),
@@ -675,6 +561,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 
   Widget _customAppBar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -925,59 +812,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _handleSeeAllNavigation(BuildContext context) {
-    if (selectedStoreType == null) {
-      Utils.flushBarErrorMessage("No store type selected", context);
-      return;
-    }
-
-    Map<String, dynamic> arguments = {'storeType': selectedStoreType};
-
-    if (selectedStoreType == 'Retail') {
-      // ── Grocery: pass stores + position ──────────────────────
-      arguments.addAll({'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress});
-    } else if (selectedStoreType == 'Premium House Keeper' ||
-        selectedStoreType == 'Premium Home Beauty & Salon' ||
-        selectedStoreType ==
-            'Family Event Cooking' // ✅ added
-            ) {
-      // ── Service types: pass customer profile data ─────────────
-      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-
-      String customerName = '';
-      String customerPhone = '';
-      String customerAddress = '';
-      Map<String, dynamic>? customerLocation;
-
-      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-        final userData = profileViewModel.profileviewUserData.data?.data;
-
-        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-
-        final addressData = userData?.addresses;
-        if (addressData != null) {
-          customerLocation = {
-            "fullAddress": addressData.fullAddress ?? '',
-            "country": addressData.country ?? '',
-            "city": addressData.city ?? '',
-            "geoLocation": {"type": addressData.geoLocation?.type ?? "Point", "coordinates": addressData.geoLocation?.coordinates ?? [], "timestamp": DateTime.now().toUtc().toIso8601String()},
-          };
-        }
-      }
-
-      arguments.addAll({
-        'isCheckingCoverage': isCheckingCoverage,
-        'isInsideServiceArea': isInsideServiceArea,
-        'customerName': customerName,
-        'customerPhone': customerPhone,
-        'customerAddress': customerAddress,
-        'customerLocation': customerLocation, // ✅ always included
-      });
-    }
-
-    Navigator.pushNamed(context, RoutesName.unifiedSeeAllScreen, arguments: arguments);
+  void _handleRetailSeeAll(BuildContext context) {
+    Navigator.pushNamed(
+      context,
+      RoutesName.unifiedSeeAllScreen,
+      arguments: {
+        'storeType': 'Retail',
+        'stores': nearbyStores,
+        'storeTypes': storeTypes,
+        'currentPosition': _currentPosition,
+        'currentAddress': _currentAddress,
+      },
+    );
   }
 
   Widget _buildIconButton({VoidCallback? onTap, required String svgAsset, required BuildContext context}) {

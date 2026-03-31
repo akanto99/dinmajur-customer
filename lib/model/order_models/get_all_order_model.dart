@@ -54,6 +54,7 @@ class Datum {
   String? houseKeeperBookingId;
   String? beautySalonBookingId;
   String? eventCookingBookingId;
+  String? servicesBookingId;
   String? type;
   Freelancer? freelancer;
   Customer? customer;
@@ -71,6 +72,7 @@ class Datum {
     this.houseKeeperBookingId,
     this.beautySalonBookingId,
     this.eventCookingBookingId,
+    this.servicesBookingId,
     this.type,
     this.freelancer,
     this.customer,
@@ -89,6 +91,7 @@ class Datum {
     houseKeeperBookingId: json["houseKeeperBookingId"],
     beautySalonBookingId: json["beautySalonBookingId"],
     eventCookingBookingId: json["eventCookingBookingId"],
+    servicesBookingId: json["servicesBookingId"],
     type: json["type"],
     freelancer: json["freelancer"] == null ? null : Freelancer.fromJson(json["freelancer"]),
     customer: json["customer"] == null ? null : Customer.fromJson(json["customer"]),
@@ -107,6 +110,7 @@ class Datum {
     "houseKeeperBookingId": houseKeeperBookingId,
     "beautySalonBookingId": beautySalonBookingId,
     "eventCookingBookingId": eventCookingBookingId,
+    "servicesBookingId": servicesBookingId,
     "type": type,
     "freelancer": freelancer?.toJson(),
     "customer": customer?.toJson(),

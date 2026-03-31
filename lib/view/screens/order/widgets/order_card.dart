@@ -29,6 +29,8 @@ class OrderCard extends StatelessWidget {
         return 'Grocery Order';
       case 'EVENT_COOKING':
         return 'Family Event Cooking';
+        case 'SERVICES':
+        return 'Services Booking';
       default:
         return '';
     }
@@ -44,6 +46,8 @@ class OrderCard extends StatelessWidget {
         return datum.orderId ?? 'N/A';
       case 'EVENT_COOKING':
         return datum.eventCookingBookingId ?? 'N/A';
+        case 'SERVICES':
+        return datum.servicesBookingId ?? 'N/A';
       default:
         return 'N/A';
     }
@@ -59,6 +63,8 @@ class OrderCard extends StatelessWidget {
         return datum.orderId ?? '';
       case 'EVENT_COOKING':
         return datum.eventCookingBookingId ?? '';
+        case 'SERVICES':
+        return datum.servicesBookingId ?? '';
       default:
         return '';
     }
@@ -84,6 +90,8 @@ class OrderCard extends StatelessWidget {
         return FontAwesomeIcons.bowlRice;
       case 'ORDER':
         return FontAwesomeIcons.store;
+        case 'SERVICES':
+         return FontAwesomeIcons.clipboardList;
       default:
         return FontAwesomeIcons.fileInvoice;
     }
@@ -117,6 +125,8 @@ class OrderCard extends StatelessWidget {
       Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': _orderIdForNavigation});
     } else if (datum.type == 'EVENT_COOKING') {
       Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': _orderIdForNavigation});
+    }else if (datum.type == 'SERVICES') {
+      Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': _orderIdForNavigation});
     }
   }
 

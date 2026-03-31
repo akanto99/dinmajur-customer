@@ -1054,7 +1054,7 @@
 
 ///Updated New Home Screen
 
-// import 'package:dinmajur_customer/configs/res/color.dart';
+//import 'package:dinmajur_customer/configs/res/color.dart';
 // import 'package:dinmajur_customer/view/screens/home/all_service/widget/api_services_widget.dart';
 // import 'package:dinmajur_customer/view/screens/home/drawer/drawer.dart';
 // import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
@@ -1083,7 +1083,6 @@
 // import 'package:geocoding/geocoding.dart';
 // import 'package:geolocator/geolocator.dart';
 // import 'package:provider/provider.dart';
-// import '../../../model/home_models/all_service_models/get_all_service_models.dart';
 // import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
 // import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 // import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -1504,39 +1503,44 @@
 //
 //                   // ✅ Default order A-B-C (no selection)
 //                   if (selectedStoreType == null) ...[
-//                     // B
-// Consumer<ProfileViewViewModel>(
-// builder: (context, profileViewModel, _) {
-// String customerName = '';
-// String customerPhone = '';
-// String customerAddress = '';
-// Map<String, dynamic>? customerLocation;
-// if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-// final userData = profileViewModel.profileviewUserData.data?.data;
-// if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-// if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-// if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-// final addressData = userData?.addresses;
-// if (addressData != null) {
-// customerLocation = {
-// "fullAddress": addressData.fullAddress ?? '',
-// "country": addressData.country ?? '',
-// "city": addressData.city ?? '',
-// "geoLocation": {
-// "type": addressData.geoLocation?.type ?? "Point",
-// "coordinates": addressData.geoLocation?.coordinates ?? [],
-// "timestamp": DateTime.now().toUtc().toIso8601String(),
-// },
-// };
-// }
-// }
-//                         return Container(width: screenWidth * 0.9, child: AllServicesGridWidget(
-// customerName: customerName,
-// customerPhone: customerPhone,
-// customerAddress: customerAddress,
-// customerLocation: customerLocation,
-// ));
-//                       }
+//                     Consumer<ProfileViewViewModel>(
+//                       builder: (context, profileViewModel, _) {
+//                         String customerName = '';
+//                         String customerPhone = '';
+//                         String customerAddress = '';
+//                         Map<String, dynamic>? customerLocation;
+//
+//                         if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+//                           final userData = profileViewModel.profileviewUserData.data?.data;
+//                           if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+//                           if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+//                           if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+//                           final addressData = userData?.addresses;
+//                           if (addressData != null) {
+//                             customerLocation = {
+//                               "fullAddress": addressData.fullAddress ?? '',
+//                               "country": addressData.country ?? '',
+//                               "city": addressData.city ?? '',
+//                               "geoLocation": {
+//                                 "type": addressData.geoLocation?.type ?? "Point",
+//                                 "coordinates": addressData.geoLocation?.coordinates ?? [],
+//                                 "timestamp": DateTime.now().toUtc().toIso8601String(),
+//                               },
+//                             };
+//                           }
+//                         }
+//
+//                         return Container(
+//                           width: screenWidth * 0.9,
+//                           child: AllServicesGridWidget(
+//                             selectedServiceId: null, // ✅ pass null or a tracked ID if needed
+//                             customerName: customerName,
+//                             customerPhone: customerPhone,
+//                             customerAddress: customerAddress,
+//                             customerLocation: customerLocation,
+//                           ),
+//                         );
+//                       },
 //                     ),
 //                     SizedboxSpaccing.height025(context),
 //                   ],
@@ -1675,37 +1679,46 @@
 //
 //                     // B goes below C when A is selected
 //                     Consumer<ProfileViewViewModel>(
-//                     builder: (context, profileViewModel, _) {
-// String customerName = '';
-// String customerPhone = '';
-// String customerAddress = '';
-// Map<String, dynamic>? customerLocation;
-// if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-// final userData = profileViewModel.profileviewUserData.data?.data;
-// if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-// if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-// if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-// final addressData = userData?.addresses;
-// if (addressData != null) {
-// customerLocation = {
-// "fullAddress": addressData.fullAddress ?? '',
-// "country": addressData.country ?? '',
-// "city": addressData.city ?? '',
-// "geoLocation": {
-// "type": addressData.geoLocation?.type ?? "Point",
-// "coordinates": addressData.geoLocation?.coordinates ?? [],
-// "timestamp": DateTime.now().toUtc().toIso8601String(),
-// },
-// };
-// }
-// }
-// return Container(width: screenWidth * 0.9, child: AllServicesGridWidget(
-// customerName: customerName,
-// customerPhone: customerPhone,
-// customerAddress: customerAddress,
-// customerLocation: customerLocation,
-// ));
-// SizedboxSpaccing.height025(context),
+//                       builder: (context, profileViewModel, _) {
+//                         String customerName = '';
+//                         String customerPhone = '';
+//                         String customerAddress = '';
+//                         Map<String, dynamic>? customerLocation;
+//
+//                         if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+//                           final userData = profileViewModel.profileviewUserData.data?.data;
+//                           if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+//                           if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+//                           if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+//                           final addressData = userData?.addresses;
+//                           if (addressData != null) {
+//                             customerLocation = {
+//                               "fullAddress": addressData.fullAddress ?? '',
+//                               "country": addressData.country ?? '',
+//                               "city": addressData.city ?? '',
+//                               "geoLocation": {
+//                                 "type": addressData.geoLocation?.type ?? "Point",
+//                                 "coordinates": addressData.geoLocation?.coordinates ?? [],
+//                                 "timestamp": DateTime.now().toUtc().toIso8601String(),
+//                               },
+//                             };
+//                           }
+//                         }
+//
+//                         return Container(
+//                           width: screenWidth * 0.9,
+//                           child: AllServicesGridWidget(
+//                             selectedServiceId: null, // ✅ pass null or a tracked ID if needed
+//                             customerName: customerName,
+//                             customerPhone: customerPhone,
+//                             customerAddress: customerAddress,
+//                             customerLocation: customerLocation,
+//                           ),
+//                         );
+//                       },
+//                     ),
+//
+//                     SizedboxSpaccing.height025(context),
 //                   ],
 //
 //                   SizedboxSpaccing.height02(context),
