@@ -123,12 +123,12 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
         constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
         child: Column(
           children: [
+            _buildHeader(context, cartItems, subtotal, originalTotal, saved),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildHeader(context, cartItems, subtotal, originalTotal, saved),
                     _buildCartItemsList(context, cartItems),
                     _buildPriceSummary(context, subtotal, transport, saved, total, originalTotal),
                     _buildDateTimeSelection(context, screenWidth),
