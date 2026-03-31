@@ -157,6 +157,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
         width: widget.width ?? screenWidth * 0.87,
         child: ListView.separated(
           shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           padding: widget.listPadding ?? EdgeInsets.symmetric(vertical: 10),
           itemCount: widget.cartItems.length,
           separatorBuilder: (context, index) => SizedBox(height: widget.itemSpacing ?? 10),
