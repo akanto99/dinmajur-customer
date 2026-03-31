@@ -90,21 +90,14 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "All Services",
-                    style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
-                  ),
-                  SizedboxSpaccing.height012(context),
+                  // Text(
+                  //   "All Services",
+                  //   style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                  // ),
+                  // SizedboxSpaccing.height012(context),
                   Row(
-                    children: List.generate(
-                      3,
-                      (index) => Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(right: index == 2 ? 0 : 8),
-                          child: _buildShimmerCard(context),
-                        ),
-                      ),
-                    ),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(3, (_) => _buildShimmerCard(context)),
                   ),
                 ],
               ),
@@ -122,11 +115,11 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "All Services",
-                    style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
-                  ),
-                  SizedboxSpaccing.height012(context),
+                  // Text(
+                  //   "All Services",
+                  //   style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                  // ),
+                  // SizedboxSpaccing.height012(context),
                   _buildServicesGrid(context, services),
                   SizedboxSpaccing.height025(context),
                 ],
@@ -140,6 +133,38 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
     );
   }
 
+  // Widget _buildServicesGrid(BuildContext context, List<Datum> services) {
+  //   List<Widget> rows = [];
+  //
+  //   for (int i = 0; i < services.length; i += 3) {
+  //     final rowItems = services.skip(i).take(3).toList();
+  //
+  //     rows.add(
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.start,
+  //         children: [
+  //           ...List.generate(rowItems.length, (index) {
+  //             return Expanded(
+  //               child: Padding(
+  //                 padding: EdgeInsets.only(right: index == 2 ? 0 : 8),
+  //                 child: _buildServiceCard(context, rowItems[index]),
+  //               ),
+  //             );
+  //           }),
+  //           ...List.generate(3 - rowItems.length, (_) {
+  //             return Expanded(child: SizedBox());
+  //           }),
+  //         ],
+  //       ),
+  //     );
+  //
+  //     if (i + 3 < services.length) {
+  //       rows.add(SizedBox(height: 24));
+  //     }
+  //   }
+  //
+  //   return Column(children: rows);
+  // }
   Widget _buildServicesGrid(BuildContext context, List<Datum> services) {
     List<Widget> rows = [];
 
@@ -148,31 +173,21 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
 
       rows.add(
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            ...List.generate(rowItems.length, (index) {
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(right: index == 2 ? 0 : 8),
-                  child: _buildServiceCard(context, rowItems[index]),
-                ),
-              );
-            }),
-            ...List.generate(3 - rowItems.length, (_) {
-              return Expanded(child: SizedBox());
-            }),
+            ...rowItems.map((service) => _buildServiceCard(context, service)),
+            ...List.generate(3 - rowItems.length, (_) => const SizedBox(width: 100)),
           ],
         ),
       );
 
       if (i + 3 < services.length) {
-        rows.add(SizedBox(height: 24));
+        rows.add(const SizedBox(height: 24));
       }
     }
 
     return Column(children: rows);
   }
-
   Widget _buildServiceCard(BuildContext context, Datum service) {
     final isSelected = widget.selectedServiceId == service.id;
     final isLoading = _loadingServiceId == service.id;
@@ -233,12 +248,14 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
             ],
           ),
           SizedBox(height: 8),
-          Text(
-            service.name ?? '',
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.textSize12(context, weight: isLoading ? FontWeight.w600 : FontWeight.w500, color: isLoading ? AppColors.textPrimary(context) : AppColors.textPrimary(context)),
+          Container(  width: 100,
+            child: Text(
+              service.name ?? '',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.textSize12(context, weight: isLoading ? FontWeight.w600 : FontWeight.w500, color: isLoading ? AppColors.textPrimary(context) : AppColors.textPrimary(context)),
+            ),
           ),
         ],
       ),

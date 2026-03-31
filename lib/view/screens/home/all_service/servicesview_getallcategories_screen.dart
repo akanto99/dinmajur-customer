@@ -380,7 +380,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
     final categories = viewModel.servicesViewGetAllCategoryData.data?.data?.categories ?? [];
     final double transportFeeValue = viewModel.servicesViewGetAllCategoryData.data?.data?.transportFee?.toDouble() ?? 0.0;
-    final minimumOrderAmount = viewModel.servicesViewGetAllCategoryData.data?.meta?.minimumOrderAmount;
+    final minimumOrderAmount = viewModel.servicesViewGetAllCategoryData.data?.data?.minimumOrderAmount;
 
     showDialog(
       context: context,
