@@ -1,6 +1,6 @@
 class AppUrl {
-  // static var baseUrl = 'https://6fb1-103-153-170-227.ngrok-free.app/api/v1' ;// Staging Server
-  // static var socketUrl = 'https://6fb1-103-153-170-227.ngrok-free.app' ;// Staging
+  // static var baseUrl = 'https://86f1-103-4-65-228.ngrok-free.app/api/v1' ;// Staging Server
+  // static var socketUrl = 'https://86f1-103-4-65-228.ngrok-free.app' ;// Staging
 
   static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
@@ -72,7 +72,7 @@ class AppUrl {
   static var getBookingByTrackingIdGetAPI = baseUrl + '/house-keeper-bookings/tracking';
   //========>Premium Home Beauty and Salon
   static var getAllPremiumHomeBeautySalonGetAPI = baseUrl + '/beauty-salon-tasks';
-  static var getBookedSlotGetAPI = baseUrl + '/time-slots/booked';
+  static var getBookedSlotGetAPI = baseUrl + '/beauty-salon-time-slots/booked';
   static var bookPremiumHomeBeautySalonPostAPI = baseUrl + '/beauty-salon-bookings/create';
   static var getBeautySalonByTrackingIdGetAPI = baseUrl + '/beauty-salon-bookings/tracking';
   //========>Family Event Cooking
@@ -83,6 +83,9 @@ class AppUrl {
   static var getAllServiceGetAPI = baseUrl + '/services/get-all';
   static var servicesViewGetAllCategoryGetAPI = baseUrl + '/categories/by-service';
   static var getSlotGetAPI = baseUrl + '/time-slots?date=';
+  static var createServiceBookingPostAPI = baseUrl + '/bookings/create';
+  static var getServiceTrackingIdGetAPI = baseUrl + '/bookings/tracking';
+
 
 
 

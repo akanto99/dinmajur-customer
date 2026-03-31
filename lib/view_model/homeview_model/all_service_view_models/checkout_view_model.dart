@@ -142,26 +142,42 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
   /// Only [timeSlotId] (the `_id` from the slot response) is sent to the
   /// booking API — no raw date/time strings are needed.
   Map<String, dynamic> prepareBookingData({
-    required String userId,
+    required String serviceId,
+    required String customerId,
+    required String? paymentMethod,
+    required String address,
     required String fullName,
     required String phone,
-    required String address,
+    required String email,
     required String? specialRequest,
+    required String selectedDate,
     required String timeSlotId,
-    required List<Map<String, dynamic>> tasks,
-    required String? paymentMethod,
+     required String platform,
     Map<String, dynamic>? customerLocation,
+
+    required List<Map<String, dynamic>> tasks,
+
+
   }) {
     return {
-      'userId': userId,
-      'fullName': fullName.trim(),
-      'timeSlot': timeSlotId,
-      'phone': phone.trim(),
-      if (customerLocation != null) 'location': customerLocation,
-      'fullAddress': address.trim(),
-      'notes': (specialRequest?.trim().isEmpty ?? true) ? null : specialRequest?.trim(),
-      'tasks': tasks,
+      'serviceId': serviceId,
+      'customerId': customerId,
       'paymentType': getPaymentMethodData(paymentMethod),
+      'fullAddress': address.trim(),
+      'fullName': fullName.trim(),
+      'phone': phone.trim(),
+      'email':email.toString(),
+      'notes': (specialRequest?.trim().isEmpty ?? true) ? null : specialRequest?.trim(),
+
+      "date":selectedDate.toString() ,
+      'timeSlotId': timeSlotId,
+      "platform": platform.toString(),
+
+      if (customerLocation != null) 'location': customerLocation,
+
+
+      'tasks': tasks,
+
     };
   }
 

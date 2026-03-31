@@ -374,18 +374,13 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
   // ── Cart dialog ──
   void _showCartDialog() {
-    final viewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(
-        context, listen: false);
-    final checkoutVM =
-    Provider.of<CheckoutAllServicesViewModel>(context, listen: false);
+    final viewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
+    final checkoutVM = Provider.of<CheckoutAllServicesViewModel>(context, listen: false);
     final slotVM = Provider.of<GetSlotViewModel>(context, listen: false);
 
-    final categories =
-        viewModel.servicesViewGetAllCategoryData.data?.data?.categories ?? [];
-    final double transportFeeValue = viewModel
-        .servicesViewGetAllCategoryData.data?.data?.transportFee
-        ?.toDouble() ??
-        0.0;
+    final categories = viewModel.servicesViewGetAllCategoryData.data?.data?.categories ?? [];
+    final double transportFeeValue = viewModel.servicesViewGetAllCategoryData.data?.data?.transportFee?.toDouble() ?? 0.0;
+    final minimumOrderAmount = viewModel.servicesViewGetAllCategoryData.data?.meta?.minimumOrderAmount;
 
     showDialog(
       context: context,
@@ -407,21 +402,16 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
             slotViewModel: slotVM,
             serviceId: widget.serviceId,
             onDateSelected: (DateTime selectedDate) {
-              // setSelectedDate already clears the previous slot selection
               checkoutVM.setSelectedDate(selectedDate);
               slotVM.fetchGetSlotDataApi(selectedDate, widget.serviceId);
               setDialogState(() {});
             },
-            // ✅ onTimeSelected now receives both time and slotId
             onTimeSelected: (String time, String slotId) {
               checkoutVM.setServiceTime(time, slotId);
               setDialogState(() {});
             },
-            dateController: TextEditingController(
-              text: checkoutVM.selectedDate != null
-                  ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!)
-                  : '',
-            ),
+            dateController: TextEditingController(text: checkoutVM.selectedDate != null ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!) : ''),
+            minimumOrderAmount: minimumOrderAmount,
           );
         },
       ),
@@ -430,13 +420,10 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
   // ── Task details dialog ──
   void _showTaskDetailsDialog(Task task) {
-    final imageUrl = task.images != null && task.images!.isNotEmpty
-        ? task.images!.first.url
-        : null;
+    final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
     final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
     final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
-    final bool showDiscount = task.price?.discountType != DiscountType.NONE &&
-        originalPrice > salePrice;
+    final bool showDiscount = task.price?.discountType != DiscountType.NONE && originalPrice > salePrice;
 
     showDialog(
       context: context,
