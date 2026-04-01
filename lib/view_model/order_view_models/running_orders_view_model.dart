@@ -435,13 +435,15 @@ class RunningOrdersViewModel with ChangeNotifier {
 
         // Find the target order in this page's results
         final updatedOrder = freshOrders.firstWhereOrNull(
-          (order) => order.orderId == bookingId || order.houseKeeperBookingId == bookingId || order.beautySalonBookingId == bookingId || order.eventCookingBookingId == bookingId,
+          (order) => order.orderId == bookingId || order.houseKeeperBookingId == bookingId || order.beautySalonBookingId == bookingId || order.eventCookingBookingId == bookingId || order
+              .servicesBookingId == bookingId,
         );
 
         if (updatedOrder != null) {
           // Found it — replace by ID in our local list, regardless of index
           final localIndex = _completeAllOrders.indexWhere(
-            (order) => order.orderId == bookingId || order.houseKeeperBookingId == bookingId || order.beautySalonBookingId == bookingId || order.eventCookingBookingId == bookingId,
+            (order) => order.orderId == bookingId || order.houseKeeperBookingId == bookingId || order.beautySalonBookingId == bookingId || order.eventCookingBookingId == bookingId || order
+                .servicesBookingId == bookingId,
           );
 
           if (localIndex != -1) {
@@ -475,7 +477,8 @@ class RunningOrdersViewModel with ChangeNotifier {
       order.orderId == bookingId ||
           order.houseKeeperBookingId == bookingId ||
           order.beautySalonBookingId == bookingId ||
-          order.eventCookingBookingId == bookingId,
+          order.eventCookingBookingId == bookingId ||
+          order.servicesBookingId == bookingId ,
     );
 
     if (runningIndex != -1) {
@@ -487,7 +490,8 @@ class RunningOrdersViewModel with ChangeNotifier {
           order.orderId == bookingId ||
               order.houseKeeperBookingId == bookingId ||
               order.beautySalonBookingId == bookingId ||
-              order.eventCookingBookingId == bookingId,
+              order.eventCookingBookingId == bookingId ||
+              order.servicesBookingId == bookingId ,
         );
 
         if (updatedOrder != null) {

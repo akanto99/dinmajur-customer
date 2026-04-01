@@ -30,7 +30,7 @@ class OrderCard extends StatelessWidget {
       case 'EVENT_COOKING':
         return 'Family Event Cooking';
         case 'SERVICES':
-        return 'Services Booking';
+        return datum.categoryType ?? 'N/A';
       default:
         return '';
     }

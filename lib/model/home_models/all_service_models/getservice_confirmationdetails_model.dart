@@ -1,273 +1,131 @@
 import 'dart:convert';
 
-ServiceConfirmationDetailsModel serviceConfirmationDetailsModelFromJson(String str) =>
-    ServiceConfirmationDetailsModel.fromJson(json.decode(str));
-
-String serviceConfirmationDetailsModelToJson(ServiceConfirmationDetailsModel data) =>
-    json.encode(data.toJson());
+ServiceConfirmationDetailsModel serviceConfirmationDetailsModelFromJson(String str) => ServiceConfirmationDetailsModel.fromJson(json.decode(str));
 
 class ServiceConfirmationDetailsModel {
   bool? success;
   String? message;
   Data? data;
 
-  ServiceConfirmationDetailsModel({
-    this.success,
-    this.message,
-    this.data,
-  });
+  ServiceConfirmationDetailsModel({this.success, this.message, this.data});
 
   factory ServiceConfirmationDetailsModel.fromJson(Map<String, dynamic> json) =>
-      ServiceConfirmationDetailsModel(
-        success: json["success"],
-        message: json["message"],
-        data: json["data"] == null ? null : Data.fromJson(json["data"]),
-      );
-
-  Map<String, dynamic> toJson() => {
-    "success": success,
-    "message": message,
-    "data": data?.toJson(),
-  };
+      ServiceConfirmationDetailsModel(success: json["success"], message: json["message"], data: json["data"] == null ? null : Data.fromJson(json["data"]));
 }
 
 class Data {
   String? id;
-  dynamic userId;
   String? trackingId;
-  String? serviceType;
-  String? paymentType;
   String? fullName;
   String? fullAddress;
   String? email;
   String? phone;
   String? notes;
-  List<dynamic>? images;
   DateTime? date;
   String? time;
-  String? discountType;
-  int? discountValue;
-  int? total;
+  TimeSlotSnapshot? timeSlotSnapshot;
   int? subTotal;
-  int? grandTotal;
   int? vat;
   int? fare;
+  int? total;
+  int? grandTotal;
   String? status;
-  List<ServiceBookingItem>? serviceBookingItems;
-  DateTime? createdAt;
-  DateTime? updatedAt;
-  int? v;
+  Service? serviceSnapshot;
+  String? paymentType;
+  List<BookingItem>? bookingItems;
+  num? discountValue;
 
   Data({
     this.id,
-    this.userId,
     this.trackingId,
-    this.serviceType,
-    this.paymentType,
     this.fullName,
     this.fullAddress,
     this.email,
     this.phone,
     this.notes,
-    this.images,
     this.date,
     this.time,
-    this.discountType,
-    this.discountValue,
-    this.total,
+    this.timeSlotSnapshot,
     this.subTotal,
-    this.grandTotal,
     this.vat,
     this.fare,
+    this.total,
+    this.grandTotal,
     this.status,
-    this.serviceBookingItems,
-    this.createdAt,
-    this.updatedAt,
-    this.v,
+    this.serviceSnapshot,
+    this.paymentType,
+    this.bookingItems,
+    this.discountValue,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     id: json["_id"],
-    userId: json["userId"],
     trackingId: json["trackingId"],
-    serviceType: json["serviceType"],
-    paymentType: json["paymentType"],
     fullName: json["fullName"],
     fullAddress: json["fullAddress"],
     email: json["email"],
     phone: json["phone"],
     notes: json["notes"],
-    images: json["images"] == null
-        ? []
-        : List<dynamic>.from(json["images"]!.map((x) => x)),
     date: json["date"] == null ? null : DateTime.parse(json["date"]),
     time: json["time"],
-    discountType: json["discountType"],
-    discountValue: json["discountValue"],
-    total: json["total"],
+    timeSlotSnapshot: json["timeSlotSnapshot"] == null ? null : TimeSlotSnapshot.fromJson(json["timeSlotSnapshot"]),
     subTotal: json["subTotal"],
-    grandTotal: json["grandTotal"],
     vat: json["vat"],
     fare: json["fare"],
+    total: json["total"],
+    grandTotal: json["grandTotal"],
     status: json["status"],
-    serviceBookingItems: json["serviceBookingItems"] == null
-        ? []
-        : List<ServiceBookingItem>.from(json["serviceBookingItems"]!
-        .map((x) => ServiceBookingItem.fromJson(x))),
-    createdAt: json["createdAt"] == null
-        ? null
-        : DateTime.parse(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null
-        ? null
-        : DateTime.parse(json["updatedAt"]),
-    v: json["__v"],
+    serviceSnapshot: json["serviceSnapshot"] == null ? null : Service.fromJson(json["serviceSnapshot"]),
+    paymentType: json["paymentType"],
+    bookingItems: json["bookingItems"] == null ? [] : List<BookingItem>.from(json["bookingItems"]!.map((x) => BookingItem.fromJson(x))),
+    discountValue: json["discountValue"],
   );
-
-  Map<String, dynamic> toJson() => {
-    "_id": id,
-    "userId": userId,
-    "trackingId": trackingId,
-    "serviceType": serviceType,
-    "paymentType": paymentType,
-    "fullName": fullName,
-    "fullAddress": fullAddress,
-    "email": email,
-    "phone": phone,
-    "notes": notes,
-    "images": images == null
-        ? []
-        : List<dynamic>.from(images!.map((x) => x)),
-    "date": date?.toIso8601String(),
-    "time": time,
-    "discountType": discountType,
-    "discountValue": discountValue,
-    "total": total,
-    "subTotal": subTotal,
-    "grandTotal": grandTotal,
-    "vat": vat,
-    "fare": fare,
-    "status": status,
-    "serviceBookingItems": serviceBookingItems == null
-        ? []
-        : List<dynamic>.from(
-        serviceBookingItems!.map((x) => x.toJson())),
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "__v": v,
-  };
 }
 
-class ServiceBookingItem {
+class BookingItem {
   String? id;
-  String? serviceBookingId;
-  ServiceTaskId? serviceTaskId;
-  List<ServiceTaskItemId>? serviceTaskItemIds;
+  Task? task;
   int? quantity;
-  DateTime? createdAt;
-  DateTime? updatedAt;
-  int? v;
+  String? status;
 
-  ServiceBookingItem({
-    this.id,
-    this.serviceBookingId,
-    this.serviceTaskId,
-    this.serviceTaskItemIds,
-    this.quantity,
-    this.createdAt,
-    this.updatedAt,
-    this.v,
-  });
+  BookingItem({this.id, this.task, this.quantity, this.status});
 
-  factory ServiceBookingItem.fromJson(Map<String, dynamic> json) =>
-      ServiceBookingItem(
-        id: json["_id"],
-        serviceBookingId: json["serviceBookingId"],
-        serviceTaskId: json["serviceTaskId"] == null
-            ? null
-            : ServiceTaskId.fromJson(json["serviceTaskId"]),
-        serviceTaskItemIds: json["serviceTaskItemIds"] == null
-            ? []
-            : List<ServiceTaskItemId>.from(json["serviceTaskItemIds"]!
-            .map((x) => ServiceTaskItemId.fromJson(x))),
-        quantity: json["quantity"],
-        createdAt: json["createdAt"] == null
-            ? null
-            : DateTime.parse(json["createdAt"]),
-        updatedAt: json["updatedAt"] == null
-            ? null
-            : DateTime.parse(json["updatedAt"]),
-        v: json["__v"],
-      );
-
-  Map<String, dynamic> toJson() => {
-    "_id": id,
-    "serviceBookingId": serviceBookingId,
-    "serviceTaskId": serviceTaskId?.toJson(),
-    "serviceTaskItemIds": serviceTaskItemIds == null
-        ? []
-        : List<dynamic>.from(
-        serviceTaskItemIds!.map((x) => x.toJson())),
-    "quantity": quantity,
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "__v": v,
-  };
+  factory BookingItem.fromJson(Map<String, dynamic> json) =>
+      BookingItem(id: json["_id"], task: json["task"] == null ? null : Task.fromJson(json["task"]), quantity: json["quantity"], status: json["status"]);
 }
 
-class ServiceTaskId {
-  String? id;
+class Task {
   String? name;
+  Price? price;
 
-  ServiceTaskId({
-    this.id,
-    this.name,
-  });
+  Task({this.name, this.price});
 
-  factory ServiceTaskId.fromJson(Map<String, dynamic> json) =>
-      ServiceTaskId(
-        id: json["_id"],
-        name: json["name"],
-      );
-
-  Map<String, dynamic> toJson() => {
-    "_id": id,
-    "name": name,
-  };
+  factory Task.fromJson(Map<String, dynamic> json) => Task(name: json["name"], price: json["price"] == null ? null : Price.fromJson(json["price"]));
 }
 
-class ServiceTaskItemId {
-  String? id;
-  String? name;
-  int? originalPrice;
+class Price {
+  int? basePrice;
   int? salePrice;
-  String? discountType;
-  int? discountValue;
 
-  ServiceTaskItemId({
-    this.id,
-    this.name,
-    this.originalPrice,
-    this.salePrice,
-    this.discountType,
-    this.discountValue,
-  });
+  Price({this.basePrice, this.salePrice});
 
-  factory ServiceTaskItemId.fromJson(Map<String, dynamic> json) =>
-      ServiceTaskItemId(
-        id: json["_id"],
-        name: json["name"],
-        originalPrice: json["originalPrice"],
-        salePrice: json["salePrice"],
-        discountType: json["discountType"],
-        discountValue: json["discountValue"],
-      );
+  factory Price.fromJson(Map<String, dynamic> json) => Price(basePrice: json["basePrice"], salePrice: json["salePrice"]);
+}
 
-  Map<String, dynamic> toJson() => {
-    "_id": id,
-    "name": name,
-    "originalPrice": originalPrice,
-    "salePrice": salePrice,
-    "discountType": discountType,
-    "discountValue": discountValue,
-  };
+class Service {
+  String? id;
+  String? name;
+
+  Service({this.id, this.name});
+
+  factory Service.fromJson(Map<String, dynamic> json) => Service(id: json["_id"], name: json["name"]);
+}
+
+class TimeSlotSnapshot {
+  String? id;
+  String? timeLabel;
+
+  TimeSlotSnapshot({this.id, this.timeLabel});
+
+  factory TimeSlotSnapshot.fromJson(Map<String, dynamic> json) => TimeSlotSnapshot(id: json["_id"], timeLabel: json["timeLabel"]);
 }
