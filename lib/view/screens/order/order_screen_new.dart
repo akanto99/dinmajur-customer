@@ -1011,6 +1011,10 @@ class _OrderScreenState extends State<OrderScreen> {
         trackingId = datum.eventCookingBookingId ?? '';
         productCategory = 'Event Cooking';
         break;
+      case 'SERVICES':
+        trackingId = datum.servicesBookingId ?? '';
+        productCategory = datum.categoryType ?? '';
+        break;
     }
 
     if (trackingId.isEmpty) {

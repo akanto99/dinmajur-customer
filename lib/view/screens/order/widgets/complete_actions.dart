@@ -23,6 +23,7 @@ class CompletedActions extends StatelessWidget {
       case 'HOUSEKEEPER':   return datum.houseKeeperBookingId ?? '';
       case 'BEAUTY_SALON':  return datum.beautySalonBookingId ?? '';
       case 'EVENT_COOKING': return datum.eventCookingBookingId ?? '';
+      case 'SERVICES':       return datum.servicesBookingId ?? '';
       default:              return '';
     }
   }

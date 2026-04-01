@@ -687,21 +687,21 @@ extension BeautySalonReceiptAdapter on Data {
 
 extension ServiceReceiptAdapter on service_model.Data {
   ReceiptData toReceiptData() {
-    final services = serviceBookingItems?.map((item) {
-      final subItems = item.serviceTaskItemIds?.map((taskItem) {
-        return ReceiptSubItem(
-          name: taskItem.name ?? '',
-          price: taskItem.salePrice ?? 0,
-        );
-      }).toList() ?? [];
+    final services = bookingItems?.map((item) {
+      final subItems = item.task != null
+          ? [
+        ReceiptSubItem(
+          name: item.task!.name ?? '',
+          price: item.task!.price?.salePrice ?? 0,
+        )
+      ]
+          : <ReceiptSubItem>[];
 
-      num totalPrice = 0;
-      for (var subItem in subItems) {
-        totalPrice += subItem.price * (item.quantity ?? 1);
-      }
+      final num totalPrice =
+          (item.task?.price?.salePrice ?? 0) * (item.quantity ?? 1);
 
       return ReceiptServiceItem(
-        serviceName: item.serviceTaskId?.name ?? 'Service',
+        serviceName: serviceSnapshot?.name ?? 'Service',
         items: subItems,
         quantity: item.quantity ?? 1,
         totalPrice: totalPrice,
@@ -717,14 +717,14 @@ extension ServiceReceiptAdapter on service_model.Data {
       notes: notes,
       status: status,
       date: date,
-      time: time,
+      time: timeSlotSnapshot?.timeLabel ?? time,
       paymentMethod: paymentType,
       services: services,
       paymentSummary: ReceiptPaymentSummary(
         subTotal: subTotal ?? 0,
         vat: vat ?? 0,
         transportationFee: fare ?? 0,
-        discount: discountValue ?? 0,
+        discount: 0,
         total: total ?? 0,
         grandTotal: grandTotal ?? 0,
       ),

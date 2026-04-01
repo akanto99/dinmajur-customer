@@ -119,26 +119,22 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
                 );
               }
 
-              // Prepare service items for beauty salon
+              // Prepare service items
               List<ServiceItem> services = [];
-              if (bookingData.serviceBookingItems != null &&
-                  bookingData.serviceBookingItems!.isNotEmpty) {
-                for (var item in bookingData.serviceBookingItems!) {
-                  if (item.serviceTaskItemIds != null &&
-                      item.serviceTaskItemIds!.isNotEmpty) {
-                    for (var taskItem in item.serviceTaskItemIds!) {
-                      String additionalInfo = '';
-                      if (item.quantity != null && item.quantity! > 0) {
-                        additionalInfo = '(${item.quantity})';
-                      }
-                      services.add(ServiceItem(
-                        name: taskItem.name ?? 'Service',
-                        additionalInfo: additionalInfo.isEmpty ? null : additionalInfo,
-                      ));
-                    }
+              if (bookingData.bookingItems != null &&
+                  bookingData.bookingItems!.isNotEmpty) {
+                for (var item in bookingData.bookingItems!) {
+                  if (item.task?.name != null) {
+                    String additionalInfo = '';
+                      additionalInfo = '(${item.quantity})';
+                    services.add(ServiceItem(
+                      name: item.task!.name!,
+                      additionalInfo: additionalInfo.isEmpty ? null : additionalInfo,
+                    ));
                   }
                 }
               }
+
 
               // Create failed/cancelled confirmation data
               final confirmationData = FailedCancelledConfirmationData(
@@ -148,7 +144,7 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
                     : "We couldn't process your payment. Please try again or contact customer support.",
                 orderId: bookingData.trackingId ?? 'N/A',
                 services: services,
-                dateTime: '${_formatDate(bookingData.date)}, ${bookingData.time ?? 'N/A'}',
+                dateTime: '${_formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
