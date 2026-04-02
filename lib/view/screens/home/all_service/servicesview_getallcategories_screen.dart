@@ -419,11 +419,15 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
   }
 
   // ── Task details dialog ──
+// ── Task details dialog ── (replace the existing _showTaskDetailsDialog method)
   void _showTaskDetailsDialog(Task task) {
-    final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
+    final imageUrl = task.images != null && task.images!.isNotEmpty
+        ? task.images!.first.url
+        : null;
     final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
     final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
-    final bool showDiscount = task.price?.discountType != DiscountType.NONE && originalPrice > salePrice;
+    final bool showDiscount =
+        task.price?.discountType != DiscountType.NONE && originalPrice > salePrice;
 
     showDialog(
       context: context,
@@ -434,8 +438,20 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         discountedPrice: salePrice,
         originalPrice: originalPrice,
         showDiscount: showDiscount,
+
+        // ── HTML content fields ──────────────────────────────────────
         description: task.description,
+        overview: task.overview,
+        steps: task.steps,
+        products: task.products,
+        benefits: task.benefits,
+        instructions: task.instructions,
         details: task.details,
+
+        // ── Structured fields ────────────────────────────────────────
+        durationInMin: task.durationInMin,
+        faqs: task.faqs,
+
         onClose: () => Navigator.pop(context),
         getButtonColor: (ctx) => AppColors.button(ctx),
         getBackgroundColor: (ctx) => AppColors.containerBackground(ctx),
