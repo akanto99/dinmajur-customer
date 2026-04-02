@@ -16,6 +16,8 @@ class FamilyEventCardCoverageWidget extends StatelessWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
+  final Map<String, dynamic>? customerLocation;
+
 
   const FamilyEventCardCoverageWidget({
     Key? key,
@@ -24,6 +26,8 @@ class FamilyEventCardCoverageWidget extends StatelessWidget {
     required this.customerName,
     required this.customerPhone,
     required this.customerAddress,
+    required this.customerLocation,
+
   }) : super(key: key);
 
   @override
@@ -183,6 +187,8 @@ class FamilyEventCardCoverageWidget extends StatelessWidget {
                     'customerPhone': customerPhone,
                     'customerAddress': customerAddress,
                     'isFromHome': true,
+                     'customerLocation': customerLocation,
+
                   });
 // Utils.flushBarErrorMessage("Coming Soon", context);
 

@@ -14,6 +14,7 @@ import 'package:dinmajur_customer/model/home_models/dropdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/cart_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/select_time_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/helper_widget/taskdetails_showdialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
@@ -31,13 +32,14 @@ class BookNowHousekeeperScreen extends StatefulWidget {
   final String customerPhone;
   final String customerAddress;
   final bool isFromHome;
+    final Map<String, dynamic>? customerLocation;
 
   const BookNowHousekeeperScreen({
     Key? key,
     required this.customerName,
     required this.customerPhone,
     required this.customerAddress,
-    this.isFromHome = false,
+    this.isFromHome = false, this.customerLocation
   }) : super(key: key);
 
   @override
@@ -65,11 +67,16 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
   int _currentPage = 0;
 
   final ScrollController _mainScrollController = ScrollController();
+  Map<String, dynamic>? _customerLocation;
 
   @override
   void initState() {
     super.initState();
+    if (widget.isFromHome) {
+      CheckoutSessionLocationService.clear();
+    }
     _currentCustomerAddress = widget.customerAddress;
+    _customerLocation = widget.customerLocation;
 
     _dateController.text = DateFormat('MMMM dd, yyyy').format(DateTime.now());
     _pageController = PageController(viewportFraction: 0.3);
@@ -810,6 +817,13 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     // Get transport fee from any available category (should be same)
     final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
     final transportFeeValue = viewModel.getAllPremiumHouseKeeperTaskData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
+        final sessionData = await CheckoutSessionLocationService.getAll();
+    if (sessionData.location != null && sessionData.address != null) {
+      setState(() {
+        _customerLocation = sessionData.location;
+        _currentCustomerAddress = sessionData.address!;
+      });
+    }
 
     final result = await Navigator.pushNamed(
       context,
@@ -823,6 +837,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         'customerName': widget.customerName,
         'customerPhone': widget.customerPhone,
         'customerAddress': _currentCustomerAddress,
+          'customerLocation': _customerLocation,
         'transportFee': transportFeeValue,
         // ✅ NEW: Pass the complete services list from all categories
         'allServices': allServicesWithQuantity,

@@ -1,7 +1,7 @@
 class AppUrl {
-  // static var baseUrl = 'https://d499-103-153-170-227.ngrok-free.app/api/v1' ;// Staging Server
-  // static var socketUrl = 'https://d499-103-153-170-227.ngrok-free.app' ;// Staging
-  //
+  // static var baseUrl = 'https://846d-103-4-65-228.ngrok-free.app/api/v1' ;// Staging Server
+  // static var socketUrl = 'https://846d-103-4-65-228.ngrok-free.app' ;// Staging
+
   // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
 
@@ -61,7 +61,7 @@ class AppUrl {
   static var orderDetailsGetAPI = baseUrl + '/orders';
   static var groceryPaymnetPatchAPI = baseUrl + '/customers/payments/type';
   //Freelancer Rating
-  static var freelancerRatingPatchAPI = baseUrl + '/customers/freelancers';
+  static var freelancerRatingPatchAPI = baseUrl + '/customers/reviews';
   //========>Premium house Keeper
   static var checkCoverageGetAPI = baseUrl + '/customers/check-coverage';
   static var getAllPremiumHouseKeeperCategoryGetAPI = baseUrl + '/house-keeper-categories/get-all';
@@ -72,13 +72,22 @@ class AppUrl {
   static var getBookingByTrackingIdGetAPI = baseUrl + '/house-keeper-bookings/tracking';
   //========>Premium Home Beauty and Salon
   static var getAllPremiumHomeBeautySalonGetAPI = baseUrl + '/beauty-salon-tasks';
-  static var getBookedSlotGetAPI = baseUrl + '/time-slots/booked';
+  static var getBookedSlotGetAPI = baseUrl + '/beauty-salon-time-slots/booked';
   static var bookPremiumHomeBeautySalonPostAPI = baseUrl + '/beauty-salon-bookings/create';
   static var getBeautySalonByTrackingIdGetAPI = baseUrl + '/beauty-salon-bookings/tracking';
   //========>Family Event Cooking
   static var getAllFamilyEventCookingGetAPI = baseUrl + '/event-cooking-categories/get-all';
   static var bookFamilyEventCookingPostAPI = baseUrl + '/event-cooking-bookings';
   static var getFamilyEventCookingGetAPI = baseUrl + '/event-cooking-bookings';
+  //Home Screen ALL SERVICE
+  static var getAllServiceGetAPI = baseUrl + '/services/get-all?isActive=true';
+  static var servicesViewGetAllCategoryGetAPI = baseUrl + '/categories/by-service';
+  static var getSlotGetAPI = baseUrl + '/time-slots?date=';
+  static var createServiceBookingPostAPI = baseUrl + '/bookings/create';
+  static var getServiceTrackingIdGetAPI = baseUrl + '/bookings/tracking';
+
+
+
 
 
 

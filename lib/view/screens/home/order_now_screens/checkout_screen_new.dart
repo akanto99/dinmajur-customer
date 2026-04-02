@@ -182,25 +182,22 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
               return SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          children: [
-                            SizedboxSpaccing.height02(context),
-                            _buildOrderInfoCard(),
-                            SizedboxSpaccing.height02(context),
-                            _buildTotalItemsSection(),
-                            SizedboxSpaccing.height02(context),
-                            if (notes != null && notes!.isNotEmpty) _buildNotesSection(),
-                            if (notes != null && notes!.isNotEmpty) SizedboxSpaccing.height02(context),
-                          ],
-                        ),
-
-                        Column(children: [_buildActionButtons(), SizedboxSpaccing.height04(context)]),
-                      ],
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          SizedboxSpaccing.height02(context),
+                          _buildOrderInfoCard(),
+                          SizedboxSpaccing.height02(context),
+                          _buildTotalItemsSection(),
+                          SizedboxSpaccing.height02(context),
+                          if (notes != null && notes!.isNotEmpty) _buildNotesSection(),
+                          if (notes != null && notes!.isNotEmpty) SizedboxSpaccing.height02(context),
+                        ],
+                      ),
+                      Column(children: [_buildActionButtons(), SizedboxSpaccing.height04(context)]),
+                    ],
                   ),
                 ),
               );
