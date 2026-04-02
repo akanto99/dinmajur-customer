@@ -991,7 +991,11 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _getNotificationIcon(notification.type ?? ''),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1), borderRadius: BorderRadius.circular(5)),
+                    child: Icon(Icons.notifications, size: 24, color: Colors.grey),
+                  ),
                   SizedboxSpaccing.width03(context),
                   // Expanded(
                   //   child: Column(
@@ -1066,9 +1070,23 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                notification.message ?? 'No message',
-                                style: AppTextStyles.textSize14(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (notification.title != null && notification.title!.isNotEmpty) ...[
+                                    Text(
+                                      notification.title!,
+                                      style: AppTextStyles.textSize14(context,
+                                          color: AppColors.textPrimary(context),
+                                          weight: FontWeight.w600),
+                                    ),
+                                    const SizedBox(height: 3),
+                                  ],
+                                  Text(
+                                    notification.message ?? 'No message',
+                                    style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context), weight: FontWeight.w500),
+                                  ),
+                                ],
                               ),
                             ),
                             if (_shouldShowViewBadge(notification.type)) ...[

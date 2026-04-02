@@ -12,13 +12,11 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_service_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geocoding/geocoding.dart';
@@ -42,14 +40,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _nameDialogShown = false;
   bool _locationFlowStarted = false;
 
-// Retail (তাৎক্ষণিক বাজার) nearest section
+  // Retail (তাৎক্ষণিক বাজার) nearest section
   List<dynamic> nearbyStores = [];
   bool isLoadingStores = false;
   bool _showRetailNearest = false;
 
-  String? _trendingLoadingService;
-
-
+  String? _loadingServiceSlug;
 
   // Location related variables
   final LocationService _locationService = LocationService();
@@ -59,10 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Map<String, String> storeTypes;
 
-  // Key for SharedPreferences to track if location_screens has been posted
   static const String _locationPostedKey = 'location_posted_once';
-
-  ///Check Coverage
 
   @override
   void didChangeDependencies() {
@@ -86,9 +79,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
       allServiceViewModel.fetchGetAllServices();
     });
-
-    // _checkAndGetLocation();
-
   }
 
   Future<void> _handleRefresh() async {
@@ -97,7 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       await profileViewModel.refreshProfileData();
 
-      // ✅ Refresh retail stores only if the nearest section is visible
       if (_showRetailNearest) {
         await _fetchNearbyRetailers('Retail');
       }
@@ -179,7 +168,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _postLocationToApi(double longitude, double latitude, String fullAddress) async {
     try {
-      // ── Extract city & country ──
       String city = '';
       String country = '';
       try {
@@ -241,9 +229,6 @@ class _HomeScreenState extends State<HomeScreen> {
           customerLat = _currentPosition!.latitude;
           fullAddress ??= "Current Location";
         } else {
-          // if (mounted) {
-          //   Utils.flushBarErrorMessage("Location not available. Please enable location services.", context);
-          // }
           setState(() => isLoadingStores = false);
           return;
         }
@@ -279,154 +264,34 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
-  /// Routes a trending service name to its destination screen.
-  /// For Retail → fetch nearby stores; for others → check coverage → navigate.
-  Future<void> _handleTrendingServiceTap(String serviceName) async {
-    if (_trendingLoadingService != null) return; // prevent double-tap
+  /// Called from AllServicesGridWidget when instant-bazar slug is tapped
+  Future<void> handleInstantBazarTap() async {
+    if (_loadingServiceSlug != null) return;
 
     if (!_hasValidLocation()) {
       _showLocationRequiredDialog();
       return;
     }
 
-    // ── তাৎক্ষণিক বাজার: fetch stores, show nearest if found ──
-    if (serviceName == "তাৎক্ষণিক বাজার") {
-      setState(() {
-        _trendingLoadingService = serviceName;
-        _showRetailNearest = false;
-        nearbyStores = [];
-      });
-
-      try {
-        await _fetchNearbyRetailers('Retail');
-        if (!mounted) return;
-
-        if (nearbyStores.isEmpty) {
-          Utils.flushBarErrorMessage(
-            "No stores found in your area",
-            context,
-          );
-        } else {
-          setState(() => _showRetailNearest = true);
-        }
-      } finally {
-        if (mounted) setState(() => _trendingLoadingService = null);
-      }
-      return;
-    }
-
-    // ── All other trending cards: coverage check → navigate ──
-    setState(() => _trendingLoadingService = serviceName);
+    setState(() {
+      _loadingServiceSlug = 'instant-bazar';
+      _showRetailNearest = false;
+      nearbyStores = [];
+    });
 
     try {
-      final checkCoverageViewModel =
-      Provider.of<CheckCoverageViewModel>(context, listen: false);
-      await checkCoverageViewModel.fetchCheckCoverageDataApi();
+      await _fetchNearbyRetailers('Retail');
       if (!mounted) return;
 
-      final isInside =
-          checkCoverageViewModel.checkCoverageData.data?.data?.insideServiceArea ??
-              false;
-
-      if (!isInside) {
-        Utils.flushBarErrorMessage(
-          "Service not available in your area",
-          context,
-        );
-        return;
+      if (nearbyStores.isEmpty) {
+        NoStoresFoundDialog.show(context);
+      } else {
+        setState(() => _showRetailNearest = true);
       }
-
-      // ── Build customer data from profile ──
-      final profileViewModel =
-      Provider.of<ProfileViewViewModel>(context, listen: false);
-      String customerName = '';
-      String customerPhone = '';
-      String customerAddress = '';
-      Map<String, dynamic>? customerLocation;
-
-      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-        final userData = profileViewModel.profileviewUserData.data?.data;
-        customerName = userData?.user?.fullName ?? '';
-        customerPhone = userData?.user?.phone ?? '';
-        customerAddress = userData?.addresses?.fullAddress ?? '';
-        final addr = userData?.addresses;
-        if (addr != null) {
-          customerLocation = {
-            "fullAddress": addr.fullAddress ?? '',
-            "country": addr.country ?? '',
-            "city": addr.city ?? '',
-            "geoLocation": {
-              "type": addr.geoLocation?.type ?? "Point",
-              "coordinates": addr.geoLocation?.coordinates ?? [],
-              "timestamp": DateTime.now().toUtc().toIso8601String(),
-            },
-          };
-        }
-      }
-
-      // ── Navigate based on service ──
-      _navigateTrendingService(
-        serviceName: serviceName,
-        customerName: customerName,
-        customerPhone: customerPhone,
-        customerAddress: customerAddress,
-        customerLocation: customerLocation,
-      );
-    } catch (e) {
-      debugPrint('Trending coverage check error: $e');
     } finally {
-      if (mounted) setState(() => _trendingLoadingService = null);
+      if (mounted) setState(() => _loadingServiceSlug = null);
     }
   }
-
-  void _navigateTrendingService({
-    required String serviceName,
-    required String customerName,
-    required String customerPhone,
-    required String customerAddress,
-    required Map<String, dynamic>? customerLocation,
-  }) {
-    switch (serviceName) {
-      case "House Keeper":
-        Navigator.pushNamed(
-          context,
-          RoutesName.bookNowPremiumHouseKeeper, // use your actual route
-          arguments: {
-            'customerName': customerName,
-            'customerPhone': customerPhone,
-            'customerAddress': customerAddress,
-            'customerLocation': customerLocation,
-          },
-        );
-        break;
-      case "Beauty Parlour":
-        Navigator.pushNamed(
-          context,
-          RoutesName.bookNowHomeBeautySalonScreen, // use your actual route
-          arguments: {
-            'customerName': customerName,
-            'customerPhone': customerPhone,
-            'customerAddress': customerAddress,
-            'customerLocation': customerLocation,
-          },
-        );
-        break;
-      case "Family Event Cooking":
-        Navigator.pushNamed(
-          context,
-          RoutesName.familyEventCookingScreen, // use your actual route
-          arguments: {
-            'customerName': customerName,
-            'customerPhone': customerPhone,
-            'customerAddress': customerAddress,
-            'customerLocation': customerLocation,
-          },
-        );
-        break;
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -463,26 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   SizedboxSpaccing.height025(context),
 
-                  // ── A: Trending Services ──
-                  Consumer<ProfileViewViewModel>(
-                    builder: (context, profileViewModel, _) {
-                      return TrendingServicesWidget(
-                        services: const [
-                          "House Keeper",
-                          "Beauty Parlour",
-                          "তাৎক্ষণিক বাজার",
-                          "Family Event Cooking",
-                        ],
-                        onServiceTap: _handleTrendingServiceTapWithLocationCheck,
-                        selectedService: null,
-                        loadingService: _trendingLoadingService,
-                      );
-                    },
-                  ),
-
-                  SizedboxSpaccing.height025(context),
-
-                  // ── B: All Services Grid ── (always below trending)
+                  // ── All Services Grid ──
                   Consumer<ProfileViewViewModel>(
                     builder: (context, profileViewModel, _) {
                       String customerName = '';
@@ -490,16 +336,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       String customerAddress = '';
                       Map<String, dynamic>? customerLocation;
 
-                      if (profileViewModel.profileviewUserData.status ==
-                          Status.COMPLETED) {
-                        final userData =
-                            profileViewModel.profileviewUserData.data?.data;
-                        if (userData?.user?.fullName != null)
-                          customerName = userData!.user!.fullName!;
-                        if (userData?.user?.phone != null)
-                          customerPhone = userData!.user!.phone!;
-                        if (userData?.addresses?.fullAddress != null)
-                          customerAddress = userData!.addresses!.fullAddress!;
+                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                        final userData = profileViewModel.profileviewUserData.data?.data;
+                        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
                         final addressData = userData?.addresses;
                         if (addressData != null) {
                           customerLocation = {
@@ -507,12 +348,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             "country": addressData.country ?? '',
                             "city": addressData.city ?? '',
                             "geoLocation": {
-                              "type":
-                              addressData.geoLocation?.type ?? "Point",
-                              "coordinates":
-                              addressData.geoLocation?.coordinates ?? [],
-                              "timestamp":
-                              DateTime.now().toUtc().toIso8601String(),
+                              "type": addressData.geoLocation?.type ?? "Point",
+                              "coordinates": addressData.geoLocation?.coordinates ?? [],
+                              "timestamp": DateTime.now().toUtc().toIso8601String(),
                             },
                           };
                         }
@@ -526,12 +364,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           customerPhone: customerPhone,
                           customerAddress: customerAddress,
                           customerLocation: customerLocation,
+                          hasValidLocation: _hasValidLocation(),
+                          onLocationRequired: _showLocationRequiredDialog,
+                          onInstantBazarTap: handleInstantBazarTap,
+                          loadingServiceSlug: _loadingServiceSlug,
                         ),
                       );
                     },
                   ),
 
-                  // ── C: Retail nearest section (only when stores found) ──
+                  // ── Retail nearest section (only when stores found) ──
                   if (_showRetailNearest) ...[
                     SizedboxSpaccing.height025(context),
                     DynamicNearestHeader(
@@ -561,7 +403,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
   Widget _customAppBar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -660,7 +501,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left Side - User Profile (your existing code)
               Expanded(
                 flex: 3,
                 child: Row(
@@ -704,29 +544,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
-                                    // Row(
-                                    //   children: [
-                                    //     Icon(Icons.location_on, size: 16, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
-                                    //     SizedBox(width: 4),
-                                    //     Expanded(
-                                    //       child: Text(
-                                    //         displayAddress,
-                                    //         style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
-                                    //         overflow: TextOverflow.ellipsis,
-                                    //         maxLines: 1,
-                                    //       ),
-                                    //     ),
-                                    //   ],
-                                    // ),
                                     Text(
                                       displayAddress,
                                       style: AppTextStyles.textSize12(
                                         context,
                                         weight: FontWeight.w400,
-                                        color: isAddressMissing
-                                            ? Colors
-                                                  .red // ✅ Red if missing
-                                            : (_isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
+                                        color: isAddressMissing ? Colors.red : (_isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -749,7 +572,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   SizedboxSpaccing.width03(context),
 
-                  // Email Icon
                   _buildIconButton(
                     onTap: () {
                       NotificationDialog.show(
@@ -766,7 +588,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   SizedboxSpaccing.width02(context),
 
-                  // ✅ Notification Icon - Shows count from notificationCount event
                   Consumer<NotificationCountViewModel>(
                     builder: (context, countViewModel, _) {
                       return GestureDetector(
@@ -778,8 +599,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Stack(
                           children: [
                             _buildIconButton(svgAsset: 'assets/images/home/notification.svg', context: context),
-
-                            // Badge showing count from notificationCount event
                             if (countViewModel.hasNotifications)
                               Positioned(
                                 right: 0,
@@ -816,13 +635,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.pushNamed(
       context,
       RoutesName.unifiedSeeAllScreen,
-      arguments: {
-        'storeType': 'Retail',
-        'stores': nearbyStores,
-        'storeTypes': storeTypes,
-        'currentPosition': _currentPosition,
-        'currentAddress': _currentAddress,
-      },
+      arguments: {'storeType': 'Retail', 'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress},
     );
   }
 
@@ -848,7 +661,6 @@ class _HomeScreenState extends State<HomeScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await showNameEntryDialog(context);
 
-        // After name dialog, check location silently
         if (mounted && !_locationFlowStarted) {
           _locationFlowStarted = true;
           await _checkAndGetLocation();
@@ -918,16 +730,5 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-  }
-
-  void _handleTrendingServiceTapWithLocationCheck(String serviceName) {
-    // Check if user has valid location
-    if (!_hasValidLocation()) {
-      _showLocationRequiredDialog();
-      return;
-    }
-
-    // If location exists, proceed with original logic
-    _handleTrendingServiceTap(serviceName);
   }
 }
