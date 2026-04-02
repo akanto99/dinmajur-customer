@@ -343,7 +343,7 @@ class TrendingServicesWidget extends StatelessWidget {
       case "তাৎক্ষণিক বাজার":
         return 'assets/images/home/bazar.svg';
       case "Family Event Cooking":
-        return 'assets/images/home/cooking.svg';
+        return 'assets/images/home/eventcoking.svg';
       default:
         return 'assets/images/home/house.svg';
     }
@@ -514,8 +514,13 @@ class TrendingServicesWidget extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  SizedBox(width: 80, height: 80, child: SvgPicture.asset(_getServiceIcon(serviceName), fit: BoxFit.cover)),
-                ],
+                  ClipOval(
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: SvgPicture.asset(_getServiceIcon(serviceName), fit: BoxFit.cover),
+                    ),
+                  ),                ],
               ),
             ),
           ),
