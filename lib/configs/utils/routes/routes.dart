@@ -4,6 +4,10 @@ import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
 import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/service_checkout_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/service_confirmed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/service_failed_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/servicesview_getallcategories_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beautysalon_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/confirmed_screen.dart';
@@ -91,6 +95,7 @@ class Routes {
               customerName: args['customerName'],
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
+              customerLocation: args['customerLocation'],
             ),
             settings: settings,
           );
@@ -161,6 +166,18 @@ class Routes {
             isCancelled: args?['isCancelled'] ?? false,
           ),
         );
+    ///Service Failed Screen
+      case RoutesName.serviceFailedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (BuildContext context) => ServiceFailedScreen(
+            trackingId: args?['trackingId'],
+            valId: args?['valId'],
+            reason: args?['reason'],
+            errorMessage: args?['errorMessage'],
+            isCancelled: args?['isCancelled'] ?? false,
+          ),
+        );
 
 
 
@@ -208,6 +225,7 @@ class Routes {
                 customerName: args['customerName'],
                 customerPhone: args['customerPhone'],
                 customerAddress: args['customerAddress'],
+              customerLocation: args['customerLocation'],
               isFromHome: args['isFromHome'] ?? false,
             ),
             settings: settings,
@@ -242,6 +260,7 @@ class Routes {
               customerName: args['customerName'] ,
               customerPhone: args['customerPhone'] ,
               customerAddress: args['customerAddress'] ,
+              customerLocation: args['customerLocation'],
               onAddressUpdate: args['onAddressUpdate'],
               transportFee: args['transportFee'],
               allServices: args['allServices'],
@@ -262,6 +281,7 @@ class Routes {
               customerName: args['customerName'],
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
+              customerLocation: args['customerLocation'],
               isFromHome: args['isFromHome'] ?? false,
             ),
             settings: settings,
@@ -290,6 +310,7 @@ class Routes {
               customerName: args['customerName'],
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
+              customerLocation: args['customerLocation'],
               userId: args['userId'],
               categories: args['categories'],
               serviceQuantities: args['serviceQuantities'],
@@ -313,6 +334,7 @@ class Routes {
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
               isFromHome: args['isFromHome'] ?? false,
+              customerLocation: args['customerLocation'],
             ),
             settings: settings,
           );
@@ -326,6 +348,7 @@ class Routes {
               customerName: args['customerName'],
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
+              customerLocation: args['customerLocation'],
               userId: args['userId'],
               categories: args['categories'],
               selectedPackages: args['selectedPackages'],
@@ -358,6 +381,64 @@ class Routes {
           );
         }
         return _errorRoute();
+
+
+
+
+
+        ///ALl Service
+      case RoutesName.servicesViewScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => ServicesViewScreen(
+              serviceId:       args['serviceId'] as String,
+              customerName:    args['customerName'] as String? ?? '',
+              customerPhone:   args['customerPhone'] as String? ?? '',
+              customerAddress: args['customerAddress'] as String? ?? '',
+              isFromHome:      args['isFromHome'] as bool? ?? false,
+              customerLocation: args['customerLocation'] as Map<String, dynamic>?,
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.serviceCheckoutScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => ServiceCheckoutScreen(
+              serviceId: args['serviceId'] ,
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
+              customerLocation: args['customerLocation'],
+              userId: args['userId'],
+              categories: args['categories'],
+              serviceQuantities: args['serviceQuantities'],
+              totalPrice: args['totalPrice'],
+              transportFee: args['transportFee'],
+              onAddressUpdate: args['onAddressUpdate'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+      case RoutesName.serviceConfirmedScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => ServiceConfirmedScreen(
+              //   trackingId: args['trackingId'],
+              // valId: args['valId'],
+              trackingId: args['trackingId'] as String? ?? '',
+              valId: args['valId'] as String? ?? '',
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
 
 
     //drawer===========>

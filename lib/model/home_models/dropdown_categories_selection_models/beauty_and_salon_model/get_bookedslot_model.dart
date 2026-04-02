@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getBookedTimeSlotModel = getBookedTimeSlotModelFromJson(jsonString);
-
 import 'dart:convert';
 
 GetBookedTimeSlotModel getBookedTimeSlotModelFromJson(String str) =>
@@ -13,21 +9,16 @@ String getBookedTimeSlotModelToJson(GetBookedTimeSlotModel data) =>
 class GetBookedTimeSlotModel {
   bool? success;
   String? message;
-  BookedSlotMeta? meta;
+  Meta? meta;
   List<BookedSlotDatum>? data;
 
-  GetBookedTimeSlotModel({
-    this.success,
-    this.message,
-    this.meta,
-    this.data,
-  });
+  GetBookedTimeSlotModel({this.success, this.message, this.meta, this.data});
 
   factory GetBookedTimeSlotModel.fromJson(Map<String, dynamic> json) =>
       GetBookedTimeSlotModel(
         success: json["success"],
         message: json["message"],
-        meta: json["meta"] == null ? null : BookedSlotMeta.fromJson(json["meta"]),
+        meta: json["meta"] == null ? null : Meta.fromJson(json["meta"]),
         data: json["data"] == null
             ? []
             : List<BookedSlotDatum>.from(
@@ -44,26 +35,33 @@ class GetBookedTimeSlotModel {
   };
 }
 
+class Meta {
+  int? total;
+
+  Meta({this.total});
+
+  factory Meta.fromJson(Map<String, dynamic> json) => Meta(total: json["total"]);
+
+  Map<String, dynamic> toJson() => {"total": total};
+}
+
 class BookedSlotDatum {
   String? id;
   String? time;
   bool? isActive;
   int? position;
-  DateTime? createdAt;
-  DateTime? updatedAt;
-  int? v;
-  bool? isBooked;
+  Availability? availability;
 
   BookedSlotDatum({
     this.id,
     this.time,
     this.isActive,
     this.position,
-    this.createdAt,
-    this.updatedAt,
-    this.v,
-    this.isBooked,
+    this.availability,
   });
+
+  /// Convenience getter — reads isBooked from the nested availability object
+  bool get isBooked => availability?.isBooked ?? false;
 
   factory BookedSlotDatum.fromJson(Map<String, dynamic> json) =>
       BookedSlotDatum(
@@ -71,14 +69,9 @@ class BookedSlotDatum {
         time: json["time"],
         isActive: json["isActive"],
         position: json["position"],
-        createdAt: json["createdAt"] == null
+        availability: json["availability"] == null
             ? null
-            : DateTime.parse(json["createdAt"]),
-        updatedAt: json["updatedAt"] == null
-            ? null
-            : DateTime.parse(json["updatedAt"]),
-        v: json["__v"],
-        isBooked: json["isBooked"],
+            : Availability.fromJson(json["availability"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -86,33 +79,23 @@ class BookedSlotDatum {
     "time": time,
     "isActive": isActive,
     "position": position,
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "__v": v,
-    "isBooked": isBooked,
+    "availability": availability?.toJson(),
   };
 }
 
-class BookedSlotMeta {
-  int? total;
-  int? booked;
-  int? available;
+class Availability {
+  String? date;
+  bool? isBooked;
 
-  BookedSlotMeta({
-    this.total,
-    this.booked,
-    this.available,
-  });
+  Availability({this.date, this.isBooked});
 
-  factory BookedSlotMeta.fromJson(Map<String, dynamic> json) => BookedSlotMeta(
-    total: json["total"],
-    booked: json["booked"],
-    available: json["available"],
+  factory Availability.fromJson(Map<String, dynamic> json) => Availability(
+    date: json["date"],
+    isBooked: json["isBooked"],
   );
 
   Map<String, dynamic> toJson() => {
-    "total": total,
-    "booked": booked,
-    "available": available,
+    "date": date,
+    "isBooked": isBooked,
   };
 }

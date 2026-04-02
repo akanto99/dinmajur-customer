@@ -27,12 +27,17 @@ class Datum {
   String userId;
   String type;
   String fullAddress;
+  String city;
+  String country;
   GeoLocation geoLocation;
   DateTime createdAt;
   DateTime updatedAt;
   int v;
 
-  Datum({required this.id, required this.userId, required this.type, required this.fullAddress, required this.geoLocation, required this.createdAt, required this.updatedAt, required this.v});
+  Datum({required this.id, required this.userId, required this.type, required this.fullAddress,
+    required this.city,
+    required this.country,
+    required this.geoLocation, required this.createdAt, required this.updatedAt, required this.v});
 
   // Factory constructor to create an instance from JSON
   factory Datum.fromJson(Map<String, dynamic> json) {
@@ -41,6 +46,8 @@ class Datum {
       userId: json['userId'] ?? '',
       type: json['type'] ?? '',
       fullAddress: json['fullAddress'] ?? '',
+      city: json['city'] ?? '',
+      country: json['country'] ?? '',
       geoLocation: json['geoLocation'] != null ? GeoLocation.fromJson(json['geoLocation']) : GeoLocation(type: 'Point', coordinates: [0.0, 0.0]),
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : DateTime.now(),
@@ -55,6 +62,8 @@ class Datum {
       'userId': userId,
       'type': type,
       'fullAddress': fullAddress,
+      'city': city,
+      'country': country,
       'geoLocation': geoLocation.toJson(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),

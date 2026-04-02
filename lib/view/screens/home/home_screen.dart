@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/widget/api_services_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/drawer.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/notifications/resuable_notifications.dart';
@@ -8,24 +9,20 @@ import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/location_services/location_getting.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
-import 'package:dinmajur_customer/configs/widgets/dynamic_dropdown.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/beauty_and_salon_widget.dart';
-import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/family_event_cookingcard_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/trending_service_widget.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
-import 'dorpdown_categories_selections_and_views/premium_house_keeper/premium_house_keeper_widget.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/nearby_retailers_view_model.dart';
@@ -40,12 +37,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? selectedServiceFromTrending;
-  String? selectedStoreType;
-  List<dynamic> nearbyStores = [];
-  bool isLoadingStores = false;
   bool _nameDialogShown = false;
   bool _locationFlowStarted = false;
+
+  // Retail (তাৎক্ষণিক বাজার) nearest section
+  List<dynamic> nearbyStores = [];
+  bool isLoadingStores = false;
+  bool _showRetailNearest = false;
+
+  String? _loadingServiceSlug;
 
   // Location related variables
   final LocationService _locationService = LocationService();
@@ -55,15 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Map<String, String> storeTypes;
 
-  // Key for SharedPreferences to track if location_screens has been posted
   static const String _locationPostedKey = 'location_posted_once';
-
-  ///Check Coverage
-  bool isCheckingCoverage = false;
-  bool? isInsideServiceArea;
-
-  // ✅ Add SSE listener flag
-  bool _sseListenerInitialized = false;
 
   @override
   void didChangeDependencies() {
@@ -83,20 +75,20 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       profileViewModel.fetchProfileViewUserDataApi();
-    });
 
-    // _checkAndGetLocation();
+      final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
+      allServiceViewModel.fetchGetAllServices();
+    });
   }
 
   Future<void> _handleRefresh() async {
     try {
       debugPrint('🔄 HomeScreen: Pull to refresh triggered');
-
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       await profileViewModel.refreshProfileData();
 
-      if (selectedStoreType == 'Retail') {
-        await _fetchNearbyRetailers(selectedStoreType!);
+      if (_showRetailNearest) {
+        await _fetchNearbyRetailers('Retail');
       }
     } catch (e) {
       if (mounted) {
@@ -154,8 +146,8 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _isLoadingLocation = false;
         });
-print(e.toString());
-    Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
+        print(e.toString());
+        Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
       }
     }
   }
@@ -166,32 +158,45 @@ print(e.toString());
     debugPrint('Location marked as posted.');
   }
 
+  String _stripSuffix(String raw) => raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
+
+  String _normalizeCity(String city) {
+    const variants = {'chittagong', 'chattogram', 'chottogram', 'chattagam', 'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ'};
+    if (variants.contains(city.toLowerCase().trim())) return 'Chittagong';
+    return city;
+  }
+
   Future<void> _postLocationToApi(double longitude, double latitude, String fullAddress) async {
     try {
+      String city = '';
+      String country = '';
+      try {
+        final placemarks = await placemarkFromCoordinates(latitude, longitude);
+        if (placemarks.isNotEmpty) {
+          final p = placemarks.first;
+          final rawCity = p.subAdministrativeArea?.isNotEmpty == true ? p.subAdministrativeArea! : p.administrativeArea ?? '';
+          city = _normalizeCity(_stripSuffix(rawCity));
+          country = p.country ?? '';
+        }
+      } catch (_) {}
+
       final locationData = {
         "geoLocation": {
           "type": "Point",
           "coordinates": [longitude, latitude],
         },
         "fullAddress": fullAddress,
+        "city": city,
+        "country": country,
         "type": "DELIVERY_ADDRESS",
       };
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
       await addLocationViewModel.addLocationPostApi(context, locationData, false);
-      debugPrint('Location posted successfully to API');
     } catch (e) {
       debugPrint('Error posting location to API: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Failed to save location: ${e.toString()}'),
-                backgroundColor: Colors.orange,
-                duration: Duration(seconds: 3)
-            )
-        );
-      }
     }
   }
+
   /// Method to fetch nearby retailers
   Future<void> _fetchNearbyRetailers(String businessType) async {
     if (!mounted) return;
@@ -224,9 +229,6 @@ print(e.toString());
           customerLat = _currentPosition!.latitude;
           fullAddress ??= "Current Location";
         } else {
-          // if (mounted) {
-          //   Utils.flushBarErrorMessage("Location not available. Please enable location services.", context);
-          // }
           setState(() => isLoadingStores = false);
           return;
         }
@@ -262,109 +264,35 @@ print(e.toString());
     }
   }
 
-  Future<void> _checkCoverage() async {
-    if (!mounted) return;
+  /// Called from AllServicesGridWidget when instant-bazar slug is tapped
+  Future<void> handleInstantBazarTap() async {
+    if (_loadingServiceSlug != null) return;
+
+    if (!_hasValidLocation()) {
+      _showLocationRequiredDialog();
+      return;
+    }
 
     setState(() {
-      isCheckingCoverage = true;
-      isInsideServiceArea = null;
+      _loadingServiceSlug = 'instant-bazar';
+      _showRetailNearest = false;
+      nearbyStores = [];
     });
 
     try {
-      final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(context, listen: false);
-
-      await checkCoverageViewModel.fetchCheckCoverageDataApi();
+      await _fetchNearbyRetailers('Retail');
       if (!mounted) return;
 
-      if (checkCoverageViewModel.checkCoverageData.status == Status.COMPLETED) {
-        final responseData = checkCoverageViewModel.checkCoverageData.data;
-        setState(() {
-          isInsideServiceArea = responseData?.data?.insideServiceArea ?? false;
-          isCheckingCoverage = false;
-        });
-
-        if (isInsideServiceArea == false) {
-          Utils.flushBarErrorMessage(responseData?.message ?? "Service is not available in your location.", context);
-        }
-      } else if (checkCoverageViewModel.checkCoverageData.status == Status.ERROR) {
-        setState(() {
-          isInsideServiceArea = false;
-          isCheckingCoverage = false;
-        });
-
-        String errorMsg = checkCoverageViewModel.checkCoverageData.message ?? "Failed to check service coverage";
-        Utils.flushBarErrorMessage(errorMsg, context);
+      if (nearbyStores.isEmpty) {
+        NoStoresFoundDialog.show(context);
+      } else {
+        setState(() => _showRetailNearest = true);
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          isInsideServiceArea = false;
-          isCheckingCoverage = false;
-        });
-        Utils.flushBarErrorMessage("Failed to check service coverage", context);
-      }
+    } finally {
+      if (mounted) setState(() => _loadingServiceSlug = null);
     }
   }
 
-  /// ✅ Method to map trending service names to store types
-  String _mapServiceToStoreType(String serviceName) {
-    switch (serviceName) {
-      case "House Keeper":
-        return "Premium House Keeper";
-      case "Beauty Parlour":
-        return "Premium Home Beauty & Salon";
-      case "তাৎক্ষণিক বাজার":
-        return "Retail";
-        case "Family Event Cooking":
-        return "Family Event Cooking";
-      default:
-        return serviceName;
-    }
-  }
-
-  /// ✅ Method to handle trending service selection
-  // void _handleTrendingServiceTap(String serviceName) {
-  //   final storeType = _mapServiceToStoreType(serviceName);
-  //
-  //   setState(() {
-  //     selectedStoreType = storeType;
-  //     selectedServiceFromTrending = serviceName; // Track the trending service
-  //     nearbyStores = [];
-  //     isInsideServiceArea = null;
-  //     isCheckingCoverage = false;
-  //   });
-  //   // Trigger the appropriate action based on store type
-  //   if (storeType == 'Premium House Keeper') {
-  //     _checkCoverage();
-  //   } else if (storeType == 'Premium Home Beauty & Salon') {
-  //     _checkCoverage();
-  //   } else if (storeType == 'Retail') {
-  //     _fetchNearbyRetailers(storeType);
-  //   }else if (storeType == 'Family Event Cooking') {
-  //     _checkCoverage();
-  //   }
-  // }
-  void _handleTrendingServiceTap(String serviceName) {
-    final storeType = _mapServiceToStoreType(serviceName);
-
-    setState(() {
-      selectedStoreType = storeType;
-      selectedServiceFromTrending = serviceName;
-      nearbyStores = [];
-      isInsideServiceArea = null;
-      isCheckingCoverage = false;
-    });
-
-    if (storeType == 'Premium House Keeper') {
-      _checkCoverage();
-    } else if (storeType == 'Premium Home Beauty & Salon') {
-      _checkCoverage();
-    } else if (storeType == 'Retail') {
-      _fetchNearbyRetailers(storeType);
-    } else if (storeType == 'Family Event Cooking') {
-      _checkCoverage();
-    }
-  }
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -376,17 +304,12 @@ print(e.toString());
       backgroundColor: AppColors.containerBackground(context),
       drawer: CustomDrawer(screenHeight: screenHeight, screenWidth: screenWidth),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: homeBody,
-          desktop: homeBody,
-          tablet: homeBody,
-        ),
+        child: ResPonsiveUi(mobile: homeBody, desktop: homeBody, tablet: homeBody),
       ),
     );
   }
 
   body(BuildContext context) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
     final screenWidth = MediaQuery.sizeOf(context).width;
 
     return RefreshIndicator(
@@ -400,172 +323,76 @@ print(e.toString());
           _customAppBar(context),
           Expanded(
             child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
                   SizedboxSpaccing.height025(context),
-                  Container(
-                    width: screenWidth * 0.9,
-                    decoration: BoxDecoration(
-                        color: AppColors.containerBackground(context),
-                        borderRadius: BorderRadius.circular(24)
-                    ),
-                    child: CustomDropdown(
-                      // titleText: AppLocalizations.of(context)!.select_store_type,
-                      items: storeTypes.keys.toList(),
-                      selectedItem: selectedStoreType,
-                      // hintText: AppLocalizations.of(context)!.select_dropdown_hint,
-                      hintText: AppLocalizations.of(context)!.select_store_type,
-                      onChanged: (String? newValue) {
-                        // ✅ Check location before allowing selection
-                        if (!_hasValidLocation()) {
-                          _showLocationRequiredDialog();
-                          return;
+
+                  // ── All Services Grid ──
+                  Consumer<ProfileViewViewModel>(
+                    builder: (context, profileViewModel, _) {
+                      String customerName = '';
+                      String customerPhone = '';
+                      String customerAddress = '';
+                      Map<String, dynamic>? customerLocation;
+
+                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                        final userData = profileViewModel.profileviewUserData.data?.data;
+                        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                        final addressData = userData?.addresses;
+                        if (addressData != null) {
+                          customerLocation = {
+                            "fullAddress": addressData.fullAddress ?? '',
+                            "country": addressData.country ?? '',
+                            "city": addressData.city ?? '',
+                            "geoLocation": {
+                              "type": addressData.geoLocation?.type ?? "Point",
+                              "coordinates": addressData.geoLocation?.coordinates ?? [],
+                              "timestamp": DateTime.now().toUtc().toIso8601String(),
+                            },
+                          };
                         }
+                      }
 
-                        setState(() {
-                          selectedStoreType = newValue;
-                          selectedServiceFromTrending = null;
-                          nearbyStores = [];
-                          isInsideServiceArea = null;
-                          isCheckingCoverage = false;
-                        });
-
-                        if (newValue != null) {
-                          if (newValue == 'Premium House Keeper') {
-                            _checkCoverage();
-                          } else if (newValue == 'Premium Home Beauty & Salon') {
-                            _checkCoverage();
-                          } else if (newValue == 'Retail') {
-                            _fetchNearbyRetailers(newValue);
-                          } else if (newValue == 'Family Event Cooking') {
-                            _checkCoverage();
-                          }
-                        }
-                      },
-                      valueToBengaliMap: storeTypes,
-                    ),
-                  ),
-                  SizedboxSpaccing.height025(context),
-
-                  // ✅ Updated TrendingServicesWidget with location check
-                  TrendingServicesWidget(
-                    services: [
-                      "House Keeper",
-                      "Beauty Parlour",
-                      "তাৎক্ষণিক বাজার",
-                      "Family Event Cooking"
-                    ],
-                    onServiceTap: _handleTrendingServiceTapWithLocationCheck,
-                    selectedService: selectedServiceFromTrending,
+                      return SizedBox(
+                        width: screenWidth * 0.9,
+                        child: AllServicesGridWidget(
+                          selectedServiceId: null,
+                          customerName: customerName,
+                          customerPhone: customerPhone,
+                          customerAddress: customerAddress,
+                          customerLocation: customerLocation,
+                          hasValidLocation: _hasValidLocation(),
+                          onLocationRequired: _showLocationRequiredDialog,
+                          onInstantBazarTap: handleInstantBazarTap,
+                          loadingServiceSlug: _loadingServiceSlug,
+                        ),
+                      );
+                    },
                   ),
 
-                  Center(child: SizedboxSpaccing.height025(context)),
-                  DynamicNearestHeader(
-                      selectedStoreType: selectedStoreType,
+                  // ── Retail nearest section (only when stores found) ──
+                  if (_showRetailNearest) ...[
+                    SizedboxSpaccing.height025(context),
+                    DynamicNearestHeader(
+                      selectedStoreType: 'Retail',
                       storeCount: nearbyStores.length,
                       screenWidth: screenWidth,
-                      onSeeAllTap: () => _handleSeeAllNavigation(context)
-                  ),
-                  SizedboxSpaccing.height025(context),
-
-                  // Rest of your conditional widgets...
-                  if (selectedStoreType == 'Premium House Keeper')
-                    Consumer<ProfileViewViewModel>(
-                      builder: (context, profileViewModel, _) {
-                        String customerName = '';
-                        String customerPhone = '';
-                        String customerAddress = '';
-
-                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                          final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) {
-                            customerName = userData!.user!.fullName!;
-                          }
-                          if (userData?.user?.phone != null) {
-                            customerPhone = userData!.user!.phone!;
-                          }
-                          if (userData?.addresses?.fullAddress != null) {
-                            customerAddress = userData!.addresses!.fullAddress!;
-                          }
-                        }
-
-                        return PremiumHouseKeeperCoverageWidget(
-                          isCheckingCoverage: isCheckingCoverage,
-                          isInsideServiceArea: isInsideServiceArea,
-                          customerName: customerName,
-                          customerPhone: customerPhone,
-                          customerAddress: customerAddress,
-                        );
-                      },
-                    )
-                  else if (selectedStoreType == 'Premium Home Beauty & Salon')
-                    Consumer<ProfileViewViewModel>(
-                      builder: (context, profileViewModel, _) {
-                        String customerName = '';
-                        String customerPhone = '';
-                        String customerAddress = '';
-
-                        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                          final userData = profileViewModel.profileviewUserData.data?.data;
-                          if (userData?.user?.fullName != null) {
-                            customerName = userData!.user!.fullName!;
-                          }
-                          if (userData?.user?.phone != null) {
-                            customerPhone = userData!.user!.phone!;
-                          }
-                          if (userData?.addresses?.fullAddress != null) {
-                            customerAddress = userData!.addresses!.fullAddress!;
-                          }
-                        }
-
-                        return PremiumBeautyAndSalonCoverageWidget(
-                          isCheckingCoverage: isCheckingCoverage,
-                          isInsideServiceArea: isInsideServiceArea,
-                          customerName: customerName,
-                          customerPhone: customerPhone,
-                          customerAddress: customerAddress,
-                        );
-                      },
-                    )
-                  else if (selectedStoreType == 'Retail')
-                      GroceryStoresSection(
-                        isLoading: isLoadingStores,
-                        stores: nearbyStores,
-                        storeTypes: storeTypes,
-                        selectedStoreType: selectedStoreType,
-                        currentPosition: _currentPosition,
-                        currentAddress: _currentAddress,
-                      )
-                    else if (selectedStoreType == 'Family Event Cooking')
-                        Consumer<ProfileViewViewModel>(
-                          builder: (context, profileViewModel, _) {
-                            String customerName = '';
-                            String customerPhone = '';
-                            String customerAddress = '';
-
-                            if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                              final userData = profileViewModel.profileviewUserData.data?.data;
-                              if (userData?.user?.fullName != null) {
-                                customerName = userData!.user!.fullName!;
-                              }
-                              if (userData?.user?.phone != null) {
-                                customerPhone = userData!.user!.phone!;
-                              }
-                              if (userData?.addresses?.fullAddress != null) {
-                                customerAddress = userData!.addresses!.fullAddress!;
-                              }
-                            }
-
-                            return FamilyEventCardCoverageWidget(
-                              isCheckingCoverage: isCheckingCoverage,
-                              isInsideServiceArea: isInsideServiceArea,
-                              customerName: customerName,
-                              customerPhone: customerPhone,
-                              customerAddress: customerAddress,
-                            );
-                          },
-                        ),
+                      isInsideServiceArea: null,
+                      onSeeAllTap: () => _handleRetailSeeAll(context),
+                    ),
+                    SizedboxSpaccing.height025(context),
+                    GroceryStoresSection(
+                      isLoading: isLoadingStores,
+                      stores: nearbyStores,
+                      storeTypes: storeTypes,
+                      selectedStoreType: 'Retail',
+                      currentPosition: _currentPosition,
+                      currentAddress: _currentAddress,
+                    ),
+                  ],
 
                   SizedboxSpaccing.height02(context),
                 ],
@@ -576,7 +403,6 @@ print(e.toString());
       ),
     );
   }
-
 
   Widget _customAppBar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -675,7 +501,6 @@ print(e.toString());
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left Side - User Profile (your existing code)
               Expanded(
                 flex: 3,
                 child: Row(
@@ -719,31 +544,12 @@ print(e.toString());
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
-                                    // Row(
-                                    //   children: [
-                                    //     Icon(Icons.location_on, size: 16, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
-                                    //     SizedBox(width: 4),
-                                    //     Expanded(
-                                    //       child: Text(
-                                    //         displayAddress,
-                                    //         style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: _isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
-                                    //         overflow: TextOverflow.ellipsis,
-                                    //         maxLines: 1,
-                                    //       ),
-                                    //     ),
-                                    //   ],
-                                    // ),
                                     Text(
                                       displayAddress,
                                       style: AppTextStyles.textSize12(
-                                          context,
-                                          weight: FontWeight.w400,
-                                          color: isAddressMissing
-                                              ? Colors.red  // ✅ Red if missing
-                                              : (_isLoadingLocation
-                                              ? AppColors.subtitle(context)
-                                              : AppColors.textPrimary(context)
-                                          )
+                                        context,
+                                        weight: FontWeight.w400,
+                                        color: isAddressMissing ? Colors.red : (_isLoadingLocation ? AppColors.subtitle(context) : AppColors.textPrimary(context)),
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -766,7 +572,6 @@ print(e.toString());
                 children: [
                   SizedboxSpaccing.width03(context),
 
-                  // Email Icon
                   _buildIconButton(
                     onTap: () {
                       NotificationDialog.show(
@@ -783,7 +588,6 @@ print(e.toString());
 
                   SizedboxSpaccing.width02(context),
 
-                  // ✅ Notification Icon - Shows count from notificationCount event
                   Consumer<NotificationCountViewModel>(
                     builder: (context, countViewModel, _) {
                       return GestureDetector(
@@ -795,8 +599,6 @@ print(e.toString());
                         child: Stack(
                           children: [
                             _buildIconButton(svgAsset: 'assets/images/home/notification.svg', context: context),
-
-                            // Badge showing count from notificationCount event
                             if (countViewModel.hasNotifications)
                               Positioned(
                                 right: 0,
@@ -829,53 +631,12 @@ print(e.toString());
     );
   }
 
-  void _handleSeeAllNavigation(BuildContext context) {
-    if (selectedStoreType == null) {
-      debugPrint('No store type selected');
-      Utils.flushBarErrorMessage("No store type selected", context);
-      return;
-    }
-
-    // Prepare common arguments
-    Map<String, dynamic> arguments = {'storeType': selectedStoreType};
-
-    if (selectedStoreType == 'Retail') {
-      // Add Retail-specific data
-      arguments.addAll({'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress});
-    } else if (selectedStoreType == 'Premium House Keeper' || selectedStoreType == 'Premium Home Beauty & Salon') {
-      // Get customer data from profile for premium services
-      final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-
-      String customerName = '';
-      String customerPhone = '';
-      String customerAddress = '';
-
-      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-        final userData = profileViewModel.profileviewUserData.data?.data;
-
-        if (userData?.user?.fullName != null) {
-          customerName = userData!.user!.fullName!;
-        }
-        if (userData?.user?.phone != null) {
-          customerPhone = userData!.user!.phone!;
-        }
-        if (userData?.addresses?.fullAddress != null) {
-          customerAddress = userData!.addresses!.fullAddress!;
-        }
-      }
-
-      // Add Premium service-specific data
-      arguments.addAll({
-        'isCheckingCoverage': isCheckingCoverage,
-        'isInsideServiceArea': isInsideServiceArea,
-        'customerName': customerName,
-        'customerPhone': customerPhone,
-        'customerAddress': customerAddress,
-      });
-    }
-
-    // Navigate to unified screen
-    Navigator.pushNamed(context, RoutesName.unifiedSeeAllScreen, arguments: arguments);
+  void _handleRetailSeeAll(BuildContext context) {
+    Navigator.pushNamed(
+      context,
+      RoutesName.unifiedSeeAllScreen,
+      arguments: {'storeType': 'Retail', 'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress},
+    );
   }
 
   Widget _buildIconButton({VoidCallback? onTap, required String svgAsset, required BuildContext context}) {
@@ -886,49 +647,20 @@ print(e.toString());
         width: 30,
         padding: const EdgeInsets.all(2),
         color: Colors.transparent,
-        child: RepaintBoundary(child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain)),
+        child: RepaintBoundary(
+          child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),
+        ),
       ),
     );
   }
 
-
-  // void _checkAndShowNameDialog(String userName) {
-  //   // Show dialog only once and only if name is empty or 'Unknown User'
-  //   if (!_nameDialogShown &&
-  //       (userName.trim().isEmpty || userName == 'Unknown User')) {
-  //
-  //     _nameDialogShown = true;
-  //
-  //     WidgetsBinding.instance.addPostFrameCallback((_) async {
-  //       // ✅ Show dialog and wait for it to close
-  //       await showNameEntryDialog(context);
-  //
-  //       // ✅ After dialog closes, start location flow
-  //       if (mounted && !_locationFlowStarted) {
-  //         _locationFlowStarted = true;
-  //         await _checkAndGetLocation();
-  //       }
-  //     });
-  //   } else {
-  //     // ✅ If no dialog needed, start location flow immediately
-  //     if (!_locationFlowStarted) {
-  //       _locationFlowStarted = true;
-  //       WidgetsBinding.instance.addPostFrameCallback((_) {
-  //         _checkAndGetLocation();
-  //       });
-  //     }
-  //   }
-  // }
   void _checkAndShowNameDialog(String userName) {
-    if (!_nameDialogShown &&
-        (userName.trim().isEmpty || userName == 'Unknown User')) {
-
+    if (!_nameDialogShown && (userName.trim().isEmpty || userName == 'Unknown User')) {
       _nameDialogShown = true;
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await showNameEntryDialog(context);
 
-        // After name dialog, check location silently
         if (mounted && !_locationFlowStarted) {
           _locationFlowStarted = true;
           await _checkAndGetLocation();
@@ -943,80 +675,60 @@ print(e.toString());
       }
     }
   }
+
   bool _hasValidLocation() {
     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 
     if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
       final addressData = profileViewModel.profileviewUserData.data?.data?.addresses;
 
-      if (addressData?.fullAddress != null &&
-          addressData!.fullAddress!.isNotEmpty &&
-          addressData.fullAddress != "Tap to set location...") {
+      if (addressData?.fullAddress != null && addressData!.fullAddress!.isNotEmpty && addressData.fullAddress != "Tap to set location...") {
         return true;
       }
     }
 
     return false;
   }
-  void _showLocationRequiredDialog() {
 
+  void _showLocationRequiredDialog() {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-            backgroundColor: AppColors.containerBackground(context),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Container(
+          backgroundColor: AppColors.containerBackground(context),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Container(
             padding: EdgeInsets.all(15),
-        child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Location Required',style: AppTextStyles.textSize20(context),),
-          SizedboxSpaccing.height02(context),
-          Text('Please set your delivery location first to view available services.',style: AppTextStyles.textSize14(context),),
-          SizedboxSpaccing.height02(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              SizedboxSpaccing.width02(context),
-              GestureDetector(
-                onTap: (){
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, RoutesName.addlocation);
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.button(context),
-                    borderRadius: BorderRadius.circular(100)
-                  ),
-                  child:Text('Set Location',style: AppTextStyles.textSize14(context, color: AppColors.whiteColor),)
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Location Required', style: AppTextStyles.textSize20(context)),
+                SizedboxSpaccing.height02(context),
+                Text('Please set your delivery location first to view available services.', style: AppTextStyles.textSize14(context)),
+                SizedboxSpaccing.height02(context),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+                    SizedboxSpaccing.width02(context),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, RoutesName.addlocation);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+                        child: Text('Set Location', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
+                      ),
+                    ),
+                  ],
                 ),
-              )
-
-
-            ],
-          )
-        ])));
-      }
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
-
-  void _handleTrendingServiceTapWithLocationCheck(String serviceName) {
-    // Check if user has valid location
-    if (!_hasValidLocation()) {
-      _showLocationRequiredDialog();
-      return;
-    }
-
-    // If location exists, proceed with original logic
-    _handleTrendingServiceTap(serviceName);
-  }
-
 }

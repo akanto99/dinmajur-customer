@@ -67,6 +67,7 @@ import 'package:dinmajur_customer/model/order_models/get_all_order_model.dart';
 import 'package:dinmajur_customer/respository/order_repositories/running_order_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 class RunningOrdersViewModel with ChangeNotifier {
   final _myRepo = GetRunningOrderRepository();
@@ -216,10 +217,7 @@ class RunningOrdersViewModel with ChangeNotifier {
     }
 
     try {
-      final value = await _myRepo.fetchPendingOrderGetApi(
-        page: _pendingCurrentPage,
-        limit: _pendingLimit,
-      );
+      final value = await _myRepo.fetchPendingOrderGetApi(page: _pendingCurrentPage, limit: _pendingLimit);
 
       if (_pendingCurrentPage == 1) {
         _pendingAllOrders = value.data?.data ?? [];
@@ -233,10 +231,7 @@ class RunningOrdersViewModel with ChangeNotifier {
       GetAllOrderModel updatedModel = GetAllOrderModel(
         success: value.success,
         message: value.message,
-        data: Data(
-          meta: value.data?.meta,
-          data: _pendingAllOrders,
-        ),
+        data: Data(meta: value.data?.meta, data: _pendingAllOrders),
       );
 
       setPendingOrdersData(ApiResponse.completed(updatedModel));
@@ -298,10 +293,7 @@ class RunningOrdersViewModel with ChangeNotifier {
     }
 
     try {
-      final value = await _myRepo.fetchRunningOrderGetApi(
-        page: _runningCurrentPage,
-        limit: _runningLimit,
-      );
+      final value = await _myRepo.fetchRunningOrderGetApi(page: _runningCurrentPage, limit: _runningLimit);
 
       if (_runningCurrentPage == 1) {
         _runningAllOrders = value.data?.data ?? [];
@@ -315,10 +307,7 @@ class RunningOrdersViewModel with ChangeNotifier {
       GetAllOrderModel updatedModel = GetAllOrderModel(
         success: value.success,
         message: value.message,
-        data: Data(
-          meta: value.data?.meta,
-          data: _runningAllOrders,
-        ),
+        data: Data(meta: value.data?.meta, data: _runningAllOrders),
       );
 
       setRunningOrdersData(ApiResponse.completed(updatedModel));
@@ -375,10 +364,7 @@ class RunningOrdersViewModel with ChangeNotifier {
     }
 
     try {
-      final value = await _myRepo.fetchCompleteOrderGetApi(
-        page: _completeCurrentPage,
-        limit: _completeLimit,
-      );
+      final value = await _myRepo.fetchCompleteOrderGetApi(page: _completeCurrentPage, limit: _completeLimit);
 
       if (_completeCurrentPage == 1) {
         _completeAllOrders = value.data?.data ?? [];
@@ -392,10 +378,7 @@ class RunningOrdersViewModel with ChangeNotifier {
       GetAllOrderModel updatedModel = GetAllOrderModel(
         success: value.success,
         message: value.message,
-        data: Data(
-          meta: value.data?.meta,
-          data: _completeAllOrders,
-        ),
+        data: Data(meta: value.data?.meta, data: _completeAllOrders),
       );
 
       setCompleteOrdersData(ApiResponse.completed(updatedModel));
@@ -438,6 +421,92 @@ class RunningOrdersViewModel with ChangeNotifier {
     } finally {
       _completeLoadingMore = false;
       notifyListeners();
+    }
+  }
+
+  ///Single order udpate:
+  Future<void> refreshSingleCompletedOrder(String bookingId) async {
+    try {
+      // Search across all loaded pages (re-fetch page 1 up to current page)
+      for (int page = 1; page <= _completeCurrentPage; page++) {
+        final value = await _myRepo.fetchCompleteOrderGetApi(page: page, limit: _completeLimit);
+
+        final freshOrders = value.data?.data ?? [];
+
+        // Find the target order in this page's results
+        final updatedOrder = freshOrders.firstWhereOrNull(
+          (order) => order.orderId == bookingId || order.houseKeeperBookingId == bookingId || order.beautySalonBookingId == bookingId || order.eventCookingBookingId == bookingId || order
+              .servicesBookingId == bookingId,
+        );
+
+        if (updatedOrder != null) {
+          // Found it — replace by ID in our local list, regardless of index
+          final localIndex = _completeAllOrders.indexWhere(
+            (order) => order.orderId == bookingId || order.houseKeeperBookingId == bookingId || order.beautySalonBookingId == bookingId || order.eventCookingBookingId == bookingId || order
+                .servicesBookingId == bookingId,
+          );
+
+          if (localIndex != -1) {
+            _completeAllOrders[localIndex] = updatedOrder;
+
+            // Rebuild the ApiResponse with the updated list
+            setCompleteOrdersData(
+              ApiResponse.completed(
+                GetAllOrderModel(
+                  success: completeOrdersData.data?.success,
+                  message: completeOrdersData.data?.message,
+                  data: Data(meta: completeOrdersData.data?.data?.meta, data: List.from(_completeAllOrders)),
+                ),
+              ),
+            );
+          }
+          return; // Found and updated — stop searching pages
+        }
+      }
+    } catch (error) {
+      if (kDebugMode) {
+        print('❌ refreshSingleCompletedOrder error: $error');
+      }
+    }
+  }
+
+  Future<void> refreshSingleOrder(String bookingId) async {
+    // Try running orders first
+    final runningIndex = _runningAllOrders.indexWhere(
+          (order) =>
+      order.orderId == bookingId ||
+          order.houseKeeperBookingId == bookingId ||
+          order.beautySalonBookingId == bookingId ||
+          order.eventCookingBookingId == bookingId ||
+          order.servicesBookingId == bookingId ,
+    );
+
+    if (runningIndex != -1) {
+      // It's in running list — refresh from running API
+      for (int page = 1; page <= _runningCurrentPage; page++) {
+        final value = await _myRepo.fetchRunningOrderGetApi(page: page, limit: _runningLimit);
+        final updatedOrder = (value.data?.data ?? []).firstWhereOrNull(
+              (order) =>
+          order.orderId == bookingId ||
+              order.houseKeeperBookingId == bookingId ||
+              order.beautySalonBookingId == bookingId ||
+              order.eventCookingBookingId == bookingId ||
+              order.servicesBookingId == bookingId ,
+        );
+
+        if (updatedOrder != null) {
+          _runningAllOrders[runningIndex] = updatedOrder;
+          setRunningOrdersData(ApiResponse.completed(GetAllOrderModel(
+            success: runningOrdersData.data?.success,
+            message: runningOrdersData.data?.message,
+            data: Data(meta: runningOrdersData.data?.data?.meta, data: List.from(_runningAllOrders)),
+          )));
+          return;
+        }
+      }
+    } else {
+      // It's in completed list — refresh from completed API
+      await refreshSingleCompletedOrder(bookingId);
     }
   }
 }

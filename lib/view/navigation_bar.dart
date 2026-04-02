@@ -1509,12 +1509,10 @@ class _NavigationScreenState extends State<NavigationScreen>
           }
           final bool? exit = await showDialog<bool>(
             context: context,
+            barrierColor: AppColors.showDialougeBackground(context),
             builder: (ctx) => AlertDialog(
               backgroundColor: AppColors.containerBackground(context),
-              contentPadding:
-              EdgeInsets.symmetric(horizontal: h * 0.02, vertical: h * 0.02),
-              insetPadding:
-              EdgeInsets.symmetric(horizontal: h * 0.1, vertical: h * 0.2),
+              insetPadding: EdgeInsets.all(h * 0.02),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5)),
               content: Text(

@@ -1,7 +1,7 @@
 /// For Web View SSL Implementation using payment url
 // import 'package:dinmajur_customer/configs/res/color.dart';
 // import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
-// import 'package:dinmajur_customer/configs/res/components/_terms&condition/_terms&condition.dart';
+// import 'package:dinmajur_customer/configs/res/components/iagree_terms&condition/iagree_terms&condition.dart';
 // import 'package:dinmajur_customer/configs/res/components/payment_method/payment_method_component.dart';
 // import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 // import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -824,6 +824,7 @@ import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payme
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/notifier/cooking_checkout_notifier.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/book_family_event_cooking_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -848,6 +849,7 @@ class CookingCheckoutScreen extends StatefulWidget {
   final DateTime? selectedDate;
   final String? selectedServiceTime;
   final Function(String)? onAddressUpdate;
+      final Map<String, dynamic>? customerLocation;
 
   const CookingCheckoutScreen({
     Key? key,
@@ -866,6 +868,7 @@ class CookingCheckoutScreen extends StatefulWidget {
     required this.selectedDate,
     required this.selectedServiceTime,
     this.onAddressUpdate,
+            this.customerLocation,
   }) : super(key: key);
 
   @override
@@ -876,12 +879,26 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   final TextEditingController _addressController = TextEditingController();
   bool _isTermsAccepted = false;
 
+    Map<String, dynamic>? _updatedLocation;
   @override
   void initState() {
     super.initState();
     _addressController.text = widget.customerAddress;
+        _updatedLocation = widget.customerLocation;
+    _restoreSessionLocation();
   }
 
+    Future<void> _restoreSessionLocation() async {
+    final sessionData = await CheckoutSessionLocationService.getAll();
+    if (sessionData.location != null && sessionData.address != null) {
+      if (mounted) {
+        setState(() {
+          _updatedLocation = sessionData.location;
+          _addressController.text = sessionData.address!;
+        });
+      }
+    }
+  }
   @override
   void dispose() {
     _addressController.dispose();
@@ -966,6 +983,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       throw Exception('No active category selected');
     }
 
+    // Find the active category
     Datum? activeCategory;
     for (var category in widget.categories) {
       if (category.id == widget.activeCategoryId) {
@@ -980,12 +998,14 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
 
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
 
+    // Base booking data
     Map<String, dynamic> bookingPayload = {
       "booking": {
         "paymentType": checkoutVM.getPaymentMethodData(checkoutVM.selectedPaymentMethod).toUpperCase(),
-        "fullAddress": _addressController.text,
-        "fullName": widget.customerName,
-        "phone": widget.customerPhone,
+        "fullAddress":  _updatedLocation?['fullAddress'] ??_addressController.text,
+        "location": _updatedLocation,
+        "fullName":widget.customerName,
+        "phone":widget.customerPhone,
         "date": widget.selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
         "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
       },
@@ -993,9 +1013,14 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     };
 
     if (activeCategory.type == 'REGULAR') {
+      // REGULAR type: Single package selection
       final selectedPackageId = widget.selectedPackages[activeCategory.id];
-      if (selectedPackageId == null) throw Exception('No package selected');
 
+      if (selectedPackageId == null) {
+        throw Exception('No package selected');
+      }
+
+      // Find the selected package to get price ID
       String? priceId;
       for (var package in activeCategory.packages ?? []) {
         if (package.id == selectedPackageId) {
@@ -1023,17 +1048,25 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         }
       }
 
-      bookingPayload["packages"] = [
-        {"packageId": selectedPackageId, "priceId": priceId},
+      bookingPayload["packages"] =[
+        {
+          "packageId": selectedPackageId,
+          "priceId": priceId,
+        }
       ];
-
     } else if (activeCategory.type == 'MANUAL') {
+      // MANUAL type: Multiple items selection
+      bookingPayload["eventCookingCategoryId"] = activeCategory.id;
+
+      // Group items by package
       Map<String, List<Map<String, String>>> packageItemsMap = {};
 
       for (var package in activeCategory.packages ?? []) {
         for (var item in package.items ?? []) {
           final key = '${package.id}_${item.id}';
+
           if (widget.selectedManualItems[activeCategory.id]?.contains(key) ?? false) {
+            // Get the price ID for this item
             String? priceId;
             if (widget.selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
               priceId = item.prices![widget.selectedGuestRangeIndex].id;
@@ -1042,17 +1075,22 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             if (!packageItemsMap.containsKey(package.id)) {
               packageItemsMap[package.id!] = [];
             }
+
             packageItemsMap[package.id]!.add({
               "itemId": item.id!,
-              "priceId": priceId ?? item.id!,
+              "priceId": priceId ?? item.id!, // Fallback to item.id if price not found
             });
           }
         }
       }
 
+      // Convert map to packages array
       List<Map<String, dynamic>> packages = [];
       packageItemsMap.forEach((packageId, items) {
-        packages.add({"packageId": packageId, "items": items});
+        packages.add({
+          "packageId": packageId,
+          "items": items,
+        });
       });
 
       bookingPayload["packages"] = packages;
@@ -1205,6 +1243,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     }
     return '';
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer2<CookingCheckoutViewModel, PostBookFamilyEventCookingViewModel>(
@@ -1273,25 +1312,23 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   }
 
   Future<void> _handleEditAddress() async {
-    final result = await Navigator.pushNamed(
-      context,
-      RoutesName.addLocationScreenWidget,
-    );
+    final result = await Navigator.pushNamed(context, RoutesName.addLocationScreenWidget);
 
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
-        String newAddress = '';
+        final String newAddress = result['fullAddress'] ?? '';
 
-        if (result['addressType'] == 'saved') {
-          newAddress = result['fullAddress'] ?? '';
-        } else if (result['addressType'] == 'new') {
-          newAddress = result['fullAddress'] ?? '';
-        }
+        if (newAddress.isNotEmpty) {
+          _addressController.text = newAddress;
 
-        _addressController.text = newAddress;
+          // ✅ Capture the full location data returned from AddLocationScreenWidget
+          if (result['location'] != null) {
+            _updatedLocation = result['location'] as Map<String, dynamic>;
+          }
 
-        if (widget.onAddressUpdate != null && newAddress.isNotEmpty) {
-          widget.onAddressUpdate!(newAddress);
+          if (widget.onAddressUpdate != null) {
+            widget.onAddressUpdate!(newAddress);
+          }
         }
       });
     }
@@ -1387,6 +1424,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Show selected package/items details
               _buildSelectedItemsSection(),
               SizedboxSpaccing.height015(context),
               _buildSummaryRow('Date', DateFormat('MMMM dd, yyyy').format(widget.selectedDate ?? DateTime.now())),
@@ -1425,6 +1463,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     }
     return SizedBox.shrink();
   }
+
 // Build REGULAR package details
   Widget _buildRegularPackageDetails(Datum category) {
     final selectedPackageId = widget.selectedPackages[category.id];

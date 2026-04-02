@@ -43,7 +43,17 @@ class MapLocationController {
   MapLocationController(this.context, this.setState) {
     googlePlacesApiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
   }
+  String _stripSuffix(String raw) =>
+      raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
 
+  String _normalizeCity(String city) {
+    const variants = {
+      'chittagong', 'chattogram', 'chottogram', 'chattagam',
+      'চট্টগ্রাম', 'চট্টগ্রাম জেলা', 'চট্টগ্রাম বিভাগ',
+    };
+    if (variants.contains(city.toLowerCase().trim())) return 'Chittagong';
+    return city;
+  }
   // ============ INITIALIZATION (replaces initState) ============
 
   Future<void> initialize() async {
@@ -324,20 +334,37 @@ class MapLocationController {
     FocusManager.instance.primaryFocus?.unfocus();
     if (selectedLocation != null && selectedAddress.isNotEmpty) {
       try {
+        // ── Extract city & country from current address placemarks ──
+        String city = '';
+        String country = '';
+        try {
+          final placemarks = await placemarkFromCoordinates(
+            selectedLocation!.latitude,
+            selectedLocation!.longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            final p = placemarks.first;
+            final rawCity = p.subAdministrativeArea?.isNotEmpty == true
+                ? p.subAdministrativeArea!
+                : p.administrativeArea ?? '';
+            city = _normalizeCity(_stripSuffix(rawCity));
+            country = p.country ?? '';
+          }
+        } catch (_) {}
+
         final locationData = {
           "geoLocation": {
             "type": "Point",
             "coordinates": [selectedLocation!.longitude, selectedLocation!.latitude],
           },
           "fullAddress": selectedAddress,
+          "city": city,
+          "country": country,
           "type": "DELIVERY_ADDRESS",
         };
 
-        final addLocationViewModel = Provider.of<AddLocationViewModel>(
-          context,
-          listen: false,
-        );
-        await addLocationViewModel.addLocationPostApi(context, locationData,true);
+        final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
+        await addLocationViewModel.addLocationPostApi(context, locationData, true);
       } catch (e) {
         debugPrint('Error saving location: $e');
         Utils.flushBarErrorMessage('Failed to save location', context);

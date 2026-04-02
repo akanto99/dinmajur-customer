@@ -14,24 +14,25 @@ class PatchFreelancerRatingViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> FreelancerRatingPatchApi(BuildContext context, String freelancerID, dynamic fields,) async {
+  Future<bool> FreelancerRatingPatchApi(BuildContext context, dynamic fields, {VoidCallback? onSuccess}) async {
     setCreateFreelancerRatingLoading(true);
     try {
-      dynamic value = await _myRepo.freelancerRatingPatchApi(freelancerID,fields);
-      setCreateFreelancerRatingLoading(false);
-      Utils.flushBarSuccessMessage('Send Rating Successfully', context);
-      await Future.delayed(Duration(milliseconds: 1000));
-      // Navigator.pushNamed(context, RoutesName.navigationBar);
+      dynamic value = await _myRepo.freelancerRatingPatchApi(fields);
       if (kDebugMode) print(value.toString());
+
+      // ✅ Fire callback BEFORE notifyListeners() to avoid rebuild conflict
+      onSuccess?.call();
+
+      // ✅ Update loading state AFTER callback
+      setCreateFreelancerRatingLoading(false);
+      Utils.flushBarSuccessMessage('Review Submitted Successfully', context);
+      return true;
     } catch (error) {
       setCreateFreelancerRatingLoading(false);
       _handleError(error, context);
-      if (kDebugMode) print('Error: $error');
+      return false;
     }
   }
-
-
-
 
   void _handleError(dynamic error, BuildContext context) {
     String errorMessage = '$error';
@@ -40,10 +41,7 @@ class PatchFreelancerRatingViewModel with ChangeNotifier {
       int jsonStartIndex = errorBody.indexOf('{');
       if (jsonStartIndex != -1) {
         final decoded = jsonDecode(errorBody.substring(jsonStartIndex));
-        errorMessage = decoded['message'] ??
-            (decoded['errorMessages'] is List && decoded['errorMessages'].isNotEmpty
-                ? decoded['errorMessages'][0]['message']
-                : errorMessage);
+        errorMessage = decoded['message'] ?? (decoded['errorMessages'] is List && decoded['errorMessages'].isNotEmpty ? decoded['errorMessages'][0]['message'] : errorMessage);
       }
     } catch (_) {
       errorMessage = 'Unexpected error occurred';

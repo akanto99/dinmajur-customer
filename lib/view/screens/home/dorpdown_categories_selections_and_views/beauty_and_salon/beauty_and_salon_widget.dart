@@ -15,6 +15,7 @@ class PremiumBeautyAndSalonCoverageWidget extends StatelessWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
+  final Map<String, dynamic>? customerLocation;
 
   const PremiumBeautyAndSalonCoverageWidget({
     Key? key,
@@ -23,6 +24,7 @@ class PremiumBeautyAndSalonCoverageWidget extends StatelessWidget {
     required this.customerName,
     required this.customerPhone,
     required this.customerAddress,
+    required this.customerLocation,
   }) : super(key: key);
 
   @override
@@ -181,6 +183,7 @@ class PremiumBeautyAndSalonCoverageWidget extends StatelessWidget {
                     'customerName': customerName,
                     'customerPhone': customerPhone,
                     'customerAddress': customerAddress,
+                    'customerLocation': customerLocation,
                     'isFromHome': true,
                   });
 
