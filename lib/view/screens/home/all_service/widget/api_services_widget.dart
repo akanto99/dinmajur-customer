@@ -397,7 +397,14 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           Navigator.pushNamed(
             context,
             RoutesName.bookNowPremiumHouseKeeper,
-            arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress, 'customerLocation': customerLocation},
+            arguments: {
+              'customerName': customerName,
+              'customerPhone': customerPhone,
+              'customerAddress': customerAddress,
+              'serviceName': service.name,
+              'description': service.description,
+              'customerLocation': customerLocation,
+            },
           );
           break;
 
@@ -405,7 +412,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           Navigator.pushNamed(
             context,
             RoutesName.bookNowHomeBeautySalonScreen,
-            arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress, 'customerLocation': customerLocation},
+            arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress,'serviceName': service.name, 'description': service.description, 'customerLocation': customerLocation},
           );
           break;
 
@@ -413,7 +420,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           Navigator.pushNamed(
             context,
             RoutesName.familyEventCookingScreen,
-            arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress, 'customerLocation': customerLocation},
+            arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress,'serviceName': service.name,'description': service.description, 'customerLocation': customerLocation},
           );
           break;
 
@@ -427,6 +434,8 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
               'customerName': customerName,
               'customerPhone': customerPhone,
               'customerAddress': customerAddress,
+              'serviceName': service.name,
+              'description': service.description,
               'isFromHome': true,
               'customerLocation': customerLocation,
             },

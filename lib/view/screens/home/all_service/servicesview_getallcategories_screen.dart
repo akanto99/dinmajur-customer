@@ -28,10 +28,13 @@ class ServicesViewScreen extends StatefulWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
+  final String serviceName;
+  final String description;
   final bool isFromHome;
   final Map<String, dynamic>? customerLocation;
 
-  const ServicesViewScreen({Key? key, required this.serviceId, required this.customerName, required this.customerPhone, required this.customerAddress, this.isFromHome = false, this.customerLocation})
+  const ServicesViewScreen({Key? key, required this.serviceId, required this.customerName, required this.customerPhone, required this.customerAddress, required this.serviceName,required this.description, this.isFromHome =
+  false, this.customerLocation})
     : super(key: key);
 
   @override
@@ -170,7 +173,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context, null),
-          child: Container(height: 60, child: AppBarHeader("Services")),
+          child: Container(height: 60, child: AppBarHeader(widget.serviceName)),
         ),
         Expanded(
           child: Consumer<ServicesViewGetAllCategoriesViewModel>(
@@ -237,7 +240,8 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                               ),
                               SizedboxSpaccing.height01(context),
                               Text(
-                                "Professional services at your doorstep",
+                                // "Professional services at your doorstep",
+                                widget.description,
                                 style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                                 textAlign: TextAlign.center,
                               ),

@@ -29,15 +29,20 @@ class GetAllServicesModel {
 class Datum {
   String? id;
   String? name;
+  String? description;
   String? slug;
   Image? image;
   List<Category>? categories;
 
-  Datum({this.id, this.name, this.slug, this.image,this.categories});
+  Datum({this.id,
+    this.name,
+    this.description,
+    this.slug, this.image,this.categories});
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     id: json["_id"],
     name: json["name"],
+    description: json["description"],
     slug: json["slug"],
     image: json["image"] == null ? null : Image.fromJson(json["image"]),
     categories: json["categories"] == null ? [] : List<Category>.from(json["categories"]!.map((x) => Category.fromJson(x))),
@@ -47,6 +52,7 @@ class Datum {
   Map<String, dynamic> toJson() => {
     "_id": id,
     "name": name,
+    "description": description,
     "slug": slug,
     "image": image?.toJson(),
     "categories": categories == null ? [] : List<dynamic>.from(categories!.map((x) => x.toJson())),
