@@ -3,6 +3,7 @@ import 'package:dinmajur_customer/configs/res/components/confirm_cancel_failed_c
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/get_confirmedbooking_view_model.dart';
@@ -143,7 +144,7 @@ class _FailedCancelledPaymentScreenState extends State<FailedCancelledPaymentScr
                     : "We couldn't process your payment. Please try again or contact customer support.",
                 orderId: bookingData.id ?? 'N/A',
                 services: services,
-                dateTime: '${_formatDate(bookingData.createdAt)},(${bookingData.shiftId?.startTime ?? ''} - ${bookingData.shiftId?.endTime ?? ''})',
+                dateTime: '${DateFormatter.formatDate(bookingData.date)},(${bookingData.shiftId?.startTime ?? ''} - ${bookingData.shiftId?.endTime ?? ''})',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: bookingData.paymentType ?? 'N/A',

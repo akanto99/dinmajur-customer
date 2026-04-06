@@ -32,10 +32,12 @@ class BookNowHomeBeautySalonScreen extends StatefulWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
+  final String serviceName;
+  final String description;
   final bool isFromHome;
   final Map<String, dynamic>? customerLocation;
 
-  const BookNowHomeBeautySalonScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress, this.isFromHome = false,    this.customerLocation, }) : super(key: key);
+  const BookNowHomeBeautySalonScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress, required this.serviceName,required this.description, this.isFromHome = false,    this.customerLocation, }) : super(key: key);
 
   @override
   State<BookNowHomeBeautySalonScreen> createState() => _BookNowHomeBeautySalonScreenState();
@@ -188,7 +190,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context, null),
-          child: Container(height: 60, child: AppBarHeader("Beauty & Salon")),
+          child: Container(height: 60, child: AppBarHeader(widget.serviceName)),
         ),
         Expanded(
           child: Consumer<GetallPremiumHomeBeautySalonViewModel>(
@@ -244,7 +246,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                                       style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
                                     ),
                                     TextSpan(
-                                      text: " Home Beauty & Salon",
+                                      text: " Home ${widget.serviceName}",
                                       style: AppTextStyles.textSize20(
                                         context,
                                         weight: FontWeight.w600,
@@ -256,7 +258,8 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                               ),
                               SizedboxSpaccing.height01(context),
                               Text(
-                                "Trained Beauticians • Premium Products Salon \n•  Experience at Home",
+                                // "Trained Beauticians • Premium Products Salon \n•  Experience at Home",
+                                widget.description,
                                 style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                                 textAlign: TextAlign.center,
                               ),

@@ -27,10 +27,12 @@ class FamilyEventCookingScreen extends StatefulWidget {
   final String customerName;
   final String customerPhone;
   final String customerAddress;
+  final String serviceName;
+  final String description;
   final bool isFromHome;
     final Map<String, dynamic>? customerLocation;
 
-  const FamilyEventCookingScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress, this.isFromHome = false, this.customerLocation}) : super(key: key);
+  const FamilyEventCookingScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress,required this.serviceName,required this.description, this.isFromHome = false, this.customerLocation}) : super(key: key);
 
   @override
   State<FamilyEventCookingScreen> createState() => _FamilyEventCookingScreenState();
@@ -98,46 +100,6 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     _mainScrollController.dispose();
     super.dispose();
   }
-
-  // void _initializeCategoryKeys(List<Datum> data) {
-  //   if (_categoryKeys.isEmpty && data.isNotEmpty) {
-  //     for (int i = 0; i < data.length; i++) {
-  //       _categoryKeys[i] = GlobalKey();
-  //     }
-  //   }
-  // }
-
-  // bool _isScrolling = false;
-  ///almost correct
-  // void _scrollToCategory(int index) {
-  //   if (_categoryKeys[index]?.currentContext == null) return;
-  //
-  //   setState(() {
-  //     _isScrolling = true;
-  //     _selectedTabIndex = index;
-  //   });
-  //
-  //   // Small delay to ensure layout is complete
-  //   Future.delayed(Duration(milliseconds: 100), () {
-  //     final RenderBox? renderBox = _categoryKeys[index]?.currentContext?.findRenderObject() as RenderBox?;
-  //     if (renderBox == null) {
-  //       setState(() => _isScrolling = false);
-  //       return;
-  //     }
-  //
-  //     final position = renderBox.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
-  //     final offset = _mainScrollController.offset +( position.dy - 60)-20; // total 80 is AppBarHeader height
-  //
-  //     _mainScrollController.animateTo(
-  //       offset,
-  //       duration: Duration(milliseconds: 400),
-  //       curve: Curves.easeInOut,
-  //     ).then((_) {
-  //       setState(() => _isScrolling = false);
-  //     });
-  //   });
-  // }
-
   // For REGULAR type packages
   void _togglePackageSelection(String categoryId, String packageId) {
     setState(() {
@@ -330,7 +292,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context, null),
-          child: Container(height: 60, child: AppBarHeader("Family Event Cooking")),
+          child: Container(height: 60, child: AppBarHeader(widget.serviceName)),
         ),
         Expanded(
           child: Consumer<GetAllFamilyEventCookingViewModel>(
@@ -385,9 +347,9 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Family", style: AppTextStyles.textSize20(context, weight: FontWeight.w600)),
+                                  // Text("Family", style: AppTextStyles.textSize20(context, weight: FontWeight.w600)),
                                   Text(
-                                    " Event Cooking",
+                                    " ${widget.serviceName}",
                                     style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: Color(0xffD78503)),
                                   ),
                                   Text(" Service", style: AppTextStyles.textSize20(context, weight: FontWeight.w600)),
@@ -395,7 +357,8 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                               ),
                               SizedboxSpaccing.height01(context),
                               Text(
-                                "Female Chef • Two Female Assistants • Home Event Experts",
+                                // "Female Chef • Two Female Assistants • Home Event Experts",
+                                widget.description,
                                 style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                                 textAlign: TextAlign.center,
                               ),

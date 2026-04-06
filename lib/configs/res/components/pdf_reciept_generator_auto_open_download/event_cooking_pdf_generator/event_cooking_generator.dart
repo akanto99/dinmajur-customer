@@ -656,6 +656,7 @@ class UniversalReceiptData {
   final UniversalPaymentSummary paymentSummary;
   final String? footerMessage;
   final String? contactNumber;
+  final String? slot;
 
   UniversalReceiptData({
     required this.trackingId,
@@ -674,6 +675,8 @@ class UniversalReceiptData {
     required this.paymentSummary,
     this.footerMessage,
     this.contactNumber = '01929600600',
+    this.slot,
+
   });
 }
 
@@ -863,10 +866,15 @@ class UniversalPDFReceiptGenerator {
   }
 
   static pw.Widget _buildOrderSchedule(UniversalReceiptData data) {
-    final dateStr = data.date != null
-        ? DateFormat('dd MMM yyyy').format(data.date!)
-        : null;
+    String? dateStr;
+    if (data.date != null) {
+      final bdTime = data.date!.isUtc
+          ? data.date!.add(const Duration(hours: 6))
+          : data.date!.toUtc().add(const Duration(hours: 6));
+      dateStr = DateFormat('dd MMM yyyy').format(bdTime);
+    }
     final timeStr = data.time;
+    final String? slotStr = data.slot;
     final bookingTypeStr = data.bookingType;
     final guestRangeStr = data.guestRange;
 
@@ -913,10 +921,10 @@ class UniversalPDFReceiptGenerator {
                 children: [
                   pw.TableRow(
                     decoration: pw.BoxDecoration(color: PdfColors.grey100),
-                    children: _buildScheduleHeaderCells(dateStr, timeStr, bookingTypeStr, guestRangeStr),
+                    children: _buildScheduleHeaderCells(dateStr, slotStr, bookingTypeStr, guestRangeStr),
                   ),
                   pw.TableRow(
-                    children: _buildScheduleDataCells(dateStr, timeStr, bookingTypeStr, guestRangeStr),
+                    children: _buildScheduleDataCells(dateStr, slotStr, bookingTypeStr, guestRangeStr),
                   ),
                 ],
               ),
@@ -928,66 +936,22 @@ class UniversalPDFReceiptGenerator {
   }
 
   static List<pw.Widget> _buildScheduleHeaderCells(
-      String? dateStr, String? timeStr, String? bookingTypeStr, String? guestRangeStr) {
+      String? dateStr, String? slotStr, String? bookingTypeStr, String? guestRangeStr) {
     List<pw.Widget> cells = [];
-
-    if (dateStr != null) {
-      cells.add(pw.Padding(
-        padding: pw.EdgeInsets.all(8),
-        child: pw.Text('Date', style: pw.TextStyle(font: _bengaliFontBold, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-      ));
-    }
-    if (timeStr != null) {
-      cells.add(pw.Padding(
-        padding: pw.EdgeInsets.all(8),
-        child: pw.Text('Time Slot', style: pw.TextStyle(font: _bengaliFontBold, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-      ));
-    }
-    if (bookingTypeStr != null) {
-      cells.add(pw.Padding(
-        padding: pw.EdgeInsets.all(8),
-        child: pw.Text('Type', style: pw.TextStyle(font: _bengaliFontBold, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-      ));
-    }
-    if (guestRangeStr != null) {
-      cells.add(pw.Padding(
-        padding: pw.EdgeInsets.all(8),
-        child: pw.Text('Guest Range', style: pw.TextStyle(font: _bengaliFontBold, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-      ));
-    }
-
+    if (dateStr != null) cells.add(pw.Padding(padding: pw.EdgeInsets.all(8), child: pw.Text('Date', style: pw.TextStyle(font: _bengaliFontBold, fontSize: 12, fontWeight: pw.FontWeight.bold))));
+    if (slotStr != null) cells.add(pw.Padding(padding: pw.EdgeInsets.all(8), child: pw.Text('Slot', style: pw.TextStyle(font: _bengaliFontBold, fontSize: 12, fontWeight: pw.FontWeight.bold)))); // ← "Time Slot" → "Slot"
+    if (bookingTypeStr != null) cells.add(pw.Padding(padding: pw.EdgeInsets.all(8), child: pw.Text('Type', style: pw.TextStyle(font: _bengaliFontBold, fontSize: 12, fontWeight: pw.FontWeight.bold))));
+    if (guestRangeStr != null) cells.add(pw.Padding(padding: pw.EdgeInsets.all(8), child: pw.Text('Guest Range', style: pw.TextStyle(font: _bengaliFontBold, fontSize: 12, fontWeight: pw.FontWeight.bold))));
     return cells;
   }
 
   static List<pw.Widget> _buildScheduleDataCells(
-      String? dateStr, String? timeStr, String? bookingTypeStr, String? guestRangeStr) {
+      String? dateStr, String? slotStr, String? bookingTypeStr, String? guestRangeStr) {
     List<pw.Widget> cells = [];
-
-    if (dateStr != null) {
-      cells.add(pw.Padding(
-        padding: pw.EdgeInsets.all(8),
-        child: pw.Text(dateStr, style: pw.TextStyle(font: _bengaliFont, fontSize: 12)),
-      ));
-    }
-    if (timeStr != null) {
-      cells.add(pw.Padding(
-        padding: pw.EdgeInsets.all(8),
-        child: pw.Text(timeStr, style: pw.TextStyle(font: _bengaliFont, fontSize: 12)),
-      ));
-    }
-    if (bookingTypeStr != null) {
-      cells.add(pw.Padding(
-        padding: pw.EdgeInsets.all(8),
-        child: pw.Text(bookingTypeStr, style: pw.TextStyle(font: _bengaliFont, fontSize: 12)),
-      ));
-    }
-    if (guestRangeStr != null) {
-      cells.add(pw.Padding(
-        padding: pw.EdgeInsets.all(8),
-        child: pw.Text(guestRangeStr, style: pw.TextStyle(font: _bengaliFont, fontSize: 12)),
-      ));
-    }
-
+    if (dateStr != null) cells.add(pw.Padding(padding: pw.EdgeInsets.all(8), child: pw.Text(dateStr, style: pw.TextStyle(font: _bengaliFont, fontSize: 12))));
+    if (slotStr != null) cells.add(pw.Padding(padding: pw.EdgeInsets.all(8), child: pw.Text(slotStr, style: pw.TextStyle(font: _bengaliFont, fontSize: 12)))); // ← shows bookingData.slot as-is
+    if (bookingTypeStr != null) cells.add(pw.Padding(padding: pw.EdgeInsets.all(8), child: pw.Text(bookingTypeStr, style: pw.TextStyle(font: _bengaliFont, fontSize: 12))));
+    if (guestRangeStr != null) cells.add(pw.Padding(padding: pw.EdgeInsets.all(8), child: pw.Text(guestRangeStr, style: pw.TextStyle(font: _bengaliFont, fontSize: 12))));
     return cells;
   }
 

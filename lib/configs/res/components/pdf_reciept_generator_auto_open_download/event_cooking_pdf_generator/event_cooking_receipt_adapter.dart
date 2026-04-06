@@ -42,7 +42,8 @@ extension EventCookingReceiptAdapter on Data {
       notes: null,
       status: status,
       date: date,
-      time: null, // Update this if you have slot/time info in your model
+      time: null,
+      slot: slot,
       bookingType: bookingType,
       guestRange: guestRange,
       paymentMethod: paymentType,
