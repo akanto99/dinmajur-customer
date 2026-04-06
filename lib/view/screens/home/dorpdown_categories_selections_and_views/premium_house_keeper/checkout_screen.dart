@@ -930,13 +930,14 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     // Prepare booking data
     Map<String, dynamic> bookingData = await checkoutViewModel.prepareBookingData(
       fullName: _fullNameController.text,
+      selectedDate: widget.selectedDate,
       phone: _phoneController.text,
       customerLocation: _updatedLocation,
       address: _updatedLocation?['fullAddress'] ?? _addressController.text,
       houseSize: checkoutViewModel.selectedHouseSize,
       specialRequest: _specialRequestController.text,
       selectedFrequency: widget.selectedFrequency,
-      selectedDate: widget.selectedDate,
+
       shiftId: shiftId,
       tasks: tasks,
       paymentMethod: checkoutViewModel.selectedPaymentMethod,

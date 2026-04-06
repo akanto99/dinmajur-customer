@@ -40,6 +40,7 @@ class Data {
   String? district;
   String? area;
   String? fullName;
+  DateTime? date;
   String? fullAddress;
   String? houseSize;
   String? email;
@@ -68,6 +69,7 @@ class Data {
     this.district,
     this.area,
     this.fullName,
+    this.date,
     this.fullAddress,
     this.houseSize,
     this.email,
@@ -97,6 +99,7 @@ class Data {
     district: json["district"],
     area: json["area"],
     fullName: json["fullName"],
+    date: json["date"] == null ? null : DateTime.parse(json["date"]),
     fullAddress: json["fullAddress"],
     houseSize: json["houseSize"],
     email: json["email"],
@@ -126,6 +129,7 @@ class Data {
     "district": district,
     "area": area,
     "fullName": fullName,
+    "date": date?.toIso8601String(),
     "fullAddress": fullAddress,
     "houseSize": houseSize,
     "email": email,

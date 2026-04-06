@@ -44,6 +44,7 @@ class Data {
   String? fullAddress;
   String? email;
   String? phone;
+  String? slot;
   DateTime? date;
   String? discountType;
   num? discountValue;
@@ -68,6 +69,7 @@ class Data {
     this.fullAddress,
     this.email,
     this.phone,
+    this.slot,
     this.date,
     this.discountType,
     this.discountValue,
@@ -131,6 +133,7 @@ class Data {
       fullAddress: json["fullAddress"],
       email: json["email"],
       phone: json["phone"],
+      slot: json["slot"],
       date: json["date"] == null ? null : DateTime.parse(json["date"]),
       discountType: json["discountType"],
       discountValue: json["discountValue"],
@@ -170,6 +173,7 @@ class Data {
       "fullAddress": fullAddress,
       "email": email,
       "phone": phone,
+      "slot": slot,
       "date": date?.toIso8601String(),
       "discountType": discountType,
       "discountValue": discountValue,

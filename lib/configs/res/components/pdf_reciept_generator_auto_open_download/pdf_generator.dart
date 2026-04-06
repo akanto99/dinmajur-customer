@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -200,11 +201,10 @@ class PDFReceiptGenerator {
   }
 
   static pw.Widget _buildOrderSchedule(ReceiptData data) {
-    final dateStr = data.date != null
-        ? DateFormat('dd MMM yyyy').format(data.date!)
-        : 'N/A';
-    final timeStr = data.time ?? 'N/A';
-
+    final String dateStr = data.date != null
+        ? DateFormat('dd MMM yyyy').format(DateFormatter.toBD(data.date!))
+        : '-';
+    final String timeStr = DateFormatter.formatTimeString(data.time);
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColor.fromHex('#E7E9E9')),
       children: [

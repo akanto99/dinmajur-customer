@@ -484,6 +484,7 @@ class CheckoutViewModel extends ChangeNotifier {
     return {
       "userId": userId.toString(),
       "district": "Chittagong",
+      "date": selectedDate,
       "area": "N/A",
       "planType": selectedFrequency.toUpperCase(),
       "fullName": fullName.trim(),
@@ -495,7 +496,7 @@ class CheckoutViewModel extends ChangeNotifier {
       "tasks": tasks,
       "couponCode": null,
       "shiftId": shiftId,
-      "date": selectedDate,
+
       "paymentType": paymentData,
     };
   }
