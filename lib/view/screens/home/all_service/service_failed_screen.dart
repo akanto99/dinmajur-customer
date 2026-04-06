@@ -3,6 +3,7 @@ import 'package:dinmajur_customer/configs/res/components/confirm_cancel_failed_c
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/getservice_confirmationdetails_view_model.dart';
@@ -144,7 +145,7 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
                     : "We couldn't process your payment. Please try again or contact customer support.",
                 orderId: bookingData.trackingId ?? 'N/A',
                 services: services,
-                dateTime: '${_formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
+                dateTime: '${DateFormatter.formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
@@ -172,10 +173,5 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
         ),
       ],
     );
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'N/A';
-    return DateFormat('dd MMM yyyy').format(date);
   }
 }

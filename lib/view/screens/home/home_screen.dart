@@ -11,10 +11,12 @@ import 'package:dinmajur_customer/configs/services/sse_notification_services/sse
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/banner_widegt/home_banner_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/banner_view_model/banner_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
       allServiceViewModel.fetchGetAllServices();
+
+      final bannerViewModel = Provider.of<BannerViewModel>(context, listen: false);
+      bannerViewModel.fetchBannerData();
     });
   }
 
@@ -86,6 +91,10 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('🔄 HomeScreen: Pull to refresh triggered');
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       await profileViewModel.refreshProfileData();
+      final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
+      allServiceViewModel.fetchGetAllServices();
+      final bannerViewModel = Provider.of<BannerViewModel>(context, listen: false);
+      bannerViewModel.fetchBannerData();
 
       if (_showRetailNearest) {
         await _fetchNearbyRetailers('Retail');
@@ -147,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoadingLocation = false;
         });
         print(e.toString());
-        Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
+        // Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
       }
     }
   }
@@ -327,6 +336,48 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   SizedboxSpaccing.height025(context),
+                  // ── Banner Section ──
+                  Consumer<ProfileViewViewModel>(
+                    builder: (context, profileViewModel, _) {
+                      String customerName = '';
+                      String customerPhone = '';
+                      String customerAddress = '';
+                      Map<String, dynamic>? customerLocation;
+
+                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                        final userData = profileViewModel.profileviewUserData.data?.data;
+                        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                        final addressData = userData?.addresses;
+                        if (addressData != null) {
+                          customerLocation = {
+                            "fullAddress": addressData.fullAddress ?? '',
+                            "country": addressData.country ?? '',
+                            "city": addressData.city ?? '',
+                            "geoLocation": {
+                              "type": addressData.geoLocation?.type ?? "Point",
+                              "coordinates": addressData.geoLocation?.coordinates ?? [],
+                              "timestamp": DateTime.now().toUtc().toIso8601String(),
+                            },
+                          };
+                        }
+                      }
+
+                      return HomeBannerWidget(
+                        screenWidth: screenWidth,
+                        customerName: customerName,
+                        customerPhone: customerPhone,
+                        customerAddress: customerAddress,
+                        customerLocation: customerLocation,
+                        hasValidLocation: _hasValidLocation(),
+                        onLocationRequired: _showLocationRequiredDialog,
+                        onInstantBazarTap: handleInstantBazarTap,
+                        loadingServiceSlug: _loadingServiceSlug,
+                      );
+                    },
+                  ),
+
 
                   // ── All Services Grid ──
                   Consumer<ProfileViewViewModel>(

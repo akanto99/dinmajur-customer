@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -146,7 +147,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                 orderId: bookingData.trackingId ?? 'N/A',
                 services: services,
                 dateTime:
-                '${_formatDate(bookingData.date)}, ${bookingData.time ?? 'N/A'}',
+                '${DateFormatter.formatDate(bookingData.date)}, ${bookingData.time ?? 'N/A'}',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
@@ -323,22 +324,4 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
     );
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'N/A';
-    return DateFormat('dd MMM yyyy').format(date);
-  }
-  String _formatTo12Hour(String time) {
-    if (time.isEmpty) return time;
-    try {
-      final parts = time.split(':');
-      int hour = int.parse(parts[0]);
-      final String minute = parts.length > 1 ? parts[1] : '00';
-      final String period = hour >= 12 ? 'PM' : 'AM';
-      if (hour == 0) hour = 12;
-      else if (hour > 12) hour -= 12;
-      return '$hour:$minute $period';
-    } catch (_) {
-      return time;
-    }
-  }
 }
