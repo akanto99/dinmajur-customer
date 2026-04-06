@@ -804,6 +804,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/get_booking_confirmation_pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -908,7 +909,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                 thankYouMessage: "Thank you for choosing our premium house keeping service. We've received your order.",
                 orderId: bookingData.id ?? 'N/A',
                 services: services,
-                dateTime: '${_formatDate(bookingData.createdAt)},(${bookingData.shiftId?.startTime ?? ''} - ${bookingData.shiftId?.endTime ?? ''})',
+                dateTime: '${DateFormatter.formatDate(bookingData.date)},(${bookingData.shiftId?.startTime ?? ''} - ${bookingData.shiftId?.endTime ?? ''})',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
@@ -1048,8 +1049,5 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
     );
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'N/A';
-    return DateFormat('dd-MM-yyyy').format(date);
-  }
+
 }

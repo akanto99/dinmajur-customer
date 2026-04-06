@@ -356,6 +356,7 @@ import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_a
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -372,11 +373,7 @@ class CookingConfirmedScreen extends StatefulWidget {
   final String? trackingId;
   final String? valId;
 
-  const CookingConfirmedScreen({
-    Key? key,
-    this.trackingId,
-    this.valId,
-  }) : super(key: key);
+  const CookingConfirmedScreen({Key? key, this.trackingId, this.valId}) : super(key: key);
 
   @override
   State<CookingConfirmedScreen> createState() => _CookingConfirmedScreenState();
@@ -400,11 +397,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: _body(),
-          desktop: _body(),
-          tablet: _body(),
-        ),
+        child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
       ),
     );
   }
@@ -414,10 +407,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Container(
-            height: 60,
-            child: AppBarHeader("Booking Confirmation"),
-          ),
+          child: Container(height: 60, child: AppBarHeader("Booking Confirmation")),
         ),
         Expanded(
           child: Consumer<GetDetailsEventCookingViewModel>(
@@ -425,12 +415,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
               final status = viewModel.getDetailsEventCookingData.status;
 
               if (status == Status.LOADING) {
-                return Center(
-                  child: LoadingAnimationWidget.progressiveDots(
-                    color: AppColors.button(context),
-                    size: 50,
-                  ),
-                );
+                return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
               }
 
               if (status == Status.ERROR) {
@@ -440,19 +425,14 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                     children: [
                       Icon(Icons.error_outline, size: 48, color: Colors.red),
                       SizedBox(height: 16),
-                      Text(
-                        'Failed to load booking details',
-                        style: AppTextStyles.textSize16(context, color: Colors.red),
-                      ),
+                      Text('Failed to load booking details', style: AppTextStyles.textSize16(context, color: Colors.red)),
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
                           viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!);
                         },
                         child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.button(context),
-                        ),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
                       ),
                     ],
                   ),
@@ -461,12 +441,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
 
               final bookingData = viewModel.getDetailsEventCookingData.data?.data;
               if (bookingData == null) {
-                return Center(
-                  child: Text(
-                    'No booking data available',
-                    style: AppTextStyles.textSize16(context),
-                  ),
-                );
+                return Center(child: Text('No booking data available', style: AppTextStyles.textSize16(context)));
               }
 
               // Prepare service items - handles both REGULAR and MANUAL
@@ -491,10 +466,12 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                           additionalInfo = '$additionalInfo - $priceInfo';
                         }
 
-                        services.add(ServiceItem(
-                          name: serviceName,
-                          // additionalInfo: additionalInfo,
-                        ));
+                        services.add(
+                          ServiceItem(
+                            name: serviceName,
+                            // additionalInfo: additionalInfo,
+                          ),
+                        );
                       }
                     }
                   } else {
@@ -507,32 +484,28 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                       additionalInfo = '৳${bookingItem.price!.salePrice!.toStringAsFixed(2)}';
                     }
 
-                    services.add(ServiceItem(
-                      name: serviceName,
-                      // additionalInfo: additionalInfo,
-                    ));
+                    services.add(
+                      ServiceItem(
+                        name: serviceName,
+                        // additionalInfo: additionalInfo,
+                      ),
+                    );
                   }
                 }
               }
 
               // Create confirmation data
               final confirmationData = BookingConfirmationData(
-                thankYouMessage:
-                "Thank you for choosing our event cooking service. We've received your order.",
+                thankYouMessage: "Thank you for choosing our event cooking service. We've received your order.",
                 orderId: bookingData.trackingId ?? 'N/A',
                 services: services,
-                dateTime: _formatDate(bookingData.date),
+                dateTime: "${DateFormatter.formatDate(bookingData.date)}, ${bookingData.slot}",
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
                 onDownloadReceipt: () => _handleDownloadReceipt(),
                 onTrackOrder: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NavigationScreen(initialIndex: 2),
-                    ),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2)));
                 },
                 isDownloading: _isDownloading,
               );
@@ -540,13 +513,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
               return BookingConfirmationUI(
                 data: confirmationData,
                 onBackToHome: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NavigationScreen(initialIndex: 0),
-                    ),
-                        (route) => false,
-                  );
+                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
                 },
               );
             },
@@ -558,10 +525,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
 
   Future<void> _handleDownloadReceipt() async {
     // Get bookingData from Provider
-    final bookingData = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false)
-        .getDetailsEventCookingData
-        .data
-        ?.data;
+    final bookingData = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false).getDetailsEventCookingData.data?.data;
 
     if (bookingData == null) {
       Utils.flushBarErrorMessage("No booking data available to download", context);
@@ -582,10 +546,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
           if (sdkInt <= 32) {
             final status = await Permission.storage.request();
             if (!status.isGranted) {
-              Utils.flushBarErrorMessage(
-                "Storage permission is required to download receipt",
-                context,
-              );
+              Utils.flushBarErrorMessage("Storage permission is required to download receipt", context);
               setState(() {
                 _isDownloading = false;
               });
@@ -632,50 +593,31 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
         return AlertDialog(
           backgroundColor: AppColors.containerBackground(context),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Text(
-            'Download Complete',
-            style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-          ),
+          title: Text('Download Complete', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Receipt saved successfully!',
-                style: AppTextStyles.textSize14(context),
-              ),
+              Text('Receipt saved successfully!', style: AppTextStyles.textSize14(context)),
               SizedBox(height: 12),
               Container(
                 width: screenWidth,
                 padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.button(context).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: AppColors.button(context).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '📁 Location:',
-                      style: AppTextStyles.textSize12(
-                        context,
-                        weight: FontWeight.w600,
-                        color: AppColors.button(context),
-                      ),
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
                     ),
                     SizedBox(height: 4),
-                    Text(
-                      'Downloads/Dinmajur Booking',
-                      style: AppTextStyles.textSize12(context),
-                    ),
+                    Text('Downloads/Dinmajur Booking', style: AppTextStyles.textSize12(context)),
                   ],
                 ),
               ),
               SizedBox(height: 12),
-              Text(
-                'Would you like to open it now?',
-                style: AppTextStyles.textSize14(context),
-              ),
+              Text('Would you like to open it now?', style: AppTextStyles.textSize14(context)),
             ],
           ),
           actions: [
@@ -688,9 +630,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                 Navigator.of(context).pop();
                 await OpenFile.open(filePath);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.button(context),
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
               child: Text(
                 'Open Now',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),

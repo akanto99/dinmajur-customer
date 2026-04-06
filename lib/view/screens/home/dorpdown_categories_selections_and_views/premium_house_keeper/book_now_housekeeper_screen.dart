@@ -30,6 +30,8 @@ import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_
 class BookNowHousekeeperScreen extends StatefulWidget {
   final String customerName;
   final String customerPhone;
+  final String serviceName;
+  final String description;
   final String customerAddress;
   final bool isFromHome;
     final Map<String, dynamic>? customerLocation;
@@ -38,6 +40,8 @@ class BookNowHousekeeperScreen extends StatefulWidget {
     Key? key,
     required this.customerName,
     required this.customerPhone,
+    required this.serviceName,
+    required this.description,
     required this.customerAddress,
     this.isFromHome = false, this.customerLocation
   }) : super(key: key);
@@ -237,7 +241,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context, null),
-          child: Container(height: 60, child: AppBarHeader("Premium House Keeper")),
+          child: Container(height: 60, child: AppBarHeader(widget.serviceName)),
         ),
         Expanded(
           child: Consumer2<GetallHousekeeperCategoryViewModel, GetallPremiumHouseKeeperTaskViewModel>(
@@ -296,7 +300,8 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     Container(
                       width: screenWidth * 0.9,
                       child: Text(
-                        "Two highly-trained housekeepers will work together",
+                        // "Two highly-trained housekeepers will work together",
+                        widget.description,
                         style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                         textAlign: TextAlign.center,
                       ),

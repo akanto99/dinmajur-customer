@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -139,7 +140,7 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
                 "Thank you for choosing our beauty and salon service. We've received your order.",
                 orderId: bookingData.trackingId ?? 'N/A',
                 services: services,
-                dateTime: '${_formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
+                dateTime: '${DateFormatter.formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
                 grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
                 paymentMethod: bookingData.paymentType ?? 'N/A',

@@ -111,8 +111,13 @@ class BookingReceiptPdfGenerator {
 
   static pw.Widget _buildOrderSchedule(Data bookingData) {
     final shiftId = bookingData.shiftId;
-    final dateStr = bookingData.createdAt != null
-        ? DateFormat('dd-MM-yyyy').format(bookingData.createdAt!)
+    final DateTime? rawDate = bookingData.date;
+    final String dateStr = rawDate != null
+        ? DateFormat('dd-MM-yyyy').format(
+      rawDate.isUtc
+          ? rawDate.add(const Duration(hours: 6))
+          : rawDate.toUtc().add(const Duration(hours: 6)),
+    )
         : 'N/A';
     final shiftStr = shiftId != null
         ? '${shiftId.type ?? ''} (${shiftId.startTime ?? ''} - ${shiftId.endTime ?? ''})'
