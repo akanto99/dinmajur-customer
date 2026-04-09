@@ -103,10 +103,10 @@ class Image {
 class CustomPrice {
   String? id;
   String? type;
-  int? originalPrice;
+  double? originalPrice;
   double? salePrice;
   DiscountType? discountType;
-  int? discountValue;
+  double? discountValue;
   DateTime? createdAt;
   DateTime? updatedAt;
   int? v;
@@ -126,11 +126,11 @@ class CustomPrice {
   factory CustomPrice.fromJson(Map<String, dynamic> json) => CustomPrice(
     id: json["_id"],
     type: json["type"],
-    originalPrice: json["originalPrice"],
-    salePrice: json["salePrice"]?.toDouble(),
+    originalPrice: (json["originalPrice"] as num?)?.toDouble(),
+    salePrice: (json["salePrice"] as num?)?.toDouble(),
     discountType: discountTypeValues.map[json["discountType"]] ??
         DiscountType.NONE,
-    discountValue: json["discountValue"],
+    discountValue: (json["discountValue"] as num?)?.toDouble(),
     createdAt: json["createdAt"] == null
         ? null
         : DateTime.parse(json["createdAt"]),
@@ -248,10 +248,10 @@ class Price {
   String? referenceType;
   String? referenceId;
   GuestRange? guestRange;
-  int? originalPrice;
+  double? originalPrice;
   double? salePrice;
   DiscountType? discountType;
-  int? discountValue;
+  double? discountValue;
   DateTime? createdAt;
   DateTime? updatedAt;
   int? v;
@@ -275,10 +275,10 @@ class Price {
     referenceType:json["referenceType"],
     referenceId: json["referenceId"],
     guestRange: json["guestRange"] == null ? null : GuestRange.fromJson(json["guestRange"]),
-    originalPrice: json["originalPrice"],
-    salePrice: json["salePrice"]?.toDouble(),
+    originalPrice: (json["originalPrice"] as num?)?.toDouble(),
+    salePrice: (json["salePrice"] as num?)?.toDouble(),
     discountType: discountTypeValues.map[json["discountType"]]!,
-    discountValue: json["discountValue"],
+    discountValue: (json["discountValue"] as num?)?.toDouble(),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
     v: json["__v"],

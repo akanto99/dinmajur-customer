@@ -321,7 +321,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
                           _buildSelectedServicesList(checkoutVM, subtotal, saved),
                           SizedboxSpaccing.height02(context),
                           _buildPaymentMethodSection(checkoutVM),
-                          SizedboxSpaccing.height01(context),
+
                           DynamicTermsCheckbox(
                             isAccepted: _isTermsAccepted,
                             onChanged: (value) => setState(() => _isTermsAccepted = value),

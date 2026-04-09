@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:flutter/material.dart';
 
 class DynamicTermsCheckbox extends StatelessWidget {
@@ -45,8 +46,8 @@ class DynamicTermsCheckbox extends StatelessWidget {
     this.onTermsTap,
     this.onPrivacyTap,
     this.onRefundTap,
-    this.checkboxSize = 16.0,
-    this.checkIconSize = 12.0,
+    this.checkboxSize = 20.0,
+    this.checkIconSize = 16.0,
     this.spacing = 10.0,
     this.padding,
     this.borderRadius = 2.0,
@@ -62,100 +63,95 @@ class DynamicTermsCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext _) {
-    return Container(
-      padding: padding ?? EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Checkbox
-          GestureDetector(
-            onTap: () => onChanged(!isAccepted),
-            child: Container(
-              width: checkboxSize,
-              height: checkboxSize,
-              margin: EdgeInsets.only(top: 2),
-              decoration: BoxDecoration(
-                color: isAccepted ? getButtonColor(context) : Colors.transparent,
-                border: Border.all(
-                  color: isAccepted ? getButtonColor(context) : getBorderColor(context),
-                  width: borderWidth,
+    return   GestureDetector(
+      onTap: () => onChanged(!isAccepted),
+      child: Container(
+        padding: padding ?? EdgeInsets.all(12),
+        color: Colors.transparent,
+        child: Column(
+          children: [
+            SizedboxSpaccing.height01(context),
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Checkbox
+                Container(
+                  width: checkboxSize,
+                  height: checkboxSize,
+                  margin: EdgeInsets.only(top: 2),
+                  decoration: BoxDecoration(
+                    color: isAccepted ? getButtonColor(context) : Colors.transparent,
+                    border: Border.all(color: isAccepted ? getButtonColor(context) : getBorderColor(context), width: borderWidth),
+                    borderRadius: BorderRadius.circular(borderRadius),
+                  ),
+                  child: isAccepted ? Icon(Icons.check, size: checkIconSize, color: getWhiteColor(context)) : null,
                 ),
-                borderRadius: BorderRadius.circular(borderRadius),
-              ),
-              child: isAccepted
-                  ? Icon(Icons.check, size: checkIconSize, color: getWhiteColor(context))
-                  : null,
-            ),
-          ),
+                SizedBox(width: spacing),
 
-          SizedBox(width: spacing),
+                // Terms text
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: getTextStyle(context, weight: FontWeight.w400),
+                      children: [
+                        TextSpan(text: prefixText),
 
-          // Terms text
-          Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(!isAccepted),
-              child: RichText(
-                text: TextSpan(
-                  style: getTextStyle(context, weight: FontWeight.w400),
-                  children: [
-                    TextSpan(text: prefixText),
+                        // Terms & Conditions link
+                        if (onTermsTap != null)
+                          WidgetSpan(
+                            child: GestureDetector(
+                              onTap: onTermsTap,
+                              child: Text(
+                                termsText,
+                                style: getTextStyle(context, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline),
+                              ),
+                            ),
+                          )
+                        else
+                          TextSpan(text: termsText),
 
-                    // Terms & Conditions link
-                    if (onTermsTap != null)
-                      WidgetSpan(
-                        child: GestureDetector(
-                          onTap: onTermsTap,
-                          child: Text(
-                            termsText,
-                            style: getTextStyle(context, weight: FontWeight.w400)
-                                .copyWith(decoration: TextDecoration.underline),
-                          ),
-                        ),
-                      )
-                    else
-                      TextSpan(text: termsText),
+                        TextSpan(text: middleText1),
 
-                    TextSpan(text: middleText1),
+                        // Privacy Policy link
+                        if (onPrivacyTap != null)
+                          WidgetSpan(
+                            child: GestureDetector(
+                              onTap: onPrivacyTap,
+                              child: Text(
+                                privacyText,
+                                style: getTextStyle(context, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline),
+                              ),
+                            ),
+                          )
+                        else
+                          TextSpan(text: privacyText),
 
-                    // Privacy Policy link
-                    if (onPrivacyTap != null)
-                      WidgetSpan(
-                        child: GestureDetector(
-                          onTap: onPrivacyTap,
-                          child: Text(
-                            privacyText,
-                            style: getTextStyle(context, weight: FontWeight.w400)
-                                .copyWith(decoration: TextDecoration.underline),
-                          ),
-                        ),
-                      )
-                    else
-                      TextSpan(text: privacyText),
+                        TextSpan(text: middleText2),
 
-                    TextSpan(text: middleText2),
+                        // Refund Policy link
+                        if (onRefundTap != null)
+                          WidgetSpan(
+                            child: GestureDetector(
+                              onTap: onRefundTap,
+                              child: Text(
+                                refundText,
+                                style: getTextStyle(context, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline),
+                              ),
+                            ),
+                          )
+                        else
+                          TextSpan(text: refundText),
 
-                    // Refund Policy link
-                    if (onRefundTap != null)
-                      WidgetSpan(
-                        child: GestureDetector(
-                          onTap: onRefundTap,
-                          child: Text(
-                            refundText,
-                            style: getTextStyle(context, weight: FontWeight.w400)
-                                .copyWith(decoration: TextDecoration.underline),
-                          ),
-                        ),
-                      )
-                    else
-                      TextSpan(text: refundText),
-
-                    TextSpan(text: suffixText),
-                  ],
+                        TextSpan(text: suffixText),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

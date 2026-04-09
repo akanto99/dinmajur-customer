@@ -1067,7 +1067,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                 SizedboxSpaccing.height02(context),
 
                 _buildPaymentMethodSection(viewModel),
-                SizedboxSpaccing.height01(context),
+
                 DynamicTermsCheckbox(
                   isAccepted: _isTermsAccepted,
                   onChanged: (value) {

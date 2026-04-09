@@ -849,7 +849,7 @@ class CookingCheckoutScreen extends StatefulWidget {
   final DateTime? selectedDate;
   final String? selectedServiceTime;
   final Function(String)? onAddressUpdate;
-      final Map<String, dynamic>? customerLocation;
+  final Map<String, dynamic>? customerLocation;
 
   const CookingCheckoutScreen({
     Key? key,
@@ -868,7 +868,7 @@ class CookingCheckoutScreen extends StatefulWidget {
     required this.selectedDate,
     required this.selectedServiceTime,
     this.onAddressUpdate,
-            this.customerLocation,
+    this.customerLocation,
   }) : super(key: key);
 
   @override
@@ -879,16 +879,16 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   final TextEditingController _addressController = TextEditingController();
   bool _isTermsAccepted = false;
 
-    Map<String, dynamic>? _updatedLocation;
+  Map<String, dynamic>? _updatedLocation;
   @override
   void initState() {
     super.initState();
     _addressController.text = widget.customerAddress;
-        _updatedLocation = widget.customerLocation;
+    _updatedLocation = widget.customerLocation;
     _restoreSessionLocation();
   }
 
-    Future<void> _restoreSessionLocation() async {
+  Future<void> _restoreSessionLocation() async {
     final sessionData = await CheckoutSessionLocationService.getAll();
     if (sessionData.location != null && sessionData.address != null) {
       if (mounted) {
@@ -899,29 +899,19 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       }
     }
   }
+
   @override
   void dispose() {
     _addressController.dispose();
     super.dispose();
   }
 
-  Future<void> _handlePaymentResult({
-    required CookingCheckoutViewModel viewModel,
-    required SSLPaymentResult paymentResult,
-    required String trackingId,
-  }) async {
+  Future<void> _handlePaymentResult({required CookingCheckoutViewModel viewModel, required SSLPaymentResult paymentResult, required String trackingId}) async {
     if (!mounted) return;
 
     if (paymentResult.success) {
       _clearAllData();
-      Navigator.pushReplacementNamed(
-        context,
-        RoutesName.cookingConfirmedScreen,
-        arguments: {
-          'trackingId': trackingId,
-          'valId': paymentResult.validationId ?? 'N/A',
-        },
-      );
+      Navigator.pushReplacementNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A'});
     } else if (paymentResult.status == 'FAILED') {
       print("---------------------Handle Payment result - FAILED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -959,10 +949,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Utils.flushBarErrorMessage(
-            paymentResult.errorMessage ?? "Payment status unclear",
-            context,
-          );
+          Utils.flushBarErrorMessage(paymentResult.errorMessage ?? "Payment status unclear", context);
         }
       });
     }
@@ -1002,10 +989,10 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     Map<String, dynamic> bookingPayload = {
       "booking": {
         "paymentType": checkoutVM.getPaymentMethodData(checkoutVM.selectedPaymentMethod).toUpperCase(),
-        "fullAddress":  _updatedLocation?['fullAddress'] ??_addressController.text,
+        "fullAddress": _updatedLocation?['fullAddress'] ?? _addressController.text,
         "location": _updatedLocation,
-        "fullName":widget.customerName,
-        "phone":widget.customerPhone,
+        "fullName": widget.customerName,
+        "phone": widget.customerPhone,
         "date": widget.selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
         "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
       },
@@ -1034,7 +1021,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       bookingPayload["packages"] = [
         {"packageId": selectedPackageId, "priceId": priceId},
       ];
-
     } else if (activeCategory.type == 'CUSTOM') {
       // Same structure as REGULAR — single package, priceId from customPrice
       final selectedPackageId = widget.selectedPackages[activeCategory.id];
@@ -1048,11 +1034,8 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         }
       }
 
-      bookingPayload["packages"] =[
-        {
-          "packageId": selectedPackageId,
-          "priceId": priceId,
-        }
+      bookingPayload["packages"] = [
+        {"packageId": selectedPackageId, "priceId": priceId},
       ];
     } else if (activeCategory.type == 'MANUAL') {
       // MANUAL type: Multiple items selection
@@ -1087,10 +1070,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       // Convert map to packages array
       List<Map<String, dynamic>> packages = [];
       packageItemsMap.forEach((packageId, items) {
-        packages.add({
-          "packageId": packageId,
-          "items": items,
-        });
+        packages.add({"packageId": packageId, "items": items});
       });
 
       bookingPayload["packages"] = packages;
@@ -1098,6 +1078,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
 
     return bookingPayload;
   }
+
   Future<void> _handleConfirmBooking() async {
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookFamilyEventCookingViewModel>(context, listen: false);
@@ -1133,65 +1114,40 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       print('Booking Payload: $bookingPayload');
 
       // Call booking API
-      await bookingViewModel.bookFamilyEventCookingPostApi(
-        context,
-        bookingPayload,
-            (String? trackingId) async {
-          print('Success! TrackingId: $trackingId');
+      await bookingViewModel.bookFamilyEventCookingPostApi(context, bookingPayload, (String? trackingId) async {
+        print('Success! TrackingId: $trackingId');
 
-          if (trackingId == null || trackingId.isEmpty) {
-            Navigator.pushReplacementNamed(
-              context,
-              RoutesName.failedOrderScreenWidget,
-              arguments: {
-                'trackingId': 'N/A',
-                'valId': 'N/A',
-                'reason': 'Booking creation failed',
-                'errorMessage': 'Unable to create booking. Please try again.',
-              },
-            );
-            return;
-          }
+        if (trackingId == null || trackingId.isEmpty) {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking. Please try again.'},
+          );
+          return;
+        }
 
-          if (checkoutVM.selectedPaymentMethod == 'online') {
-            final paymentResult = await checkoutVM.initiatePayment(
-              trackingId: trackingId,
-              totalAmount: totalAmount,
-              customerName: widget.customerName,
-              customerPhone: widget.customerPhone,
-              customerEmail: null,
-              customerAddress: _addressController.text.trim(),
-            );
-            await _handlePaymentResult(
-              viewModel: checkoutVM,
-              paymentResult: paymentResult,
-              trackingId: trackingId,
-            );
-          } else if (checkoutVM.selectedPaymentMethod == 'cash') {
-            _clearAllData();
-            Navigator.pop(context);
-            Navigator.pushNamed(
-              context,
-              RoutesName.cookingConfirmedScreen,
-              arguments: {
-                'trackingId': trackingId,
-                'valId': "COD",
-              },
-            );
-          } else {
-            Navigator.pushReplacementNamed(
-              context,
-              RoutesName.failedOrderScreenWidget,
-              arguments: {
-                'trackingId': trackingId,
-                'valId': 'N/A',
-                'reason': 'Invalid payment method',
-                'errorMessage': 'The selected payment method is not available.',
-              },
-            );
-          }
-        },
-      );
+        if (checkoutVM.selectedPaymentMethod == 'online') {
+          final paymentResult = await checkoutVM.initiatePayment(
+            trackingId: trackingId,
+            totalAmount: totalAmount,
+            customerName: widget.customerName,
+            customerPhone: widget.customerPhone,
+            customerEmail: null,
+            customerAddress: _addressController.text.trim(),
+          );
+          await _handlePaymentResult(viewModel: checkoutVM, paymentResult: paymentResult, trackingId: trackingId);
+        } else if (checkoutVM.selectedPaymentMethod == 'cash') {
+          _clearAllData();
+          Navigator.pop(context);
+          Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': "COD"});
+        } else {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {'trackingId': trackingId, 'valId': 'N/A', 'reason': 'Invalid payment method', 'errorMessage': 'The selected payment method is not available.'},
+          );
+        }
+      });
     } catch (e) {
       print('Booking error: $e');
 
@@ -1200,12 +1156,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
           Navigator.pushReplacementNamed(
             context,
             RoutesName.failedOrderScreenWidget,
-            arguments: {
-              'trackingId': 'N/A',
-              'valId': 'N/A',
-              'reason': 'Booking failed',
-              'errorMessage': 'An error occurred while processing your booking. Please try again.',
-            },
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking failed', 'errorMessage': 'An error occurred while processing your booking. Please try again.'},
           );
         }
       });
@@ -1263,10 +1214,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context, false),
-                    child: Container(
-                      height: 60,
-                      child: AppBarHeader("Checkout"),
-                    ),
+                    child: Container(height: 60, child: AppBarHeader("Checkout")),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -1279,7 +1227,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                           _buildBookingSummary(),
                           SizedboxSpaccing.height02(context),
                           _buildPaymentMethodSection(checkoutVM),
-                          SizedboxSpaccing.height01(context),
+
                           DynamicTermsCheckbox(
                             isAccepted: _isTermsAccepted,
                             onChanged: (value) {
@@ -1294,9 +1242,9 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                             getButtonColor: (context) => AppColors.button(context),
                             getBorderColor: (context) => AppColors.border(context),
                             getWhiteColor: (context) => AppColors.whiteColor,
-                            getTextStyle: (context, {weight}) => AppTextStyles.textSize14(context, weight: weight ?? FontWeight.w400),
+                            getTextStyle: (context, {weight}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.w400),
                           ),
-                          SizedboxSpaccing.height03(context)
+                          SizedboxSpaccing.height03(context),
                         ],
                       ),
                     ),
@@ -1392,7 +1340,10 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     return Row(
       children: [
         Text('$label :  ', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-        Text(value, style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.subtitle(context))),
+        Text(
+          value,
+          style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.subtitle(context)),
+        ),
       ],
     );
   }
@@ -1428,10 +1379,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
               _buildSelectedItemsSection(),
               SizedboxSpaccing.height015(context),
               _buildSummaryRow('Date', DateFormat('MMMM dd, yyyy').format(widget.selectedDate ?? DateTime.now())),
-              if (!isCustomCategory) ...[
-                SizedboxSpaccing.height015(context),
-                _buildSummaryRow('Number of Guests', _getGuestRangeText()),
-              ],
+              if (!isCustomCategory) ...[SizedboxSpaccing.height015(context), _buildSummaryRow('Number of Guests', _getGuestRangeText())],
               SizedboxSpaccing.height015(context),
               _buildSummaryRow('Slot', widget.selectedServiceTime ?? 'Not selected'),
               SizedboxSpaccing.height015(context),
@@ -1445,8 +1393,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     );
   }
 
-
-// Build selected items section
+  // Build selected items section
   Widget _buildSelectedItemsSection() {
     if (widget.activeCategoryId == null) return SizedBox.shrink();
 
@@ -1464,7 +1411,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     return SizedBox.shrink();
   }
 
-// Build REGULAR package details
+  // Build REGULAR package details
   Widget _buildRegularPackageDetails(Datum category) {
     final selectedPackageId = widget.selectedPackages[category.id];
     if (selectedPackageId == null) return SizedBox.shrink();
@@ -1481,25 +1428,18 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
 
         double savedAmount = originalPrice - salePrice;
 
-        return       Row(
+        return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              package.name ?? '',
-              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-            ),
+            Text(package.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             Row(
               children: [
-                Text(
-                  '৳${salePrice.toStringAsFixed(2)}',
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-                ),
+                Text('৳${salePrice.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                 if (savedAmount > 0) ...[
                   SizedBox(width: 8),
                   Text(
                     '৳${originalPrice.toStringAsFixed(0)}',
-                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))
-                        .copyWith(decoration: TextDecoration.lineThrough),
+                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                   ),
                 ],
               ],
@@ -1511,7 +1451,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     return SizedBox.shrink();
   }
 
-// Build MANUAL items details
+  // Build MANUAL items details
   Widget _buildManualItemsDetails(Datum category) {
     List<Map<String, dynamic>> selectedItems = [];
     double totalSalePrice = 0;
@@ -1532,11 +1472,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
           totalSalePrice += salePrice;
           totalOriginalPrice += originalPrice;
 
-          selectedItems.add({
-            'name': item.name ?? '',
-            'salePrice': salePrice,
-            'originalPrice': originalPrice,
-          });
+          selectedItems.add({'name': item.name ?? '', 'salePrice': salePrice, 'originalPrice': originalPrice});
         }
       }
     }
@@ -1548,10 +1484,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '${category.name ?? ''}',
-          style: AppTextStyles.textSize14(context, weight: FontWeight.w600,),
-        ),
+        Text('${category.name ?? ''}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
         SizedBox(height: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1567,23 +1500,16 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        '${item['name']}',
-                        style: AppTextStyles.textSize12(context, weight: FontWeight.w400),
-                      ),
+                      child: Text('${item['name']}', style: AppTextStyles.textSize12(context, weight: FontWeight.w400)),
                     ),
                     Row(
                       children: [
-                        Text(
-                          '৳${item['salePrice'].toStringAsFixed(2)}',
-                          style: AppTextStyles.textSize12(context, weight: FontWeight.w500),
-                        ),
+                        Text('৳${item['salePrice'].toStringAsFixed(2)}', style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
                         if (item['originalPrice'] > item['salePrice']) ...[
                           SizedBox(width: 6),
                           Text(
                             '৳${item['originalPrice'].toStringAsFixed(0)}',
-                            style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context))
-                                .copyWith(decoration: TextDecoration.lineThrough),
+                            style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                           ),
                         ],
                       ],
@@ -1623,11 +1549,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         Text(label, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
         Text(
           '৳${amount.toStringAsFixed(0)}',
-          style: AppTextStyles.textSize14(
-            context,
-            weight: FontWeight.w500,
-            color: isGreen ? Colors.green : AppColors.textPrimary(context),
-          ),
+          style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
     );
@@ -1640,14 +1562,11 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       children: [
         SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false),
         SizedboxSpaccing.height02(context),
-        PaymentMethodWidget(
-          selectedPaymentMethod: viewModel.selectedPaymentMethod,
-          paymentMethods: viewModel.paymentMethods,
-          onPaymentMethodChanged: (method) => viewModel.setPaymentMethod(method),
-        ),
+        PaymentMethodWidget(selectedPaymentMethod: viewModel.selectedPaymentMethod, paymentMethods: viewModel.paymentMethods, onPaymentMethodChanged: (method) => viewModel.setPaymentMethod(method)),
       ],
     );
   }
+
   Widget _buildCustomPackageDetails(Datum category) {
     final selectedPackageId = widget.selectedPackages[category.id];
     if (selectedPackageId == null) return SizedBox.shrink();
@@ -1661,22 +1580,15 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              package.name ?? '',
-              style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-            ),
+            Text(package.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             Row(
               children: [
-                Text(
-                  '৳${salePrice.toStringAsFixed(2)}',
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-                ),
+                Text('৳${salePrice.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                 if (savedAmount > 0) ...[
                   SizedBox(width: 8),
                   Text(
                     '৳${originalPrice.toStringAsFixed(0)}',
-                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))
-                        .copyWith(decoration: TextDecoration.lineThrough),
+                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                   ),
                 ],
               ],
@@ -1687,13 +1599,8 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     }
     return SizedBox.shrink();
   }
-  Widget _buildConfirmButton(
-      BuildContext context,
-      CookingCheckoutViewModel checkoutVM,
-      PostBookFamilyEventCookingViewModel bookingVM,
-      double total,
-      bool isLoading,
-      ) {
+
+  Widget _buildConfirmButton(BuildContext context, CookingCheckoutViewModel checkoutVM, PostBookFamilyEventCookingViewModel bookingVM, double total, bool isLoading) {
     // ✅ Only use ViewModel loading state
     bool isButtonDisabled = bookingVM.createBookFamilyEventCookingLoading;
 
@@ -1710,10 +1617,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Total Amount',
-                  style: AppTextStyles.textSize14(context, color: AppColors.whiteColor),
-                ),
+                Text('Total Amount', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
                 SizedBox(height: 4),
                 Row(
                   children: [
@@ -1725,10 +1629,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                       SizedBox(width: 8),
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                        decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
                         child: Text(
                           'Saved ৳${widget.savedAmount.toStringAsFixed(0)}',
                           style: AppTextStyles.textSize12(context, color: Colors.greenAccent, weight: FontWeight.w600),
@@ -1756,25 +1657,20 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                   border: Border.all(width: 1, color: AppColors.whiteColor),
                 ),
                 child: isButtonDisabled
-                    ? Center(
-                  child: LoadingAnimationWidget.progressiveDots(
-                      color: AppColors.whiteColor,
-                      size: 30
-                  ),
-                )
+                    ? Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 30))
                     : Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Pay Now',
-                        style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Pay Now',
+                              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                          ],
+                        ),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                    ],
-                  ),
-                ),
               ),
             ),
           ),
