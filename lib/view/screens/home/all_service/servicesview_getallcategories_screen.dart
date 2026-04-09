@@ -255,7 +255,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                           selectedIndex: _selectedTabIndex,
                           onCategoryTap: _scrollToCategory,
                           getName: (c) => c.name ?? '',
-                          getImageUrl: (c) => c.image,
+                          getImageUrl: (c) => c.image?.url,
                           getButtonColor: (ctx) => AppColors.button(ctx),
                           getBackgroundColor: (ctx) => AppColors.border(ctx),
                           getBorderColor: (ctx) => AppColors.border(ctx),
@@ -264,7 +264,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                           getTextColor: (ctx) => AppColors.textPrimary(ctx),
                           getTextStyle: (ctx, isSelected) =>
                               AppTextStyles.textSize12(ctx, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(ctx) : AppColors.textPrimary(ctx)),
-                          defaultIcon: Icons.design_services_outlined,
+                          defaultIcon: Icons.home_repair_service_outlined,
                           supportSvg: false,
                         ),
                         const SizedBox(height: 20),
@@ -348,7 +348,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
               width: screenWidth * 0.9,
               child: DynamicServiceCard(
                 imageUrl: imageUrl,
-                defaultIcon: Icons.design_services_outlined,
+                defaultIcon: Icons.home_repair_service_outlined,
                 serviceName: task.name ?? '',
                 viewDetailsText: 'View Task Details',
                 onViewDetails: () => _showTaskDetailsDialog(task),
