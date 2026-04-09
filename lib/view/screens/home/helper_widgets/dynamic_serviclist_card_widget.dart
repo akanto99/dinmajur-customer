@@ -155,66 +155,69 @@ class DynamicServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // margin: EdgeInsets.only(bottom: 15),
-      padding: isLastItem?EdgeInsets.only(top: 15,bottom: 25): EdgeInsets.symmetric(vertical: 15),
-      decoration: BoxDecoration(
-        color: getBackgroundColor(context),
-        // borderRadius: BorderRadius.circular(12),
-        // border: Border.all(color: getBorderColor(context)
-        border: isLastItem
-            ? null
-            : Border(
-          bottom: BorderSide(
-            color: getBorderColor(context),
-            width: 1,
+    return GestureDetector(
+      onTap: onViewDetails,
+      child: Container(
+        // margin: EdgeInsets.only(bottom: 15),
+        padding: isLastItem?EdgeInsets.only(top: 15,bottom: 25): EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+          color: getBackgroundColor(context),
+          // borderRadius: BorderRadius.circular(12),
+          // border: Border.all(color: getBorderColor(context)
+          border: isLastItem
+              ? null
+              : Border(
+            bottom: BorderSide(
+              color: getBorderColor(context),
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
 
 
-          // Details
-          Expanded(child: _buildDetails(context)),
-          getSpacing(context),
-          // Image with Quantity Controls
-          DynamicCachedImage(
-            imageUrl: imageUrl,
-            width: 83,
-            height: 73,
-            borderRadius: 8,
-            defaultIcon: defaultIcon,
-            iconSize: 40,
-            backgroundColor: Colors.grey[200],
-            fit: BoxFit.cover,
-            loadingColor: getButtonColor(context),
-            iconColor: Colors.grey,
-            showLoadingIndicator: true,
-            // Quantity controls
-            quantity: quantity,
-            onAdd: onAdd,
-            onRemove: onRemove,
-            onIncrease: onIncrease,
-            hasRoom: hasRoom,
-            hasHour: hasHour,
-            showRoomNumber: showRoomNumber,
-            roomNumberLabel: roomNumberLabel,
-            getButtonColor: getButtonColor,
-            getBorderColor: getBorderColor,
-            // Cache optimization
-            memCacheHeight: 200,
-            memCacheWidth: 200,
-            maxHeightDiskCache: 400,
-            maxWidthDiskCache: 400,
-            // Smooth animations
-            fadeInDuration: Duration(milliseconds: 300),
-            fadeOutDuration: Duration(milliseconds: 100),
-          ),
+            // Details
+            Expanded(child: _buildDetails(context)),
+            getSpacing(context),
+            // Image with Quantity Controls
+            DynamicCachedImage(
+              imageUrl: imageUrl,
+              width: 83,
+              height: 73,
+              borderRadius: 8,
+              defaultIcon: defaultIcon,
+              iconSize: 40,
+              backgroundColor: Colors.grey[200],
+              fit: BoxFit.cover,
+              loadingColor: getButtonColor(context),
+              iconColor: Colors.grey,
+              showLoadingIndicator: true,
+              // Quantity controls
+              quantity: quantity,
+              onAdd: onAdd,
+              onRemove: onRemove,
+              onIncrease: onIncrease,
+              hasRoom: hasRoom,
+              hasHour: hasHour,
+              showRoomNumber: showRoomNumber,
+              roomNumberLabel: roomNumberLabel,
+              getButtonColor: getButtonColor,
+              getBorderColor: getBorderColor,
+              // Cache optimization
+              memCacheHeight: 200,
+              memCacheWidth: 200,
+              maxHeightDiskCache: 400,
+              maxWidthDiskCache: 400,
+              // Smooth animations
+              fadeInDuration: Duration(milliseconds: 300),
+              fadeOutDuration: Duration(milliseconds: 100),
+            ),
 
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -248,17 +251,14 @@ class DynamicServiceCard extends StatelessWidget {
         ),
         if (viewDetailsText != null && onViewDetails != null) ...[
           SizedBox(height: 4),
-          GestureDetector(
-            onTap: onViewDetails,
-            child: Row(
-              children: [
-                Text(
-                    viewDetailsText!,
-                    style: AppTextStyles.textSize10(context,weight: FontWeight.w500,color: AppColors.buttonTextColor(context))
-                ),
-                Icon(Icons.chevron_right, size: 12, color: getButtonColor(context)),
-              ],
-            ),
+          Row(
+            children: [
+              Text(
+                  viewDetailsText!,
+                  style: AppTextStyles.textSize12(context,weight: FontWeight.w500,color: AppColors.buttonTextColor(context))
+              ),
+              Icon(Icons.chevron_right, size: 14, color: getButtonColor(context)),
+            ],
           ),
         ],
       ],

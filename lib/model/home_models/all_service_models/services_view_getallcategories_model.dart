@@ -1,8 +1,10 @@
 import 'dart:convert';
 
-ServicesViewGetAllCategoryModel servicesViewGetAllCategoryModelFromJson(String str) => ServicesViewGetAllCategoryModel.fromJson(json.decode(str));
+ServicesViewGetAllCategoryModel servicesViewGetAllCategoryModelFromJson(String str) =>
+    ServicesViewGetAllCategoryModel.fromJson(json.decode(str));
 
-String servicesViewGetAllCategoryModelToJson(ServicesViewGetAllCategoryModel data) => json.encode(data.toJson());
+String servicesViewGetAllCategoryModelToJson(ServicesViewGetAllCategoryModel data) =>
+    json.encode(data.toJson());
 
 class ServicesViewGetAllCategoryModel {
   bool? success;
@@ -10,34 +12,55 @@ class ServicesViewGetAllCategoryModel {
   dynamic meta;
   Data? data;
 
-  ServicesViewGetAllCategoryModel({this.success, this.message, this.meta, this.data});
+  ServicesViewGetAllCategoryModel({
+    this.success,
+    this.message,
+    this.meta,
+    this.data,
+  });
 
   factory ServicesViewGetAllCategoryModel.fromJson(Map<String, dynamic> json) =>
-      ServicesViewGetAllCategoryModel(success: json["success"], message: json["message"], meta: json["meta"], data: json["data"] == null ? null : Data.fromJson(json["data"]));
+      ServicesViewGetAllCategoryModel(
+        success: json["success"],
+        message: json["message"],
+        meta: json["meta"],
+        data: json["data"] == null ? null : Data.fromJson(json["data"]),
+      );
 
-  Map<String, dynamic> toJson() => {"success": success, "message": message, "meta": meta, "data": data?.toJson()};
+  Map<String, dynamic> toJson() => {
+    "success": success,
+    "message": message,
+    "meta": meta,
+    "data": data?.toJson(),
+  };
 }
+
+// ─────────────────────────────────────────────
 
 class Data {
   String? serviceId;
   int? totalCategories;
   int? minimumOrderAmount;
-  int? transportFee;
+  double? transportFee;
   List<Category>? categories;
 
-  Data({this.serviceId,
+  Data({
+    this.serviceId,
     this.transportFee,
     this.minimumOrderAmount,
     this.totalCategories,
-    this.categories
+    this.categories,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     serviceId: json["serviceId"],
-    transportFee: json["transportFee"],
-    minimumOrderAmount: json["minimumOrderAmount"],
+    transportFee: (json["transportFee"] as num?)?.toDouble(),
+    minimumOrderAmount: json["minimumOrderAmount"] ,
     totalCategories: json["totalCategories"],
-    categories: json["categories"] == null ? [] : List<Category>.from(json["categories"]!.map((x) => Category.fromJson(x))),
+    categories: json["categories"] == null
+        ? []
+        : List<Category>.from(
+        json["categories"].map((x) => Category.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
@@ -45,27 +68,46 @@ class Data {
     "transportFee": transportFee,
     "minimumOrderAmount": minimumOrderAmount,
     "totalCategories": totalCategories,
-    "categories": categories == null ? [] : List<dynamic>.from(categories!.map((x) => x.toJson()))};
+    "categories": categories == null
+        ? []
+        : List<dynamic>.from(categories!.map((x) => x.toJson())),
+  };
 }
+
+// ─────────────────────────────────────────────
 
 class Category {
   String? id;
   String? name;
   String? slug;
-  String? image;
+  ImageModel? image;
   int? position;
   List<Task>? tasks;
   int? totalTasks;
 
-  Category({this.id, this.name, this.slug, this.image, this.position, this.tasks, this.totalTasks});
+  Category({
+    this.id,
+    this.name,
+    this.slug,
+    this.image,
+    this.position,
+    this.tasks,
+    this.totalTasks,
+  });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
     id: json["_id"],
     name: json["name"],
     slug: json["slug"],
-    image: json["image"],
+    image: json["image"] == null
+        ? null
+        : json["image"] is String
+        ? ImageModel(id: json["image"]) // handles string case
+        : ImageModel.fromJson(json["image"]),
     position: json["position"],
-    tasks: json["tasks"] == null ? [] : List<Task>.from(json["tasks"]!.map((x) => Task.fromJson(x))),
+    tasks: json["tasks"] == null
+        ? []
+        : List<Task>.from(json["tasks"].map((x) => Task.fromJson(x))),
     totalTasks: json["totalTasks"],
   );
 
@@ -73,19 +115,23 @@ class Category {
     "_id": id,
     "name": name,
     "slug": slug,
-    "image": image,
+    "image": image?.toJson(),
     "position": position,
-    "tasks": tasks == null ? [] : List<dynamic>.from(tasks!.map((x) => x.toJson())),
+    "tasks": tasks == null
+        ? []
+        : List<dynamic>.from(tasks!.map((x) => x.toJson())),
     "totalTasks": totalTasks,
   };
 }
+
+// ─────────────────────────────────────────────
 
 class Task {
   String? id;
   String? name;
   int? position;
   Price? price;
-  List<Image>? images;
+  List<ImageModel>? images;
   int? durationInMin;
   String? description;
   String? overview;
@@ -122,7 +168,10 @@ class Task {
     name: json["name"],
     position: json["position"],
     price: json["price"] == null ? null : Price.fromJson(json["price"]),
-    images: json["images"] == null ? [] : List<Image>.from(json["images"]!.map((x) => Image.fromJson(x))),
+    images: json["images"] == null
+        ? []
+        : List<ImageModel>.from(
+        json["images"].map((x) => ImageModel.fromJson(x))),
     durationInMin: json["durationInMin"],
     description: json["description"],
     overview: json["overview"],
@@ -131,9 +180,15 @@ class Task {
     benefits: json["benefits"],
     instructions: json["instructions"],
     details: json["details"],
-    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
-    faqs: json["faqs"] == null ? [] : List<Faq>.from(json["faqs"]!.map((x) => Faq.fromJson(x))),
+    createdAt: json["createdAt"] == null
+        ? null
+        : DateTime.tryParse(json["createdAt"]),
+    updatedAt: json["updatedAt"] == null
+        ? null
+        : DateTime.tryParse(json["updatedAt"]),
+    faqs: json["faqs"] == null
+        ? []
+        : List<Faq>.from(json["faqs"].map((x) => Faq.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
@@ -141,7 +196,9 @@ class Task {
     "name": name,
     "position": position,
     "price": price?.toJson(),
-    "images": images == null ? [] : List<dynamic>.from(images!.map((x) => x.toJson())),
+    "images": images == null
+        ? []
+        : List<dynamic>.from(images!.map((x) => x.toJson())),
     "durationInMin": durationInMin,
     "description": description,
     "overview": overview,
@@ -152,9 +209,13 @@ class Task {
     "details": details,
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
-    "faqs": faqs == null ? [] : List<dynamic>.from(faqs!.map((x) => x.toJson())),
+    "faqs": faqs == null
+        ? []
+        : List<dynamic>.from(faqs!.map((x) => x.toJson())),
   };
 }
+
+// ─────────────────────────────────────────────
 
 class Faq {
   String? id;
@@ -163,41 +224,85 @@ class Faq {
 
   Faq({this.id, this.question, this.answer});
 
-  factory Faq.fromJson(Map<String, dynamic> json) => Faq(id: json["_id"], question: json["question"], answer: json["answer"]);
+  factory Faq.fromJson(Map<String, dynamic> json) => Faq(
+    id: json["_id"],
+    question: json["question"],
+    answer: json["answer"],
+  );
 
-  Map<String, dynamic> toJson() => {"_id": id, "question": question, "answer": answer};
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "question": question,
+    "answer": answer,
+  };
 }
 
-class Image {
+// ─────────────────────────────────────────────
+
+class ImageModel {
   String? id;
   String? key;
   String? altText;
   String? url;
 
-  Image({this.id, this.key, this.altText, this.url});
+  ImageModel({this.id, this.key, this.altText, this.url});
 
-  factory Image.fromJson(Map<String, dynamic> json) => Image(id: json["_id"], key: json["key"], altText: json["altText"], url: json["url"]);
+  factory ImageModel.fromJson(Map<String, dynamic> json) => ImageModel(
+    id: json["_id"],
+    key: json["key"],
+    altText: json["altText"],
+    url: json["url"],
+  );
 
-  Map<String, dynamic> toJson() => {"_id": id, "key": key, "altText": altText, "url": url};
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "key": key,
+    "altText": altText,
+    "url": url,
+  };
 }
+
+// ─────────────────────────────────────────────
 
 class Price {
-  int? basePrice;
-  int? salePrice;
+  double? basePrice;
+  double? salePrice;
   DiscountType? discountType;
-  int? discountValue;
+  double? discountValue;
 
-  Price({this.basePrice, this.salePrice, this.discountType, this.discountValue});
+  Price({
+    this.basePrice,
+    this.salePrice,
+    this.discountType,
+    this.discountValue,
+  });
 
-  factory Price.fromJson(Map<String, dynamic> json) =>
-      Price(basePrice: json["basePrice"], salePrice: json["salePrice"], discountType: discountTypeValues.map[json["discountType"]]!, discountValue: json["discountValue"]);
+  factory Price.fromJson(Map<String, dynamic> json) => Price(
+    basePrice: (json["basePrice"] as num?)?.toDouble(),
+    salePrice: (json["salePrice"] as num?)?.toDouble(),
+    discountType:
+    discountTypeValues.map[json["discountType"]] ??
+        DiscountType.NONE,
+    discountValue: (json["discountValue"] as num?)?.toDouble(),
+  );
 
-  Map<String, dynamic> toJson() => {"basePrice": basePrice, "salePrice": salePrice, "discountType": discountTypeValues.reverse[discountType], "discountValue": discountValue};
+  Map<String, dynamic> toJson() => {
+    "basePrice": basePrice,
+    "salePrice": salePrice,
+    "discountType": discountTypeValues.reverse[discountType],
+    "discountValue": discountValue,
+  };
 }
 
-enum DiscountType { FLAT, NONE }
+// ─────────────────────────────────────────────
 
-final discountTypeValues = EnumValues({"FLAT": DiscountType.FLAT, "NONE": DiscountType.NONE});
+enum DiscountType { FLAT, NONE, PERCENTAGE }
+
+final discountTypeValues = EnumValues({
+  "FLAT": DiscountType.FLAT,
+  "NONE": DiscountType.NONE,
+  "PERCENTAGE": DiscountType.PERCENTAGE,
+});
 
 class EnumValues<T> {
   Map<String, T> map;

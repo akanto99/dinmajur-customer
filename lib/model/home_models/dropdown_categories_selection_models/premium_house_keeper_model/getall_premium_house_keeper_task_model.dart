@@ -87,7 +87,7 @@ class Datum {
 class HouseKeeperTaskItem {
   String? id;
   String? name;
-  int? price;
+  double? price;
   String? houseKeeperTaskId;
   int? v;
   DateTime? createdAt;
@@ -98,7 +98,7 @@ class HouseKeeperTaskItem {
   factory HouseKeeperTaskItem.fromJson(Map<String, dynamic> json) => HouseKeeperTaskItem(
     id: json["_id"],
     name: json["name"],
-    price: json["price"],
+    price: (json["price"] as num?)?.toDouble(),
     houseKeeperTaskId: json["houseKeeperTaskId"],
     v: json["__v"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
