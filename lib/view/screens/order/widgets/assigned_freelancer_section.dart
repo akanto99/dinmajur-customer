@@ -1,6 +1,8 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/circle_network_image/circle_network_image.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/order_models/get_all_order_model.dart';
 import 'package:flutter/material.dart';
@@ -77,59 +79,64 @@ class AssignedFreelancerSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(width: 1, color: AppColors.border(context)),
-          ),
-          child: Row(
-            children: [
-              CircleAvatarNetwork(
-                imageUrl: _imageUrl,
-                name: _displayName,
-                size: 44,
-                borderWidth: 1.5,
-                borderColor: AppColors.border(context),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _displayName,
-                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-                    ),
-                    if (_role.isNotEmpty)
+        GestureDetector(
+          // onTap: () {
+          //     Navigator.pushNamed(context,RoutesName.freelancerProfileScreen);
+          // },
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(width: 1, color: AppColors.border(context)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatarNetwork(
+                  imageUrl: _imageUrl,
+                  name: _displayName,
+                  size: 44,
+                  borderWidth: 1.5,
+                  borderColor: AppColors.border(context),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        _role,
-                        style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                        _displayName,
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
                       ),
-                    Row(
-                      children: [
-                        const Icon(FontAwesomeIcons.solidStar, color: Color(0xFFFACC15), size: 11),
-                        const SizedBox(width: 4),
-                        Text("0.0", style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
-                      ],
-                    ),
-                  ],
+                      if (_role.isNotEmpty)
+                        Text(
+                          _role,
+                          style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                        ),
+                      Row(
+                        children: [
+                          const Icon(FontAwesomeIcons.solidStar, color: Color(0xFFFACC15), size: 11),
+                          const SizedBox(width: 4),
+                          Text("0.0", style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // ── Chat + Call (only on pending/running tab) ─────────────────
-              if (showActions && phone != null && phone.isNotEmpty) ...[
-                _CircleActionButton(
-                  icon: FontAwesomeIcons.solidComment,
-                  onTap: () => _openWhatsApp(context, phone),
-                ),
-                const SizedBox(width: 8),
-                _CircleActionButton(
-                  icon: FontAwesomeIcons.phone,
-                  onTap: () => _makePhoneCall(context, phone),
-                ),
+                // ── Chat + Call (only on pending/running tab) ─────────────────
+                if (showActions && phone != null && phone.isNotEmpty) ...[
+                  _CircleActionButton(
+                    icon: FontAwesomeIcons.solidComment,
+                    onTap: () => _openWhatsApp(context, phone),
+                  ),
+                  const SizedBox(width: 8),
+                  _CircleActionButton(
+                    icon: FontAwesomeIcons.phone,
+                    onTap: () => _makePhoneCall(context, phone),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ],

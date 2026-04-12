@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
@@ -206,7 +207,8 @@ class ServiceDetailsDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '৳${discountedPrice.toStringAsFixed(2)}',
+                  // '৳${discountedPrice.toStringAsFixed(2)}',
+                  '৳${AmountFormatter.format(discountedPrice)}',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -216,7 +218,7 @@ class ServiceDetailsDialog extends StatelessWidget {
                 if (showDiscount) ...[
                   SizedBox(width: 8),
                   Text(
-                    '৳${originalPrice.toStringAsFixed(2)}',
+                    '৳${AmountFormatter.format(originalPrice)}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,

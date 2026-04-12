@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:flutter/material.dart';
 
 /// Dynamic Bottom Cart Bar Widget
@@ -84,7 +85,8 @@ class DynamicBottomCartBar extends StatelessWidget {
           children: [
             // Total price
             Text(
-              '৳${totalPrice.toStringAsFixed(2)}',
+              // '৳${totalPrice.toStringAsFixed(2)}',
+              '৳${AmountFormatter.format(totalPrice)}',
               style: getTextStyle(context, weight: FontWeight.w700, color: getWhiteColor(context)),
             ),
 
@@ -92,7 +94,8 @@ class DynamicBottomCartBar extends StatelessWidget {
             if (savedAmount > 0) ...[
               SizedBox(width: 8),
               Text(
-                'Saved ৳${savedAmount.toStringAsFixed(2)}',
+                // 'Saved ৳${savedAmount.toStringAsFixed(2)}',
+                'Saved ৳${AmountFormatter.format(savedAmount)}',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: getWhiteColor(context)),
               ),
             ],

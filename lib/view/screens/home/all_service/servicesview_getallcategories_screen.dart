@@ -232,7 +232,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                                       style: AppTextStyles.textSize20(context, weight: FontWeight.w600),
                                     ),
                                     TextSpan(
-                                      text: " ${categories.first.name ?? 'Services'}",
+                                      text: " ${widget.serviceName}",
                                       style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: const Color(0xffD78503)),
                                     ),
                                   ],

@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
@@ -179,11 +180,12 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
               Text('Subtotal', style: AppTextStyles.textSize14(context)),
               Row(
                 children: [
-                  Text('৳${subtotal.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                  Text('৳${AmountFormatter.format(subtotal)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                   if (saved > 0) ...[
                     const SizedBox(width: 8),
                     Text(
-                      '৳${originalTotal.toStringAsFixed(2)}',
+                      // '৳${originalTotal.toStringAsFixed(2)}',
+                      '৳${AmountFormatter.format(originalTotal)}',
                       style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                     ),
                   ],
@@ -196,7 +198,7 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Transport', style: AppTextStyles.textSize14(context)),
-              Text('৳${transport.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+              Text('৳${AmountFormatter.format(transport)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: 8),
@@ -204,7 +206,7 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Total', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-              Text('৳${total.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w700)),
+              Text('৳${AmountFormatter.format(total)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w700)),
             ],
           ),
           if (saved > 0) ...[
