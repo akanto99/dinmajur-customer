@@ -49,6 +49,7 @@ class RoutesName {
 
   ///Order Now DropDown- 1
   static const String orderScreen = 'orderScreen_view';
+  static const String freelancerProfileScreen = 'freelancerProfileScreen_view';
   static const String orderDetailsScreen = 'orderDetailsScreen_view';
   //pending Order Details SOCKET.IO Screen
   static const String pendingOrdersViewDetailsSocketscreen = 'pendingOrdersViewDetailsSocketscreen_view';

@@ -146,11 +146,14 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
     return Dialog(
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      insetPadding: EdgeInsets.zero,
+      insetPadding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.02),
+      // insetPadding: EdgeInsets.zero,
       child: Container(
         width: screenWidth,
         height: screenHeight,
-        decoration: BoxDecoration(color: widget.getBackgroundColor(context)),
+        decoration: BoxDecoration(color:AppColors.containerBackground(context),
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
