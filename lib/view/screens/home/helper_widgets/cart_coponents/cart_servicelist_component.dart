@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -196,14 +197,14 @@ class _DynamicCartServicesListState extends State<DynamicCartServicesList> {
                         Row(
                           children: [
                             Text(
-                              '৳${serviceData['price'].toStringAsFixed(2)}',
+                              '৳${AmountFormatter.format(serviceData['price'])}',
                               style: widget.priceStyle ??
                                   AppTextStyles.textSize14(context, weight: FontWeight.w400),
                             ),
                             if (serviceData['hasDiscount']) ...[
                               SizedBox(width: 8),
                               Text(
-                                '৳${serviceData['originalPrice'].toStringAsFixed(2)}',
+                                '৳${AmountFormatter.format(serviceData['originalPrice'])}',
                                 style: (widget.originalPriceStyle ??
                                     AppTextStyles.textSize12(
                                       context,

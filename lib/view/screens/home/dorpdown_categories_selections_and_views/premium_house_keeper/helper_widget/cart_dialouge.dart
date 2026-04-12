@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/cart_coponents/cart_header_components.dart';
@@ -228,7 +229,7 @@ class _CartDialogState extends State<CartDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'You Saved BDT ${saved.toStringAsFixed(2)} in This Order!',
+                  'You Saved BDT ${AmountFormatter.format(saved)} in This Order!',
                   style: AppTextStyles.textSize12(
                     context,
                     color: Colors.red,
@@ -239,7 +240,7 @@ class _CartDialogState extends State<CartDialog> {
                   ),
                 ),
                 Text(
-                  '৳${originalTotal.toStringAsFixed(2)}',
+                  '৳${AmountFormatter.format(originalTotal)}',
                   style: AppTextStyles.textSize12(context, color: Colors.red)
                       .copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red),
                 ),
@@ -269,7 +270,7 @@ class _CartDialogState extends State<CartDialog> {
           ),
         ),
         Text(
-          '৳${amount.toStringAsFixed(2)}',
+        "৳${AmountFormatter.format(amount)}",
           style: AppTextStyles.textSize14(
             context,
             weight: isBold ? FontWeight.w700 : FontWeight.w400,

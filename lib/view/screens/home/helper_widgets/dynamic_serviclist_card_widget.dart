@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/cached_image/cached_image.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:flutter/material.dart';
 
 /// Dynamic Service List Widget
@@ -237,13 +238,15 @@ class DynamicServiceCard extends StatelessWidget {
         Row(
           children: [
             Text(
-              '৳${discountedPrice.toStringAsFixed(2)}',
+              // '৳${discountedPrice.toStringAsFixed(2)}',
+              '৳${AmountFormatter.format(discountedPrice)}',
               style: AppTextStyles.textSize14(context,weight: FontWeight.w500),
             ),
             if (showDiscount && originalPrice > discountedPrice) ...[
               SizedBox(width: 8),
               Text(
-                '৳${originalPrice.toStringAsFixed(2)}',
+                // '৳${originalPrice.toStringAsFixed(2)}',
+                '৳${AmountFormatter.format(originalPrice)}',
                 style: TextStyle(fontSize: 10, color: getSubtitleColor(context), decoration: TextDecoration.lineThrough),
               ),
             ],

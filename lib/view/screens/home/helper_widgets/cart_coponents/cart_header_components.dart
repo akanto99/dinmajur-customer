@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -108,7 +109,8 @@ class DynamicCartHeader extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Total ৳${totalPrice.toStringAsFixed(2)}',
+                        // 'Total ৳${totalPrice.toStringAsFixed(2)}',
+                        'Total ৳${AmountFormatter.format(totalPrice)}',
                         style: totalPriceStyle ??
                             AppTextStyles.textSize14(
                               context,
@@ -118,7 +120,7 @@ class DynamicCartHeader extends StatelessWidget {
                       SizedboxSpaccing.width02(context),
                       if (savedAmount > 0)
                         Text(
-                          '${originalPrice.toStringAsFixed(0)}',
+                          '${AmountFormatter.format(originalPrice)}',
                           style: (originalPriceStyle ??
                               AppTextStyles.textSize12(
                                 context,

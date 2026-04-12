@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/configs/widgets/datepicker_with_formfield.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/family_event_cooking_model/getall_family_event_cooking_model.dart';
@@ -277,13 +278,13 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                 Row(
                   children: [
                     Text(
-                      '৳${salePrice.toStringAsFixed(2)}',
+                      '৳${AmountFormatter.format(salePrice)}',
                       style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.button(context)),
                     ),
                     if (hasDiscount) ...[
                       SizedBox(width: 8),
                       Text(
-                        '৳${originalPrice.toStringAsFixed(0)}',
+                        '৳${AmountFormatter.format(originalPrice)}',
                         style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                       ),
                     ],
@@ -310,7 +311,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Subtotal', style: AppTextStyles.textSize14(context)),
-              Text('৳${subtotal.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+              Text('৳${AmountFormatter.format(subtotal)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
             ],
           ),
           SizedBox(height: 8),
@@ -318,7 +319,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Transport', style: AppTextStyles.textSize14(context)),
-              Text('৳${transport.toStringAsFixed(0)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+              Text('৳${AmountFormatter.format(transport)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
             ],
           ),
           SizedBox(height: 8),
@@ -327,7 +328,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             children: [
               Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
               Text(
-                '৳${total.toStringAsFixed(2)}',
+                '৳${AmountFormatter.format(total)}',
                 style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.button(context)),
               ),
             ],
@@ -338,7 +339,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'You Saved BDT ${saved.toStringAsFixed(2)} in This Order!',
+                  'You Saved BDT ${AmountFormatter.format(saved)} in This Order!',
                   style: AppTextStyles.textSize12(
                     context,
                     color: Colors.red,
@@ -349,7 +350,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   ),
                 ),
                 Text(
-                  '৳${originalTotal.toStringAsFixed(0)}',
+                  '৳${AmountFormatter.format(originalTotal)}',
                   style: AppTextStyles.textSize12(context, color: Colors.red).copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red),
                 ),
               ],

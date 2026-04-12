@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -81,14 +82,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
 
     if (service == null) {
       // fallback - safe default
-      return {
-        'name': name,
-        'price': price,
-        'originalPrice': originalPrice,
-        'hasQuantityLimit': hasQuantityLimit,
-        'hasDiscount': false,
-        'canHaveMultiple': canHaveMultiple,
-      };
+      return {'name': name, 'price': price, 'originalPrice': originalPrice, 'hasQuantityLimit': hasQuantityLimit, 'hasDiscount': false, 'canHaveMultiple': canHaveMultiple};
     }
 
     // ──────────────────────────────────────────────
@@ -98,7 +92,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
       name = service.name ?? 'Unnamed Service';
       price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0.0;
       originalPrice = service.originalPrice?.toDouble() ?? price;
-      canHaveMultiple = true;           // usually no limit for salon/products
+      canHaveMultiple = true; // usually no limit for salon/products
       hasQuantityLimit = false;
     }
     // ──────────────────────────────────────────────
@@ -108,10 +102,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
       name = service.name ?? 'Unnamed Task';
 
       // Find matching cart item to get selected sub-items
-      final cartItem = widget.cartItems.firstWhere(
-            (item) => item['service']?.id == service.id,
-        orElse: () => <String, dynamic>{'selectedItems': <String>{}},
-      );
+      final cartItem = widget.cartItems.firstWhere((item) => item['service']?.id == service.id, orElse: () => <String, dynamic>{'selectedItems': <String>{}});
 
       final selectedItems = (cartItem['selectedItems'] as Set<String>?) ?? <String>{};
 
@@ -124,9 +115,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
 
       price = originalPrice;
 
-      if (service.discountType != null &&
-          service.discountValue != null &&
-          price > 0) {
+      if (service.discountType != null && service.discountValue != null && price > 0) {
         if (service.discountType == 'PERCENTAGE') {
           price -= (price * (service.discountValue as num) / 100);
         } else if (service.discountType == 'FLAT') {
@@ -138,14 +127,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
       hasQuantityLimit = !canHaveMultiple;
     }
 
-    return {
-      'name': name,
-      'price': price,
-      'originalPrice': originalPrice,
-      'hasQuantityLimit': hasQuantityLimit,
-      'hasDiscount': originalPrice > price,
-      'canHaveMultiple': canHaveMultiple,
-    };
+    return {'name': name, 'price': price, 'originalPrice': originalPrice, 'hasQuantityLimit': hasQuantityLimit, 'hasDiscount': originalPrice > price, 'canHaveMultiple': canHaveMultiple};
   }
 
   @override
@@ -175,10 +157,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
               padding: widget.itemPadding ?? EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(
-                    width: widget.borderWidth ?? 1,
-                    color: widget.borderColor ?? AppColors.border(context),
-                  ),
+                  bottom: BorderSide(width: widget.borderWidth ?? 1, color: widget.borderColor ?? AppColors.border(context)),
                 ),
               ),
               child: Row(
@@ -188,29 +167,18 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          serviceData['name'],
-                          style: widget.serviceNameStyle ??
-                              AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                        ),
+                        Text(serviceData['name'], style: widget.serviceNameStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                         SizedBox(height: 4),
                         Row(
                           children: [
-                            Text(
-                              '৳${serviceData['price'].toStringAsFixed(2)}',
-                              style: widget.priceStyle ??
-                                  AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                            ),
+                            // Text('৳${serviceData['price'].toStringAsFixed(2)}', style: widget.priceStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                            Text('৳${AmountFormatter.format(serviceData['price'])}', style: widget.priceStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                             if (serviceData['hasDiscount']) ...[
                               SizedBox(width: 8),
                               Text(
-                                '৳${serviceData['originalPrice'].toStringAsFixed(2)}',
-                                style: (widget.originalPriceStyle ??
-                                    AppTextStyles.textSize12(
-                                      context,
-                                      color: AppColors.subtitle(context),
-                                    ))
-                                    .copyWith(decoration: TextDecoration.lineThrough),
+                                // '৳${serviceData['originalPrice'].toStringAsFixed(2)}',
+                                '৳${AmountFormatter.format(serviceData['originalPrice'])}',
+                                style: (widget.originalPriceStyle ?? AppTextStyles.textSize12(context, color: AppColors.subtitle(context))).copyWith(decoration: TextDecoration.lineThrough),
                               ),
                             ],
                           ],
@@ -218,13 +186,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
                       ],
                     ),
                   ),
-                  _buildQuantityControls(
-                    context,
-                    serviceId,
-                    qty,
-                    serviceData['hasQuantityLimit'],
-                    serviceData['canHaveMultiple'] as bool? ?? false,
-                  ),
+                  _buildQuantityControls(context, serviceId, qty, serviceData['hasQuantityLimit'], serviceData['canHaveMultiple'] as bool? ?? false),
                 ],
               ),
             );
@@ -235,19 +197,16 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
   }
 
   Widget _buildQuantityControls(
-      BuildContext context,
-      String serviceId,
-      int qty,
-      bool hasQuantityLimit,
-      bool canHaveMultiple,          // ← add this parameter
-      ) {
+    BuildContext context,
+    String serviceId,
+    int qty,
+    bool hasQuantityLimit,
+    bool canHaveMultiple, // ← add this parameter
+  ) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(widget.quantityControlBorderRadius ?? 6),
-        border: Border.all(
-          width: widget.borderWidth ?? 1,
-          color: widget.quantityControlBorderColor ?? AppColors.border(context),
-        ),
+        border: Border.all(width: widget.borderWidth ?? 1, color: widget.quantityControlBorderColor ?? AppColors.border(context)),
       ),
       child: Row(
         children: [
@@ -273,10 +232,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
               width: widget.quantityControlWidth ?? 25,
               height: widget.quantityControlHeight ?? 25,
               color: Colors.transparent,
-              child: Icon(
-                widget.minusIcon ?? FontAwesomeIcons.minus,
-                size: widget.iconSize ?? 14,
-              ),
+              child: Icon(widget.minusIcon ?? FontAwesomeIcons.minus, size: widget.iconSize ?? 14),
             ),
           ),
 
@@ -284,11 +240,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
           Container(
             width: widget.quantityDisplayWidth ?? 30,
             child: Center(
-              child: Text(
-                qty.toString(),
-                style: widget.quantityStyle ??
-                    AppTextStyles.textSize14(context, weight: FontWeight.w500),
-              ),
+              child: Text(qty.toString(), style: widget.quantityStyle ?? AppTextStyles.textSize14(context, weight: FontWeight.w500)),
             ),
           ),
 
@@ -298,8 +250,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
               if (widget.enableQuantityLimit && !canHaveMultiple) {
                 Utils.flushBarExclamatoryMessage(
                   title: widget.cannotAddMoreTitle ?? "Can't Add More",
-                  subtitle: widget.cannotAddMoreMessage ??
-                      "Additional quantity is not available for this service.",
+                  subtitle: widget.cannotAddMoreMessage ?? "Additional quantity is not available for this service.",
                   context: context,
                 );
                 return;
@@ -312,10 +263,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
               width: widget.quantityControlWidth ?? 25,
               height: widget.quantityControlHeight ?? 25,
               color: Colors.transparent,
-              child: Icon(
-                widget.plusIcon ?? FontAwesomeIcons.plus,
-                size: widget.iconSize ?? 14,
-              ),
+              child: Icon(widget.plusIcon ?? FontAwesomeIcons.plus, size: widget.iconSize ?? 14),
             ),
           ),
         ],

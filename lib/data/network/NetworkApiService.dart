@@ -11,7 +11,7 @@ import 'package:dinmajur_customer/configs/services/sse_notification_services/sse
 import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
-import 'package:http/http.dart' as https;
+import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,7 +31,7 @@ class NetworkApiService extends BaseApiServices {
   Future getGetApiResponse(String url) async {
     dynamic responseJson;
     try {
-      final response = await https.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
       responseJson = await _handleResponse(response, url, () => getGetApiResponse(url));
     } on SocketException catch (e) {
       print('$e');
@@ -50,7 +50,7 @@ class NetworkApiService extends BaseApiServices {
     try {
       final authHeaders = await _getAuthHeaders(headers);
 
-      final response = await https.get(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
+      final response = await http.get(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
 
       responseJson = await _handleResponse(response, url, () => getGetApiWithHeaderResponse(url, headers: headers));
       print("-----${response.body}");
@@ -85,7 +85,7 @@ class NetworkApiService extends BaseApiServices {
     try {
       final authHeaders = await _getAuthHeaders(headers);
 
-      final response = await https.post(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
+      final response = await http.post(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
 
       return await _handleResponse(response, url, () => getPostApiWithOutBodyresponse(url, headers: headers));
     } on SocketException {
@@ -103,7 +103,7 @@ class NetworkApiService extends BaseApiServices {
     try {
       // ✅ Fetch auth headers fresh each time (including on retries)
       final authHeaders = await _getAuthHeaders(headers);
-      final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: authHeaders).timeout(const Duration(seconds: 30));
+      final response = await http.post(Uri.parse(url), body: jsonEncode(data), headers: authHeaders).timeout(const Duration(seconds: 30));
       // ✅ Pass null for headers so retry will fetch fresh headers
       return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data), // Don't pass old headers
       );
@@ -118,7 +118,7 @@ class NetworkApiService extends BaseApiServices {
   @override
   Future getOTPPostApiResponse(String url, dynamic data, {Map<String, String>? headers}) async {
     try {
-      final response = await https.post(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 120));
+      final response = await http.post(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 120));
       return await _handleResponse(response, url, () => getOTPPostApiResponse(url, data, headers: headers));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -131,7 +131,7 @@ class NetworkApiService extends BaseApiServices {
   @override
   Future<dynamic> getMultiStepPostApiResponse(String url, Map<String, dynamic> fields, {Map<String, String>? headers}) async {
     try {
-      var response = await https
+      var response = await http
           .post(Uri.parse(url), headers: headers ?? {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: jsonEncode(fields))
           .timeout(const Duration(seconds: 30));
       return await _handleResponse(response, url, () => getMultiStepPostApiResponse(url, fields, headers: headers));
@@ -147,7 +147,7 @@ class NetworkApiService extends BaseApiServices {
   @override
   Future<dynamic> imageMultipartPostApiResponse(String url, Uint8List imageBytes, String fileName, String imageType, {Map<String, String>? headers}) async {
     try {
-      var request = https.MultipartRequest('POST', Uri.parse(url));
+      var request = http.MultipartRequest('POST', Uri.parse(url));
       if (headers != null) {
         request.headers.addAll(headers);
       }
@@ -156,10 +156,10 @@ class NetworkApiService extends BaseApiServices {
 
       // Determine content type based on file extension
       MediaType contentType = _getContentType(fileName);
-      var multipartFile = https.MultipartFile.fromBytes('image', imageBytes, filename: fileName, contentType: contentType);
+      var multipartFile = http.MultipartFile.fromBytes('image', imageBytes, filename: fileName, contentType: contentType);
       request.files.add(multipartFile);
       var streamedResponse = await request.send().timeout(const Duration(seconds: 30));
-      var response = await https.Response.fromStream(streamedResponse);
+      var response = await http.Response.fromStream(streamedResponse);
       return returnResponse(response);
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -178,7 +178,7 @@ class NetworkApiService extends BaseApiServices {
         Map<String, String>? headers,
       }) async {
     try {
-      var request = https.MultipartRequest('POST', Uri.parse(url));
+      var request = http.MultipartRequest('POST', Uri.parse(url));
 
       if (headers != null) {
         request.headers.addAll(headers);
@@ -191,7 +191,7 @@ class NetworkApiService extends BaseApiServices {
       MediaType contentType = _getContentType(fileName);
 
       // Add the file with 'document' key and dynamic filename
-      var multipartFile = https.MultipartFile.fromBytes(
+      var multipartFile = http.MultipartFile.fromBytes(
         'document',
         pdfImageBytes,
         filename: fileName, // Use the dynamic filename
@@ -201,7 +201,7 @@ class NetworkApiService extends BaseApiServices {
       request.files.add(multipartFile);
 
       var streamedResponse = await request.send().timeout(const Duration(seconds: 30));
-      var response = await https.Response.fromStream(streamedResponse);
+      var response = await http.Response.fromStream(streamedResponse);
       print("---Status: ${response.statusCode}");
       print("---Response: ${response.body}");
       return returnResponse(response);
@@ -252,7 +252,7 @@ class NetworkApiService extends BaseApiServices {
     dynamic responseJson;
     try {
       final authHeaders = await _getAuthHeaders(headers);
-      final response = await https
+      final response = await http
           .patch(
         Uri.parse(url),
         headers: authHeaders,
@@ -278,7 +278,7 @@ class NetworkApiService extends BaseApiServices {
     try {
       final authHeaders = await _getAuthHeaders(headers);
 
-      https.Response response = await https
+      http.Response response = await http
           .post(
           Uri.parse(url), body: jsonEncode(data), headers: authHeaders
       )
@@ -302,7 +302,7 @@ class NetworkApiService extends BaseApiServices {
       print('📤 PUT Data: ${jsonEncode(data)}');
       print('📋 Headers: $headers');
 
-      final response = await https.put(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 30));
+      final response = await http.put(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 30));
 
       print('📥 PUT Response Status: ${response.statusCode}');
       print('📥 PUT Response Body: ${response.body}');
@@ -324,13 +324,13 @@ class NetworkApiService extends BaseApiServices {
       // Get auth headers (includes access token)
       final authHeaders = await _getAuthHeaders(headers);
 
-      var request = https.MultipartRequest('PATCH', Uri.parse(url));
+      var request = http.MultipartRequest('PATCH', Uri.parse(url));
       request.headers.addAll(authHeaders);
 
-      request.files.add(https.MultipartFile.fromBytes('logo', imageBytes, filename: fileName));
+      request.files.add(http.MultipartFile.fromBytes('logo', imageBytes, filename: fileName));
 
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
-      final response = await https.Response.fromStream(streamedResponse);
+      final response = await http.Response.fromStream(streamedResponse);
 
       // Use _handleResponse for proper token refresh handling
       responseJson = await _handleResponse(response, url, () => getPatchApiImageResponse(url, fileName, imageBytes, headers: headers));
@@ -351,7 +351,7 @@ class NetworkApiService extends BaseApiServices {
       // Get auth headers (includes access token)
       final authHeaders = await _getAuthHeaders(headers);
 
-      var request = https.MultipartRequest('PATCH', Uri.parse(url));
+      var request = http.MultipartRequest('PATCH', Uri.parse(url));
       request.headers.addAll(authHeaders);
 
       // Add the imageType field
@@ -359,10 +359,10 @@ class NetworkApiService extends BaseApiServices {
 
       // Determine content type based on file extension
       MediaType contentType = _getContentType(fileName);
-      request.files.add(https.MultipartFile.fromBytes('image', imageBytes, filename: fileName, contentType: contentType));
+      request.files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: fileName, contentType: contentType));
 
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
-      final response = await https.Response.fromStream(streamedResponse);
+      final response = await http.Response.fromStream(streamedResponse);
 
       // Use _handleResponse for proper token refresh handling
       responseJson = await _handleResponse(response, url, () => getPatchApiImageCoverResponse(url, fileName, imageBytes, imageType, headers: headers));
@@ -382,7 +382,7 @@ class NetworkApiService extends BaseApiServices {
       // Get auth headers (includes access token)
       final authHeaders = await _getAuthHeaders(headers);
 
-      var request = https.MultipartRequest('PATCH', Uri.parse(url));
+      var request = http.MultipartRequest('PATCH', Uri.parse(url));
       request.headers.addAll(authHeaders);
 
       // Add the documentType field
@@ -391,10 +391,10 @@ class NetworkApiService extends BaseApiServices {
       // Determine content type based on file extension
       MediaType contentType = _getContentType(fileName);
 
-      request.files.add(https.MultipartFile.fromBytes('document', pdfImageBytes, filename: fileName, contentType: contentType));
+      request.files.add(http.MultipartFile.fromBytes('document', pdfImageBytes, filename: fileName, contentType: contentType));
 
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
-      final response = await https.Response.fromStream(streamedResponse);
+      final response = await http.Response.fromStream(streamedResponse);
 
       print("---Status: ${response.statusCode}");
       print("---Response: ${response.body}");
@@ -414,7 +414,7 @@ class NetworkApiService extends BaseApiServices {
     dynamic responseJson;
     try {
       final authHeaders = await _getAuthHeaders(headers);
-      final response = await https.delete(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
+      final response = await http.delete(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
 
       print('delete Response Status: ${response.statusCode}');
       print('delete Response Body: ${response.body}');
@@ -448,7 +448,7 @@ class NetworkApiService extends BaseApiServices {
 
   /// Handle API response with automatic token refresh
   Future<dynamic> _handleResponse(
-      https.Response response,
+      http.Response response,
       String originalUrl,
       Future<dynamic> Function() retryFunction,
       ) async {
@@ -545,7 +545,7 @@ class NetworkApiService extends BaseApiServices {
       print('🔄 Attempting to refresh access token...');
       print('🔑 Using refresh token: ${refreshToken.substring(0, 20)}...');
 
-      final response = await https
+      final response = await http
           .post(
         Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
         headers: {
@@ -762,7 +762,7 @@ class NetworkApiService extends BaseApiServices {
   }
 
   /// Parse response based on status code
-  dynamic returnResponse(https.Response response) {
+  dynamic returnResponse(http.Response response) {
     switch (response.statusCode) {
       case 200:
       case 201:
