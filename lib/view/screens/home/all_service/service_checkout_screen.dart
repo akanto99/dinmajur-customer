@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/res/components/section_header/section_
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart';
@@ -490,10 +491,10 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('৳${totalSale.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                          Text('৳${AmountFormatter.format(totalSale)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                           if (hasDiscount)
                             Text(
-                              '৳${totalBase.toStringAsFixed(2)}',
+                              '৳${AmountFormatter.format(totalBase)}',
                               style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                             ),
                         ],
@@ -527,7 +528,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
       children: [
         Text(label, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
         Text(
-          '৳${amount.toStringAsFixed(2)}',
+          '৳${AmountFormatter.format(amount)}',
           style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
@@ -571,13 +572,13 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
                 Row(
                   children: [
                     Text(
-                      '৳${total.toStringAsFixed(2)}',
+                      '৳${AmountFormatter.format(total)}',
                       style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.whiteColor),
                     ),
                     if (saved > 0) ...[
                       const SizedBox(width: 8),
                       Text(
-                        'Saved ৳${saved.toStringAsFixed(2)}',
+                        'Saved ৳${AmountFormatter.format(saved)}',
                         style: AppTextStyles.textSize12(context, color: Colors.green, weight: FontWeight.w500),
                       ),
                     ],

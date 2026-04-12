@@ -43,6 +43,7 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/sse_notification_screen/notification_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/unified_seeall_screen/unified_seeall_screen.dart';
+import 'package:dinmajur_customer/view/screens/order/assigned_freelancer/freelancer_profile.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
 import 'package:flutter/material.dart';
@@ -478,6 +479,8 @@ class Routes {
       ///Task
       case RoutesName.orderScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
+        case RoutesName.freelancerProfileScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const FreelancerProfileScreen());
         //pending Order Details SOCKET.IO Screen
       // case RoutesName.pendingOrdersViewDetailsSocketscreen:
       //   final args = settings.arguments as Map<String, dynamic>?;

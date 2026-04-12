@@ -821,6 +821,7 @@ import 'package:dinmajur_customer/configs/res/components/section_header/section_
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/notifier/cooking_checkout_notifier.dart';
@@ -1434,11 +1435,11 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             Text(package.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             Row(
               children: [
-                Text('৳${salePrice.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                Text('৳${AmountFormatter.format(salePrice)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                 if (savedAmount > 0) ...[
                   SizedBox(width: 8),
                   Text(
-                    '৳${originalPrice.toStringAsFixed(0)}',
+                    '৳${AmountFormatter.format(originalPrice)}',
                     style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                   ),
                 ],
@@ -1504,11 +1505,11 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                     ),
                     Row(
                       children: [
-                        Text('৳${item['salePrice'].toStringAsFixed(2)}', style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
+                        Text('৳${AmountFormatter.format(item['salePrice'])}', style: AppTextStyles.textSize12(context, weight: FontWeight.w500)),
                         if (item['originalPrice'] > item['salePrice']) ...[
                           SizedBox(width: 6),
                           Text(
-                            '৳${item['originalPrice'].toStringAsFixed(0)}',
+              "৳${AmountFormatter.format(item['originalPrice'])}",
                             style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                           ),
                         ],
@@ -1622,7 +1623,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                 Row(
                   children: [
                     Text(
-                      '৳${total.toStringAsFixed(2)}',
+                      "৳${AmountFormatter.format(total)}",
                       style: AppTextStyles.textSize20(context, weight: FontWeight.w700, color: AppColors.whiteColor),
                     ),
                     if (widget.savedAmount > 0) ...[
@@ -1631,7 +1632,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
                         child: Text(
-                          'Saved ৳${widget.savedAmount.toStringAsFixed(0)}',
+                          'Saved ৳${AmountFormatter.format(widget.savedAmount)}',
                           style: AppTextStyles.textSize12(context, color: Colors.greenAccent, weight: FontWeight.w600),
                         ),
                       ),

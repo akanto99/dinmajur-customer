@@ -3,6 +3,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
@@ -722,11 +723,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 SizedBox(height: 4),
                 Row(
                   children: [
-                    Text('Price - ৳${currentPrice.toStringAsFixed(2)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                    Text('Price - ৳${AmountFormatter.format(currentPrice)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                     if (hasDiscount) ...[
                       SizedBox(width: 8),
                       Text(
-                        '৳${originalPrice.toStringAsFixed(0)}',
+                        '৳${AmountFormatter.format(originalPrice)}',
                         style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context).withOpacity(0.5)).copyWith(decoration: TextDecoration.lineThrough),
                       ),
                     ],
@@ -835,13 +836,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             Row(
               children: [
                 Text(
-                  '৳${salePrice.toStringAsFixed(2)}',
+                  '৳${AmountFormatter.format(salePrice)}',
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.buttonTextColor(context)),
                 ),
                 if (hasDiscount) ...[
                   SizedBox(width: 8),
                   Text(
-                    '৳${originalPrice.toStringAsFixed(0)}',
+                    '৳${AmountFormatter.format(originalPrice)}',
                     style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                   ),
                 ],
@@ -876,11 +877,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 SizedBox(height: 4),
                 Row(
                   children: [
-                    Text('Price - ৳${salePrice.toStringAsFixed(2)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                    Text('Price - ৳${AmountFormatter.format(salePrice)} টাকা', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                     if (hasDiscount) ...[
                       SizedBox(width: 8),
                       Text(
-                        '৳${originalPrice.toStringAsFixed(0)}',
+                        '৳${AmountFormatter.format(originalPrice)}',
                         style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context).withOpacity(0.5)).copyWith(decoration: TextDecoration.lineThrough),
                       ),
                     ],

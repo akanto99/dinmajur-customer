@@ -1,6 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
 import 'package:flutter/material.dart';
@@ -12,13 +13,7 @@ class TaskDetailsDialog extends StatefulWidget {
   final Map<String, Set<String>> selectedTaskItems;
   final Function(String serviceId, int quantity, Set<String> selectedItems) onUpdate;
 
-  const TaskDetailsDialog({
-    Key? key,
-    required this.service,
-    required this.serviceQuantities,
-    required this.selectedTaskItems,
-    required this.onUpdate,
-  }) : super(key: key);
+  const TaskDetailsDialog({Key? key, required this.service, required this.serviceQuantities, required this.selectedTaskItems, required this.onUpdate}) : super(key: key);
 
   @override
   State<TaskDetailsDialog> createState() => _TaskDetailsDialogState();
@@ -60,9 +55,7 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
   }
 
   double _calculateDiscountedPrice(double original) {
-    if (widget.service.discountType != null &&
-        widget.service.discountValue != null &&
-        original > 0) {
+    if (widget.service.discountType != null && widget.service.discountValue != null && original > 0) {
       if (widget.service.discountType == 'PERCENTAGE') {
         return original - (original * widget.service.discountValue! / 100);
       } else if (widget.service.discountType == 'FLAT') {
@@ -94,20 +87,17 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
       child: Dialog(
         backgroundColor: AppColors.containerBackground(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        insetPadding: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.02,
-          vertical: screenHeight * 0.01,
-        ),
+        insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02, vertical: screenHeight * 0.01),
         child: Container(
           width: screenWidth,
           constraints: BoxConstraints(maxHeight: screenHeight * 0.7),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildHeader(context, totalDiscountedPrice, totalOriginalPrice,screenWidth),
-              _buildRoomNumberSection(context,screenWidth),
+              _buildHeader(context, totalDiscountedPrice, totalOriginalPrice, screenWidth),
+              _buildRoomNumberSection(context, screenWidth),
               _buildSelectAllCheckbox(context, allSelected, screenWidth),
-              _buildTaskItemsList(context,screenWidth),
+              _buildTaskItemsList(context, screenWidth),
               _buildUpdateButton(context),
             ],
           ),
@@ -117,9 +107,10 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
   }
 
   Widget _buildHeader(BuildContext context, double totalDiscountedPrice, double totalOriginalPrice, double screenWidth) {
-    return Container(    width: screenWidth*0.87,
-      // padding: EdgeInsets.only(bottom: 15),
+    return Container(
+      width: screenWidth * 0.87,
 
+      // padding: EdgeInsets.only(bottom: 15),
       padding: EdgeInsets.symmetric(vertical: 15),
       // decoration: BoxDecoration(
       //   border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
@@ -135,26 +126,20 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
                 child: Container(
                   height: 38,
                   width: 38,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.button(context).withOpacity(0.2),
-                  ),
-                  child: Icon(
-                    FontAwesomeIcons.close,
-                    color: AppColors.textPrimary(context),
-                    size: 20,
-                  ),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.button(context).withOpacity(0.2)),
+                  child: Icon(FontAwesomeIcons.close, color: AppColors.textPrimary(context), size: 20),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 15,),
+          SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(widget.service.name ?? '',
+                child: Text(
+                  widget.service.name ?? '',
                   style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -162,27 +147,19 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
               ),
               Row(
                 children: [
-                  Text(
-                    '৳${totalDiscountedPrice.toStringAsFixed(2)}',
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-
-                  ),
+                  Text('৳${AmountFormatter.format(totalDiscountedPrice)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                   if (widget.service.discountValue != null && totalOriginalPrice > 0) ...[
                     SizedboxSpaccing.width02(context),
                     Text(
-                      '${totalOriginalPrice.toStringAsFixed(2)}',
-                      style: AppTextStyles.textSize12(
-                        context,
-                        color: AppColors.subtitle(context),
-                        weight: FontWeight.w600
-                      ).copyWith(decoration: TextDecoration.lineThrough),
+                      // '${totalOriginalPrice.toStringAsFixed(2)}',
+                      '৳${AmountFormatter.format(totalOriginalPrice)}',
+                      style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context), weight: FontWeight.w600).copyWith(decoration: TextDecoration.lineThrough),
                     ),
                   ],
                 ],
               ),
             ],
           ),
-
         ],
       ),
     );
@@ -192,8 +169,8 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
     final bool isHourly = widget.service.hasHour == true;
 
     return Container(
-      width: screenWidth*0.87,
-      padding: EdgeInsets.only(bottom: 5,top:15),
+      width: screenWidth * 0.87,
+      padding: EdgeInsets.only(bottom: 5, top: 15),
       // decoration: BoxDecoration(
       //   border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
       // ),
@@ -202,20 +179,13 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
           Container(
             width: 13,
             height: 13,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isHourly ? Colors.orange : AppColors.textPrimary(context),
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: isHourly ? Colors.orange : AppColors.textPrimary(context)),
           ),
           SizedBox(width: 10),
           Expanded(
             child: Text(
               isHourly ? 'Hourly Service' : 'Room Number',
-              style: AppTextStyles.textSize14(
-                context,
-                weight: FontWeight.w500,
-                color: isHourly ? Colors.orange : AppColors.textPrimary(context),
-              ),
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: isHourly ? Colors.orange : AppColors.textPrimary(context)),
             ),
           ),
           Row(
@@ -231,23 +201,16 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
               Container(
                 width: 40,
                 child: Center(
-                  child: Text(
-                    tempQuantity.toString(),
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-                  ),
+                  child: Text(tempQuantity.toString(), style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                 ),
               ),
               _buildQuantityButton(
                 icon: FontAwesomeIcons.plus,
                 onTap: () {
-                  final canIncrement = widget.service.hasRoom==true || widget.service.hasHour==true;
+                  final canIncrement = widget.service.hasRoom == true || widget.service.hasHour == true;
                   if (!canIncrement) {
-                    Utils.flushBarExclamatoryMessage(
-                      title: "Can't Add More",
-                      subtitle: "Additional quantity isn't available for this service.",
-                      context: context,
-                    );
-                  }else {
+                    Utils.flushBarExclamatoryMessage(title: "Can't Add More", subtitle: "Additional quantity isn't available for this service.", context: context);
+                  } else {
                     setState(() => tempQuantity++);
                   }
                 },
@@ -276,16 +239,11 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
 
   Widget _buildSelectAllCheckbox(BuildContext context, bool allSelected, double screenWidth) {
     return Container(
-      width: screenWidth*0.87,
+      width: screenWidth * 0.87,
       padding: EdgeInsets.symmetric(vertical: 15),
       decoration: BoxDecoration(
         color: AppColors.containerBackground(context),
-        border: Border(
-          bottom: BorderSide(
-            width: 1,
-            color: AppColors.border(context)
-          )
-        )
+        border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
       ),
       child: Row(
         // mainAxisSize: MainAxisSize.min,
@@ -301,9 +259,7 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
               onChanged: (bool? value) {
                 setState(() {
                   if (value == true) {
-                    tempSelectedItems = widget.service.houseKeeperTaskItems
-                        ?.map((item) => item.id ?? '')
-                        .toSet() ?? {};
+                    tempSelectedItems = widget.service.houseKeeperTaskItems?.map((item) => item.id ?? '').toSet() ?? {};
                   } else {
                     tempSelectedItems.clear();
                   }
@@ -312,10 +268,7 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
             ),
           ),
           SizedboxSpaccing.width02(context),
-          Text(
-            'Select All',
-            style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
-          ),
+          Text('Select All', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
         ],
       ),
     );
@@ -325,79 +278,59 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
     return Flexible(
       child: widget.service.houseKeeperTaskItems?.isEmpty == true
           ? Container(
-        width: screenWidth*0.87,
-            child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                    child: Text(
-            'No task details available',
-            style: AppTextStyles.textSize14(context),
-                    ),
-                  ),
-          )
-          : Container(
-        width: screenWidth*0.87,
-            child: ListView.separated(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    itemCount: widget.service.houseKeeperTaskItems?.length ?? 0,
-                    separatorBuilder: (context, index) => Divider(
-            height: 1,
-            color: AppColors.border(context),
-                    ),
-                    itemBuilder: (context, index) {
-            final task = widget.service.houseKeeperTaskItems![index];
-            bool isSelected = tempSelectedItems.contains(task.id ?? '');
-
-            return Container(
-              padding: EdgeInsets.symmetric(vertical: 15),
-              child: Row(
-                children: [
-                  SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: Checkbox(
-                      value: isSelected,
-                      activeColor: AppColors.button(context),
-                      checkColor: AppColors.whiteColor,
-                      side: BorderSide(
-                        color: AppColors.textPrimary(context),
-                        width: 1.5,
-                      ),
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            tempSelectedItems.add(task.id ?? '');
-                          } else {
-                            tempSelectedItems.remove(task.id ?? '');
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                  SizedboxSpaccing.width02(context),
-                  Expanded(
-                    child: Text(
-                      task.name ?? '',
-                      style: AppTextStyles.textSize14(
-                        context,
-                        weight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    '${task.price ?? 0} Taka',
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+              width: screenWidth * 0.87,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                child: Text('No task details available', style: AppTextStyles.textSize14(context)),
               ),
-            );
-                    },
-                  ),
-          ),
+            )
+          : Container(
+              width: screenWidth * 0.87,
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: widget.service.houseKeeperTaskItems?.length ?? 0,
+                separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.border(context)),
+                itemBuilder: (context, index) {
+                  final task = widget.service.houseKeeperTaskItems![index];
+                  bool isSelected = tempSelectedItems.contains(task.id ?? '');
+
+                  return Container(
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: Checkbox(
+                            value: isSelected,
+                            activeColor: AppColors.button(context),
+                            checkColor: AppColors.whiteColor,
+                            side: BorderSide(color: AppColors.textPrimary(context), width: 1.5),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  tempSelectedItems.add(task.id ?? '');
+                                } else {
+                                  tempSelectedItems.remove(task.id ?? '');
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                        SizedboxSpaccing.width02(context),
+                        Expanded(
+                          child: Text(task.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                        ),
+                        SizedBox(width: 8),
+                        // Text('${task.price ?? 0} Taka', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                        Text(   '${AmountFormatter.format(task.price ?? 0)} Taka', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 
@@ -407,28 +340,17 @@ class _TaskDetailsDialogState extends State<TaskDetailsDialog> {
       child: GestureDetector(
         onTap: () {
           // Call the callback with updated values
-          widget.onUpdate(
-            widget.service.id ?? '',
-            tempSelectedItems.isEmpty ? 0 : tempQuantity,
-            tempSelectedItems,
-          );
+          widget.onUpdate(widget.service.id ?? '', tempSelectedItems.isEmpty ? 0 : tempQuantity, tempSelectedItems);
           Navigator.pop(context);
         },
         child: Container(
           width: double.infinity,
           height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.button(context),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
           child: Center(
             child: Text(
               'Update Items',
-              style: AppTextStyles.textSize16(
-                context,
-                weight: FontWeight.w600,
-                color: Colors.white,
-              ),
+              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
             ),
           ),
         ),
