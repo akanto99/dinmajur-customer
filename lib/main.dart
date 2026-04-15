@@ -304,6 +304,7 @@ import 'view_model/homeview_model/dropdown_categories_selection_view_models/prem
 import 'view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_premium_house_keeper_task_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/freelancer_rating_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/order_confirmed_getorderdetails_view_model.dart';
+import 'view_model/order_view_models/assigned_freelance_view_model/freelancer_review_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -427,8 +428,10 @@ void main() async {
 
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),
         ChangeNotifierProvider(create: (_) => PostSupportViewModel()),
+        ///Order
         ChangeNotifierProvider(create: (_) => RunningOrdersViewModel()),
         ChangeNotifierProvider(create: (_) => CompleteOrdersViewModel()),
+        ChangeNotifierProvider(create: (_) => FreelancerReviewViewModel()),
       ],
       child: const MyApp(),
     ),
