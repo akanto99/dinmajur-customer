@@ -356,6 +356,7 @@ import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_a
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
@@ -501,7 +502,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                 services: services,
                 dateTime: "${DateFormatter.formatDate(bookingData.date)}, ${bookingData.slot}",
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
-                grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
+                grandTotal:AmountFormatter.formatDynamic(bookingData.grandTotal),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
                 onDownloadReceipt: () => _handleDownloadReceipt(),
                 onTrackOrder: () {

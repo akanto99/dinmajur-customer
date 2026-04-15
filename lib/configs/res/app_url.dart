@@ -1,6 +1,7 @@
 class AppUrl {
-  // static var baseUrl = 'http://187.127.150.124:4000/api/v1' ;// Staging Server
-  // static var socketUrl = 'http://187.127.150.124:4000' ;// Staging
+  // static var baseUrl = 'https://d49c-103-4-65-228.ngrok-free.app/api/v1' ;// Dev
+  // static var socketUrl = 'https://d49c-103-4-65-228.ngrok-free.app' ;// Dev
+
 
   // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
@@ -8,6 +9,7 @@ class AppUrl {
 
   static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
   static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+
 
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
@@ -19,8 +21,6 @@ class AppUrl {
   static var customerAuthSendOtpApi = baseUrl + '/auth/login-customer';
   static var customerAuthOtpVeryfyApi = baseUrl + '/auth/verify-customer-otp';
   static var resendOtpApi = baseUrl + '/auth/resend-otp';
-
-
 
 
   ///Multisteps
@@ -109,5 +109,6 @@ class AppUrl {
  static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';
  static var pendingOrderGetAPI = baseUrl + '/customers/orders?status=PENDING';
  static var completedOrderGetAPI = baseUrl + '/customers/orders?status=COMPLETED';
+  static var viewFreelancerReview = baseUrl + '/freelancers/reviews';//Assigned Freelancer reviews
 
 }

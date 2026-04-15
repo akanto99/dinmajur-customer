@@ -1,93 +1,83 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/circle_network_image/circle_network_image.dart';
+import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/data/response/status.dart';
+import 'package:dinmajur_customer/model/order_models/assigned_freelance_model/freelancer_review_model.dart';
+import 'package:dinmajur_customer/view_model/order_view_models/assigned_freelance_view_model/freelancer_review_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:provider/provider.dart';
 
-/// ─────────────────────────────────────────────────────────
-/// ✅ STATIC MODEL
-/// ─────────────────────────────────────────────────────────
-class StaticFreelancer {
-  final String name;
-  final String image;
-  final String address;
-  final List<String> skills;
-  final int experience;
-  final int salary;
-  final String salaryType;
-  final String phone;
-
-  StaticFreelancer({
-    required this.name,
-    required this.image,
-    required this.address,
-    required this.skills,
-    required this.experience,
-    required this.salary,
-    required this.salaryType,
-    required this.phone,
-  });
-}
-
-/// ✅ STATIC DATA
-final staticFreelancer = StaticFreelancer(
-  name: "Akanto",
-  image: "",
-  address: "Dhaka, Bangladesh",
-  skills: ["Electrician", "AC Repair", "Wiring"],
-  experience: 3,
-  salary: 500,
-  salaryType: "hour",
-  phone: "01700000000",
-);
-
-class FreelancerProfileScreen extends StatelessWidget {
+class FreelancerProfileScreen extends StatefulWidget {
   const FreelancerProfileScreen({super.key});
 
-  // ─── Helpers ─────────────────────────────────────────────
-  String get _displayName => staticFreelancer.name;
-  String get _workingAddress => staticFreelancer.address;
+  @override
+  State<FreelancerProfileScreen> createState() => _FreelancerProfileScreenState();
+}
 
-  int get _totalOrders => 120;
-  int get _completed => 95;
-  int get _cancelled => 12;
-  int get _running => 8;
-  int get _pending => 5;
-  double get _completion => _totalOrders == 0 ? 0 : (_completed / _totalOrders) * 100;
-  double get _avgRating => 4.2;
-  int get _totalReviews => 52;
+class _FreelancerProfileScreenState extends State<FreelancerProfileScreen> {
+  final FreelancerReviewViewModel _viewModel = FreelancerReviewViewModel();
+  bool _initialized = false;
 
-  // ─── Build ───────────────────────────────────────────────
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final freelancerID = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+      _viewModel.fetchReviewsDataApi(freelancerID);
+      _initialized = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final sw = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
         child: Column(
           children: [
-            _buildAppBar(context, sw),
+            GestureDetector(onTap: () => Navigator.pop(context), child: AppBarHeader("Freelancer Profile")),
             Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: sw * 0.05, vertical: sw * 0.04),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHero(context),
-                    SizedboxSpaccing.height02(context),
-                    _divider(context),
-                    SizedboxSpaccing.height02(context),
-                    _buildSection(context, 'ORDER STATISTICS', _buildStatsGrid(context)),
-                    SizedboxSpaccing.height02(context),
-                    _buildSection(context, 'DETAILS', _buildDetails(context)),
-                    SizedboxSpaccing.height02(context),
-                    _buildSection(context, 'SKILLS', _buildSkills(context)),
-                    SizedboxSpaccing.height02(context),
-                    _buildSection(context, 'REVIEWS', _buildReviews(context)),
-                    SizedboxSpaccing.height025(context),
-                  ],
+              child: ChangeNotifierProvider<FreelancerReviewViewModel>.value(
+                value: _viewModel,
+                child: Consumer<FreelancerReviewViewModel>(
+                  builder: (context, viewModel, _) {
+                    switch (viewModel.reViewData.status) {
+                      case Status.LOADING:
+                        return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
+
+                      case Status.ERROR:
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(viewModel.reViewData.message ?? 'Something went wrong', textAlign: TextAlign.center),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: () {
+                                  final freelancerID = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+                                  viewModel.fetchReviewsDataApi(freelancerID);
+                                },
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                      case Status.COMPLETED:
+                        final data = viewModel.reViewData.data?.data;
+                        if (data == null) return const Center(child: Text('No data found'));
+                        return _buildContent(context, data);
+
+                      default:
+                        return const SizedBox();
+                    }
+                  },
                 ),
               ),
             ),
@@ -97,110 +87,159 @@ class FreelancerProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── AppBar ───────────────────────────────────────────────
-  Widget _buildAppBar(BuildContext context, double sw) {
-    return Container(
-      height: 56,
-      padding: EdgeInsets.symmetric(horizontal: sw * 0.04),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1)),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border(context)),
-              ),
-              child: Icon(FontAwesomeIcons.arrowLeft, size: 13, color: AppColors.textPrimary(context)),
-            ),
-          ),
-          SizedboxSpaccing.width03(context),
-          Text('Freelancer Profile', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
+  Widget _buildContent(BuildContext context, Data data) {
 
-  // ── Hero ────────────────────────────────────────────────
-  Widget _buildHero(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        CircleAvatarNetwork(imageUrl: staticFreelancer.image.isEmpty ? null : staticFreelancer.image, name: _displayName, size: 68, borderWidth: 1, borderColor: AppColors.border(context)),
-        SizedboxSpaccing.width03(context),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(_displayName, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-              const SizedBox(height: 2),
-              Text(
-                '${staticFreelancer.skills.join(' · ')} · $_workingAddress',
-                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 5),
-              Row(
-                children: [
-                  ...List.generate(
-                    5,
-                    (i) => Icon(i < _avgRating.floor() ? Icons.star_rounded : (i < _avgRating ? Icons.star_half_rounded : Icons.star_outline_rounded), size: 14, color: const Color(0xFFF59E0B)),
+    final sw = MediaQuery.of(context).size.width;
+    final freelancer = data.freelancer;
+    final stats = data.stats;
+    final summary = data.reviewsSummery;
+    final reviews = data.reviews ?? [];
+
+    final displayName = '${freelancer?.firstName ?? ''} ${freelancer?.lastName ?? ''}'.trim();
+    final skillCategories = freelancer?.skills?.map((s) => s.category ?? '').where((c) => c.isNotEmpty).join(' · ') ?? '';
+    final experience = freelancer?.experience ?? 0;
+    final avgRating = (summary?.avgRating ?? 0).toDouble();
+    final totalReviews = summary?.totalReviews ?? 0;
+    final freelancerProfile = freelancer?.profilePicture?.url;
+
+    final freelancerID =
+        ModalRoute.of(context)?.settings.arguments as String? ?? '';
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await context.read<FreelancerReviewViewModel>()
+            .fetchReviewsDataApi(freelancerID);
+      },
+      color: AppColors.textPrimary(context),
+      backgroundColor: AppColors.containerBackground(context),
+      displacement: 40,
+      strokeWidth: 2.0,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: sw * 0.05, vertical: sw * 0.04),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatarNetwork(
+                  imageUrl: freelancerProfile,
+                  name: displayName,
+                  size: 68,
+                  borderWidth: 1,
+                  borderColor: AppColors.border(context),
+                ),              SizedboxSpaccing.width03(context),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(displayName, style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                      const SizedBox(height: 2),
+                      if (skillCategories.isNotEmpty)
+                        Text(
+                          skillCategories,
+                          style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      const SizedBox(height: 5),
+                      if (experience > 0)
+                        Row(
+                          children: [
+                            Icon(FontAwesomeIcons.clock, size: 12, color: AppColors.subtitle(context)),
+                            const SizedBox(width: 4),
+                            Text('$experience years experience', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+                          ],
+                        ),
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          ...List.generate(
+                            5,
+                            (i) => Icon(i < avgRating.floor() ? Icons.star_rounded : (i < avgRating ? Icons.star_half_rounded : Icons.star_outline_rounded), size: 14, color: const Color(0xFFF59E0B)),
+                          ),
+                          const SizedBox(width: 4),
+                          Text('${avgRating.toStringAsFixed(1)} · $totalReviews reviews', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Text('${_avgRating.toStringAsFixed(1)} · $_totalReviews reviews', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+
+            SizedboxSpaccing.height02(context),
+            Container(height: 2.5, color: AppColors.border(context)),
+            SizedboxSpaccing.height02(context),
+
+            _buildSection(context, 'ORDER STATISTICS', _buildStatsTable(context, stats)),
+            SizedboxSpaccing.height02(context),
+
+            _buildSection(context, 'RATINGS', _buildRatingSummary(context, summary)),
+            SizedboxSpaccing.height02(context),
+
+            Text(
+              'REVIEWS',
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+            ),
+            SizedboxSpaccing.height02(context),
+            _buildReviews(context, reviews),
+            SizedboxSpaccing.height025(context),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  // ── Stats ───────────────────────────────────────────────
-  Widget _buildStatsGrid(BuildContext context) {
+  Widget _buildStatsTable(BuildContext context, Stats? stats) {
+    final totalOrders = stats?.totalOrders ?? 0;
+    final completedOrders = stats?.completedOrders ?? 0;
+    final cancelledOrders = stats?.cancelledOrders ?? 0;
+    final runningOrders = stats?.runningOrders ?? 0;
+    final pendingOrders = stats?.pendingOrders ?? 0;
+    final completionRate = stats?.pendingCompletionRate ?? 0.0;
+
     final cells = [
-      ('$_totalOrders', 'Total orders'),
-      ('$_completed', 'Completed'),
-      ('$_cancelled', 'Cancelled'),
-      ('$_running', 'Running'),
-      ('$_pending', 'Pending'),
-      ('${_completion.toStringAsFixed(0)}%', 'Completion'),
+      ('$totalOrders', 'Total Orders'),
+      ('$completedOrders', 'Completed'),
+      ('$cancelledOrders', 'Cancelled'),
+      ('$runningOrders', 'Running'),
+      ('$pendingOrders', 'Pending'),
+      ('${completionRate.toStringAsFixed(0)}%', 'Completion'),
     ];
 
     return Column(
       children: [
-        Table(
-          border: TableBorder(
-            horizontalInside: BorderSide(color: AppColors.border(context), width: 0.5),
-            verticalInside: BorderSide(color: AppColors.border(context), width: 0.5),
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+          child: Table(
+            border: TableBorder(
+              horizontalInside: BorderSide(color: AppColors.border(context), width: 0.2),
+              verticalInside: BorderSide(color: AppColors.border(context), width: 0.2),
+            ),
+            children: [
+              TableRow(children: [_statCell(context, cells[0].$1, cells[0].$2), _statCell(context, cells[1].$1, cells[1].$2), _statCell(context, cells[2].$1, cells[2].$2)]),
+              TableRow(children: [_statCell(context, cells[3].$1, cells[3].$2), _statCell(context, cells[4].$1, cells[4].$2), _statCell(context, cells[5].$1, cells[5].$2)]),
+            ],
           ),
-          children: [
-            TableRow(children: [_statCell(context, cells[0].$1, cells[0].$2), _statCell(context, cells[1].$1, cells[1].$2), _statCell(context, cells[2].$1, cells[2].$2)]),
-            TableRow(children: [_statCell(context, cells[3].$1, cells[3].$2), _statCell(context, cells[4].$1, cells[4].$2), _statCell(context, cells[5].$1, cells[5].$2)]),
-          ],
         ),
         Divider(height: 1, color: AppColors.border(context)),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
           child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Completion rate', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
-                  Text('${_completion.toStringAsFixed(0)}%', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                  Text('Completion Rate', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+                  Text('${completionRate.toStringAsFixed(1)}%', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                 ],
               ),
               const SizedBox(height: 6),
-              LinearProgressIndicator(value: _completion / 100),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(value: completionRate / 100, minHeight: 6, color: AppColors.button(context), backgroundColor: AppColors.border(context)),
+              ),
             ],
           ),
         ),
@@ -210,7 +249,7 @@ class FreelancerProfileScreen extends StatelessWidget {
 
   Widget _statCell(BuildContext context, String val, String label) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Column(
         children: [
           Text(val, style: AppTextStyles.textSize20(context, weight: FontWeight.w500)),
@@ -221,24 +260,104 @@ class FreelancerProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── Details ─────────────────────────────────────────────
-  Widget _buildDetails(BuildContext context) {
-    final rows = [
-      {'icon': FontAwesomeIcons.locationDot, 'text': _workingAddress},
-      {'icon': FontAwesomeIcons.clock, 'text': '${staticFreelancer.experience} years experience'},
-      {'icon': FontAwesomeIcons.bangladeshiTakaSign, 'text': '${staticFreelancer.salary} / ${staticFreelancer.salaryType}'},
-      {'icon': FontAwesomeIcons.phone, 'text': staticFreelancer.phone},
-    ];
+  Widget _buildRatingSummary(BuildContext context, ReviewsSummery? summary) {
+    final avgRating = (summary?.avgRating ?? 0).toDouble();
+    final totalReviews = summary?.totalReviews ?? 0;
+    final breakdown = summary?.ratingBreakdown ?? {};
+    final total = breakdown.values.fold(0, (sum, val) => sum + val);
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Rating bars
+          Expanded(
+            child: Column(
+              children: List.generate(5, (index) {
+                final star = 5 - index;
+                final count = breakdown[star.toString()] ?? 0;
+                final ratio = total == 0 ? 0.0 : count / total;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Text('$star', style: AppTextStyles.textSize12(context)),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.star, size: 12, color: Color(0xFFF59E0B)),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: ratio,
+                          color: AppColors.button(context),
+                          backgroundColor: AppColors.border(context),
+                          minHeight: 6,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Avg rating display
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                avgRating.toStringAsFixed(1),
+                style: GoogleFonts.hindSiliguri(fontWeight: FontWeight.bold, fontSize: 36, color: AppColors.textPrimary(context)),
+              ),
+              Row(children: List.generate(5, (i) => Icon(Icons.star, size: 14, color: i < avgRating ? const Color(0xFFF59E0B) : Colors.grey))),
+              const SizedBox(height: 4),
+              Text('$totalReviews reviews', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviews(BuildContext context, List<Review> reviews) {
+    if (reviews.isEmpty) {
+      return Center(
+        child: Text('No reviews yet', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+      );
+    }
 
     return Column(
-      children: rows.map((e) {
-        return Padding(
-          padding: const EdgeInsets.all(10),
+      children: reviews.map((r) {
+        final name = r.reviewer?.fullName ?? 'Unknown';
+        final imageUrl = r.reviewer?.profilePicture?.url;
+        final stars = r.rating ?? 0;
+        final comment = r.review ?? '';
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10), // space between cards
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.containerBackground(context),
+            // borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.border(context)),
+          ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(e['icon'] as IconData, size: 13),
+              CircleAvatarNetwork(imageUrl: imageUrl, name: name, size: 38, borderWidth: 1, borderColor: AppColors.border(context)),
               const SizedBox(width: 10),
-              Expanded(child: Text(e['text'] as String)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                    const SizedBox(height: 2),
+                    Row(children: List.generate(5, (i) => Icon(Icons.star, size: 12, color: i < stars ? const Color(0xFFF59E0B) : Colors.grey))),
+                    if (comment.isNotEmpty) ...[const SizedBox(height: 4), Text(comment, style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)))],
+                  ],
+                ),
+              ),
             ],
           ),
         );
@@ -246,53 +365,15 @@ class FreelancerProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── Skills ──────────────────────────────────────────────
-  Widget _buildSkills(BuildContext context) {
-    final skills = staticFreelancer.skills;
-
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: skills
-            .map(
-              (item) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border(context)),
-                ),
-                child: Text(item, style: AppTextStyles.textSize12(context)),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-
-  // ── Reviews (UNCHANGED) ────────────────────────────────
-  Widget _buildReviews(BuildContext context) {
-    final reviews = [_Review(initials: 'MN', name: 'Nahid', time: '3:10 PM', stars: 4, comment: 'Great service!', service: 'Service')];
-
-    return Column(
-      children: reviews.map((r) {
-        return ListTile(
-          leading: CircleAvatar(child: Text(r.initials)),
-          title: Text(r.name),
-          subtitle: Text(r.comment),
-        );
-      }).toList(),
-    );
-  }
-
-  // ── Section ────────────────────────────────────────────
   Widget _buildSection(BuildContext context, String label, Widget child) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label),
-        const SizedBox(height: 6),
+        Text(
+          label,
+          style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+        ),
+        SizedboxSpaccing.height02(context),
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
@@ -305,13 +386,4 @@ class FreelancerProfileScreen extends StatelessWidget {
       ],
     );
   }
-
-  Widget _divider(BuildContext context) => Divider(height: 1, color: AppColors.border(context));
-}
-
-class _Review {
-  final String initials, name, time, comment, service;
-  final int stars;
-
-  const _Review({required this.initials, required this.name, required this.time, required this.stars, required this.comment, required this.service});
 }

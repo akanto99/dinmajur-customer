@@ -22,7 +22,6 @@ class DynamicServiceList<T, S> extends StatelessWidget {
   // Service card builder - UPDATED TO INCLUDE isLastItem
   final Widget Function(S service, double width, double height, bool isLastItem) buildServiceCard;
 
-
   // Text styles
   final TextStyle Function(BuildContext) categoryHeaderStyle;
   final TextStyle Function(BuildContext) emptyStateStyle;
@@ -60,10 +59,7 @@ class DynamicServiceList<T, S> extends StatelessWidget {
 
           if (isSimpleList) {
             // Simple list mode (House Keeper) - each category IS a service
-            return Container(
-                key: categoryKeys[index],
-                child: buildServiceCard(category as S, screenWidth, screenHeight, false)
-            );
+            return Container(key: categoryKeys[index], child: buildServiceCard(category as S, screenWidth, screenHeight, false));
           } else {
             // Grouped list mode (Beauty Salon) - categories contain items
             final items = getItems?.call(category) ?? [];
@@ -76,7 +72,7 @@ class DynamicServiceList<T, S> extends StatelessWidget {
                 children: [
                   // Category Header
                   Text(categoryName, style: categoryHeaderStyle(context)),
-                  Divider(height: 20,color: AppColors.border(context),),
+                  Divider(height: 20, color: AppColors.border(context)),
 
                   // Services under this category - UPDATED TO PASS isLastItem
                   ...items.asMap().entries.map((entry) {
@@ -156,115 +152,108 @@ class DynamicServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onViewDetails,
-      child: Container(
-        // margin: EdgeInsets.only(bottom: 15),
-        padding: isLastItem?EdgeInsets.only(top: 15,bottom: 25): EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(
-          color: getBackgroundColor(context),
-          // borderRadius: BorderRadius.circular(12),
-          // border: Border.all(color: getBorderColor(context)
-          border: isLastItem
-              ? null
-              : Border(
-            bottom: BorderSide(
-              color: getBorderColor(context),
-              width: 1,
+    return Container(
+      padding: isLastItem ? EdgeInsets.only(top: 15, bottom: 25) : EdgeInsets.symmetric(vertical: 15),
+      decoration: BoxDecoration(
+        border: isLastItem ? null : Border(bottom: BorderSide(color: getBorderColor(context), width: 1)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Details
+          Expanded(
+            child: GestureDetector(
+              onTap: onViewDetails,
+              child: Container(color: Colors.transparent, child: _buildDetails(context)),
             ),
           ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-
-
-            // Details
-            Expanded(child: _buildDetails(context)),
-            getSpacing(context),
-            // Image with Quantity Controls
-            DynamicCachedImage(
-              imageUrl: imageUrl,
-              width: 83,
-              height: 73,
-              borderRadius: 8,
-              defaultIcon: defaultIcon,
-              iconSize: 40,
-              backgroundColor: Colors.grey[200],
-              fit: BoxFit.cover,
-              loadingColor: getButtonColor(context),
-              iconColor: Colors.grey,
-              showLoadingIndicator: true,
-              // Quantity controls
-              quantity: quantity,
-              onAdd: onAdd,
-              onRemove: onRemove,
-              onIncrease: onIncrease,
-              hasRoom: hasRoom,
-              hasHour: hasHour,
-              showRoomNumber: showRoomNumber,
-              roomNumberLabel: roomNumberLabel,
-              getButtonColor: getButtonColor,
-              getBorderColor: getBorderColor,
-              // Cache optimization
-              memCacheHeight: 200,
-              memCacheWidth: 200,
-              maxHeightDiskCache: 400,
-              maxWidthDiskCache: 400,
-              // Smooth animations
-              fadeInDuration: Duration(milliseconds: 300),
-              fadeOutDuration: Duration(milliseconds: 100),
-            ),
-
-          ],
-        ),
+          getSpacing(context),
+          // Image with Quantity Controls
+          DynamicCachedImage(
+            imageUrl: imageUrl,
+            width: 83,
+            height: 73,
+            borderRadius: 8,
+            defaultIcon: defaultIcon,
+            iconSize: 40,
+            backgroundColor: Colors.grey[200],
+            fit: BoxFit.cover,
+            loadingColor: getButtonColor(context),
+            iconColor: Colors.grey,
+            showLoadingIndicator: true,
+            // Quantity controls
+            quantity: quantity,
+            onAdd: onAdd,
+            onRemove: onRemove,
+            onIncrease: onIncrease,
+            hasRoom: hasRoom,
+            hasHour: hasHour,
+            showRoomNumber: showRoomNumber,
+            roomNumberLabel: roomNumberLabel,
+            getButtonColor: getButtonColor,
+            getBorderColor: getBorderColor,
+            // Cache optimization
+            memCacheHeight: 200,
+            memCacheWidth: 200,
+            maxHeightDiskCache: 400,
+            maxWidthDiskCache: 400,
+            // Smooth animations
+            fadeInDuration: Duration(milliseconds: 300),
+            fadeOutDuration: Duration(milliseconds: 100),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildDetails(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          serviceName,
-          style: getTextStyle(context, weight: FontWeight.w500, color: getTextColor(context)),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            serviceName,
+            style: getTextStyle(context, weight: FontWeight.w500, color: getTextColor(context)),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
 
-        SizedBox(height: 4),
-        Row(
-          children: [
-            Text(
-              // '৳${discountedPrice.toStringAsFixed(2)}',
-              '৳${AmountFormatter.format(discountedPrice)}',
-              style: AppTextStyles.textSize14(context,weight: FontWeight.w500),
-            ),
-            if (showDiscount && originalPrice > discountedPrice) ...[
-              SizedBox(width: 8),
-              Text(
-                // '৳${originalPrice.toStringAsFixed(2)}',
-                '৳${AmountFormatter.format(originalPrice)}',
-                style: TextStyle(fontSize: 10, color: getSubtitleColor(context), decoration: TextDecoration.lineThrough),
-              ),
-            ],
-          ],
-        ),
-        if (viewDetailsText != null && onViewDetails != null) ...[
           SizedBox(height: 4),
           Row(
             children: [
               Text(
-                  viewDetailsText!,
-                  style: AppTextStyles.textSize12(context,weight: FontWeight.w500,color: AppColors.buttonTextColor(context))
+                // '৳${discountedPrice.toStringAsFixed(2)}',
+                '৳${AmountFormatter.format(discountedPrice)}',
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
               ),
-              Icon(Icons.chevron_right, size: 14, color: getButtonColor(context)),
+              if (showDiscount && originalPrice > discountedPrice) ...[
+                SizedBox(width: 8),
+                Text(
+                  // '৳${originalPrice.toStringAsFixed(2)}',
+                  '৳${AmountFormatter.format(originalPrice)}',
+                  style: TextStyle(fontSize: 10, color: getSubtitleColor(context), decoration: TextDecoration.lineThrough),
+                ),
+              ],
             ],
           ),
+          if (viewDetailsText != null && onViewDetails != null) ...[
+            SizedBox(height: 4),
+            Container(
+              height: 25,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    viewDetailsText!,
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
+                  ),
+                  Icon(Icons.chevron_right, size: 14, color: getButtonColor(context)),
+                ],
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
