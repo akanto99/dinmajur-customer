@@ -1549,7 +1549,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       children: [
         Text(label, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
         Text(
-          '৳${amount.toStringAsFixed(0)}',
+          '৳${AmountFormatter.format(amount)}',
           style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
@@ -1584,11 +1584,11 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
             Text(package.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             Row(
               children: [
-                Text('৳${salePrice.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                Text('৳${AmountFormatter.format(salePrice)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                 if (savedAmount > 0) ...[
                   SizedBox(width: 8),
                   Text(
-                    '৳${originalPrice.toStringAsFixed(0)}',
+                    '৳${AmountFormatter.format(originalPrice)}',
                     style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                   ),
                 ],
