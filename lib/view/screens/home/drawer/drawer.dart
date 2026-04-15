@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -38,9 +39,17 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
+  String _appVersion = '';
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) setState(() => _appVersion = info.version);
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadVersion();
+
     // Fetch data when widget initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
@@ -368,7 +377,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                 ],
               ),
-
+              SizedboxSpaccing.height025(context),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('App Version', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+                  Text('  $_appVersion', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                ],
+              ),
+              SizedboxSpaccing.height025(context),
               // SizedboxSpaccing.height025(context),
             ],
           ),

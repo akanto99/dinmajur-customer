@@ -168,6 +168,8 @@ class Freelancer {
   String? lastName;
   ProfilePicture? profilePicture;
   List<Skill>? skills;
+  double ?averageRating;
+  int ?totalReviews;
 
   Freelancer({
     this.id,
@@ -181,6 +183,8 @@ class Freelancer {
     this.lastName,
     this.profilePicture,
     this.skills,
+    this.averageRating,
+    this.totalReviews,
   });
 
   factory Freelancer.fromJson(Map<String, dynamic> json) => Freelancer(
@@ -195,6 +199,8 @@ class Freelancer {
     lastName: json["lastName"],
     profilePicture: json["profilePicture"] == null ? null : ProfilePicture.fromJson(json["profilePicture"]),
     skills: json["skills"] == null ? [] : List<Skill>.from(json["skills"]!.map((x) => Skill.fromJson(x))),
+    averageRating: (json['averageRating'] as num?)?.toDouble(),
+    totalReviews: json['totalReviews'],
   );
 
   Map<String, dynamic> toJson() => {
@@ -209,6 +215,8 @@ class Freelancer {
     "lastName": lastName,
     "profilePicture": profilePicture?.toJson(),
     "skills": skills == null ? [] : List<dynamic>.from(skills!.map((x) => x.toJson())),
+    'averageRating':averageRating,
+    'totalReviews':totalReviews,
   };
 }
 

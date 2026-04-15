@@ -479,8 +479,11 @@ class Routes {
       ///Task
       case RoutesName.orderScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
-        case RoutesName.freelancerProfileScreen:
-        return MaterialPageRoute(builder: (BuildContext context) => const FreelancerProfileScreen());
+      case RoutesName.freelancerProfileScreen:
+        return MaterialPageRoute(
+          builder: (BuildContext context) => const FreelancerProfileScreen(),
+          settings: settings, // ← add this
+        );
         //pending Order Details SOCKET.IO Screen
       // case RoutesName.pendingOrdersViewDetailsSocketscreen:
       //   final args = settings.arguments as Map<String, dynamic>?;

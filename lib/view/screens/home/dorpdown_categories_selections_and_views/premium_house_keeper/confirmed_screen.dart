@@ -804,6 +804,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/get_booking_confirmation_pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
@@ -911,7 +912,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                 services: services,
                 dateTime: '${DateFormatter.formatDate(bookingData.date)},(${bookingData.shiftId?.startTime ?? ''} - ${bookingData.shiftId?.endTime ?? ''})',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
-                grandTotal: (bookingData.grandTotal ?? 0).toStringAsFixed(2),
+                grandTotal:AmountFormatter.formatDynamic(bookingData.grandTotal),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
                 onDownloadReceipt: () => _handleDownloadReceipt(),
                 onTrackOrder: () {

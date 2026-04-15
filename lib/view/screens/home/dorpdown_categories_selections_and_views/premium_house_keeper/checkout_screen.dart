@@ -720,6 +720,7 @@ import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
@@ -1284,11 +1285,12 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                                 SizedBox(width: 8),
                                 Row(
                                   children: [
-                                    Text('৳${totalDiscountedPrice.toStringAsFixed(2)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                                    Text('৳${AmountFormatter.format(totalDiscountedPrice)}', style: AppTextStyles.textSize14(context, weight: FontWeight
+                                        .w400)),
                                     if (service.discountValue != null && totalOriginalPrice > 0) ...[
                                       SizedboxSpaccing.width01(context),
                                       Text(
-                                        '৳${totalOriginalPrice.toStringAsFixed(2)}',
+                                        '৳${AmountFormatter.format(totalOriginalPrice)}',
                                         style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                                       ),
                                     ],
@@ -1324,7 +1326,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       children: [
         Text(label, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
         Text(
-          '৳${amount.toStringAsFixed(2)}',
+          '৳${AmountFormatter.format(amount)}',
           style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
@@ -1354,12 +1356,13 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                 Row(
                   children: [
                     Text(
-                      '৳${total.toStringAsFixed(2)}',
+
+                      '৳${AmountFormatter.format(total)}',
                       style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.whiteColor),
                     ),
                     SizedBox(width: 8),
                     Text(
-                      'Saved ৳${saved.toStringAsFixed(2)}',
+                      'Saved ৳${AmountFormatter.format(saved)}',
                       style: AppTextStyles.textSize12(context, color: Colors.green, weight: FontWeight.w500),
                     ),
                   ],
