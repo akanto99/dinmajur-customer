@@ -207,53 +207,51 @@ class DynamicServiceCard extends StatelessWidget {
   }
 
   Widget _buildDetails(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            serviceName,
-            style: getTextStyle(context, weight: FontWeight.w500, color: getTextColor(context)),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          serviceName,
+          style: getTextStyle(context, weight: FontWeight.w500, color: getTextColor(context)),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
 
-          SizedBox(height: 4),
-          Row(
-            children: [
-              Text(
-                // '৳${discountedPrice.toStringAsFixed(2)}',
-                '৳${AmountFormatter.format(discountedPrice)}',
-                style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-              ),
-              if (showDiscount && originalPrice > discountedPrice) ...[
-                SizedBox(width: 8),
-                Text(
-                  // '৳${originalPrice.toStringAsFixed(2)}',
-                  '৳${AmountFormatter.format(originalPrice)}',
-                  style: TextStyle(fontSize: 10, color: getSubtitleColor(context), decoration: TextDecoration.lineThrough),
-                ),
-              ],
-            ],
-          ),
-          if (viewDetailsText != null && onViewDetails != null) ...[
-            SizedBox(height: 4),
-            Container(
-              height: 25,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    viewDetailsText!,
-                    style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
-                  ),
-                  Icon(Icons.chevron_right, size: 14, color: getButtonColor(context)),
-                ],
-              ),
+        SizedBox(height: 4),
+        Row(
+          children: [
+            Text(
+              // '৳${discountedPrice.toStringAsFixed(2)}',
+              '৳${AmountFormatter.format(discountedPrice)}',
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
             ),
+            if (showDiscount && originalPrice > discountedPrice) ...[
+              SizedBox(width: 8),
+              Text(
+                // '৳${originalPrice.toStringAsFixed(2)}',
+                '৳${AmountFormatter.format(originalPrice)}',
+                style: TextStyle(fontSize: 10, color: getSubtitleColor(context), decoration: TextDecoration.lineThrough),
+              ),
+            ],
           ],
+        ),
+        if (viewDetailsText != null && onViewDetails != null) ...[
+          SizedBox(height: 4),
+          Container(
+            height: 25,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  viewDetailsText!,
+                  style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
+                ),
+                Icon(Icons.chevron_right, size: 14, color: getButtonColor(context)),
+              ],
+            ),
+          ),
         ],
-      ),
+      ],
     );
   }
 }
