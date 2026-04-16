@@ -47,12 +47,12 @@ class Data {
   DateTime? date;
   String? time;
   String? discountType;
-  int? discountValue;
-  int? total;
-  int? subTotal;
-  int? grandTotal;
-  int? vat;
-  int? fare;
+  double? total;
+  double? subTotal;
+  double? grandTotal;
+  double? vat;
+  double? fare;
+  double? discountValue;
   String? status;
   List<BeautySalonBookingItem>? beautySalonBookingItems;
   DateTime? createdAt;
@@ -102,12 +102,12 @@ class Data {
     date: json["date"] == null ? null : DateTime.parse(json["date"]),
     time: json["time"],
     discountType: json["discountType"],
-    discountValue: json["discountValue"],
-    total: json["total"],
-    subTotal: json["subTotal"],
-    grandTotal: json["grandTotal"],
-    vat: json["vat"],
-    fare: json["fare"],
+    total: (json["total"] as num?)?.toDouble(),
+    subTotal: (json["subTotal"] as num?)?.toDouble(),
+    grandTotal: (json["grandTotal"] as num?)?.toDouble(),
+    vat: (json["vat"] as num?)?.toDouble(),
+    fare: (json["fare"] as num?)?.toDouble(),
+    discountValue: (json["discountValue"] as num?)?.toDouble(),
     status: json["status"],
     beautySalonBookingItems: json["beautySalonBookingItems"] == null ? [] : List<BeautySalonBookingItem>.from(json["beautySalonBookingItems"]!.map((x) => BeautySalonBookingItem.fromJson(x))),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
@@ -211,8 +211,8 @@ class BeautySalonTaskId {
 class BeautySalonTaskItemId {
   String? id;
   String? name;
-  int? originalPrice;
-  int? salePrice;
+  double? originalPrice;
+  double? salePrice;
   String? discountType;
   int? discountValue;
 
@@ -228,8 +228,8 @@ class BeautySalonTaskItemId {
   factory BeautySalonTaskItemId.fromJson(Map<String, dynamic> json) => BeautySalonTaskItemId(
     id: json["_id"],
     name: json["name"],
-    originalPrice: json["originalPrice"],
-    salePrice: json["salePrice"],
+    originalPrice: (json["originalPrice"] as num?)?.toDouble(),
+    salePrice: (json["salePrice"] as num?)?.toDouble(),
     discountType: json["discountType"],
     discountValue: json["discountValue"],
   );

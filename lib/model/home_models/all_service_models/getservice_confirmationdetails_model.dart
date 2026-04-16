@@ -24,11 +24,11 @@ class Data {
   DateTime? date;
   String? time;
   TimeSlotSnapshot? timeSlotSnapshot;
-  int? subTotal;
-  int? vat;
-  int? fare;
-  int? total;
-  int? grandTotal;
+  double? subTotal;
+  double? vat;
+  double? fare;
+  double? total;
+  double? grandTotal;
   String? status;
   Service? serviceSnapshot;
   String? paymentType;
@@ -69,11 +69,11 @@ class Data {
     date: json["date"] == null ? null : DateTime.parse(json["date"]),
     time: json["time"],
     timeSlotSnapshot: json["timeSlotSnapshot"] == null ? null : TimeSlotSnapshot.fromJson(json["timeSlotSnapshot"]),
-    subTotal: json["subTotal"],
-    vat: json["vat"],
-    fare: json["fare"],
-    total: json["total"],
-    grandTotal: json["grandTotal"],
+    subTotal: (json["subTotal"] as num?)?.toDouble(),
+    vat: (json["vat"] as num?)?.toDouble(),
+    fare: (json["fare"] as num?)?.toDouble(),
+    total: (json["total"] as num?)?.toDouble(),
+    grandTotal: (json["grandTotal"] as num?)?.toDouble(),
     status: json["status"],
     serviceSnapshot: json["serviceSnapshot"] == null ? null : Service.fromJson(json["serviceSnapshot"]),
     paymentType: json["paymentType"],
@@ -104,12 +104,13 @@ class Task {
 }
 
 class Price {
-  int? basePrice;
-  int? salePrice;
+  double? basePrice;
+  double? salePrice;
 
   Price({this.basePrice, this.salePrice});
 
-  factory Price.fromJson(Map<String, dynamic> json) => Price(basePrice: json["basePrice"], salePrice: json["salePrice"]);
+  factory Price.fromJson(Map<String, dynamic> json) => Price(  basePrice: (json["basePrice"] as num?)?.toDouble(),
+    salePrice: (json["salePrice"] as num?)?.toDouble(),);
 }
 
 class Service {
