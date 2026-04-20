@@ -336,7 +336,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
   }
   Widget _serviceTimeButton(BuildContext context, BookedSlotDatum slot) {
     final String time = slot.time ?? '';
-    final bool isBooked = slot.isBooked ?? false;
+    final bool isBooked = slot.isBookedSlot ?? false;
     final bool isSelected = widget.selectedServiceTime == time;
 
     return GestureDetector(
@@ -346,10 +346,10 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
         width: 150,
         decoration: BoxDecoration(
           color: isBooked
-              ? AppColors.darkRedColor.withOpacity(0.05)
+              ? AppColors.darkRedColor.withOpacity(0.1)
               : isSelected
               ? AppColors.button(context)
-              : AppColors.containerBackground(context),
+              : AppColors.fieldColor(context),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isBooked

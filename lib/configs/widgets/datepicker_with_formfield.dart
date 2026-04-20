@@ -286,7 +286,7 @@ class CustomDatePickerFormField extends StatelessWidget {
                   width: width ?? screenWidth * 0.9,
                   height: height ?? 42,
                   decoration: BoxDecoration(
-                    color: backgroundColor ?? AppColors.containerBackground(context),
+                    color: backgroundColor ?? AppColors.fieldColor(context),
                     borderRadius: BorderRadius.circular(borderRadius ?? 12),
                     border: Border.all(
                       width: borderWidth ?? 1,

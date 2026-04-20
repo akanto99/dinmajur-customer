@@ -50,18 +50,20 @@ class BookedSlotDatum {
   String? time;
   bool? isActive;
   int? position;
-  Availability? availability;
+  bool? isBooked;
+
 
   BookedSlotDatum({
     this.id,
     this.time,
     this.isActive,
     this.position,
-    this.availability,
+    this.isBooked
+
   });
 
   /// Convenience getter — reads isBooked from the nested availability object
-  bool get isBooked => availability?.isBooked ?? false;
+  bool get isBookedSlot => isBooked ?? false;
 
   factory BookedSlotDatum.fromJson(Map<String, dynamic> json) =>
       BookedSlotDatum(
@@ -69,9 +71,7 @@ class BookedSlotDatum {
         time: json["time"],
         isActive: json["isActive"],
         position: json["position"],
-        availability: json["availability"] == null
-            ? null
-            : Availability.fromJson(json["availability"]),
+          isBooked: json["isBooked"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -79,23 +79,24 @@ class BookedSlotDatum {
     "time": time,
     "isActive": isActive,
     "position": position,
-    "availability": availability?.toJson(),
-  };
-}
-
-class Availability {
-  String? date;
-  bool? isBooked;
-
-  Availability({this.date, this.isBooked});
-
-  factory Availability.fromJson(Map<String, dynamic> json) => Availability(
-    date: json["date"],
-    isBooked: json["isBooked"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "date": date,
     "isBooked": isBooked,
+
   };
 }
+//
+// class Availability {
+//   String? date;
+//   bool? isBooked;
+//
+//   Availability({this.date, this.isBooked});
+//
+//   factory Availability.fromJson(Map<String, dynamic> json) => Availability(
+//     date: json["date"],
+//     isBooked: json["isBooked"],
+//   );
+//
+//   Map<String, dynamic> toJson() => {
+//     "date": date,
+//     "isBooked": isBooked,
+//   };
+// }
