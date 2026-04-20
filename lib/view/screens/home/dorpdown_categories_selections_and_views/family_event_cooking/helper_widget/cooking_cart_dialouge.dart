@@ -408,7 +408,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       child: Container(
         height: 40,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.button(context) : AppColors.containerBackground(context),
+          color: isSelected ? AppColors.button(context) : AppColors.fieldColor(context),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 1),
         ),

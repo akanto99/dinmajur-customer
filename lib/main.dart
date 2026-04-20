@@ -338,22 +338,22 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final accessToken = prefs.getString('accessToken') ?? '';
 
-  if (accessToken.isNotEmpty) {
-    // Socket is connected by NavigationScreen on first build.
-    // SSE we can start here since it doesn't need a screen context.
-    if (kDebugMode) print('🔔 Main: Starting SSE for logged-in user');
-    await sseService.startListening();
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    notificationCountViewModel.initializeCountListener(
-      sseService.notificationCountStream,
-      sseService.notificationIncrementStream,
-    );
-    notificationCountViewModel.setInitialCount(sseService.currentCount);
-
-    runningOrderCountViewModel.initializeCountListener(sseService.runningOrderCountStream);
-    runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
-  }
+  // if (accessToken.isNotEmpty) {
+  //   // Socket is connected by NavigationScreen on first build.
+  //   // SSE we can start here since it doesn't need a screen context.
+  //   if (kDebugMode) print('🔔 Main: Starting SSE for logged-in user');
+  //   await sseService.startListening();
+  //   await Future.delayed(const Duration(milliseconds: 500));
+  //
+  //   notificationCountViewModel.initializeCountListener(
+  //     sseService.notificationCountStream,
+  //     sseService.notificationIncrementStream,
+  //   );
+  //   notificationCountViewModel.setInitialCount(sseService.currentCount);
+  //
+  //   runningOrderCountViewModel.initializeCountListener(sseService.runningOrderCountStream);
+  //   runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
+  // }
 
   runApp(
     MultiProvider(
