@@ -133,7 +133,7 @@ class GeoLocation {
 }
 
 class Orders {
-  int? totalSpend;
+  double? totalSpend;
   int? totalOrders;
   int? totalReviews;
   RecentOrder? recentOrder;
@@ -146,7 +146,7 @@ class Orders {
   });
 
   factory Orders.fromJson(Map<String, dynamic> json) => Orders(
-    totalSpend: json["totalSpend"],
+    totalSpend: json["totalSpend"] == null ? null : (json["totalSpend"] as num).toDouble(),
     totalOrders: json["totalOrders"],
     totalReviews: json["totalReviews"],
     recentOrder: json["recentOrder"] == null ? null : RecentOrder.fromJson(json["recentOrder"]),

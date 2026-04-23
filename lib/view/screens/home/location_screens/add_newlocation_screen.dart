@@ -1,5 +1,6 @@
 // add_newlocation_screen.dart
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
@@ -228,22 +229,12 @@ class _AddNewlocationScreenState extends State<AddNewlocationScreen> {
   }
 
   Widget _buildErrorState() {
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(width: 1, color: AppColors.border(context)),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 24),
-            SizedBox(height: 8),
-            Text('Failed to load locations', style: AppTextStyles.textSize14(context, color: Colors.red)),
-          ],
-        ),
-      ),
+    return ErrorStateWidget(
+      errorMessage:'Failed to load locations',
+      onRetry: () {
+        Provider.of<GetLocationListViewModel>(context, listen: false)
+            .fetchLocationListApi();
+      },
     );
   }
 
