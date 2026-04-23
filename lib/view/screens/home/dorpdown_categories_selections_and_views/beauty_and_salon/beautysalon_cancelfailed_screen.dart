@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/confirm_cancel_failed_component/cancel_failed_component.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
@@ -20,14 +21,7 @@ class BeautyFailedCancelledPaymentScreen extends StatefulWidget {
   final String? errorMessage;
   final bool isCancelled; // true = cancelled, false = failed
 
-  const BeautyFailedCancelledPaymentScreen({
-    Key? key,
-    this.trackingId,
-    this.valId,
-    this.reason,
-    this.errorMessage,
-    this.isCancelled = false,
-  }) : super(key: key);
+  const BeautyFailedCancelledPaymentScreen({Key? key, this.trackingId, this.valId, this.reason, this.errorMessage, this.isCancelled = false}) : super(key: key);
 
   @override
   State<BeautyFailedCancelledPaymentScreen> createState() => _BeautyFailedCancelledPaymentScreenState();
@@ -50,11 +44,7 @@ class _BeautyFailedCancelledPaymentScreenState extends State<BeautyFailedCancell
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: _body(),
-          desktop: _body(),
-          tablet: _body(),
-        ),
+        child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
       ),
     );
   }
@@ -64,10 +54,7 @@ class _BeautyFailedCancelledPaymentScreenState extends State<BeautyFailedCancell
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Container(
-            height: 60,
-            child: AppBarHeader(widget.isCancelled ? "Payment Cancelled" : "Payment Failed"),
-          ),
+          child: Container(height: 60, child: AppBarHeader(widget.isCancelled ? "Payment Cancelled" : "Payment Failed")),
         ),
         Expanded(
           child: Consumer<GetBeautySalonViewModel>(
@@ -75,68 +62,34 @@ class _BeautyFailedCancelledPaymentScreenState extends State<BeautyFailedCancell
               final status = viewModel.getBeautySalonData.status;
 
               if (status == Status.LOADING) {
-                return Center(
-                  child: LoadingAnimationWidget.progressiveDots(
-                    color: AppColors.button(context),
-                    size: 50,
-                  ),
-                );
+                return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
               }
 
               if (status == Status.ERROR) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      SizedBox(height: 16),
-                      Text(
-                        'Failed to load booking details',
-                        style: AppTextStyles.textSize16(context, color: Colors.red),
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (widget.trackingId != null) {
-                            viewModel.fetchGetBeautySalonDataApi(widget.trackingId!);
-                          }
-                        },
-                        child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.button(context),
-                        ),
-                      ),
-                    ],
-                  ),
+                return ErrorStateWidget(
+                  // errorMessage: viewModel.getBeautySalonData.message.toString(),
+                  errorMessage: 'Failed to load booking details',
+                  onRetry: () {
+                    viewModel.fetchGetBeautySalonDataApi(widget.trackingId!);
+                  },
                 );
               }
-
               final bookingData = viewModel.getBeautySalonData.data?.data;
               if (bookingData == null) {
-                return Center(
-                  child: Text(
-                    'No booking data available',
-                    style: AppTextStyles.textSize16(context),
-                  ),
-                );
+                return Center(child: Text('No booking data available', style: AppTextStyles.textSize16(context)));
               }
 
               // Prepare service items for beauty salon
               List<ServiceItem> services = [];
-              if (bookingData.beautySalonBookingItems != null &&
-                  bookingData.beautySalonBookingItems!.isNotEmpty) {
+              if (bookingData.beautySalonBookingItems != null && bookingData.beautySalonBookingItems!.isNotEmpty) {
                 for (var item in bookingData.beautySalonBookingItems!) {
-                  if (item.beautySalonTaskItemIds != null &&
-                      item.beautySalonTaskItemIds!.isNotEmpty) {
+                  if (item.beautySalonTaskItemIds != null && item.beautySalonTaskItemIds!.isNotEmpty) {
                     for (var taskItem in item.beautySalonTaskItemIds!) {
                       String additionalInfo = '';
                       if (item.quantity != null && item.quantity! > 0) {
                         additionalInfo = '(${item.quantity})';
                       }
-                      services.add(ServiceItem(
-                        name: taskItem.name ?? 'Service',
-                        additionalInfo: additionalInfo.isEmpty ? null : additionalInfo,
-                      ));
+                      services.add(ServiceItem(name: taskItem.name ?? 'Service', additionalInfo: additionalInfo.isEmpty ? null : additionalInfo));
                     }
                   }
                 }
@@ -152,7 +105,7 @@ class _BeautyFailedCancelledPaymentScreenState extends State<BeautyFailedCancell
                 services: services,
                 dateTime: '${DateFormatter.formatDate(bookingData.date)}, ${bookingData.time ?? 'N/A'}',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
-                grandTotal:AmountFormatter.formatDynamic(bookingData.grandTotal),
+                grandTotal: AmountFormatter.formatDynamic(bookingData.grandTotal),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
                 reason: widget.reason ?? (widget.isCancelled ? 'Payment cancelled by user' : 'Payment transaction failed'),
                 errorMessage: widget.errorMessage,
@@ -164,13 +117,7 @@ class _BeautyFailedCancelledPaymentScreenState extends State<BeautyFailedCancell
               return FailedCancelledConfirmationUI(
                 data: confirmationData,
                 onBackToHome: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NavigationScreen(initialIndex: 0),
-                    ),
-                        (route) => false,
-                  );
+                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
                 },
               );
             },

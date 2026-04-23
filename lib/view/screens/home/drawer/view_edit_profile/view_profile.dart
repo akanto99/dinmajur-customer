@@ -1,12 +1,13 @@
-
 import 'dart:typed_data';
 
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/dynamic_image_picker/dynamic_image_picker.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
@@ -35,10 +36,12 @@ class _ViewProfileState extends State<ViewProfile> {
       profileViewModel.fetchProfileViewUserDataApi();
     });
   }
+
   Future<void> _handleRefresh() async {
     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
     await profileViewModel.fetchProfileViewUserDataApi();
   }
+
   int _currentIndex = 0;
   final List<String> icons = [
     "assets/images/navBar/navbar_new/home.svg",
@@ -73,13 +76,7 @@ class _ViewProfileState extends State<ViewProfile> {
   void _callprofileImageAPI() {
     if (_selectedProfileImageData != null && _selectedProfileImageName != null) {
       final patchImagePostViewModel = Provider.of<PatchprofileImageUpdateViewModel>(context, listen: false);
-      patchImagePostViewModel.profileImageUpdatePatchApi(
-          _selectedProfileImageData!,
-          _selectedProfileImageName!,
-          "profilePicture",
-          2,
-          context
-      );
+      patchImagePostViewModel.profileImageUpdatePatchApi(_selectedProfileImageData!, _selectedProfileImageName!, "profilePicture", 2, context);
     }
   }
 
@@ -88,11 +85,7 @@ class _ViewProfileState extends State<ViewProfile> {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: body(),
-          desktop: body(),
-          tablet: body(),
-        ),
+        child: ResPonsiveUi(mobile: body(), desktop: body(), tablet: body()),
       ),
     );
   }
@@ -106,12 +99,7 @@ class _ViewProfileState extends State<ViewProfile> {
         // Header
         GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NavigationScreen(initialIndex: 0),
-              ),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
           },
           child: SizedBox(height: 60, child: AppBarHeader("My Profile")),
         ),
@@ -124,65 +112,22 @@ class _ViewProfileState extends State<ViewProfile> {
 
               switch (profileViewModel.profileviewUserData.status) {
                 case Status.LOADING:
-                  return Center(
-                    child: LoadingAnimationWidget.progressiveDots(
-                      color: AppColors.button(context),
-                      size: 45,
-                    ),
-                  );
+                  return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45));
 
                 case Status.ERROR:
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline, size: 60, color: AppColors.subtitle(context)),
-                        SizedBox(height: 16),
-                        Text(
-                          'Failed to load profile',
-                          style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
-                        ),
-                        SizedBox(height: 16),
-                        GestureDetector(
-                          onTap: () {
-                            profileViewModel.fetchProfileViewUserDataApi();
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.button(context),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.restart_alt_outlined, size: 20, color: AppColors.whiteColor),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Retry',
-                                  style: AppTextStyles.textSize14(
-                                    context,
-                                    weight: FontWeight.w600,
-                                    color: AppColors.whiteColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  return ErrorStateWidget(
+                    // errorMessage: profileViewModel.profileviewUserData.message.toString(),
+                    errorMessage: 'Failed to load profile',
+                    onRetry: () {
+                      profileViewModel.fetchProfileViewUserDataApi();
+                    },
                   );
-
                 case Status.COMPLETED:
                   print("Data: ${profileViewModel.profileviewUserData.data}");
 
                   if (profileViewModel.profileviewUserData.data?.data?.user == null) {
                     return Center(
-                      child: Text(
-                        'No data found',
-                        style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
-                      ),
+                      child: Text('No data found', style: AppTextStyles.textSize16(context, weight: FontWeight.w400)),
                     );
                   }
 
@@ -196,8 +141,7 @@ class _ViewProfileState extends State<ViewProfile> {
 
                   // Orders data
                   int totalOrders = orders?.totalOrders ?? 0;
-                  int totalSpend = orders?.totalSpend ?? 0;
-                  int totalReviews = orders?.totalReviews ?? 0;
+                  final double totalSpend = orders?.totalSpend ?? 0.0;
 
                   // Address data
                   String deliveryAddress = addresses?.fullAddress ?? 'No address set';
@@ -207,7 +151,7 @@ class _ViewProfileState extends State<ViewProfile> {
                   String? recentOrderStatus = orders?.recentOrder?.status;
                   int? recentOrderTotal = orders?.recentOrder?.total;
 
-                  return  RefreshIndicator(
+                  return RefreshIndicator(
                     onRefresh: _handleRefresh,
                     color: AppColors.textPrimary(context),
                     backgroundColor: AppColors.containerBackground(context),
@@ -220,7 +164,7 @@ class _ViewProfileState extends State<ViewProfile> {
                         child: Column(
                           children: [
                             _buildProfileCard(screenWidth, screenHeight, profileImageUrl, userName, userPhone),
-                            _buildStatsCard(screenWidth, screenHeight, totalOrders, totalSpend, totalReviews),
+                            _buildStatsCard(screenWidth, screenHeight, totalOrders, totalSpend),
                             SizedBox(height: screenHeight * 0.02),
                             _buildPersonalInformation(screenWidth, screenHeight, userPhone, userData.createdAt),
                             SizedBox(height: screenHeight * 0.02),
@@ -238,10 +182,7 @@ class _ViewProfileState extends State<ViewProfile> {
 
                 default:
                   return Center(
-                    child: Text(
-                      'Unknown state',
-                      style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                    ),
+                    child: Text('Unknown state', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                   );
               }
             },
@@ -259,10 +200,7 @@ class _ViewProfileState extends State<ViewProfile> {
 
     return Container(
       padding: EdgeInsets.all(screenHeight * 0.02),
-      decoration: BoxDecoration(
-        color: AppColors.globalBlackWhite(context),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: AppColors.globalBlackWhite(context), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
           Stack(
@@ -283,13 +221,9 @@ class _ViewProfileState extends State<ViewProfile> {
                       shape: BoxShape.circle,
                       color: AppColors.textFieldFill(context),
                       border: Border.all(width: 1, color: AppColors.button(context)),
-                      image: profileImageUrl != null && profileImageUrl.isNotEmpty
-                          ? DecorationImage(image: NetworkImage(profileImageUrl), fit: BoxFit.cover)
-                          : null,
+                      image: profileImageUrl != null && profileImageUrl.isNotEmpty ? DecorationImage(image: NetworkImage(profileImageUrl), fit: BoxFit.cover) : null,
                     ),
-                    child: profileImageUrl == null || profileImageUrl.isEmpty
-                        ? Icon(Icons.person, size: 30, color: AppColors.subtitle(context))
-                        : null,
+                    child: profileImageUrl == null || profileImageUrl.isEmpty ? Icon(Icons.person, size: 30, color: AppColors.subtitle(context)) : null,
                   ),
                 ),
               ),
@@ -301,10 +235,7 @@ class _ViewProfileState extends State<ViewProfile> {
                   child: Container(
                     height: 19,
                     width: 19,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.border(context),
-                    ),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.border(context)),
                     child: Icon(Icons.camera_alt, size: 10, color: AppColors.textPrimary(context)),
                   ),
                 ),
@@ -335,57 +266,45 @@ class _ViewProfileState extends State<ViewProfile> {
     );
   }
 
-  Widget _buildStatsCard(double screenWidth, double screenHeight, int totalOrders, int totalSpend, int totalReviews) {
+  Widget _buildStatsCard(double screenWidth, double screenHeight, int totalOrders, double totalSpend) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildStatItem(totalOrders.toString(), "Orders"),
         _buildVerticalDivider(),
-        _buildStatItem("৳${totalSpend}", "Spent"),
-        _buildVerticalDivider(),
-        _buildStatItem(totalReviews.toString(), "Reviews"),
+        _buildStatItem("৳ ${AmountFormatter.format(totalSpend)}", "Spent"),
       ],
     );
   }
+
   Widget _buildStatItem(String value, String label) {
-    final screenWidth = MediaQuery.of(context).size.width*1;
-    final screenHeight = MediaQuery.of(context).size.height*1;
+    final screenWidth = MediaQuery.of(context).size.width * 1;
+    final screenHeight = MediaQuery.of(context).size.height * 1;
     return Container(
       height: 68,
-      width: screenWidth*0.26,
+      width: screenWidth * 0.4,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          width: 1,
-          color: AppColors.border(context)
-        )
+        border: Border.all(width: 1, color: AppColors.border(context)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             value,
-            style: AppTextStyles.textSize18(context, weight: FontWeight.w500,    color: AppColors.subtitle(context),),
+            style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.subtitle(context)),
           ),
           Text(
             label,
-            style: AppTextStyles.textSize14(
-              context,
-              weight: FontWeight.w400,
-              color: AppColors.subtitle(context),
-            ),
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
           ),
         ],
-      )
+      ),
     );
   }
 
   Widget _buildVerticalDivider() {
-    return Container(
-      height: 40,
-      width: 1,
-      color: AppColors.border(context),
-    );
+    return Container(height: 40, width: 1, color: AppColors.border(context));
   }
 
   Widget _buildPersonalInformation(double screenWidth, double screenHeight, String phone, DateTime? createdAt) {
@@ -407,19 +326,13 @@ class _ViewProfileState extends State<ViewProfile> {
         children: [
           Container(
             padding: EdgeInsets.all(screenHeight * 0.02),
-            child: Text(
-              "Personal Information",
-              style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-            ),
+            child: Text("Personal Information", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
           ),
           Container(
             padding: EdgeInsets.all(screenHeight * 0.02),
             decoration: BoxDecoration(
               color: AppColors.containerBackground(context),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
               border: Border(top: BorderSide(width: 1, color: AppColors.border(context))),
             ),
             child: Column(
@@ -434,16 +347,14 @@ class _ViewProfileState extends State<ViewProfile> {
       ),
     );
   }
+
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
         Icon(icon, size: 20, color: AppColors.textPrimary(context)),
         SizedboxSpaccing.width03(context),
         Expanded(
-          child: Text(
-            text,
-            style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-          ),
+          child: Text(text, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
         ),
       ],
     );
@@ -465,10 +376,7 @@ class _ViewProfileState extends State<ViewProfile> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Delivery Address",
-                  style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-                ),
+                Text("Delivery Address", style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                 GestureDetector(
                   onTap: () {
                     Navigator.pushNamed(context, RoutesName.addlocation);
@@ -485,10 +393,7 @@ class _ViewProfileState extends State<ViewProfile> {
             padding: EdgeInsets.all(screenHeight * 0.02),
             decoration: BoxDecoration(
               color: AppColors.containerBackground(context),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
               border: Border(top: BorderSide(width: 1, color: AppColors.border(context))),
             ),
             child: Row(
@@ -497,10 +402,7 @@ class _ViewProfileState extends State<ViewProfile> {
                 Icon(Icons.location_on, size: 20, color: AppColors.subtitle(context)),
                 SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    address,
-                    style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                  ),
+                  child: Text(address, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
                 ),
               ],
             ),
@@ -526,17 +428,12 @@ class _ViewProfileState extends State<ViewProfile> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Recent Orders",
-                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-                ),
+                Text("Recent Orders", style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                 GestureDetector(
-                  onTap: (){
-
-                  },
+                  onTap: () {},
                   child: Text(
                     "View All",
-                    style: AppTextStyles.textSize12(context, weight: FontWeight.w500,     color: AppColors.button(context),),
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
                   ),
                 ),
               ],
@@ -544,19 +441,14 @@ class _ViewProfileState extends State<ViewProfile> {
           ),
 
           Container(
-              padding: EdgeInsets.all(screenHeight * 0.02),
-              decoration: BoxDecoration(
-                color: AppColors.containerBackground(context),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-                border: Border(top: BorderSide(
-                    width: 1, color: AppColors.border(context)
-                )
-                ),
-              ),
-              child: _buildOrderItem("Order #1024", "Delivered", "\$125.50")),
+            padding: EdgeInsets.all(screenHeight * 0.02),
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+              border: Border(top: BorderSide(width: 1, color: AppColors.border(context))),
+            ),
+            child: _buildOrderItem("Order #1024", "Delivered", "\$125.50"),
+          ),
         ],
       ),
     );
@@ -564,52 +456,39 @@ class _ViewProfileState extends State<ViewProfile> {
 
   Widget _buildOrderItem(String orderId, String status, String amount) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(8)),
       child: Row(
         children: [
           Container(
             height: 40,
             width: 40,
-            decoration: BoxDecoration(
-              color: AppColors.textFieldFill(context),
-              borderRadius: BorderRadius.circular(8),
-            ),
+            decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(8)),
             child: Icon(Icons.shopping_bag, color: AppColors.subtitle(context)),
           ),
-        SizedboxSpaccing.width03(context),
+          SizedboxSpaccing.width03(context),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   orderId,
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.textPrimary(context)),
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
                 ),
                 Text(
                   status,
-                  style: AppTextStyles.textSize12(
-                    context,
-                    weight: FontWeight.w400,
-                    color: AppColors.subtitle(context),
-                  ),
+                  style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                 ),
               ],
             ),
           ),
-          Text(
-            amount,
-            style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-          ),
+          Text(amount, style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
         ],
       ),
     );
   }
 
   Widget _buildBackButton(double screenWidth) {
-    return           GestureDetector(
+    return GestureDetector(
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
       },
@@ -637,13 +516,7 @@ class _ViewProfileState extends State<ViewProfile> {
       height: 60,
       decoration: BoxDecoration(
         color: AppColors.globalBlackWhite(context),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white12.withOpacity(0.02) : Colors.white10,
-            blurRadius: 10,
-            offset: Offset(0, -2),
-          )
-        ],
+        boxShadow: [BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? Colors.white12.withOpacity(0.02) : Colors.white10, blurRadius: 10, offset: Offset(0, -2))],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -665,21 +538,11 @@ class _ViewProfileState extends State<ViewProfile> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(
-                        icons[index],
-                        width: 20,
-                        height: 20,
-                        color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                        semanticsLabel: labels[index],
-                      ),
+                      SvgPicture.asset(icons[index], width: 20, height: 20, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context), semanticsLabel: labels[index]),
                       const SizedBox(height: 6),
                       Text(
                         labels[index],
-                        style: AppTextStyles.textSize12(
-                          context,
-                          weight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                          color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                        ),
+                        style: AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w500 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context)),
                       ),
                     ],
                   ),

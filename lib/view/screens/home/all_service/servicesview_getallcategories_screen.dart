@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
@@ -33,9 +34,17 @@ class ServicesViewScreen extends StatefulWidget {
   final bool isFromHome;
   final Map<String, dynamic>? customerLocation;
 
-  const ServicesViewScreen({Key? key, required this.serviceId, required this.customerName, required this.customerPhone, required this.customerAddress, required this.serviceName,required this.description, this.isFromHome =
-  false, this.customerLocation})
-    : super(key: key);
+  const ServicesViewScreen({
+    Key? key,
+    required this.serviceId,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+    required this.serviceName,
+    required this.description,
+    this.isFromHome = false,
+    this.customerLocation,
+  }) : super(key: key);
 
   @override
   State<ServicesViewScreen> createState() => _ServicesViewScreenState();
@@ -186,24 +195,14 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
               }
 
               if (status == Status.ERROR) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text('Failed to load services', style: AppTextStyles.textSize16(context, color: Colors.red)),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => viewModel.fetchServicesViewGetAllCategoriesGetApi(widget.serviceId),
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
+                return ErrorStateWidget(
+                  // errorMessage: viewModel.servicesViewGetAllCategoryData.message.toString(),
+                  errorMessage: 'Failed to load services',
+                  onRetry: () {
+                    viewModel.fetchServicesViewGetAllCategoriesGetApi(widget.serviceId);
+                  },
                 );
               }
-
               if (categories.isEmpty) {
                 return Center(
                   child: Text('No categories found', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
@@ -317,7 +316,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         child: Center(
           child: Container(
             width: screenWidth * 0.9,
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
               color: AppColors.containerBackground(context),
               border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
@@ -349,7 +348,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
               child: DynamicServiceCard(
                 imageUrl: imageUrl,
                 defaultIcon: Icons.home_repair_service_outlined,
-                serviceName: task.name ?? '',
+                serviceName: task.name ?? 'test',
                 viewDetailsText: 'View Task Details',
                 onViewDetails: () => _showTaskDetailsDialog(task),
                 discountedPrice: salePrice,
@@ -423,15 +422,12 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
   }
 
   // ── Task details dialog ──
-// ── Task details dialog ── (replace the existing _showTaskDetailsDialog method)
+  // ── Task details dialog ── (replace the existing _showTaskDetailsDialog method)
   void _showTaskDetailsDialog(Task task) {
-    final imageUrl = task.images != null && task.images!.isNotEmpty
-        ? task.images!.first.url
-        : null;
+    final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
     final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
     final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
-    final bool showDiscount =
-        task.price?.discountType != DiscountType.NONE && originalPrice > salePrice;
+    final bool showDiscount = task.price?.discountType != DiscountType.NONE && originalPrice > salePrice;
 
     showDialog(
       context: context,

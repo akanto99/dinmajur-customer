@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
@@ -37,7 +38,16 @@ class BookNowHomeBeautySalonScreen extends StatefulWidget {
   final bool isFromHome;
   final Map<String, dynamic>? customerLocation;
 
-  const BookNowHomeBeautySalonScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress, required this.serviceName,required this.description, this.isFromHome = false,    this.customerLocation, }) : super(key: key);
+  const BookNowHomeBeautySalonScreen({
+    Key? key,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+    required this.serviceName,
+    required this.description,
+    this.isFromHome = false,
+    this.customerLocation,
+  }) : super(key: key);
 
   @override
   State<BookNowHomeBeautySalonScreen> createState() => _BookNowHomeBeautySalonScreenState();
@@ -208,24 +218,14 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
               }
 
               if (hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      SizedBox(height: 16),
-                      Text('Failed to load services', style: AppTextStyles.textSize16(context, color: Colors.red)),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => viewModel.fetchGetAllPermiumHomeBeautySalonGetDataApi(),
-                        child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
-                      ),
-                    ],
-                  ),
+                return ErrorStateWidget(
+                  // errorMessage: viewModel.getAllPremiumHomeBeautySalonData.message.toString(),
+                  errorMessage: 'Failed to load services',
+                  onRetry: () {
+                    viewModel.fetchGetAllPermiumHomeBeautySalonGetDataApi();
+                  },
                 );
               }
-
               return CustomScrollView(
                 controller: _mainScrollController,
                 slivers: [
@@ -247,11 +247,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                                     ),
                                     TextSpan(
                                       text: " Home ${widget.serviceName}",
-                                      style: AppTextStyles.textSize20(
-                                        context,
-                                        weight: FontWeight.w600,
-                                        color: Color(0xffD78503),
-                                      ),
+                                      style: AppTextStyles.textSize20(context, weight: FontWeight.w600, color: Color(0xffD78503)),
                                     ),
                                   ],
                                 ),
@@ -594,8 +590,14 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                 ],
                 // Add to Cart Button
                 if (quantity == 0)
-                  RoundButtonFlexible(height: 42, showRightIcon: false, backgroundColor: AppColors.textPrimary(context), title: 'Add to Cart',textColor: AppColors.textSecondary(context), onPress: () => _updateQuantity
-                    (service.id ?? '', 1))
+                  RoundButtonFlexible(
+                    height: 42,
+                    showRightIcon: false,
+                    backgroundColor: AppColors.textPrimary(context),
+                    title: 'Add to Cart',
+                    textColor: AppColors.textSecondary(context),
+                    onPress: () => _updateQuantity(service.id ?? '', 1),
+                  )
                 else
                   Container(
                     height: 42,
@@ -741,7 +743,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
         'customerName': widget.customerName,
         'customerPhone': widget.customerPhone,
         'customerAddress': _currentCustomerAddress,
-        'customerLocation': _customerLocation,   // ✅ now session location if edited
+        'customerLocation': _customerLocation, // ✅ now session location if edited
         'userId': userId,
         'categories': categories,
         'serviceQuantities': _serviceQuantities,

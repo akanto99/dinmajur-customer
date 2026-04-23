@@ -15,7 +15,9 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/banner_widegt
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/trending_service_widget/trending_service_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/banner_view_model/banner_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -83,6 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final bannerViewModel = Provider.of<BannerViewModel>(context, listen: false);
       bannerViewModel.fetchBannerData();
+
+      final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
+      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69e9c31d4e73ab81c3fec86e");
     });
   }
 
@@ -95,6 +100,9 @@ class _HomeScreenState extends State<HomeScreen> {
       allServiceViewModel.fetchGetAllServices();
       final bannerViewModel = Provider.of<BannerViewModel>(context, listen: false);
       bannerViewModel.fetchBannerData();
+
+      final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
+      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69e9c31d4e73ab81c3fec86e");
 
       if (_showRetailNearest) {
         await _fetchNearbyRetailers('Retail');
@@ -444,8 +452,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       currentAddress: _currentAddress,
                     ),
                   ],
-
+                  TrendingServicesWidget(
+                    hasValidLocation: _hasValidLocation(),
+                    onLocationRequired: _showLocationRequiredDialog,
+                  ),
                   SizedboxSpaccing.height02(context),
+
                 ],
               ),
             ),
