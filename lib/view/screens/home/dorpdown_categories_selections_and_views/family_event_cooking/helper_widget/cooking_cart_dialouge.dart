@@ -66,14 +66,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   originalPrice = package.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
                 }
 
-                cartItems.add({
-                  'package': package,
-                  'category': category,
-                  'item': null,
-                  'salePrice': salePrice,
-                  'originalPrice': originalPrice,
-                  'type': 'REGULAR'
-                });
+                cartItems.add({'package': package, 'category': category, 'item': null, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'REGULAR'});
                 break;
               }
             }
@@ -91,14 +84,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   originalPrice = item.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
                 }
 
-                cartItems.add({
-                  'package': package,
-                  'category': category,
-                  'item': item,
-                  'salePrice': salePrice,
-                  'originalPrice': originalPrice,
-                  'type': 'MANUAL'
-                });
+                cartItems.add({'package': package, 'category': category, 'item': item, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'MANUAL'});
               }
             }
           }
@@ -111,14 +97,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                 final salePrice = package.customPrice?.salePrice?.toDouble() ?? 0;
                 final originalPrice = package.customPrice?.originalPrice?.toDouble() ?? 0;
 
-                cartItems.add({
-                  'package': package,
-                  'category': category,
-                  'item': null,
-                  'salePrice': salePrice,
-                  'originalPrice': originalPrice,
-                  'type': 'CUSTOM'
-                });
+                cartItems.add({'package': package, 'category': category, 'item': null, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'CUSTOM'});
                 break;
               }
             }
@@ -200,7 +179,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
 
   Widget _buildCartItemsList(BuildContext context, List<Map<String, dynamic>> cartItems, double screenWidth) {
     return Flexible(
-      fit: FlexFit.loose,  // This allows it to shrink to content size
+      fit: FlexFit.loose, // This allows it to shrink to content size
       child: SingleChildScrollView(
         child: Container(
           width: screenWidth * 0.87,
@@ -234,6 +213,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       ),
     );
   }
+
   Widget _buildCartItem(BuildContext context, Map<String, dynamic> item, double screenWidth) {
     // FIXED: Cast to Package instead of Datum
     final package = item['package'] as Package;
@@ -251,12 +231,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       padding: EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.containerBackground(context),
-        border: Border(
-          bottom: BorderSide(
-            width: 1,
-              color: AppColors.border(context)
-          )
-        ),
+        border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,14 +315,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
               children: [
                 Text(
                   'You Saved BDT ${AmountFormatter.format(saved)} in This Order!',
-                  style: AppTextStyles.textSize12(
-                    context,
-                    color: Colors.red,
-                    weight: FontWeight.w400,
-                  ).copyWith(
-                    decoration: TextDecoration.underline,
-                    decorationColor: Colors.red,
-                  ),
+                  style: AppTextStyles.textSize12(context, color: Colors.red, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline, decorationColor: Colors.red),
                 ),
                 Text(
                   '৳${AmountFormatter.format(originalTotal)}',
@@ -387,12 +355,12 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             children: serviceTimeSlots
                 .map(
                   (time) => Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(right: time == serviceTimeSlots.first ? 5 : 0, left: time == serviceTimeSlots.last ? 5 : 0),
-                  child: _serviceTimeButton(context, time),
-                ),
-              ),
-            )
+                    child: Padding(
+                      padding: EdgeInsets.only(right: time == serviceTimeSlots.first ? 5 : 0, left: time == serviceTimeSlots.last ? 5 : 0),
+                      child: _serviceTimeButton(context, time),
+                    ),
+                  ),
+                )
                 .toList(),
           ),
           SizedboxSpaccing.height015(context),
@@ -408,7 +376,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       child: Container(
         height: 40,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.button(context) : AppColors.containerBackground(context),
+          color: isSelected ? AppColors.button(context) : AppColors.fieldColor(context),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 1),
         ),
@@ -427,8 +395,8 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       padding: EdgeInsets.all(15),
       child: GestureDetector(
         onTap: () {
-          if (total < 600) {
-            Utils.flushBarExclamatoryMessage(title: "Warning", subtitle: "Minimum order amount is BDT 600 to proceed!", context: context);
+          if (total < 299) {
+            Utils.flushBarExclamatoryMessage(title: "Warning", subtitle: "Minimum order amount is BDT 299 to proceed!", context: context);
             return;
           }
 

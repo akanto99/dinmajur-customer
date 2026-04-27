@@ -1,5 +1,6 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/confirm_cancel_failed_component/cancel_failed_component.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
@@ -20,14 +21,7 @@ class ServiceFailedScreen extends StatefulWidget {
   final String? errorMessage;
   final bool isCancelled; // true = cancelled, false = failed
 
-  const ServiceFailedScreen({
-    Key? key,
-    this.trackingId,
-    this.valId,
-    this.reason,
-    this.errorMessage,
-    this.isCancelled = false,
-  }) : super(key: key);
+  const ServiceFailedScreen({Key? key, this.trackingId, this.valId, this.reason, this.errorMessage, this.isCancelled = false}) : super(key: key);
 
   @override
   State<ServiceFailedScreen> createState() => _ServiceFailedScreenState();
@@ -50,11 +44,7 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
       body: SafeArea(
-        child: ResPonsiveUi(
-          mobile: _body(),
-          desktop: _body(),
-          tablet: _body(),
-        ),
+        child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
       ),
     );
   }
@@ -64,10 +54,7 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Container(
-            height: 60,
-            child: AppBarHeader(widget.isCancelled ? "Payment Cancelled" : "Payment Failed"),
-          ),
+          child: Container(height: 60, child: AppBarHeader(widget.isCancelled ? "Payment Cancelled" : "Payment Failed")),
         ),
         Expanded(
           child: Consumer<GetServiceConfirmationDetailsViewModel>(
@@ -75,68 +62,34 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
               final status = viewModel.getServiceData.status;
 
               if (status == Status.LOADING) {
-                return Center(
-                  child: LoadingAnimationWidget.progressiveDots(
-                    color: AppColors.button(context),
-                    size: 50,
-                  ),
-                );
+                return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
               }
 
               if (status == Status.ERROR) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      SizedBox(height: 16),
-                      Text(
-                        'Failed to load booking details',
-                        style: AppTextStyles.textSize16(context, color: Colors.red),
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (widget.trackingId != null) {
-                            viewModel.fetchGetServiceDataApi(widget.trackingId!);
-                          }
-                        },
-                        child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.button(context),
-                        ),
-                      ),
-                    ],
-                  ),
+                return ErrorStateWidget(
+                  // errorMessage: viewModel.getServiceData.message.toString(),
+                  errorMessage: 'Failed to load booking details',
+                  onRetry: () {
+                    viewModel.fetchGetServiceDataApi(widget.trackingId!);
+                  },
                 );
               }
-
               final bookingData = viewModel.getServiceData.data?.data;
               if (bookingData == null) {
-                return Center(
-                  child: Text(
-                    'No booking data available',
-                    style: AppTextStyles.textSize16(context),
-                  ),
-                );
+                return Center(child: Text('No booking data available', style: AppTextStyles.textSize16(context)));
               }
 
               // Prepare service items
               List<ServiceItem> services = [];
-              if (bookingData.bookingItems != null &&
-                  bookingData.bookingItems!.isNotEmpty) {
+              if (bookingData.bookingItems != null && bookingData.bookingItems!.isNotEmpty) {
                 for (var item in bookingData.bookingItems!) {
                   if (item.task?.name != null) {
                     String additionalInfo = '';
-                      additionalInfo = '(${item.quantity})';
-                    services.add(ServiceItem(
-                      name: item.task!.name!,
-                      additionalInfo: additionalInfo.isEmpty ? null : additionalInfo,
-                    ));
+                    additionalInfo = '(${item.quantity})';
+                    services.add(ServiceItem(name: item.task!.name!, additionalInfo: additionalInfo.isEmpty ? null : additionalInfo));
                   }
                 }
               }
-
 
               // Create failed/cancelled confirmation data
               final confirmationData = FailedCancelledConfirmationData(
@@ -148,7 +101,7 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
                 services: services,
                 dateTime: '${DateFormatter.formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
-                grandTotal:AmountFormatter.formatDynamic(bookingData.grandTotal),
+                grandTotal: AmountFormatter.formatDynamic(bookingData.grandTotal),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
                 reason: widget.reason ?? (widget.isCancelled ? 'Payment cancelled by user' : 'Payment transaction failed'),
                 errorMessage: widget.errorMessage,
@@ -160,13 +113,7 @@ class _ServiceFailedScreenState extends State<ServiceFailedScreen> {
               return FailedCancelledConfirmationUI(
                 data: confirmationData,
                 onBackToHome: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NavigationScreen(initialIndex: 0),
-                    ),
-                        (route) => false,
-                  );
+                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
                 },
               );
             },

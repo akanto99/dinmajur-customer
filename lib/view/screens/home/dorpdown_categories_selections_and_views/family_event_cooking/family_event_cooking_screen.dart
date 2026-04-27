@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
@@ -31,9 +32,18 @@ class FamilyEventCookingScreen extends StatefulWidget {
   final String serviceName;
   final String description;
   final bool isFromHome;
-    final Map<String, dynamic>? customerLocation;
+  final Map<String, dynamic>? customerLocation;
 
-  const FamilyEventCookingScreen({Key? key, required this.customerName, required this.customerPhone, required this.customerAddress,required this.serviceName,required this.description, this.isFromHome = false, this.customerLocation}) : super(key: key);
+  const FamilyEventCookingScreen({
+    Key? key,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerAddress,
+    required this.serviceName,
+    required this.description,
+    this.isFromHome = false,
+    this.customerLocation,
+  }) : super(key: key);
 
   @override
   State<FamilyEventCookingScreen> createState() => _FamilyEventCookingScreenState();
@@ -54,7 +64,6 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   String? _activeCategoryId; // Track which category has active selections
 
   late String _currentCustomerAddress;
-
 
   bool _isCurrentTabCustom(List<Datum> data) {
     final safeIndex = _selectedTabIndex.clamp(0, data.length - 1);
@@ -101,6 +110,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     _mainScrollController.dispose();
     super.dispose();
   }
+
   // For REGULAR type packages
   void _togglePackageSelection(String categoryId, String packageId) {
     setState(() {
@@ -311,21 +321,12 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
               }
 
               if (hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      SizedBox(height: 16),
-                      Text('Failed to load services', style: AppTextStyles.textSize16(context, color: Colors.red)),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => viewModel.fetchGetAllFamilyEventCookingGetDataApi(),
-                        child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
-                      ),
-                    ],
-                  ),
+                return ErrorStateWidget(
+                  // errorMessage: viewModel.getAllFamilyEventCookingData.message.toString(),
+                  errorMessage: "Failed to load services",
+                  onRetry: () {
+                    viewModel.fetchGetAllFamilyEventCookingGetDataApi();
+                  },
                 );
               }
 
@@ -394,11 +395,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                               _selectedManualItems.clear();
                               _activeCategoryId = null;
                             });
-                            _mainScrollController.animateTo(
-                              0,
-                              duration: Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
+                            _mainScrollController.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
                           },
                           getName: (category) => category.name ?? '',
                           getImageUrl: (category) => category.image?.url ?? null,
@@ -414,12 +411,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           supportSvg: false,
                         ),
                         // Guest range hidden for CUSTOM
-                        if (!isCustomTab)
-                          ...[
-                            _buildGuestRangeSelector(screenWidth, data),
-
-                            SizedboxSpaccing.height02(context),
-                          ],
+                        if (!isCustomTab) ...[_buildGuestRangeSelector(screenWidth, data), SizedboxSpaccing.height02(context)],
 
                         // Info Banner
                         Container(
@@ -505,9 +497,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                   _buildSelectedCategorySliver(data, screenWidth),
 
                   // Bottom Padding
-                  SliverToBoxAdapter(
-                    child: SizedBox(height: screenHeight * .5),
-                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: screenHeight * .5)),
                 ],
               );
             },
@@ -576,45 +566,41 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
           SizedBox(height: 12),
           Container(
             height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.button(context),
-              borderRadius: BorderRadius.circular(25),
-            ),
+            decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(25)),
             child: guestRanges.length <= visibleCount
-            // No scrolling needed
+                // No scrolling needed
                 ? Padding(
-              padding: EdgeInsets.all(4),
-              child: Row(
-                children: List.generate(guestRanges.length, (index) {
-                  final isSelected = _selectedGuestRangeIndex == index;
-                  return Expanded(
-                    child: _buildRangeTab(index, guestRanges[index].label ?? '', isSelected),
-                  );
-                }),
-              ),
-            )
-            // Scrollable
+                    padding: EdgeInsets.all(4),
+                    child: Row(
+                      children: List.generate(guestRanges.length, (index) {
+                        final isSelected = _selectedGuestRangeIndex == index;
+                        return Expanded(child: _buildRangeTab(index, guestRanges[index].label ?? '', isSelected));
+                      }),
+                    ),
+                  )
+                // Scrollable
                 : NotificationListener<ScrollNotification>(
-              onNotification: (_) => false,
-              child: ListView.builder(
-                controller: _rangeScrollController,
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.all(4),
-                itemCount: guestRanges.length,
-                itemBuilder: (context, index) {
-                  final isSelected = _selectedGuestRangeIndex == index;
-                  return SizedBox(
-                    width: itemWidth - (8 / visibleCount), // account for padding
-                    child: _buildRangeTab(index, guestRanges[index].label ?? '', isSelected),
-                  );
-                },
-              ),
-            ),
+                    onNotification: (_) => false,
+                    child: ListView.builder(
+                      controller: _rangeScrollController,
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.all(4),
+                      itemCount: guestRanges.length,
+                      itemBuilder: (context, index) {
+                        final isSelected = _selectedGuestRangeIndex == index;
+                        return SizedBox(
+                          width: itemWidth - (8 / visibleCount), // account for padding
+                          child: _buildRangeTab(index, guestRanges[index].label ?? '', isSelected),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
     );
   }
+
   Widget _buildRangeTab(int index, String label, bool isSelected) {
     return GestureDetector(
       onTap: () {
@@ -623,18 +609,11 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       },
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 2),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.whiteColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
-        ),
+        decoration: BoxDecoration(color: isSelected ? AppColors.whiteColor : Colors.transparent, borderRadius: BorderRadius.circular(25)),
         child: Center(
           child: Text(
             label,
-            style: AppTextStyles.textSize14(
-              context,
-              weight: FontWeight.w600,
-              color: isSelected ? AppColors.blackColor : AppColors.whiteColor,
-            ),
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: isSelected ? AppColors.blackColor : AppColors.whiteColor),
           ),
         ),
       ),
@@ -657,14 +636,9 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             padding: EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.containerBackground(context),
-              border: Border(
-                bottom: BorderSide(width: 1, color: AppColors.border(context)),
-              ),
+              border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
             ),
-            child: Text(
-              category.name ?? '',
-              style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-            ),
+            child: Text(category.name ?? '', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
           ),
         ),
       ),
@@ -736,11 +710,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 if (package.items != null && package.items!.isNotEmpty) ...[
                   SizedBox(height: 8),
                   ...package.items!.map(
-                        (item) => Padding(
+                    (item) => Padding(
                       padding: EdgeInsets.only(bottom: 4),
                       child: Text(
                         // '${package.items!.indexOf(item) + 1}. '
-                          '${item.name ?? ''}', style: AppTextStyles.textSize14(context)),
+                        '${item.name ?? ''}',
+                        style: AppTextStyles.textSize14(context),
+                      ),
                     ),
                   ),
                 ],
@@ -750,7 +726,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
 
           // Package Selection Image - Pass Package instead of Datum
           FamilyEventCookingPackageImage(
-            imageUrl:package.image?.url,
+            imageUrl: package.image?.url,
             isSelected: isSelected,
             canSelect: canSelect,
             onToggle: () => _togglePackageSelection(category.id ?? '', package.id ?? ''),
@@ -890,7 +866,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                 if (package.items != null && package.items!.isNotEmpty) ...[
                   SizedBox(height: 8),
                   ...package.items!.map(
-                        (item) => Padding(
+                    (item) => Padding(
                       padding: EdgeInsets.only(bottom: 4),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -901,17 +877,9 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                             Html(
                               data: item.description!,
                               style: {
-                                "body": Style(
-                                  margin: Margins.zero,
-                                  padding: HtmlPaddings.zero,
-                                ),
-                                "h1,h2,h3,h4,h5,h6": Style(
-                                  margin: Margins.zero,
-                                ),
-                                "p": Style(
-                                  margin: Margins.zero,
-                                  padding: HtmlPaddings.zero,
-                                ),
+                                "body": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
+                                "h1,h2,h3,h4,h5,h6": Style(margin: Margins.zero),
+                                "p": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
                                 "ul": Style(
                                   margin: Margins.zero,
                                   padding: HtmlPaddings.only(left: 15), // control list indent
@@ -920,12 +888,9 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                                   margin: Margins.zero,
                                   padding: HtmlPaddings.only(left: 15), // control numbering alignment
                                 ),
-                                "li": Style(
-                                  margin: Margins.zero,
-                                  padding: HtmlPaddings.zero,
-                                ),
+                                "li": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
                               },
-                            )
+                            ),
                         ],
                       ),
                     ),
@@ -957,10 +922,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     if (_isRamadanIftarCategory()) {
       final selectedCount = _getSelectedManualItemCount();
       if (selectedCount < 8) {
-        Utils.flushBarErrorMessage(
-          'Ramadan Iftar items should be at least 8 items (currently $selectedCount selected)',
-          context,
-        );
+        Utils.flushBarErrorMessage('Ramadan Iftar items should be at least 8 items (currently $selectedCount selected)', context);
         return;
       }
     }
@@ -993,6 +955,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       ),
     );
   }
+
   void _navigateCheckOutScreen() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId') ?? '';
@@ -1010,7 +973,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     final categories = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
     final transportFeeValue = viewModel.getAllFamilyEventCookingData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
 
-        final sessionData = await CheckoutSessionLocationService.getAll();
+    final sessionData = await CheckoutSessionLocationService.getAll();
     if (sessionData.location != null && sessionData.address != null) {
       setState(() {
         _customerLocation = sessionData.location;
@@ -1026,7 +989,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         'customerName': widget.customerName,
         'customerPhone': widget.customerPhone,
         'customerAddress': _currentCustomerAddress,
-        'customerLocation': _customerLocation,   // ✅ now session location if edited
+        'customerLocation': _customerLocation, // ✅ now session location if edited
         'userId': userId,
         'categories': categories,
         'selectedPackages': _selectedPackages,
@@ -1056,30 +1019,22 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
       });
     }
   }
+
   Widget _buildEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.restaurant_menu_outlined,
-            size: 60,
-            color: AppColors.textPrimary(context).withOpacity(0.3),
-          ),
+          Icon(Icons.restaurant_menu_outlined, size: 60, color: AppColors.textPrimary(context).withOpacity(0.3)),
           SizedBox(height: 24),
           Text(
             'No Packages Available',
-            style: AppTextStyles.textSize18(context,
-                weight: FontWeight.w600,
-                color: AppColors.textPrimary(context)
-            ),
+            style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
           ),
           SizedBox(height: 12),
           Text(
             'Please check back later for cooking packages',
-            style: AppTextStyles.textSize14(context,
-                color: AppColors.subtitle(context)
-            ),
+            style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
             textAlign: TextAlign.center,
           ),
         ],

@@ -103,7 +103,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
             return Container(
-              height: 220,
+              height: 210,
               color: AppColors.containerBackground(context),
               child: Center(
                 child: Container(height: 15, width: 50, child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 45)),
@@ -112,7 +112,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
           case Status.ERROR:
             return Container(
-              height: 220,
+              height: 210,
               color: AppColors.containerBackground(context),
               child: Center(
                 child: GestureDetector(
@@ -144,7 +144,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             String userPhone = userData.phone ?? '0';
 
             return Container(
-              height: 220,
+              height: 210,
               decoration: BoxDecoration(
                 color: AppColors.containerBackground(context),
                 border: Border(bottom: BorderSide(color: AppColors.border(context), width: 1.0)),
@@ -232,12 +232,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 child: _buildDrawerItem(Icons.local_offer_outlined, AppLocalizations.of(context)!.offers),
               ),
 
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, RoutesName.review);
-                },
-                child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
-              ),
+              // GestureDetector(
+              //   onTap: () {
+              //     Navigator.pushNamed(context, RoutesName.review);
+              //   },
+              //   child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
+              // ),
               GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, RoutesName.support);

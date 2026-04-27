@@ -34,6 +34,10 @@ class AppColors {
       Theme.of(context).brightness == Brightness.dark
           ? Colors.grey[900]!
           : const Color(0xffF9F7F6);
+  static Color fieldColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ?  Colors.white.withOpacity(0.1)
+          :  Colors.white;
 ///textFiled hint
   static Color hintColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
@@ -59,7 +63,7 @@ class AppColors {
           : Colors.white;
   static Color showDialougeBackground(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-          ? Colors.white.withOpacity(0.1)
+          ? Colors.white.withOpacity(0.2)
           : Colors.black.withOpacity(0.5);
 
 ///button bg /Branding

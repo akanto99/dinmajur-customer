@@ -425,7 +425,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           break;
 
         default:
-          // Fallback for any other slug
+      print(service.id);
           Navigator.pushNamed(
             context,
             RoutesName.servicesViewScreen,
@@ -469,7 +469,15 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                     style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                   ),
                   SizedboxSpaccing.height025(context),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: List.generate(3, (_) => _buildShimmerCard(context))),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(3, (_) => _buildShimmerCard(context)),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(3, (_) => _buildShimmerCard(context)),
+                  ),
                 ],
               ),
             );
@@ -505,27 +513,32 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
   }
 
   Widget _buildServicesGrid(BuildContext context, List<Datum> services) {
+    // Filter out instant-bazar
+    final filteredServices = services.where((s) => s.slug != 'trending-services').toList();
+
     List<Widget> rows = [];
 
-    for (int i = 0; i < services.length; i += 3) {
-      final rowItems = services.skip(i).take(3).toList();
+    for (int i = 0; i < filteredServices.length; i += 3) {
+      final rowItems = filteredServices.skip(i).take(3).toList();
 
       rows.add(
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [...rowItems.map((service) => _buildServiceCard(context, service)), ...List.generate(3 - rowItems.length, (_) => const SizedBox(width: 100))],
+          children: [
+            ...rowItems.map((service) => _buildServiceCard(context, service)),
+            ...List.generate(3 - rowItems.length, (_) => const SizedBox(width: 100)),
+          ],
         ),
       );
 
-      if (i + 3 < services.length) {
+      if (i + 3 < filteredServices.length) {
         rows.add(const SizedBox(height: 24));
       }
     }
 
     return Column(children: rows);
   }
-
   Widget _buildServiceCard(BuildContext context, Datum service) {
     final isSelected = widget.selectedServiceId == service.id;
 

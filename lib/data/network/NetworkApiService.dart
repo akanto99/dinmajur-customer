@@ -8,6 +8,8 @@ import 'package:dinmajur_customer/configs/services/session_expired_services/sess
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
+import 'package:dinmajur_customer/data/network/service_reconnector.dart';
+import 'package:dinmajur_customer/data/network/token_manager.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_provider.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
@@ -20,9 +22,9 @@ import '../app_excaptions.dart';
 import 'BaseApiServices.dart';
 
 class NetworkApiService extends BaseApiServices {
-  static bool _isRefreshing = false;
-  static List<Completer<String?>> _refreshQueue = [];
-  static Map<String, int> _retryAttempts = {};
+  final TokenManager _tokenManager = TokenManager();
+  final ServiceReconnector _serviceReconnector = ServiceReconnector();
+  final Map<String, int> _retryAttempts = {};
   static const int _maxRetries = 2;
 
   /// All Get Api Response
@@ -49,11 +51,8 @@ class NetworkApiService extends BaseApiServices {
     dynamic responseJson;
     try {
       final authHeaders = await _getAuthHeaders(headers);
-
       final response = await http.get(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
-
       responseJson = await _handleResponse(response, url, () => getGetApiWithHeaderResponse(url, headers: headers));
-      print("-----${response.body}");
     } on SocketException {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
@@ -65,8 +64,6 @@ class NetworkApiService extends BaseApiServices {
   @override
   Future getPostApiResponse(String url, dynamic data) async {
     dynamic responseJson;
-    print(responseJson);
-    print("A");
     try {
       Response response = await post(Uri.parse(url), body: data).timeout(Duration(seconds: 30));
       print(response.body);
@@ -84,9 +81,7 @@ class NetworkApiService extends BaseApiServices {
   Future getPostApiWithOutBodyresponse(String url, {Map<String, String>? headers}) async {
     try {
       final authHeaders = await _getAuthHeaders(headers);
-
       final response = await http.post(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
-
       return await _handleResponse(response, url, () => getPostApiWithOutBodyresponse(url, headers: headers));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -96,17 +91,12 @@ class NetworkApiService extends BaseApiServices {
   }
 
   ///Corrected
-  // ✅ Fetch auth headers fresh each time (including on retries)
-  // ✅ Pass null for headers so retry will fetch fresh headers
   @override
   Future gePostApiWithHeaderesponse(String url, dynamic data, {Map<String, String>? headers}) async {
     try {
-      // ✅ Fetch auth headers fresh each time (including on retries)
       final authHeaders = await _getAuthHeaders(headers);
       final response = await http.post(Uri.parse(url), body: jsonEncode(data), headers: authHeaders).timeout(const Duration(seconds: 30));
-      // ✅ Pass null for headers so retry will fetch fresh headers
-      return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data), // Don't pass old headers
-      );
+      return await _handleResponse(response, url, () => gePostApiWithHeaderesponse(url, data));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
@@ -151,10 +141,7 @@ class NetworkApiService extends BaseApiServices {
       if (headers != null) {
         request.headers.addAll(headers);
       }
-      // Add the imageType field
       request.fields['imageType'] = imageType;
-
-      // Determine content type based on file extension
       MediaType contentType = _getContentType(fileName);
       var multipartFile = http.MultipartFile.fromBytes('image', imageBytes, filename: fileName, contentType: contentType);
       request.files.add(multipartFile);
@@ -171,39 +158,24 @@ class NetworkApiService extends BaseApiServices {
   /// Document PDF image upload with documentType field
   @override
   Future<dynamic> documentPdfImageMultipartPostApiResponse(
-      String url,
-      Uint8List pdfImageBytes,
-      String documentType,
-      String fileName, { // Accept filename as parameter
-        Map<String, String>? headers,
-      }) async {
+    String url,
+    Uint8List pdfImageBytes,
+    String documentType,
+    String fileName, { // Accept filename as parameter
+    Map<String, String>? headers,
+  }) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse(url));
 
       if (headers != null) {
         request.headers.addAll(headers);
       }
-
-      // Add the documentType field
       request.fields['documentType'] = documentType;
-
-      // Determine content type based on file extension
       MediaType contentType = _getContentType(fileName);
-
-      // Add the file with 'document' key and dynamic filename
-      var multipartFile = http.MultipartFile.fromBytes(
-        'document',
-        pdfImageBytes,
-        filename: fileName, // Use the dynamic filename
-        contentType: contentType, // Use appropriate content type
-      );
-
+      var multipartFile = http.MultipartFile.fromBytes('document', pdfImageBytes, filename: fileName, contentType: contentType);
       request.files.add(multipartFile);
-
       var streamedResponse = await request.send().timeout(const Duration(seconds: 30));
       var response = await http.Response.fromStream(streamedResponse);
-      print("---Status: ${response.statusCode}");
-      print("---Response: ${response.body}");
       return returnResponse(response);
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -252,16 +224,8 @@ class NetworkApiService extends BaseApiServices {
     dynamic responseJson;
     try {
       final authHeaders = await _getAuthHeaders(headers);
-      final response = await http
-          .patch(
-        Uri.parse(url),
-        headers: authHeaders,
-        body: jsonEncode(data),
-      )
-          .timeout(const Duration(seconds: 30));
-      print(" ${response.statusCode}");
-      print(" ${response.body}");
-      responseJson = await _handleResponse(response, url, () => getPatchApiResponse(url, data, ));
+      final response = await http.patch(Uri.parse(url), headers: authHeaders, body: jsonEncode(data)).timeout(const Duration(seconds: 30));
+      responseJson = await _handleResponse(response, url, () => getPatchApiResponse(url, data));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
@@ -277,13 +241,8 @@ class NetworkApiService extends BaseApiServices {
     dynamic responseJson;
     try {
       final authHeaders = await _getAuthHeaders(headers);
-
-      http.Response response = await http
-          .post(
-          Uri.parse(url), body: jsonEncode(data), headers: authHeaders
-      )
-          .timeout(const Duration(seconds: 30));
-      responseJson = await _handleResponse(response, url, () => getsamePostApiResponse(url, data,));
+      http.Response response = await http.post(Uri.parse(url), body: jsonEncode(data), headers: authHeaders).timeout(const Duration(seconds: 30));
+      responseJson = await _handleResponse(response, url, () => getsamePostApiResponse(url, data));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
@@ -292,21 +251,12 @@ class NetworkApiService extends BaseApiServices {
     return responseJson;
   }
 
-
   /// PUT API
   @override
   Future getPutApiResponse(String url, dynamic data, {Map<String, String>? headers}) async {
     dynamic responseJson;
     try {
-      print('🔄 Making PUT request to: $url');
-      print('📤 PUT Data: ${jsonEncode(data)}');
-      print('📋 Headers: $headers');
-
       final response = await http.put(Uri.parse(url), body: jsonEncode(data), headers: headers ?? {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 30));
-
-      print('📥 PUT Response Status: ${response.statusCode}');
-      print('📥 PUT Response Body: ${response.body}');
-
       responseJson = await _handleResponse(response, url, () => getPutApiResponse(url, data, headers: headers));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -321,18 +271,12 @@ class NetworkApiService extends BaseApiServices {
   Future getPatchApiImageResponse(String url, String fileName, Uint8List imageBytes, {Map<String, String>? headers}) async {
     dynamic responseJson;
     try {
-      // Get auth headers (includes access token)
       final authHeaders = await _getAuthHeaders(headers);
-
       var request = http.MultipartRequest('PATCH', Uri.parse(url));
       request.headers.addAll(authHeaders);
-
       request.files.add(http.MultipartFile.fromBytes('logo', imageBytes, filename: fileName));
-
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
       final response = await http.Response.fromStream(streamedResponse);
-
-      // Use _handleResponse for proper token refresh handling
       responseJson = await _handleResponse(response, url, () => getPatchApiImageResponse(url, fileName, imageBytes, headers: headers));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -348,23 +292,15 @@ class NetworkApiService extends BaseApiServices {
   Future getPatchApiImageCoverResponse(String url, String fileName, Uint8List imageBytes, String imageType, {Map<String, String>? headers}) async {
     dynamic responseJson;
     try {
-      // Get auth headers (includes access token)
       final authHeaders = await _getAuthHeaders(headers);
-
       var request = http.MultipartRequest('PATCH', Uri.parse(url));
       request.headers.addAll(authHeaders);
-
-      // Add the imageType field
       request.fields['imageType'] = imageType;
-
-      // Determine content type based on file extension
       MediaType contentType = _getContentType(fileName);
       request.files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: fileName, contentType: contentType));
 
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
       final response = await http.Response.fromStream(streamedResponse);
-
-      // Use _handleResponse for proper token refresh handling
       responseJson = await _handleResponse(response, url, () => getPatchApiImageCoverResponse(url, fileName, imageBytes, imageType, headers: headers));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -379,27 +315,15 @@ class NetworkApiService extends BaseApiServices {
   @override
   Future<dynamic> getPatchApiDocumentPDFImageResponse(String url, Uint8List pdfImageBytes, String documentType, String fileName, {Map<String, String>? headers}) async {
     try {
-      // Get auth headers (includes access token)
       final authHeaders = await _getAuthHeaders(headers);
-
       var request = http.MultipartRequest('PATCH', Uri.parse(url));
       request.headers.addAll(authHeaders);
-
-      // Add the documentType field
       request.fields['documentType'] = documentType;
-
-      // Determine content type based on file extension
       MediaType contentType = _getContentType(fileName);
-
       request.files.add(http.MultipartFile.fromBytes('document', pdfImageBytes, filename: fileName, contentType: contentType));
 
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
       final response = await http.Response.fromStream(streamedResponse);
-
-      print("---Status: ${response.statusCode}");
-      print("---Response: ${response.body}");
-
-      // Use _handleResponse for proper token refresh handling
       return await _handleResponse(response, url, () => getPatchApiDocumentPDFImageResponse(url, pdfImageBytes, documentType, fileName, headers: headers));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -415,10 +339,6 @@ class NetworkApiService extends BaseApiServices {
     try {
       final authHeaders = await _getAuthHeaders(headers);
       final response = await http.delete(Uri.parse(url), headers: authHeaders).timeout(const Duration(seconds: 30));
-
-      print('delete Response Status: ${response.statusCode}');
-      print('delete Response Body: ${response.body}');
-
       responseJson = await _handleResponse(response, url, () => getDeleteApiResponse(url));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -447,306 +367,35 @@ class NetworkApiService extends BaseApiServices {
   }
 
   /// Handle API response with automatic token refresh
-  Future<dynamic> _handleResponse(
-      http.Response response,
-      String originalUrl,
-      Future<dynamic> Function() retryFunction,
-      ) async {
-    print('📡 Response from $originalUrl: ${response.statusCode}');
-
-    // Handle both 400 and 401 status codes for token refresh
-    if (response.statusCode == 400 || response.statusCode == 401) {
-      print('🔒 ${response.statusCode} response detected for: $originalUrl');
-
-      // Check retry count for this URL
-      int retryCount = _retryAttempts[originalUrl] ?? 0;
-
+  Future<dynamic> _handleResponse(http.Response response, String originalUrl, Future<dynamic> Function() retryFunction) async {
+    if (response.statusCode == 401) {
+      final retryCount = _retryAttempts[originalUrl] ?? 0;
       if (retryCount >= _maxRetries) {
-        print('🛑 Max retries ($retryCount) exceeded for: $originalUrl');
         _retryAttempts.remove(originalUrl);
         throw UnauthorisedException('Session expired. Please login again.');
       }
-
-      // Check if this is an API call that should trigger refresh
-      if (_shouldRefreshToken(originalUrl)) {
-        print('🔄 Attempting token refresh for URL: $originalUrl (Retry: ${retryCount + 1}/$_maxRetries)');
-
-        try {
-          // Get current access token before refresh
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          String? oldAccessToken = prefs.getString('accessToken');
-          print('🔑 PREVIOUS Access Token:... $oldAccessToken');
-
-          // This will throw if refresh token is expired
-          final newAccessToken = await _refreshAccessToken();
-
-          print('🔑 NEW Access Token: ...$newAccessToken');
-          print('✅ Token refreshed successfully, retrying original request');
-
-          // Increment retry counter
-          _retryAttempts[originalUrl] = retryCount + 1;
-
-          // Retry the original request with new token
-          final result = await retryFunction();
-
-          // Success - clear retry counter
-          _retryAttempts.remove(originalUrl);
-
-          return result;
-        } catch (e) {
-          // Clean up retry counter
-          _retryAttempts.remove(originalUrl);
-
-          // Just re-throw whatever _refreshAccessToken() threw
-          // (it already called _handleLogout() if needed)
-          rethrow;
-        }
-      } else {
-        print('🔒 ${response.statusCode} response for excluded endpoint: $originalUrl');
+      if (!_shouldRefreshToken(originalUrl)) {
         throw UnauthorisedException('Authentication failed');
       }
+      try {
+        // TokenManager handles queueing, saving, and logout-on-403
+        final newToken = await _tokenManager.refreshAccessToken();
+
+        // Reconnect socket + SSE after getting new token
+        await _serviceReconnector.reconnectAll(newToken);
+
+        _retryAttempts[originalUrl] = retryCount + 1;
+        final result = await retryFunction();
+        _retryAttempts.remove(originalUrl);
+        return result;
+      } catch (e) {
+        _retryAttempts.remove(originalUrl);
+        rethrow;
+      }
     }
 
-    // Success response - clear any retry counters for this URL
     _retryAttempts.remove(originalUrl);
-
     return returnResponse(response);
-  }
-
-// ------------------------------------------------------------------
-// UPDATED: _refreshAccessToken() - Cleaner exception throwing
-// ------------------------------------------------------------------
-  Future<String?> _refreshAccessToken() async {
-    // If already refreshing, wait for the result
-    if (_isRefreshing) {
-      final completer = Completer<String?>();
-      _refreshQueue.add(completer);
-      return completer.future;
-    }
-
-    _isRefreshing = true;
-
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? refreshToken = prefs.getString('refreshToken');
-
-      if (refreshToken == null || refreshToken.isEmpty) {
-        print('❌ No refresh token available in storage');
-        await _handleLogout();
-
-        for (final completer in _refreshQueue) {
-          completer.complete(null);
-        }
-        _refreshQueue.clear();
-
-        throw UnauthorisedException('Session expired. Please login again.');
-      }
-
-      print('🔄 Attempting to refresh access token...');
-      print('🔑 Using refresh token: ${refreshToken.substring(0, 20)}...');
-
-      final response = await http
-          .post(
-        Uri.parse('${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': refreshToken,
-        },
-        body: jsonEncode({'refreshToken': refreshToken}),
-      )
-          .timeout(const Duration(seconds: 30));
-
-      print('🔄 Refresh token API response status: ${response.statusCode}');
-      print('🔄 Refresh token API response body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
-
-        if (responseData['success'] == true && responseData['data'] != null) {
-          final data = responseData['data'];
-          final newAccessToken = data['accessToken'];
-          final newRefreshToken = data['refreshToken'];
-
-          if (newAccessToken != null && newAccessToken.isNotEmpty) {
-            // Get current user data
-            final userViewModel = UserViewModel();
-            final currentUser = await userViewModel.getUser();
-
-            // Create updated user model with new access token
-            final updatedUserModel = UserModel(
-              success: true,
-              message: responseData['message'] ?? 'Token refreshed successfully',
-              data: Data(
-                accessToken: newAccessToken,
-                refreshToken: newRefreshToken,
-                user: User(
-                  id: data['user']['_id'] ?? data['user']['id'],
-                  userId: data['user']['id'],
-                  phone: data['user']['phone'],
-                  role: data['user']['role'],
-                  userStatus: data['user']['userStatus'],
-                  profilePicture: data['user']['profilePicture'] != null
-                      ? ProfilePicture(
-                      url: data['user']['profilePicture']['url'],
-                      altText: data['user']['profilePicture']['altText'])
-                      : null,
-                ),
-              ),
-            );
-
-            // Save updated user data
-            await userViewModel.saveUser(updatedUserModel);
-
-            // ✅ RECONNECT SOCKET AND SSE WITH NEW TOKEN
-            print('🔄 Reconnecting services with new access token...');
-            await _reconnectServicesWithNewToken(newAccessToken);
-
-
-            // Notify all waiting requests with success
-            for (final completer in _refreshQueue) {
-              completer.complete(newAccessToken);
-            }
-            _refreshQueue.clear();
-
-            return newAccessToken;
-          } else {
-            print('❌ Invalid access token received in refresh response');
-
-            // Notify waiting requests
-            for (final completer in _refreshQueue) {
-              completer.complete(null);
-            }
-            _refreshQueue.clear();
-
-            throw FetchDataException('Invalid access token received');
-          }
-        } else {
-          print('❌ Invalid response format from refresh token API');
-
-          // Notify waiting requests
-          for (final completer in _refreshQueue) {
-            completer.complete(null);
-          }
-          _refreshQueue.clear();
-
-          throw FetchDataException('Invalid response format');
-        }
-      } else if (response.statusCode == 401 || response.statusCode == 403) {
-        // ONLY logout when refresh token itself is expired/invalid
-        print('❌ REFRESH TOKEN EXPIRED (401/403) - LOGGING OUT USER');
-        await _handleLogout();
-
-        // Notify waiting requests
-        for (final completer in _refreshQueue) {
-          completer.complete(null);
-        }
-        _refreshQueue.clear();
-
-        throw UnauthorisedException('Session expired. Please login again.');
-      } else {
-        // Other errors (500, network issues) - DON'T logout
-        print('❌ Refresh token API failed with status: ${response.statusCode} - NOT LOGGING OUT');
-
-        // Notify waiting requests
-        for (final completer in _refreshQueue) {
-          completer.complete(null);
-        }
-        _refreshQueue.clear();
-
-        throw FetchDataException('Token refresh failed with status: ${response.statusCode}');
-      }
-    } on SocketException {
-      // Network error - don't logout
-      for (final completer in _refreshQueue) {
-        completer.complete(null);
-      }
-      _refreshQueue.clear();
-
-      throw FetchDataException('No Internet Connection');
-    } on TimeoutException {
-      // Timeout - don't logout
-      for (final completer in _refreshQueue) {
-        completer.complete(null);
-      }
-      _refreshQueue.clear();
-
-      throw FetchDataException('Request timeout. Please try again');
-    } finally {
-      _isRefreshing = false;
-    }
-  }
-
-
-
-
-  /// Reconnect Socket & SSE with new token
-  Future<void> _reconnectServicesWithNewToken(String newAccessToken) async {
-    try {
-      final context = NavigationService.navigatorKey.currentContext;
-      if (context == null) {
-        print('❌ NetworkApiService: Context is null, cannot reconnect services');
-        return;
-      }
-
-      print('🔌 NetworkApiService: Starting socket reconnection...');
-      final socketProvider = Provider.of<SocketProvider>(context, listen: false);
-
-      // ✅ First disconnect existing socket if connected
-      if (socketProvider.isConnected) {
-        print('🔌 NetworkApiService: Disconnecting old socket connection...');
-        await socketProvider.disconnect();
-        await Future.delayed(Duration(milliseconds: 500));
-        print('✅ NetworkApiService: Old socket disconnected');
-      }
-
-      // ✅ Connect with new token
-      print('🔌 NetworkApiService: Connecting socket with NEW token...');
-      await socketProvider.connectWithToken(accessToken: newAccessToken);
-      await Future.delayed(Duration(seconds: 2));
-
-      if (socketProvider.isConnected) {
-        print('✅ NetworkApiService: Socket reconnected successfully with new token');
-      } else {
-        print('⚠️ NetworkApiService: Socket connection status: ${socketProvider.statusText}');
-      }
-
-      // ✅ Reconnect SSE
-      print('🔔 NetworkApiService: Starting SSE reconnection...');
-      final sseService = Provider.of<SSENotificationService>(context, listen: false);
-      final notificationCountViewModel = Provider.of<NotificationCountViewModel>(context, listen: false);
-      final runningOrderCountViewModel = Provider.of<RunningOrderCountViewModel>(context, listen: false);
-
-      await sseService.stopListening();
-      await Future.delayed(Duration(milliseconds: 300));
-      await sseService.startListening();
-      await Future.delayed(Duration(milliseconds: 500));
-
-      if (!notificationCountViewModel.isInitialized) {
-        notificationCountViewModel.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
-      }
-      notificationCountViewModel.setInitialCount(sseService.currentCount);
-
-      if (!runningOrderCountViewModel.isInitialized) {
-        runningOrderCountViewModel.initializeCountListener(sseService.runningOrderCountStream);
-      }
-      runningOrderCountViewModel.setInitialCount(sseService.currentRunningOrderCount);
-
-      print('✅ NetworkApiService: All services reconnected with new token');
-    } catch (e) {
-      print('❌ NetworkApiService: Error reconnecting services - $e');
-    }
-  }
-
-
-  /// Handle logout only when both tokens are expired/invalid
-  Future<void> _handleLogout() async {
-    try {
-      final navigationService = SessionExpiredService();
-      await navigationService.handleSessionExpired();
-      print('🚪 User logged out due to token expiry');
-    } catch (e) {
-      print('❌ Error during logout: $e');
-    }
   }
 
   /// Check if the URL should trigger token refresh
@@ -756,18 +405,16 @@ class NetworkApiService extends BaseApiServices {
     return !excludedEndpoints.any((endpoint) => url.toLowerCase().contains(endpoint.toLowerCase()));
   }
 
-  /// Static method to clear retry attempts
-  static void clearRetryAttempts() {
-    _retryAttempts.clear();
-  }
-
   /// Parse response based on status code
   dynamic returnResponse(http.Response response) {
+    final url = response.request?.url.toString() ?? "---------Unknown URL--------";
+    print("🌐 $url : ${response.statusCode}");
+    // print("📦 ${response.body}");
+
     switch (response.statusCode) {
       case 200:
       case 201:
         dynamic responseJson = jsonDecode(response.body);
-        print('✅ Parsed response JSON: $responseJson');
         return responseJson;
       case 400:
         throw BadRequestException(response.body.toString());

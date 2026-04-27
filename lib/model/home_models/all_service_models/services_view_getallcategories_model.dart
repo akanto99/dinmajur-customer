@@ -39,6 +39,8 @@ class ServicesViewGetAllCategoryModel {
 
 class Data {
   String? serviceId;
+  String? serviceName;
+  String? serviceDescription;
   int? totalCategories;
   int? minimumOrderAmount;
   double? transportFee;
@@ -46,6 +48,8 @@ class Data {
 
   Data({
     this.serviceId,
+    this.serviceName,
+    this.serviceDescription,
     this.transportFee,
     this.minimumOrderAmount,
     this.totalCategories,
@@ -54,6 +58,8 @@ class Data {
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     serviceId: json["serviceId"],
+    serviceName: json["serviceName"],
+    serviceDescription: json["serviceDescription"],
     transportFee: (json["transportFee"] as num?)?.toDouble(),
     minimumOrderAmount: json["minimumOrderAmount"] ,
     totalCategories: json["totalCategories"],
@@ -65,6 +71,8 @@ class Data {
 
   Map<String, dynamic> toJson() => {
     "serviceId": serviceId,
+    "serviceName": serviceName,
+    "serviceDescription": serviceDescription,
     "transportFee": transportFee,
     "minimumOrderAmount": minimumOrderAmount,
     "totalCategories": totalCategories,

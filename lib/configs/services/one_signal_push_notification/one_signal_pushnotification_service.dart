@@ -51,11 +51,8 @@ class OneSignalNotificationService {
   void _setupNotificationHandlers() {
     // Notification received (foreground)
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      developer.log(
-        'Notification received in foreground: ${event.notification.title}',
-        name: 'OneSignal',
-      );
-
+      developer.log('Notification received in foreground: ${event.notification.title}', name: 'OneSignal');
+      print("----------------------This is Foreground--------------");
       // You can modify the notification here or prevent it from showing
       // event.preventDefault(); // Prevents the notification from displaying
 
@@ -65,10 +62,7 @@ class OneSignalNotificationService {
 
     // Notification clicked/opened
     OneSignal.Notifications.addClickListener((event) {
-      developer.log(
-        'Notification clicked: ${event.notification.title}',
-        name: 'OneSignal',
-      );
+      developer.log('Notification clicked: ${event.notification.title}', name: 'OneSignal');
 
       // Handle notification click
       _handleNotificationClick(event);
@@ -76,10 +70,7 @@ class OneSignalNotificationService {
 
     // Permission observer
     OneSignal.Notifications.addPermissionObserver((state) {
-      developer.log(
-        'Notification permission state changed: $state',
-        name: 'OneSignal',
-      );
+      developer.log('Notification permission state changed: $state', name: 'OneSignal');
     });
   }
 
@@ -90,10 +81,7 @@ class OneSignalNotificationService {
     // Get additional data from notification
     final additionalData = notification.additionalData;
 
-    developer.log(
-      'Notification Data: ${additionalData.toString()}',
-      name: 'OneSignal',
-    );
+    developer.log('Notification Data: ${additionalData.toString()}', name: 'OneSignal');
 
     // TODO: Navigate to specific screen based on notification data
     // Example:
@@ -162,163 +150,8 @@ class OneSignalNotificationService {
     }
   }
 
-  /// Set user tags (for segmentation)
-  Future<void> setUserTags(Map<String, dynamic> tags) async {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      await OneSignal.User.addTags(tags);
-      developer.log('User tags set: $tags', name: 'OneSignal');
-    } catch (e) {
-      developer.log('Error setting user tags: $e', name: 'OneSignal', error: e);
-      rethrow;
-    }
-  }
-
-  /// Remove user tags
-  Future<void> removeUserTags(List<String> tagKeys) async {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      await OneSignal.User.removeTags(tagKeys);
-      developer.log('User tags removed: $tagKeys', name: 'OneSignal');
-    } catch (e) {
-      developer.log('Error removing user tags: $e', name: 'OneSignal', error: e);
-      rethrow;
-    }
-  }
-
-  /// Set user email (for email notifications)
-  Future<void> setUserEmail(String email) async {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      await OneSignal.User.addEmail(email);
-      developer.log('User email set: $email', name: 'OneSignal');
-    } catch (e) {
-      developer.log('Error setting user email: $e', name: 'OneSignal', error: e);
-      rethrow;
-    }
-  }
-
-  /// Set user phone number (for SMS notifications)
-  Future<void> setUserPhoneNumber(String phoneNumber) async {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      await OneSignal.User.addSms(phoneNumber);
-      developer.log('User phone number set: $phoneNumber', name: 'OneSignal');
-    } catch (e) {
-      developer.log('Error setting user phone number: $e', name: 'OneSignal', error: e);
-      rethrow;
-    }
-  }
-
-  /// Get current notification permission status
-  Future<bool> getNotificationPermission() async {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      final permission = await OneSignal.Notifications.permission;
-      developer.log('Notification permission: $permission', name: 'OneSignal');
-      return permission;
-    } catch (e) {
-      developer.log('Error getting notification permission: $e', name: 'OneSignal', error: e);
-      return false;
-    }
-  }
-
-  /// Request notification permission
-  Future<bool> requestNotificationPermission() async {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      final granted = await OneSignal.Notifications.requestPermission(true);
-      developer.log('Notification permission granted: $granted', name: 'OneSignal');
-      return granted;
-    } catch (e) {
-      developer.log('Error requesting notification permission: $e', name: 'OneSignal', error: e);
-      return false;
-    }
-  }
-
-  /// Get OneSignal device ID
-  String? getDeviceId() {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      final deviceId = OneSignal.User.pushSubscription.id;
-      developer.log('OneSignal Device ID: $deviceId', name: 'OneSignal');
-      return deviceId;
-    } catch (e) {
-      developer.log('Error getting device ID: $e', name: 'OneSignal', error: e);
-      return null;
-    }
-  }
-
   /// Get current user ID
   String? getCurrentUserId() {
     return _currentUserId;
-  }
-
-  /// Check if OneSignal is initialized
-  bool get isInitialized => _isInitialized;
-
-  /// Clear notification badges (iOS)
-  Future<void> clearBadges() async {
-    try {
-      await OneSignal.Notifications.clearAll();
-      developer.log('Notification badges cleared', name: 'OneSignal');
-    } catch (e) {
-      developer.log('Error clearing badges: $e', name: 'OneSignal', error: e);
-    }
-  }
-
-  /// Send outcome (for tracking conversions)
-  Future<void> sendOutcome(String outcomeName, {double? value}) async {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      if (value != null) {
-        await OneSignal.Session.addOutcomeWithValue(outcomeName, value);
-      } else {
-        await OneSignal.Session.addOutcome(outcomeName);
-      }
-      developer.log('Outcome sent: $outcomeName${value != null ? " = $value" : ""}', name: 'OneSignal');
-    } catch (e) {
-      developer.log('Error sending outcome: $e', name: 'OneSignal', error: e);
-      rethrow;
-    }
-  }
-
-  /// Opt in/out of push notifications
-  Future<void> setSubscription(bool subscribe) async {
-    if (!_isInitialized) {
-      throw Exception('OneSignal not initialized. Call initialize() first.');
-    }
-
-    try {
-      await OneSignal.User.pushSubscription.optIn();
-      developer.log('Push subscription: ${subscribe ? "opted in" : "opted out"}', name: 'OneSignal');
-    } catch (e) {
-      developer.log('Error setting subscription: $e', name: 'OneSignal', error: e);
-      rethrow;
-    }
   }
 }
