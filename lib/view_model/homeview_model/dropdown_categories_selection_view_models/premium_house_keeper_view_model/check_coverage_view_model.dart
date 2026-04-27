@@ -59,8 +59,8 @@ class CheckCoverageViewModel with ChangeNotifier {
       // ✅ Set error state immediately - don't retry in ViewModel
       setCheckCoverageData(ApiResponse.error(error.toString()));
 
-      // ✅ Clear retry attempts on error
-      NetworkApiService.clearRetryAttempts();
+      // // ✅ Clear retry attempts on error
+      // NetworkApiService.clearRetryAttempts();
     }
   }
 

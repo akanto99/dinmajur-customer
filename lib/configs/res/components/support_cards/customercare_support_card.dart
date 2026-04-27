@@ -22,10 +22,7 @@ class CustomerCareSupportCard extends StatelessWidget {
   }) : super(key: key);
 
   Future<void> _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
 
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);
@@ -41,9 +38,7 @@ class CustomerCareSupportCard extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return GestureDetector(
-      onTap: isClickable
-          ? (onTap ?? () => _makePhoneCall(phoneNumber))
-          : null,
+      onTap: isClickable ? (onTap ?? () => _makePhoneCall(phoneNumber)) : null,
       child: Container(
         width: screenWidth * 0.9,
         padding: EdgeInsets.all(screenHeight * 0.02),
@@ -60,15 +55,8 @@ class CustomerCareSupportCard extends StatelessWidget {
             Container(
               height: 48,
               width: 48,
-              decoration: BoxDecoration(
-                color: AppColors.textPrimary(context),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.headset_mic,
-                color: Colors.white,
-                size: 24,
-              ),
+              decoration: BoxDecoration(color: AppColors.textPrimary(context), shape: BoxShape.circle),
+              child: Icon(Icons.headset_mic, color: AppColors.containerBackground(context), size: 24),
             ),
 
             SizedboxSpaccing.width03(context),
@@ -79,30 +67,15 @@ class CustomerCareSupportCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.textSize18(
-                      context,
-                      weight: FontWeight.w500,
-                    ),
-                  ),
+                  Text(title, style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
 
                   SizedboxSpaccing.height005(context),
 
-                  Text(
-                    subtitle,
-                    style: AppTextStyles.textSize12(context),
-                  ),
+                  Text(subtitle, style: AppTextStyles.textSize12(context)),
 
                   SizedboxSpaccing.height01(context),
 
-                  Text(
-                    phoneNumber,
-                    style: AppTextStyles.textSize24(
-                      context,
-                      weight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(phoneNumber, style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
                 ],
               ),
             ),

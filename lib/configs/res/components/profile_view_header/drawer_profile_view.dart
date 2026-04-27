@@ -25,28 +25,7 @@ class DrawerProfileHeader extends StatelessWidget {
     required this.rating, // Changed parameter name
 
   }) : super(key: key);
-  // Method to build star rating widget
-  Widget _buildStarRating(BuildContext context, double rating) {
-    List<Widget> stars = [];
 
-    for (int i = 1; i <= 5; i++) {
-      if (i <= rating.floor()) {
-        // Full star
-        stars.add(Icon(Icons.star, color: Colors.amber, size: 16));
-      } else if (i == rating.floor() + 1 && rating % 1 != 0) {
-        // Half star
-        stars.add(Icon(Icons.star_half, color: Colors.amber, size: 16));
-      } else {
-        // Empty star
-        stars.add(Icon(Icons.star_border, color: Colors.grey, size: 16));
-      }
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [...stars, SizedboxSpaccing.width02(context), Text(rating.toStringAsFixed(1), style: AppTextStyles.textSize14(context, weight: FontWeight.w400))],
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,9 +90,10 @@ class DrawerProfileHeader extends StatelessWidget {
           style: AppTextStyles.textSize18(context,weight: FontWeight.w600),
         ),
         SizedboxSpaccing.height01(context),
-        Text(phone, style:AppTextStyles.textSize14(context,weight: FontWeight.w400)),
-        SizedboxSpaccing.height01(context),
-        _buildStarRating(context, rating),
+        Container(
+            width: double.infinity,
+            child: Center(child: Text(phone, style:AppTextStyles.textSize14(context,weight: FontWeight.w400)))),
+
 
         // GestureDetector(
         //   onTap: () {

@@ -350,6 +350,7 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/event_cooking_pdf_generator/event_cooking_generator.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/event_cooking_pdf_generator/event_cooking_receipt_adapter.dart';
@@ -420,23 +421,12 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
               }
 
               if (status == Status.ERROR) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red),
-                      SizedBox(height: 16),
-                      Text('Failed to load booking details', style: AppTextStyles.textSize16(context, color: Colors.red)),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!);
-                        },
-                        child: Text('Retry'),
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
-                      ),
-                    ],
-                  ),
+                return ErrorStateWidget(
+                  // errorMessage: viewModel.getConfirmBookingData.message.toString(),
+                  errorMessage: "Failed to load booking details",
+                  onRetry: () {
+                    viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!);
+                  },
                 );
               }
 
@@ -502,7 +492,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                 services: services,
                 dateTime: "${DateFormatter.formatDate(bookingData.date)}, ${bookingData.slot}",
                 serviceAddress: bookingData.fullAddress ?? 'N/A',
-                grandTotal:AmountFormatter.formatDynamic(bookingData.grandTotal),
+                grandTotal: AmountFormatter.formatDynamic(bookingData.grandTotal),
                 paymentMethod: bookingData.paymentType ?? 'N/A',
                 onDownloadReceipt: () => _handleDownloadReceipt(),
                 onTrackOrder: () {
