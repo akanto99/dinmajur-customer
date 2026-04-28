@@ -46,7 +46,9 @@ import 'package:dinmajur_customer/view/screens/home/unified_seeall_screen/unifie
 import 'package:dinmajur_customer/view/screens/order/assigned_freelancer/freelancer_profile.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -69,7 +71,20 @@ class Routes {
 
 
       case RoutesName.navigationBar:
-        return MaterialPageRoute(builder: (BuildContext context) => const NavigationScreen());
+        final args = settings.arguments;
+        int initialIndex = 0;
+        int orderTabIndex = 0;
+        if (args is Map) {
+          initialIndex  = args['initialIndex']  as int? ?? 0;
+          orderTabIndex = args['orderTabIndex'] as int? ?? 0;
+        }
+        return MaterialPageRoute(
+          builder: (_) => NavigationScreen(
+            initialIndex: initialIndex,
+            orderTabIndex: orderTabIndex,
+          ),
+          settings: settings,
+        );
 
 
       ///Home
@@ -394,19 +409,40 @@ class Routes {
 
 
         ///ALl Service
+      // case RoutesName.servicesViewScreen:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   if (args != null) {
+      //     return MaterialPageRoute(
+      //       builder: (BuildContext context) => ServicesViewScreen(
+      //         serviceId:       args['serviceId'] as String,
+      //         customerName:    args['customerName'] as String? ?? '',
+      //         customerPhone:   args['customerPhone'] as String? ?? '',
+      //         customerAddress: args['customerAddress'] as String? ?? '',
+      //         serviceName: args['serviceName'],
+      //         description: args['description'],
+      //         isFromHome:      args['isFromHome'] as bool? ?? false,
+      //         customerLocation: args['customerLocation'] as Map<String, dynamic>?,
+      //       ),
+      //       settings: settings,
+      //     );
+      //   }
+      //   return _errorRoute();
       case RoutesName.servicesViewScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => ServicesViewScreen(
-              serviceId:       args['serviceId'] as String,
-              customerName:    args['customerName'] as String? ?? '',
-              customerPhone:   args['customerPhone'] as String? ?? '',
-              customerAddress: args['customerAddress'] as String? ?? '',
-              serviceName: args['serviceName'],
-              description: args['description'],
-              isFromHome:      args['isFromHome'] as bool? ?? false,
-              customerLocation: args['customerLocation'] as Map<String, dynamic>?,
+            builder: (BuildContext context) => ChangeNotifierProvider(
+              create: (_) => ServicesViewGetAllCategoriesViewModel(),
+              child: ServicesViewScreen(
+                serviceId:        args['serviceId'] as String,
+                customerName:     args['customerName'] as String? ?? '',
+                customerPhone:    args['customerPhone'] as String? ?? '',
+                customerAddress:  args['customerAddress'] as String? ?? '',
+                serviceName:      args['serviceName'],
+                description:      args['description'],
+                isFromHome:       args['isFromHome'] as bool? ?? false,
+                customerLocation: args['customerLocation'] as Map<String, dynamic>?,
+              ),
             ),
             settings: settings,
           );
