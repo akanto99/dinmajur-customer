@@ -850,7 +850,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 class NavigationScreen extends StatefulWidget {
   final int initialIndex;
-  const NavigationScreen({super.key, this.initialIndex = 0});
+  final int orderTabIndex;
+  const NavigationScreen({super.key, this.initialIndex = 0, this.orderTabIndex = 0,});
 
   @override
   State<NavigationScreen> createState() => _NavigationScreenState();
@@ -900,7 +901,8 @@ class _NavigationScreenState extends State<NavigationScreen>
     _pages = [
       HomeScreen(scaffoldKey: _scaffoldKey),
       OffersScreen(),
-      OrderScreen(),
+      // OrderScreen(),
+      OrderScreen(initialTabIndex: widget.orderTabIndex),
       DraftScreen(),
     ];
     _currentIndex = widget.initialIndex;
