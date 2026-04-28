@@ -513,8 +513,8 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
   }
 
   Widget _buildServicesGrid(BuildContext context, List<Datum> services) {
-    // Filter out instant-bazar
-    final filteredServices = services.where((s) => s.slug != 'trending-services').toList();
+
+    final filteredServices = services.where((s) => s.id != '69eca7bdbe6d8b46e00655ed').toList();
 
     List<Widget> rows = [];
 

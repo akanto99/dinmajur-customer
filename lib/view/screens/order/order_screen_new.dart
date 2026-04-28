@@ -14,7 +14,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 class OrderScreen extends StatefulWidget {
-  const OrderScreen({super.key});
+  final int initialTabIndex;
+  const OrderScreen({super.key, this.initialTabIndex = 0});
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
@@ -26,13 +27,19 @@ class _OrderScreenState extends State<OrderScreen> {
   RunningOrdersViewModel get _orderViewModel =>
       Provider.of<RunningOrdersViewModel>(context, listen: false);
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _orderViewModel.clearAllDataSilent();
+  //   WidgetsBinding.instance.addPostFrameCallback((_) => _fetchCurrentTab());
+  // }
   @override
   void initState() {
     super.initState();
+    _selectedTabIndex = widget.initialTabIndex;
     _orderViewModel.clearAllDataSilent();
     WidgetsBinding.instance.addPostFrameCallback((_) => _fetchCurrentTab());
   }
-
   void _onTabChanged(int index) {
     setState(() => _selectedTabIndex = index);
     switch (index) {

@@ -1,10 +1,12 @@
+import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
+import 'package:dinmajur_customer/configs/services/navigator_services/pending_navigator_service.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer' as developer;
 
 /// OneSignal Notification Service
-/// Handles all OneSignal notification configuration and management
 class OneSignalNotificationService {
   static final OneSignalNotificationService _instance = OneSignalNotificationService._internal();
   factory OneSignalNotificationService() => _instance;
@@ -21,24 +23,18 @@ class OneSignalNotificationService {
     }
 
     try {
-      // Set log level for debugging
-      OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
+      // OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
       // Get OneSignal App ID from .env
       final oneSignalAppId = dotenv.env['ONESIGNAL_APP_ID'];
       if (oneSignalAppId == null || oneSignalAppId.isEmpty) {
         throw Exception('ONESIGNAL_APP_ID not found in .env file');
       }
-
       // Initialize OneSignal
       OneSignal.initialize(oneSignalAppId);
-
       // Request notification permission (false = don't fallback to settings)
       await OneSignal.Notifications.requestPermission(true);
-
       // Set up notification handlers
       _setupNotificationHandlers();
-
       _isInitialized = true;
       developer.log('OneSignal initialized successfully', name: 'OneSignal');
     } catch (e) {
@@ -50,24 +46,27 @@ class OneSignalNotificationService {
   /// Set up notification event handlers
   void _setupNotificationHandlers() {
     // Notification received (foreground)
-    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-      developer.log('Notification received in foreground: ${event.notification.title}', name: 'OneSignal');
-      print("----------------------This is Foreground--------------");
-      // You can modify the notification here or prevent it from showing
-      // event.preventDefault(); // Prevents the notification from displaying
 
-      // Display the notification
+    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+      final notification = event.notification;
+
+      final title = notification.title;
+      final body = notification.body;
+      final data = notification.additionalData;
+
+      developer.log("--------------------------- Title: $title");
+      developer.log("---------------------------Body: $body");
+      developer.log("--------------------------- Data: $data");
+
       event.notification.display();
     });
 
     // Notification clicked/opened
     OneSignal.Notifications.addClickListener((event) {
       developer.log('Notification clicked: ${event.notification.title}', name: 'OneSignal');
-
       // Handle notification click
       _handleNotificationClick(event);
     });
-
     // Permission observer
     OneSignal.Notifications.addPermissionObserver((state) {
       developer.log('Notification permission state changed: $state', name: 'OneSignal');
@@ -77,20 +76,88 @@ class OneSignalNotificationService {
   /// Handle notification click events
   void _handleNotificationClick(OSNotificationClickEvent event) {
     final notification = event.notification;
+    final raw = notification.additionalData ?? {};
 
-    // Get additional data from notification
-    final additionalData = notification.additionalData;
+    developer.log('Notification clicked with raw data: $raw', name: 'OneSignal');
 
-    developer.log('Notification Data: ${additionalData.toString()}', name: 'OneSignal');
+    final Map<String, dynamic> inner = (raw['data'] is Map) ? Map<String, dynamic>.from(raw['data'] as Map) : {};
 
-    // TODO: Navigate to specific screen based on notification data
-    // Example:
-    // if (additionalData?['type'] == 'order') {
-    //   NavigationService.navigatorKey.currentState?.pushNamed(
-    //     RoutesName.orderDetails,
-    //     arguments: additionalData?['orderId'],
-    //   );
-    // }
+    final String? bookingType = (inner['bookingType'] ?? raw['bookingType'])?.toString();
+    final String? trackingId = (inner['trackingId'] ?? raw['trackingId'])?.toString();
+    final String? orderId = (inner['orderId'] ?? raw['orderId'])?.toString();
+    final String? bookingStatus = (inner['bookingStatus'] ?? inner['status'] ?? raw['status'])?.toString().toUpperCase();
+
+    developer.log('Resolved → bookingType: $bookingType | trackingId: $trackingId | orderId: $orderId | status: $bookingStatus', name: 'OneSignal');
+
+    if (bookingType == null || bookingType.isEmpty) {
+      developer.log('Missing bookingType, cannot route', name: 'OneSignal');
+      return;
+    }
+
+    // Resolve route + arguments from bookingType
+    String? targetRoute;
+    Map<String, dynamic>? targetArgs;
+
+    switch (bookingType) {
+      case 'ORDER':
+        if (orderId == null || orderId.isEmpty) return;
+        if (bookingStatus == 'PENDING' || bookingStatus == 'RUNNING') {
+          targetRoute = RoutesName.trackOrderViewdetailsSocketScreen;
+          targetArgs = {'orderId': orderId};
+        } else {
+          targetRoute = RoutesName.completeOrdersDetailsScreen;
+          targetArgs = {'orderId': orderId};
+        }
+        break;
+      // case 'HOUSEKEEPER':
+      //   targetRoute = RoutesName.confirmedScreen;
+      //   targetArgs  = {'trackingId': trackingId};
+      //   break;
+      // case 'BEAUTY_SALON':
+      //   targetRoute = RoutesName.beautyConfirmedScreen;
+      //   targetArgs  = {'trackingId': trackingId};
+      //   break;
+      // case 'EVENT_COOKING':
+      //   targetRoute = RoutesName.cookingConfirmedScreen;
+      //   targetArgs  = {'trackingId': trackingId};
+      //   break;
+      // case 'SERVICES':
+      //   targetRoute = RoutesName.serviceConfirmedScreen;
+      //   targetArgs  = {'trackingId': trackingId};
+      //   break;
+      // default:
+      //   developer.log('Unknown bookingType: $bookingType', name: 'OneSignal');
+      //   return;
+      case 'HOUSEKEEPER':
+      case 'BEAUTY_SALON':
+      case 'EVENT_COOKING':
+      case 'SERVICES':
+        int tabIndex = 0; // default to pending
+        if (bookingStatus == 'PENDING') {
+          tabIndex = 0;
+        } else if (bookingStatus == 'RUNNING') {
+          tabIndex = 1;
+        } else if (bookingStatus == 'COMPLETED' || bookingStatus == 'COMPLETE') {
+          tabIndex = 2;
+        }
+        targetRoute = RoutesName.navigationBar;
+        targetArgs = {'initialIndex': 2, 'orderTabIndex': tabIndex};
+
+      case 'SYSTEM':
+      case 'PROMOTION':
+        targetRoute = RoutesName.navigationBar;
+        targetArgs = {'initialIndex': 0, 'orderTabIndex': 0};
+        break;
+    }
+
+    final navigator = NavigationService.navigatorKey.currentState;
+
+    if (navigator == null) {
+      developer.log('Navigator not ready, saving pending route: $targetRoute', name: 'OneSignal');
+      PendingNavigationService().setPending(targetRoute!, targetArgs ?? {});
+      return;
+    }
+    navigator.pushNamed(targetRoute!, arguments: targetArgs);
   }
 
   /// Login user to OneSignal (for targeted notifications)
@@ -103,8 +170,6 @@ class OneSignalNotificationService {
     try {
       await OneSignal.login(userId);
       _currentUserId = userId;
-
-      // Save to SharedPreferences for persistence
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('onesignal_user_id', userId);
 
