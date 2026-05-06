@@ -35,4 +35,16 @@ class ProfileRepository {
   }
 
 
+  Future<dynamic> deleteAccount(dynamic data) async {
+    try {
+      dynamic response = await _apiServices.getDeleteApiResponse(
+        AppUrl.deleteAccount
+      );
+      return response;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+
 }

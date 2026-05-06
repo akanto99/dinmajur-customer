@@ -160,9 +160,6 @@ class Delivery {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('⚠️ Failed to parse date in Delivery: $dateValue - Error: $e');
-      }
       return null;
     }
   }
@@ -367,9 +364,6 @@ class Order {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('⚠️ Failed to parse date in Order: $dateValue - Error: $e');
-      }
       return null;
     }
   }
@@ -447,9 +441,6 @@ class Item {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('⚠️ Failed to parse date in Item: $dateValue - Error: $e');
-      }
       return null;
     }
   }

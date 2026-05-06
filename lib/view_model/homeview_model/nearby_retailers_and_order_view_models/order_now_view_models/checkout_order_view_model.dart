@@ -22,10 +22,6 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? AToken = prefs.getString('accessToken');
 
-      if (kDebugMode) {
-        print('Access Token: ${AToken != null ? "Present" : "Missing"}');
-      }
-
       if (AToken == null || AToken.isEmpty) {
         Utils.flushBarErrorMessage('Invalid token', context);
         setCheckoutOrderLoading(false);
@@ -40,45 +36,26 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
       // Print the response
       if (kDebugMode) {
         print('========== CHECKOUT ORDER RESPONSE ==========');
-        print('Response: ${jsonEncode(value)}');
-        print('Response Type: ${value.runtimeType}');
-        print('==========================================');
+        // print('Response: ${jsonEncode(value)}');
+        // print('Response Type: ${value.runtimeType}');
+        // print('==========================================');
       }
 
       // Extract orderId from response: data.order._id
       String? orderId;
 
       if (value is Map<String, dynamic>) {
-        if (kDebugMode) {
-          print('Checking for data key: ${value.containsKey('data')}');
-        }
 
         final data = value['data'];
         if (data != null && data is Map<String, dynamic>) {
-          if (kDebugMode) {
-            print('Data found: ${data.toString()}');
-            print('Checking for order key: ${data.containsKey('order')}');
-          }
 
           final order = data['order'];
           if (order != null && order is Map<String, dynamic>) {
-            if (kDebugMode) {
-              print('Order found: ${order.toString()}');
-              print('Checking for _id key: ${order.containsKey('_id')}');
-            }
-
             orderId = order['_id']?.toString();
-
-            if (kDebugMode) {
-              print('Order ID value: $orderId');
-            }
           }
         }
       }
 
-      if (kDebugMode) {
-        print('Extracted Order ID: ${orderId ?? "NOT FOUND"}');
-      }
 
       if (orderId == null || orderId.isEmpty) {
         Utils.flushBarErrorMessage('Order created but ID not found', context);
@@ -108,14 +85,6 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
 
     } catch (error) {
       setCheckoutOrderLoading(false);
-
-      if (kDebugMode) {
-        print('========== CHECKOUT ORDER ERROR ==========');
-        print('Error: $error');
-        print('Error Type: ${error.runtimeType}');
-        print('==========================================');
-      }
-
       _handleError(error, context);
     }
   }
@@ -135,11 +104,6 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
     } catch (_) {
       errorMessage = 'Unexpected error occurred';
     }
-
-    if (kDebugMode) {
-      print('Parsed Error Message: $errorMessage');
-    }
-
     Utils.flushBarErrorMessage(errorMessage, context);
   }
 }

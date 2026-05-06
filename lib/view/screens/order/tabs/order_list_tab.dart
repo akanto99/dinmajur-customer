@@ -70,7 +70,9 @@ class OrderListTab extends StatelessWidget {
       itemCount: orders.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index < orders.length) {
-          return OrderCard(datum: orders[index], onPayNow: onPayNow, isPendingTab: isPendingTab, isRunningTab: isRunningTab, isCompletedTab: isCompletedTab);
+          return OrderCard(datum: orders[index],
+              onPayNow: onPayNow,
+              isPendingTab: isPendingTab, isRunningTab: isRunningTab, isCompletedTab: isCompletedTab);
         }
         // Load more button
         return _buildLoadMoreButton(context);

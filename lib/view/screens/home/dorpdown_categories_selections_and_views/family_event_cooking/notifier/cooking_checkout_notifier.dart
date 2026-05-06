@@ -108,13 +108,6 @@
 ///For Ssl Integration using store id and Password
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_sslcommerz/model/SSLCSdkType.dart';
-import 'package:flutter_sslcommerz/model/SSLCommerzInitialization.dart';
-import 'package:flutter_sslcommerz/model/SSLCurrencyType.dart';
-import 'package:flutter_sslcommerz/sslcommerz.dart';
-import 'package:intl/intl.dart';
 
 class CookingCheckoutViewModel extends ChangeNotifier {
   String? _selectedServiceTime;
@@ -314,10 +307,10 @@ class CookingCheckoutViewModel extends ChangeNotifier {
   }) async {
     print("═══════════════════════════════════════════");
     print("🚀 CheckoutViewModel: Initiating Payment");
-    print("Tracking ID: $trackingId");
-    print("Total Amount: $totalAmount");
-    print("Customer: $customerName");
-    print("Phone: $customerPhone");
+    // print("Tracking ID: $trackingId");
+    // print("Total Amount: $totalAmount");
+    // print("Customer: $customerName");
+    // print("Phone: $customerPhone");
     print("═══════════════════════════════════════════");
 
     try {
@@ -333,7 +326,7 @@ class CookingCheckoutViewModel extends ChangeNotifier {
 
       print("═══════════════════════════════════════════");
       print("📥 Payment Service Result:");
-      print(result.toString());
+      // print(result.toString());
       print("═══════════════════════════════════════════");
 
       return result;

@@ -5,7 +5,7 @@ class AppUrl {
   // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
 
-  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  static var baseUrl = 'https://f5b1-103-153-170-227.ngrok-free.app/api/v1' ;// Dev
   static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
@@ -35,10 +35,12 @@ class AppUrl {
   static var updateAddressPatchAPI = baseUrl + '/customers/update-address-by-id';
   static var locationListGetAPI = baseUrl + '/customers/get-delivery-address';
   static var deleteAddressDeleteAPI = baseUrl + '/customers/delete-address';
-  //Banner ads
+  //Banner Sliders
   static var bannerSliderGetAPI = baseUrl +'/cms/placement/home_top';
   //Notification
   static var notificationGetAPI = baseUrl +'/notifications/get-all';
+
+  static var deleteAccount = baseUrl +'/users/delete-me';
 
 
   ///=========>

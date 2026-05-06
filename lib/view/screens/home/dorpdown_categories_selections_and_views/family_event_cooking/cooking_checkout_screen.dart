@@ -1112,11 +1112,11 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       // Prepare booking payload
       Map<String, dynamic> bookingPayload = _prepareBookingPayload();
 
-      print('Booking Payload: $bookingPayload');
+      // print('Booking Payload: $bookingPayload');
 
       // Call booking API
       await bookingViewModel.bookFamilyEventCookingPostApi(context, bookingPayload, (String? trackingId) async {
-        print('Success! TrackingId: $trackingId');
+        // print('Success! TrackingId: $trackingId');
 
         if (trackingId == null || trackingId.isEmpty) {
           Navigator.pushReplacementNamed(
@@ -1150,7 +1150,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         }
       });
     } catch (e) {
-      print('Booking error: $e');
+      // print('Booking error: $e');
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

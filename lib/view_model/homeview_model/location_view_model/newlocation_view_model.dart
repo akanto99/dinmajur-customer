@@ -40,9 +40,9 @@ class AddLocationViewModel with ChangeNotifier {
 
       if (kDebugMode) {
         print('========== POSTING LOCATION DATA ==========');
-        print('Request data: ${jsonEncode(fields)}');
-        print('Access token: ${accessToken.substring(0, 20)}...');
-        print('Should Navigate: $shouldNavigate');
+        // print('Request data: ${jsonEncode(fields)}');
+        // print('Access token: ${accessToken.substring(0, 20)}...');
+        // print('Should Navigate: $shouldNavigate');
       }
 
       dynamic response = await _myRepo.addLocationPatchApi(fields);
@@ -68,17 +68,13 @@ class AddLocationViewModel with ChangeNotifier {
       }
 
       if (kDebugMode) {
-        print('Location API Response: ${jsonEncode(response)}');
+        // print('Location API Response: ${jsonEncode(response)}');
         print('========================================');
       }
 
     } catch (error) {
       setCreateAddLocationLoading(false);
       _handleError(error, context);
-
-      if (kDebugMode) {
-        print('Error in AddLocationViewModel: $error');
-      }
     }
   }
 
@@ -107,17 +103,10 @@ class AddLocationViewModel with ChangeNotifier {
         Future.delayed(const Duration(milliseconds: 1000), () {
           Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen()));
         });
-      if (kDebugMode) {
-        print('Location API Response: ${jsonEncode(response)}');
-      }
 
     } catch (error) {
       setCreateAddLocationLoading(false);
       _handleError(error, context);
-
-      if (kDebugMode) {
-        print('Error in AddLocationViewModel: $error');
-      }
     }
   }
 
@@ -138,12 +127,6 @@ class AddLocationViewModel with ChangeNotifier {
     } catch (_) {
       errorMessage = 'Unexpected error occurred while saving location';
     }
-
-    if (kDebugMode) {
-      print('AddLocation Error: $errorMessage');
-    }
-
-    // ADD THIS LINE - Show error to user
     Utils.flushBarErrorMessage(errorMessage, context);
   }
 }

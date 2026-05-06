@@ -851,36 +851,29 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 class NavigationScreen extends StatefulWidget {
   final int initialIndex;
   final int orderTabIndex;
-  const NavigationScreen({super.key, this.initialIndex = 0, this.orderTabIndex = 0,});
+  const NavigationScreen({super.key, this.initialIndex = 0, this.orderTabIndex = 0});
 
   @override
   State<NavigationScreen> createState() => _NavigationScreenState();
 }
 
-class _NavigationScreenState extends State<NavigationScreen>
-    with WidgetsBindingObserver {
-
+class _NavigationScreenState extends State<NavigationScreen> with WidgetsBindingObserver {
   // ─── Navigation ──────────────────────────────────────────────────────────────
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late final List<Widget> _pages;
 
-  // ─── Internet monitoring ──────────────────────────────────────────────────────
-  // One shared instance — created once, never recreated.
+  // ─── Internet monitoring ──One shared instance — created once, never recreated.─────────────────────────────────
   late final InternetConnection _internetChecker;
   StreamSubscription<InternetStatus>? _internetSub;
   Timer? _debounceTimer;
 
   // ─── Dialog guard ─────────────────────────────────────────────────────────────
-  // True ONLY while the "no connection" CupertinoDialog is on screen.
-  // Never set by socket events — only set by internet checker events.
+  // True ONLY while the "no connection" CupertinoDialog is on screen Never set by socket events — only set by internet checker events.
   bool _isNoConnectionDialogVisible = false;
 
-  // ─── Upgrade check guard ──────────────────────────────────────────────────────
-  // Prevents the upgrade dialog from showing more than once per session.
+  // ─── Upgrade check guard Prevents the upgrade dialog from showing more than once per session.──────────────────────────────────────────────────────
   bool _upgradeChecked = false;
-
-  // ─── Nav metadata ─────────────────────────────────────────────────────────────
   final List<String> _icons = [
     "assets/images/navBar/navbar_new/home.svg",
     "assets/images/navBar/navbar_new/offers.svg",
@@ -888,10 +881,6 @@ class _NavigationScreenState extends State<NavigationScreen>
     "assets/images/navBar/navbar_new/support.svg",
   ];
   late List<String> _labels;
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LIFECYCLE
-  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   void initState() {
@@ -935,18 +924,10 @@ class _NavigationScreenState extends State<NavigationScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _syncSystemUIColors();
-    _labels = [
-      AppLocalizations.of(context)!.home,
-      AppLocalizations.of(context)!.offers,
-      AppLocalizations.of(context)!.order,
-      AppLocalizations.of(context)!.callus,
-    ];
+    _labels = [AppLocalizations.of(context)!.home, AppLocalizations.of(context)!.offers, AppLocalizations.of(context)!.order, AppLocalizations.of(context)!.callus];
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // APP LIFECYCLE — pause / resume
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ══════════════════════════════ APP LIFECYCLE — pause / resume═════════════════════════════════════════════
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -997,10 +978,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     _startInternetMonitoring();
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // INIT SERVICES — called once after first mount
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ═══════════════════════════════════ INIT SERVICES — called once after first mount════════════════════════════════════════
   Future<void> _initServices() async {
     if (!mounted) return;
 
@@ -1020,7 +998,6 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
 
     // ── Socket ────────────────────────────────────────────────────────
-    // Socket manages itself. We only wire the onConnected callback here.
     final socket = context.read<SocketManager>();
     socket.onConnected = _onSocketConnected;
 
@@ -1034,23 +1011,14 @@ class _NavigationScreenState extends State<NavigationScreen>
     await _ensureSSERunning();
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SOCKET — callback only, no dialog logic here
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ═══════════════════════════════SOCKET — callback only, no dialog logic here════════════════════════════════════════════
   void _onSocketConnected() {
     if (!mounted) return;
     if (kDebugMode) print('🎉 Socket connected');
-    // Add global socket event listeners here if needed.
-    // DO NOT touch _isNoConnectionDialogVisible here — that's internet-only.
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // INTERNET MONITORING — fully decoupled from socket
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ═════════════════════════════════════INTERNET MONITORING — fully decoupled from socket══════════════════════════════════════
   void _startInternetMonitoring() {
-    // Cancel any existing subscription first (safe to call multiple times).
     _stopInternetMonitoring();
 
     _internetSub = _internetChecker.onStatusChange.listen((InternetStatus status) {
@@ -1078,7 +1046,6 @@ class _NavigationScreenState extends State<NavigationScreen>
   }
 
   // ── Internet lost ──────────────────────────────────────────────────────────
-  // ONLY shows the dialog. Does NOT touch socket — socket handles itself.
   void _onInternetLost() {
     if (!mounted) return;
     if (kDebugMode) print('📵 Internet lost');
@@ -1121,14 +1088,11 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SSE
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ══════════════════════════════════SSE═════════════════════════════════════════
   Future<void> _ensureSSERunning() async {
     if (!mounted) return;
     try {
-      final sseService     = context.read<SSENotificationService>();
+      final sseService = context.read<SSENotificationService>();
       final notificationVM = context.read<NotificationCountViewModel>();
       final runningOrderVM = context.read<RunningOrderCountViewModel>();
 
@@ -1138,10 +1102,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       }
 
       if (!notificationVM.isInitialized) {
-        notificationVM.initializeCountListener(
-          sseService.notificationCountStream,
-          sseService.notificationIncrementStream,
-        );
+        notificationVM.initializeCountListener(sseService.notificationCountStream, sseService.notificationIncrementStream);
       }
       notificationVM.setInitialCount(sseService.currentCount);
 
@@ -1154,10 +1115,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // NO-CONNECTION DIALOG
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ═══════════════════════════════NO-CONNECTION DIALOG════════════════════════════════════════════
   void _showNoConnectionDialog() {
     // Guard: never stack multiple dialogs.
     if (!mounted || _isNoConnectionDialogVisible) return;
@@ -1171,19 +1129,9 @@ class _NavigationScreenState extends State<NavigationScreen>
       builder: (dialogCtx) => CupertinoAlertDialog(
         title: Column(
           children: [
-            const Icon(
-              CupertinoIcons.wifi_exclamationmark,
-              size: 40,
-              color: CupertinoColors.systemRed,
-            ),
+            const Icon(CupertinoIcons.wifi_exclamationmark, size: 40, color: CupertinoColors.systemRed),
             const SizedBox(height: 10),
-            Text(
-              'Connection Lost',
-              style: GoogleFonts.hindSiliguri(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            Text('Connection Lost', style: GoogleFonts.hindSiliguri(fontSize: 16, fontWeight: FontWeight.w600)),
           ],
         ),
         content: Padding(
@@ -1191,10 +1139,7 @@ class _NavigationScreenState extends State<NavigationScreen>
           child: Text(
             'You seem to be offline. Check your connection to stay updated.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.hindSiliguri(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-            ),
+            style: GoogleFonts.hindSiliguri(fontSize: 14, fontWeight: FontWeight.w400),
           ),
         ),
         actions: [
@@ -1220,10 +1165,7 @@ class _NavigationScreenState extends State<NavigationScreen>
             },
             child: const Text(
               'Retry',
-              style: TextStyle(
-                color: CupertinoColors.activeBlue,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: CupertinoColors.activeBlue, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -1258,29 +1200,22 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HELPERS
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ══════════════════════════════════════HELPERS═════════════════════════════════════
   void _syncSystemUIColors() {
     final bool isDark = context.read<ThemeProvider>().isDarkMode;
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor:
-      isDark ? AppColors.blackColor : AppColors.whiteColor,
-      statusBarColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
-      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-      systemNavigationBarIconBrightness:
-      isDark ? Brightness.light : Brightness.dark,
-      systemNavigationBarDividerColor:
-      isDark ? AppColors.blackColor : AppColors.whiteColor,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        systemNavigationBarColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
+        statusBarColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarDividerColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
+      ),
+    );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // UPGRADE CHECK — runs ONCE per session
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ═════════════════════════════════════UPGRADE CHECK — runs ONCE per session══════════════════════════════════════
   Future<void> _checkForUpgrade() async {
     // Guard: only run once per session — avoids showing dialog on every rebuild.
     if (_upgradeChecked) return;
@@ -1313,23 +1248,17 @@ class _NavigationScreenState extends State<NavigationScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 20),
-              Icon(FontAwesomeIcons.cloudArrowDown,
-                  color: AppColors.button(context), size: 50),
+              Icon(FontAwesomeIcons.cloudArrowDown, color: AppColors.button(context), size: 50),
               const SizedBox(height: 10),
-              Text('Update Available',
-                  style: AppTextStyles.textSize18(context,
-                      weight: FontWeight.w600)),
+              Text('Update Available', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
               const SizedBox(height: 20),
-              Text('A new version is available!',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.textSize14(context)),
+              Text('A new version is available!', textAlign: TextAlign.center, style: AppTextStyles.textSize14(context)),
               const SizedBox(height: 5),
               Text(
                 'Version ${upgrader.currentAppStoreVersion ?? 'Unknown'} is now available. '
-                    'You are using version ${upgrader.currentInstalledVersion ?? 'Unknown'}.',
+                'You are using version ${upgrader.currentInstalledVersion ?? 'Unknown'}.',
                 textAlign: TextAlign.center,
-                style: AppTextStyles.textSize12(context,
-                    color: AppColors.subtitle(context)),
+                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
               ),
               const SizedBox(height: 20),
               GestureDetector(
@@ -1340,14 +1269,12 @@ class _NavigationScreenState extends State<NavigationScreen>
                 child: Container(
                   width: w * 0.5,
                   height: 45,
-                  decoration: BoxDecoration(
-                      color: AppColors.button(context),
-                      borderRadius: BorderRadius.circular(100)),
+                  decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
                   child: Center(
-                    child: Text('Update Now',
-                        style: AppTextStyles.textSize14(context,
-                            color: AppColors.whiteColor,
-                            weight: FontWeight.w600)),
+                    child: Text(
+                      'Update Now',
+                      style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                    ),
                   ),
                 ),
               ),
@@ -1359,16 +1286,11 @@ class _NavigationScreenState extends State<NavigationScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SUPPORT / WHATSAPP
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // ══════════════════════════════════SUPPORT / WHATSAPP═════════════════════════════════════════
   Future<void> _openWhatsAppSupport() async {
     const String phone = '8801929600600';
-    const String message =
-        'Hello! I need assistance with Dinmajur platform services.';
-    final Uri uri = Uri.parse(
-        'https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
+    const String message = 'Hello! I need assistance with Dinmajur platform services.';
+    final Uri uri = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -1391,26 +1313,19 @@ class _NavigationScreenState extends State<NavigationScreen>
       barrierColor: AppColors.showDialougeBackground(context),
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.containerBackground(context),
-        contentPadding:
-        EdgeInsets.symmetric(horizontal: w * 0.05, vertical: h * 0.02),
+        contentPadding: EdgeInsets.symmetric(horizontal: w * 0.05, vertical: h * 0.02),
         insetPadding: EdgeInsets.symmetric(horizontal: w * 0.08),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Row(
           children: [
-            Icon(Icons.phone_android,
-                color: AppColors.button(context), size: 28),
+            Icon(Icons.phone_android, color: AppColors.button(context), size: 28),
             const SizedBox(width: 10),
             Expanded(
-              child: Text('WhatsApp Not Found',
-                  style:
-                  AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+              child: Text('WhatsApp Not Found', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
             ),
           ],
         ),
-        content: Text(
-          'WhatsApp is not installed. Would you like to call our support team instead?',
-          style: AppTextStyles.textSize14(context),
-        ),
+        content: Text('WhatsApp is not installed. Would you like to call our support team instead?', style: AppTextStyles.textSize14(context)),
         actions: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1422,18 +1337,16 @@ class _NavigationScreenState extends State<NavigationScreen>
                 },
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: h * 0.014),
-                  decoration: BoxDecoration(
-                      color: AppColors.button(context),
-                      borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.phone, size: 18, color: AppColors.whiteColor),
                       const SizedBox(width: 8),
-                      Text('Call Support (01929-600600)',
-                          style: AppTextStyles.textSize14(context,
-                              color: AppColors.whiteColor,
-                              weight: FontWeight.w500)),
+                      Text(
+                        'Call Support (01929-600600)',
+                        style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w500),
+                      ),
                     ],
                   ),
                 ),
@@ -1446,13 +1359,10 @@ class _NavigationScreenState extends State<NavigationScreen>
                   decoration: BoxDecoration(
                     color: AppColors.containerBackground(context),
                     borderRadius: BorderRadius.circular(8),
-                    border:
-                    Border.all(width: 1, color: AppColors.border(context)),
+                    border: Border.all(width: 1, color: AppColors.border(context)),
                   ),
                   child: Center(
-                    child: Text('Cancel',
-                        style: AppTextStyles.textSize14(context,
-                            weight: FontWeight.w500)),
+                    child: Text('Cancel', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                   ),
                 ),
               ),
@@ -1476,17 +1386,13 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BUILD
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  DateTime? _lastBackPressed;
   @override
   Widget build(BuildContext context) {
     final bool isDark = context.watch<ThemeProvider>().isDarkMode;
     final double w = MediaQuery.of(context).size.width;
     final double h = MediaQuery.of(context).size.height;
 
-    // ✅ Upgrade check is guarded internally — safe to call from build.
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpgrade());
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -1494,80 +1400,41 @@ class _NavigationScreenState extends State<NavigationScreen>
         statusBarColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-        systemNavigationBarColor:
-        isDark ? AppColors.blackColor : AppColors.whiteColor,
-        systemNavigationBarIconBrightness:
-        isDark ? Brightness.light : Brightness.dark,
-        systemNavigationBarDividerColor:
-        isDark ? AppColors.blackColor : AppColors.whiteColor,
+        systemNavigationBarColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
+        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarDividerColor: isDark ? AppColors.blackColor : AppColors.whiteColor,
         systemNavigationBarContrastEnforced: false,
       ),
-      child: WillPopScope(
-        onWillPop: () async {
-          if (_currentIndex == 0 &&
-              _scaffoldKey.currentState?.isDrawerOpen == true) {
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+
+          // Close drawer if open
+          if (_currentIndex == 0 && _scaffoldKey.currentState?.isDrawerOpen == true) {
             _scaffoldKey.currentState!.closeDrawer();
-            return false;
+            return;
           }
-          final bool? exit = await showDialog<bool>(
-            context: context,
-            barrierColor: AppColors.showDialougeBackground(context),
-            builder: (ctx) => AlertDialog(
-              backgroundColor: AppColors.containerBackground(context),
-              insetPadding: EdgeInsets.all(h * 0.02),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5)),
-              content: Text(
-                'Are you sure you want to exit?',
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-              ),
-              actions: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(ctx).pop(false),
-                      child: Container(
-                        width: w * 0.2,
-                        padding:
-                        EdgeInsets.symmetric(vertical: h * 0.008),
-                        decoration: BoxDecoration(
-                            color: AppColors.textFieldFill(context),
-                            borderRadius: BorderRadius.circular(5)),
-                        child: Center(
-                          child: Text('No',
-                              style: AppTextStyles.textSize12(context,
-                                  weight: FontWeight.w600)),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: w * 0.02),
-                    GestureDetector(
-                      onTap: () => SystemNavigator.pop(),
-                      child: Container(
-                        width: w * 0.2,
-                        padding:
-                        EdgeInsets.symmetric(vertical: h * 0.008),
-                        decoration: BoxDecoration(
-                            color: AppColors.button(context),
-                            borderRadius: BorderRadius.circular(5)),
-                        child: Center(
-                          child: Text(
-                            'Yes',
-                            style: GoogleFonts.hindSiliguri(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.whiteColor),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+
+          final now = DateTime.now();
+          final isDoubleBack = _lastBackPressed != null && now.difference(_lastBackPressed!) < const Duration(seconds: 2);
+
+          if (isDoubleBack) {
+            SystemNavigator.pop();
+          } else {
+            _lastBackPressed = now;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Center(
+                  child: Text('Double tap to exit', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                 ),
-              ],
-            ),
-          );
-          return exit ?? false;
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor:AppColors.appBackground(context),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+              ),
+            );
+          }
         },
         child: Scaffold(
           backgroundColor: AppColors.containerBackground(context),
@@ -1579,14 +1446,8 @@ class _NavigationScreenState extends State<NavigationScreen>
                 color: AppColors.globalBlackWhite(context),
                 boxShadow: [
                   isDark
-                      ? BoxShadow(
-                      color: Colors.white12.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, -2))
-                      : const BoxShadow(
-                      color: Colors.white10,
-                      blurRadius: 10,
-                      offset: Offset(0, -2)),
+                      ? BoxShadow(color: Colors.white12.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, -2))
+                      : const BoxShadow(color: Colors.white10, blurRadius: 10, offset: Offset(0, -2)),
                 ],
               ),
               child: Column(
@@ -1601,9 +1462,7 @@ class _NavigationScreenState extends State<NavigationScreen>
 
                       return GestureDetector(
                         onTap: () async {
-                          if (index == 0 &&
-                              _currentIndex == 0 &&
-                              _scaffoldKey.currentState?.isDrawerOpen == true) {
+                          if (index == 0 && _currentIndex == 0 && _scaffoldKey.currentState?.isDrawerOpen == true) {
                             _scaffoldKey.currentState!.closeDrawer();
                           } else if (index == 3) {
                             await _openWhatsAppSupport();
@@ -1620,74 +1479,46 @@ class _NavigationScreenState extends State<NavigationScreen>
                             children: [
                               isOrderTab
                                   ? Consumer<RunningOrderCountViewModel>(
-                                builder: (context, vm, _) => Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    SvgPicture.asset(
-                                      _icons[index],
-                                      width: 18,
-                                      height: 18,
-                                      color: isSelected
-                                          ? AppColors.button(context)
-                                          : AppColors.subtitle(context),
-                                      semanticsLabel: _labels[index],
-                                    ),
-                                    if (vm.hasRunningOrders)
-                                      Positioned(
-                                        right: -6,
-                                        top: -4,
-                                        child: Container(
-                                          padding:
-                                          const EdgeInsets.all(2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                                color: AppColors
-                                                    .globalBlackWhite(
-                                                    context),
-                                                width: 1),
+                                      builder: (context, vm, _) => Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          SvgPicture.asset(
+                                            _icons[index],
+                                            width: 18,
+                                            height: 18,
+                                            color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                            semanticsLabel: _labels[index],
                                           ),
-                                          constraints:
-                                          const BoxConstraints(
-                                              minWidth: 14,
-                                              minHeight: 14),
-                                          child: Text(
-                                            vm.runningOrderCount > 9
-                                                ? '9+'
-                                                : '${vm.runningOrderCount}',
-                                            style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 9,
-                                                fontWeight:
-                                                FontWeight.bold),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
+                                          if (vm.hasRunningOrders)
+                                            Positioned(
+                                              right: -6,
+                                              top: -4,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red,
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
+                                                ),
+                                                constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                                                child: Text(
+                                                  vm.runningOrderCount > 9 ? '9+' : '${vm.runningOrderCount}',
+                                                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
                                       ),
-                                  ],
-                                ),
-                              )
-                                  : SvgPicture.asset(
-                                _icons[index],
-                                width: 18,
-                                height: 18,
-                                color: isSelected
-                                    ? AppColors.button(context)
-                                    : AppColors.subtitle(context),
-                                semanticsLabel: _labels[index],
-                              ),
+                                    )
+                                  : SvgPicture.asset(_icons[index], width: 18, height: 18, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context), semanticsLabel: _labels[index]),
                               const SizedBox(height: 6),
                               Text(
                                 _labels[index],
                                 style: AppTextStyles.textSize12(
                                   context,
-                                  weight: isSelected
-                                      ? FontWeight.w500
-                                      : FontWeight.w400,
-                                  color: isSelected
-                                      ? AppColors.button(context)
-                                      : AppColors.subtitle(context),
+                                  weight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                                  color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
                                 ),
                               ),
                             ],

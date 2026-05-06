@@ -579,10 +579,10 @@ class CheckoutViewModel extends ChangeNotifier {
   }) async {
     print("═══════════════════════════════════════════");
     print("🚀 CheckoutViewModel: Initiating Payment");
-    print("Tracking ID: $trackingId");
-    print("Total Amount: $totalAmount");
-    print("Customer: $customerName");
-    print("Phone: $customerPhone");
+    // print("Tracking ID: $trackingId");
+    // print("Total Amount: $totalAmount");
+    // print("Customer: $customerName");
+    // print("Phone: $customerPhone");
     print("═══════════════════════════════════════════");
 
     try {
@@ -598,7 +598,7 @@ class CheckoutViewModel extends ChangeNotifier {
 
       print("═══════════════════════════════════════════");
       print("📥 Payment Service Result:");
-      print(result.toString());
+      // print(result.toString());
       print("═══════════════════════════════════════════");
 
       return result;

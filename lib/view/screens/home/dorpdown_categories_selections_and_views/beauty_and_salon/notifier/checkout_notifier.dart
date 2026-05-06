@@ -223,10 +223,10 @@ import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payme
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_sslcommerz/model/SSLCSdkType.dart';
-import 'package:flutter_sslcommerz/model/SSLCommerzInitialization.dart';
-import 'package:flutter_sslcommerz/model/SSLCurrencyType.dart';
-import 'package:flutter_sslcommerz/sslcommerz.dart';
+// import 'package:flutter_sslcommerz/model/SSLCSdkType.dart';
+// import 'package:flutter_sslcommerz/model/SSLCommerzInitialization.dart';
+// import 'package:flutter_sslcommerz/model/SSLCurrencyType.dart';
+// import 'package:flutter_sslcommerz/sslcommerz.dart';
 import 'package:intl/intl.dart';
 
 class CheckoutBeautySalonViewModel extends ChangeNotifier {
@@ -449,10 +449,10 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
   }) async {
     print("═══════════════════════════════════════════");
     print("🚀 CheckoutViewModel: Initiating Payment");
-    print("Tracking ID: $trackingId");
-    print("Total Amount: $totalAmount");
-    print("Customer: $customerName");
-    print("Phone: $customerPhone");
+    // print("Tracking ID: $trackingId");
+    // print("Total Amount: $totalAmount");
+    // print("Customer: $customerName");
+    // print("Phone: $customerPhone");
     print("═══════════════════════════════════════════");
 
     try {
@@ -468,13 +468,13 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
 
       print("═══════════════════════════════════════════");
       print("📥 Payment Service Result:");
-      print(result.toString());
+      // print(result.toString());
       print("═══════════════════════════════════════════");
 
       return result;
     } catch (e, stackTrace) {
-      print("💥 Payment Initiation Error in ViewModel: $e");
-      print("Stack Trace: $stackTrace");
+      // print("💥 Payment Initiation Error in ViewModel: $e");
+      // print("Stack Trace: $stackTrace");
 
       return SSLPaymentResult(
         success: false,

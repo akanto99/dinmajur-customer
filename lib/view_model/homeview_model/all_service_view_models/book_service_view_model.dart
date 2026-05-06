@@ -20,25 +20,18 @@ class BookServiceViewModel with ChangeNotifier {
       dynamic response = await _myRepo.bookServicePostApi(fields);
       setBookServiceLoading(false);
 
-      if (kDebugMode) print('API Response: ${response.toString()}');
-
       String? trackingId;
 
       if (response != null && response['data'] != null) {
         final booking = response['data']['booking'];
         trackingId = booking?['trackingId']?.toString();
-
-        if (kDebugMode) print('Tracking ID: $trackingId');
-
         onSuccess(trackingId);
       } else {
-        if (kDebugMode) print('Warning: data not found in response');
         onSuccess(null);
       }
     } catch (error) {
       setBookServiceLoading(false);
       _handleError(error, context);
-      if (kDebugMode) print('Error: $error');
     }
   }
 

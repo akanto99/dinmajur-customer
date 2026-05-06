@@ -38,8 +38,8 @@ class PostNearbyRetailersViewModel with ChangeNotifier {
       setnearbyRetailersLoading(false);
 
       if (kDebugMode) {
-        print('Parsed response JSON: $value');
-        print(value.toString());
+        // print('Parsed response JSON: $value');
+        // print(value.toString());
       }
 
       // Parse the response and extract the stores data
@@ -51,24 +51,20 @@ class PostNearbyRetailersViewModel with ChangeNotifier {
         } else if (value is Map<String, dynamic>) {
           responseMap = value;
         } else {
-          if (kDebugMode) print('Unexpected response type: ${value.runtimeType}');
           setNearbyStores([]);
           return [];
         }
 
         if (responseMap['success'] == true && responseMap['data'] != null) {
           List<dynamic> stores = responseMap['data'];
-          if (kDebugMode) print('Extracted stores: $stores, Count: ${stores.length}');
           setNearbyStores(stores);
           return stores;
         } else {
-          if (kDebugMode) print('API returned success=false or no data');
           setNearbyStores([]);
           Utils.flushBarErrorMessage(responseMap['message'] ?? 'No stores found', context);
           return [];
         }
       } else {
-        if (kDebugMode) print('Response is null');
         setNearbyStores([]);
         Utils.flushBarErrorMessage('No response from server', context);
         return [];
@@ -77,7 +73,6 @@ class PostNearbyRetailersViewModel with ChangeNotifier {
       setnearbyRetailersLoading(false);
       setNearbyStores([]);
       _handleError(error, context);
-      if (kDebugMode) print('Error in nearbyRetailersPostApi: $error');
       return null;
     }
   }

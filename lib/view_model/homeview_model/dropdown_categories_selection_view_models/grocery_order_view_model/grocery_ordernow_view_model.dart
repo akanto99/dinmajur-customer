@@ -30,7 +30,6 @@ class GroceryOrdernowViewModel with ChangeNotifier {
     } catch (error) {
       setGroceryPaymentLoading(false);
       _handleError(error, context);
-      if (kDebugMode) print('Error: $error');
     }
   }
 

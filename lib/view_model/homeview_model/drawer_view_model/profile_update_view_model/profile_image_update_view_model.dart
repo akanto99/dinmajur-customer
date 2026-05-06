@@ -25,10 +25,6 @@ class PatchprofileImageUpdateViewModel with ChangeNotifier {
       final value = await _myRepo.profileImageUpdatePatchApi(imageBytes, imageTypes, fileName);
       setprofileImageUpdateLoading(false);
 
-      if (kDebugMode) {
-        print('Profile Image Upload Response: $value');
-      }
-
       if (value['success'] == true) {
         Utils.flushBarSuccessMessage('Profile picture uploaded successfully', context);
         final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
@@ -64,10 +60,6 @@ class PatchprofileImageUpdateViewModel with ChangeNotifier {
     try {
       final value = await _myRepo.imageAndCoverUploadPatchApi(imageBytes, imageTypes, fileName);
       setImageAndCoverUpdateLoading(false);
-
-      if (kDebugMode) {
-        print('Image Cover Upload Response: $value');
-      }
 
       if (value['success'] == true) {
         Utils.flushBarSuccessMessage(value['message'] ?? 'Image uploaded successfully', context);

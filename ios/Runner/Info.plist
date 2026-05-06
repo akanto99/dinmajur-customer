@@ -2,10 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Dinmajur Customer</string>
+	<string>DM Customer</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -24,10 +26,39 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>UIRequiresPersistentWiFi</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -41,11 +72,58 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>UIRequiresPersistentWiFi</key>
-    <true/>
+
+
+	<!-- ============================================================ -->
+	<!-- =================== CUSTOM PERMISSIONS ADDED =============== -->
+	<!-- ============================================================ -->
+
+	<!-- Google Maps iOS API Key ----Required by: google_maps_flutter-->
+	<key>GMSApiKey</key>
+	<string>YOUR_GOOGLE_MAPS_IOS_API_KEY_HERE</string>
+
+	<!-- Location Permissions -- Required by: geolocator, geocoding-->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Dinmajur uses your location to show nearby services and provide accurate delivery tracking.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Dinmajur uses your location in the background to track your delivery status.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Dinmajur uses your location to show nearby services and track deliveries even when the app is in the background.</string>
+
+	<!-- Camera & Photo Library Permissions -- Required by: image_picker, image_cropper-->
+	<key>NSCameraUsageDescription</key>
+	<string>Dinmajur needs camera access to take photos for your profile picture or order-related images.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Dinmajur needs access to your photo library to select images for your profile or orders.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Dinmajur needs permission to save images to your photo library.</string>
+
+	<!-- File Access Permission -- Required by: file_picker-->
+	<key>NSDocumentsDirectoryUsageDescription</key>
+	<string>Dinmajur needs access to your files to allow document uploads.</string>
+
+	<!-- Network Security -- Controls HTTP/HTTPS traffic-->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<!-- If your backend still uses HTTP (not HTTPS), uncomment the block below -->
+		<!-- Remove once your server fully supports HTTPS -->
+		<!--
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>your-api-domain.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+		-->
+	</dict>
+
+
+
 </dict>
 </plist>

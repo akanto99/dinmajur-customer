@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 #Every 30 change
-version: 1.1.10+68
+version: 1.1.10+69
 
 environment:
   sdk: ^3.8.1
@@ -58,7 +58,7 @@ dependencies:
 #  webview_flutter: ^4.13.0
   cached_network_image: ^3.4.1
 #  Payment SSL Commerze
-  flutter_sslcommerz: ^3.0.1
+  flutter_sslcommerz: ^3.0.2
   #  One Signal Integration
   onesignal_flutter: ^5.3.5
   wakelock_plus: ^1.4.0
