@@ -13,6 +13,7 @@ import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
+import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -478,6 +479,10 @@ class _ViewProfileState extends State<ViewProfile> {
                                     if (success) {
                                       // Clear cache
                                       profileViewModel.clearCache();
+
+
+                                      final userPreference = Provider.of<UserViewModel>(context, listen: false);
+                                      await userPreference.remove();
 
                                       // Close dialog & navigate to login
                                       Navigator.of(dialogContext).pop();
