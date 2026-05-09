@@ -202,7 +202,7 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                   SizedBox(width: 8),
                   Text(
                     "Selected Location",
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
                   ),
                 ],
               ),
@@ -215,14 +215,14 @@ class _MapLocationScreenState extends State<MapLocationScreen> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 4),
-
-              // Coordinates
-              Text(
-                'Lat: ${_controller.selectedLocation!.latitude.toStringAsFixed(6)}, '
-                'Lng: ${_controller.selectedLocation!.longitude.toStringAsFixed(6)}',
-                style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context).withOpacity(0.7)),
-              ),
+              // SizedBox(height: 4),
+              //
+              // // Coordinates
+              // Text(
+              //   'Lat: ${_controller.selectedLocation!.latitude.toStringAsFixed(6)}, '
+              //   'Lng: ${_controller.selectedLocation!.longitude.toStringAsFixed(6)}',
+              //   style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context).withOpacity(0.7)),
+              // ),
               SizedBox(height: 12),
 
               // Confirm button
