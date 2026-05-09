@@ -30,34 +30,22 @@ class _NameEntryDialogState extends State<NameEntryDialog> {
   }
 
   Future<void> _handleSubmit() async {
-    // Validate the form
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() => _isSubmitting = true);
-
     try {
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
-
-      // Prepare the data for API
       final data = {
         "fullName": _fullNameController.text.trim(),
       };
-
-      // Call the API to update profile (don't show success message)
       await profileViewModel.profileUpdatePatchApi(
         context,
         data,
-        showSuccessMessage: false, // Suppress success message
+        showSuccessMessage: false,
       );
-
-      // Refresh profile data to get updated info
       await profileViewModel.fetchProfileViewUserDataApi(forceRefresh: true);
-
-      // ✅ Wait for any pending UI updates to complete before closing
       if (mounted) {
-        // Use addPostFrameCallback to ensure all builds are complete
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             Navigator.of(context).pop();
@@ -67,10 +55,7 @@ class _NameEntryDialogState extends State<NameEntryDialog> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);
-
-        // Show error message without closing dialog
         await Future.delayed(const Duration(milliseconds: 100));
-
         if (mounted) {
           Utils.flushBarErrorMessage("Failed to update name. Please try again.", context);
         }
@@ -83,7 +68,7 @@ class _NameEntryDialogState extends State<NameEntryDialog> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return WillPopScope(
-      onWillPop: () async => false, // Prevent back button
+      onWillPop: () async => false,
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         backgroundColor: AppColors.containerBackground(context),
@@ -98,10 +83,7 @@ class _NameEntryDialogState extends State<NameEntryDialog> {
                 Text("Nick Name",
                   style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
                 ),
-
                 SizedboxSpaccing.height02(context),
-
-                // Using CustometextFormfield like in WelcomeLoginScreen
                 CustometextFormfield(
                   placeholder: AppLocalizations.of(context)!.fullName_hint,
                   controller: _fullNameController,
@@ -123,8 +105,6 @@ class _NameEntryDialogState extends State<NameEntryDialog> {
                 ),
 
                 SizedboxSpaccing.height025(context),
-
-                // Using RoundButton like in WelcomeLoginScreen
                 Consumer<ProfileViewViewModel>(
                   builder: (context, profileViewModel, _) {
                     return Container(
@@ -147,11 +127,11 @@ class _NameEntryDialogState extends State<NameEntryDialog> {
   }
 }
 
-// Helper function to show the dialog
 Future<void> showNameEntryDialog(BuildContext context) {
   return showDialog(
     context: context,
-    barrierDismissible: false, // User must enter name
+    barrierDismissible: false,
+    barrierColor: AppColors.showDialougeBackground(context),
     builder: (context) => NameEntryDialog(),
   );
 }

@@ -11,7 +11,6 @@ class GetAllServiceRepository {
       dynamic response = await _apiServices.getGetApiResponse(
         AppUrl.getAllServiceGetAPI,
       );
-      print(response);
       return GetAllServicesModel.fromJson(response);
     } catch (e) {
       throw e;
