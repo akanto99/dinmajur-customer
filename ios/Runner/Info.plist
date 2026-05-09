@@ -80,7 +80,7 @@
 
 	<!-- Google Maps iOS API Key ----Required by: google_maps_flutter-->
 	<key>GMSApiKey</key>
-	<string>YOUR_GOOGLE_MAPS_IOS_API_KEY_HERE</string>
+	<string>REMOVED_KEY</string>
 
 	<!-- Location Permissions -- Required by: geolocator, geocoding-->
 	<key>NSLocationWhenInUseUsageDescription</key>
