@@ -13,6 +13,7 @@ import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/drawer_view_model/profile_update_view_model/profile_image_update_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
+import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -170,9 +171,8 @@ class _ViewProfileState extends State<ViewProfile> {
                             SizedBox(height: screenHeight * 0.02),
                             _buildDeliveryAddress(screenWidth, screenHeight, deliveryAddress),
                             SizedBox(height: screenHeight * 0.02),
-                            // _buildRecentOrders(screenWidth, screenHeight,),
-                            // SizedBox(height: screenHeight * 0.02),
-                            _buildBackButton(screenWidth),
+
+                            _buildActionButton(screenWidth),
                             SizedBox(height: screenHeight * 0.02),
                           ],
                         ),
@@ -269,11 +269,7 @@ class _ViewProfileState extends State<ViewProfile> {
   Widget _buildStatsCard(double screenWidth, double screenHeight, int totalOrders, double totalSpend) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildStatItem(totalOrders.toString(), "Orders"),
-        _buildVerticalDivider(),
-        _buildStatItem("৳ ${AmountFormatter.format(totalSpend)}", "Spent"),
-      ],
+      children: [_buildStatItem(totalOrders.toString(), "Orders"), _buildVerticalDivider(), _buildStatItem("৳ ${AmountFormatter.format(totalSpend)}", "Spent")],
     );
   }
 
@@ -412,102 +408,153 @@ class _ViewProfileState extends State<ViewProfile> {
     );
   }
 
-  Widget _buildRecentOrders(double screenWidth, double screenHeight) {
-    return Container(
-      width: screenWidth * 0.9,
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(width: 1, color: AppColors.border(context)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: EdgeInsets.all(screenHeight * 0.02),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Recent Orders", style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                GestureDetector(
-                  onTap: () {},
-                  child: Text(
-                    "View All",
-                    style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
-                  ),
-                ),
-              ],
-            ),
-          ),
+  Widget _buildActionButton(double screenWidth) {
+    void _showDeleteConfirmationDialog() {
+      final screenHeight = MediaQuery.of(context).size.height;
 
-          Container(
-            padding: EdgeInsets.all(screenHeight * 0.02),
-            decoration: BoxDecoration(
-              color: AppColors.containerBackground(context),
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
-              border: Border(top: BorderSide(width: 1, color: AppColors.border(context))),
-            ),
-            child: _buildOrderItem("Order #1024", "Delivered", "\$125.50"),
-          ),
-        ],
-      ),
-    );
-  }
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: AppColors.showDialougeBackground(context),
+        builder: (dialogContext) => Consumer<ProfileViewViewModel>(
+          builder: (context, profileViewModel, _) {
+            return Dialog(
+              backgroundColor: AppColors.containerBackground(context),
+              insetPadding: EdgeInsets.all(screenHeight * 0.02),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: EdgeInsets.all(screenHeight * 0.025),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Icon
+                    Container(
+                      height: 60,
+                      width: 60,
+                      decoration: BoxDecoration(color: AppColors.darkRedColor.withOpacity(0.1), shape: BoxShape.circle),
+                      child: Icon(Icons.delete_outline, color: AppColors.darkRedColor, size: 30),
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
 
-  Widget _buildOrderItem(String orderId, String status, String amount) {
-    return Container(
-      decoration: BoxDecoration(color: AppColors.containerBackground(context), borderRadius: BorderRadius.circular(8)),
-      child: Row(
-        children: [
-          Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(8)),
-            child: Icon(Icons.shopping_bag, color: AppColors.subtitle(context)),
-          ),
-          SizedboxSpaccing.width03(context),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  orderId,
-                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
-                ),
-                Text(
-                  status,
-                  style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-                ),
-              ],
-            ),
-          ),
-          Text(amount, style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
+                    // Title
+                    Text('Delete Account', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+                    SizedBox(height: screenHeight * 0.01),
 
-  Widget _buildBackButton(double screenWidth) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
-      },
-      child: Container(
-        height: 50,
-        width: screenWidth * 0.68,
-        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(FontAwesomeIcons.arrowLeft, size: 16, color: AppColors.whiteColor),
-            SizedboxSpaccing.width03(context),
-            Text(
-              'Back to Dashboard',
-              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
-            ),
-          ],
+                    // Message
+                    Text(
+                      'Are you sure you want to delete your account? This action cannot be undone.',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                    ),
+                    SizedBox(height: screenHeight * 0.025),
+
+                    // Buttons
+                    Row(
+                      children: [
+                        // No Button
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: profileViewModel.deleteAccountLoading ? null : () => Navigator.pop(dialogContext),
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(width: 1, color: AppColors.border(context)),
+                              ),
+                              child: Center(
+                                child: Text('No', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: MediaQuery.of(context).size.width * 0.03),
+
+                        // Yes, Delete Button
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: profileViewModel.deleteAccountLoading
+                                ? null
+                                : () async {
+                                    final success = await profileViewModel.deleteAccountApi(context);
+                                    if (success) {
+                                      // Clear cache
+                                      profileViewModel.clearCache();
+
+
+                                      final userPreference = Provider.of<UserViewModel>(context, listen: false);
+                                      await userPreference.remove();
+
+                                      // Close dialog & navigate to login
+                                      Navigator.of(dialogContext).pop();
+                                      Navigator.of(context).pushNamedAndRemoveUntil(RoutesName.authLoginWelcome, (Route<dynamic> route) => false);
+                                    }
+                                  },
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(color: AppColors.darkRedColor, borderRadius: BorderRadius.circular(8)),
+                              child: Center(
+                                child: profileViewModel.deleteAccountLoading
+                                    ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.whiteColor))
+                                    : Text(
+                                        'Yes, Delete',
+                                        style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
-      ),
+      );
+    }
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)));
+          },
+          child: Container(
+            height: 50,
+            width: screenWidth * 0.68,
+            decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(FontAwesomeIcons.arrowLeft, size: 16, color: AppColors.whiteColor),
+                SizedboxSpaccing.width03(context),
+                Text(
+                  'Back to Dashboard',
+                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        SizedboxSpaccing.height02(context),
+
+        GestureDetector(
+          onTap: _showDeleteConfirmationDialog,
+          child: Container(
+            height: 50,
+            width: screenWidth * 0.68,
+            decoration: BoxDecoration(color: AppColors.darkRedColor, borderRadius: BorderRadius.circular(8)),
+            child: Center(
+              child: Text(
+                'Delete Account',
+                style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

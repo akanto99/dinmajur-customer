@@ -110,7 +110,7 @@ class SocketManager extends ChangeNotifier {
   void emit(String event, dynamic data) {
     if (isConnected) {
       _socket!.emit(event, data);
-      if (kDebugMode) print('📤 SocketManager: emit "$event"');
+      // if (kDebugMode) print('📤 SocketManager: emit "$event"');
     } else {
       if (kDebugMode) {
         print('⚠️ SocketManager: cannot emit "$event" – not connected');
@@ -131,7 +131,7 @@ class SocketManager extends ChangeNotifier {
       if (kDebugMode) {
         print('-----------------------------------');
         print('🎉 Socket Connected Successfully');
-        print('   Socket ID : ${_socket?.id}');
+        // print('   Socket ID : ${_socket?.id}');
         print('-----------------------------------');
       }
       notifyListeners();

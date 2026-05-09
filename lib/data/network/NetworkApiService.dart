@@ -36,7 +36,7 @@ class NetworkApiService extends BaseApiServices {
       final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
       responseJson = await _handleResponse(response, url, () => getGetApiResponse(url));
     } on SocketException catch (e) {
-      print('$e');
+      // print('$e');
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
@@ -66,7 +66,7 @@ class NetworkApiService extends BaseApiServices {
     dynamic responseJson;
     try {
       Response response = await post(Uri.parse(url), body: data).timeout(Duration(seconds: 30));
-      print(response.body);
+      // print(response.body);
       responseJson = await _handleResponse(response, url, () => getPostApiResponse(url, data));
     } on SocketException {
       throw FetchDataException('No Internet Connection');
@@ -126,7 +126,7 @@ class NetworkApiService extends BaseApiServices {
           .timeout(const Duration(seconds: 30));
       return await _handleResponse(response, url, () => getMultiStepPostApiResponse(url, fields, headers: headers));
     } on SocketException catch (e) {
-      print('$e');
+      // print('$e');
       throw FetchDataException('No Internet Connection');
     } on TimeoutException {
       throw FetchDataException('Request timeout. Please try again');
@@ -352,7 +352,7 @@ class NetworkApiService extends BaseApiServices {
   Future<Map<String, String>> _getAuthHeaders([Map<String, String>? additionalHeaders]) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
-    print(accessToken);
+    // print(accessToken);
     Map<String, String> headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
 
     if (accessToken != null && accessToken.isNotEmpty) {
@@ -408,7 +408,7 @@ class NetworkApiService extends BaseApiServices {
   /// Parse response based on status code
   dynamic returnResponse(http.Response response) {
     final url = response.request?.url.toString() ?? "---------Unknown URL--------";
-    print("🌐 $url : ${response.statusCode}");
+    // print("🌐 $url : ${response.statusCode}");
     // print("📦 ${response.body}");
 
     switch (response.statusCode) {

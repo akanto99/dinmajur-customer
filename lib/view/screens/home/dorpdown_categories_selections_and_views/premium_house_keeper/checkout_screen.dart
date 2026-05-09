@@ -944,17 +944,15 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       paymentMethod: checkoutViewModel.selectedPaymentMethod,
     );
 
-    print('Booking Data: $bookingData');
+    // print('Booking Data: $bookingData');
 
     await bookingViewModel.bookPremiumHouseKeeperPostApi(
         context,
         bookingData,
             (String? trackingId) async {
-          print('Success! TrackingId: $trackingId');
+          // print('Success! TrackingId: $trackingId');
 
           if (checkoutViewModel.selectedPaymentMethod == 'online' && trackingId != null) {
-            print('---------------A----------------');
-
             final paymentResult = await checkoutViewModel.initiatePayment(
               trackingId: trackingId,
               totalAmount: totalAmount,
@@ -964,7 +962,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               customerAddress: _addressController.text.trim(),
             );
 
-            print('Payment Result: ${paymentResult.toString()}');
+            // print('Payment Result: ${paymentResult.toString()}');
 
             await _handlePaymentResult(
                 viewModel: checkoutViewModel,

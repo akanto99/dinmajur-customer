@@ -836,12 +836,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       paymentMethod: checkoutVM.selectedPaymentMethod,
     );
 
-    print('Booking Data: $bookingData');
+    // print('Booking Data: $bookingData');
 
     try {
       // Call booking API
       await bookingViewModel.bookPremiumHomeBeautySalonPostApi(context, bookingData, (String? trackingId) async {
-        print('Success! TrackingId: $trackingId');
+        // print('Success! TrackingId: $trackingId');
 
         if (trackingId == null || trackingId.isEmpty) {
           Navigator.pushReplacementNamed(
@@ -878,7 +878,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       });
     } catch (e) {
-      print('Booking error: $e');
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

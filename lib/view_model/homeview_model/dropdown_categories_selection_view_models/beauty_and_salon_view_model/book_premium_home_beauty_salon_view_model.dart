@@ -105,13 +105,6 @@ class PostBookPremiumHomeBeautySalonViewModel with ChangeNotifier {
       // Store the response
       dynamic response = await _myRepo.bookPremiumHomeBeautySalonPostApi(fields);
       setBookPremiumHomeBeautySalonLoading(false);
-
-      // Utils.flushBarSuccessMessage('Book Premium Home Beauty and Salon successfully', context);
-      // await Future.delayed(Duration(milliseconds: 1000));
-
-      if (kDebugMode) print('API Response: ${response.toString()}');
-
-      // Extract trackingId and paymentUrl from response
       String? trackingId;
 
 

@@ -387,7 +387,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           // },
                           onCategoryTap: (index) {
                             final selectedCategory = data[index];
-                            print('Category ID: ${selectedCategory.id ?? ''}');
+                            // print('Category ID: ${selectedCategory.id ?? ''}');
                             setState(() {
                               _selectedTabIndex = index;
                               // Clear all selections when switching category tab

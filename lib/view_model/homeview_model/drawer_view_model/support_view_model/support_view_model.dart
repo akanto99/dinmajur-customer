@@ -20,11 +20,9 @@ class PostSupportViewModel with ChangeNotifier {
       dynamic value = await _myRepo.supportPostApi(fields);
       setCreateSupportLoading(false);
       Utils.flushBarSuccessMessage('Support message sent successfully!', context);
-      if (kDebugMode) print(value.toString());
     } catch (error) {
       setCreateSupportLoading(false);
       _handleError(error, context);
-      if (kDebugMode) print('Error: $error');
     }
   }
 

@@ -35,17 +35,13 @@ class DeleteLocationViewModel with ChangeNotifier {
       locationListViewModel.clearCache(); // Clear the cached data
       await locationListViewModel.fetchLocationListApi();
       if (kDebugMode) {
-        print('Location API Response: ${jsonEncode(response)}');
+        // print('Location API Response: ${jsonEncode(response)}');
         print('========================================');
       }
 
     } catch (error) {
       setCreateDeleteLocationLoading(false);
       _handleError(error, context);
-
-      if (kDebugMode) {
-        print('Error in AddLocationViewModel: $error');
-      }
     }
   }
 
@@ -66,12 +62,6 @@ class DeleteLocationViewModel with ChangeNotifier {
     } catch (_) {
       errorMessage = 'Unexpected error occurred while saving location';
     }
-
-    if (kDebugMode) {
-      print('AddLocation Error: $errorMessage');
-    }
-
-    // ADD THIS LINE - Show error to user
     Utils.flushBarErrorMessage(errorMessage, context);
   }
 }

@@ -24,10 +24,10 @@ class ServicesViewGetAllCategoriesViewModel with ChangeNotifier {
           setServicesViewGetAllCategoryData(ApiResponse.completed(value));
         })
         .onError((error, stackTrace) {
-          if (kDebugMode) {
-            print(error);
-            print(stackTrace);
-          }
+      if (kDebugMode) {
+        print(error);
+        print(stackTrace);
+      }
           setServicesViewGetAllCategoryData(ApiResponse.error(error.toString()));
         });
   }

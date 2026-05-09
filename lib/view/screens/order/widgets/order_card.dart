@@ -16,7 +16,9 @@ class OrderCard extends StatelessWidget {
   final bool isCompletedTab;
   final Future<void> Function(BuildContext context, Datum datum) onPayNow;
 
-  const OrderCard({super.key, required this.datum, required this.onPayNow, this.isPendingTab = false, this.isRunningTab = false, this.isCompletedTab = false});
+  const OrderCard({super.key, required this.datum,
+    required this.onPayNow,
+    this.isPendingTab = false, this.isRunningTab = false, this.isCompletedTab = false});
 
   // ─── Order type helpers ─────────────────────────────────────────────────────
   String get _orderType {
@@ -169,12 +171,16 @@ class OrderCard extends StatelessWidget {
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
                 SizedboxSpaccing.height02(context),
-                CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: true),
+                CompletedActions(datum: datum,
+                    onPayNow: onPayNow,
+                    isRunningTab: true),
               ] else if (isCompletedTab && datum.isReview == false) ...[
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
                 SizedboxSpaccing.height02(context),
-                CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: false),
+                CompletedActions(datum: datum,
+                    onPayNow: onPayNow,
+                    isRunningTab: false),
               ],
             ],
           ),

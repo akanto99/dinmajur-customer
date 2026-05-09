@@ -25,10 +25,6 @@ class GetServiceConfirmationDetailsViewModel with ChangeNotifier {
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setGetServiceData(ApiResponse.error(error.toString()));
     });
   }

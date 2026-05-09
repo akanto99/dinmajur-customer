@@ -104,7 +104,6 @@ class PostBookFamilyEventCookingViewModel with ChangeNotifier {
       // Store the response
       dynamic response = await _myRepo.bookFamilyEventCookingPostApi(fields);
       setBookFamilyEventCookingLoading(false);
-      if (kDebugMode) print('API Response: ${response.toString()}');
       String? trackingId;
 
 

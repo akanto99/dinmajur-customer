@@ -19,17 +19,11 @@ class BannerViewModel with ChangeNotifier {
     _myRepo
         .fetchBannerData()
         .then((value) {
-          if (kDebugMode) {
-            print('Banner data fetched successfully');
-            print(value);
-          }
+
           setBannerData(ApiResponse.completed(value));
         })
         .onError((error, stackTrace) {
-          if (kDebugMode) {
-            print(error);
-            print(stackTrace);
-          }
+
           setBannerData(ApiResponse.error(error.toString()));
         });
   }
