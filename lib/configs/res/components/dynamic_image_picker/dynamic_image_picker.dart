@@ -50,16 +50,15 @@ class DynamicImagePicker {
 
       if (pickedImage == null) return;
 
-      int fileSize = await pickedImage.length();
-
-      if (fileSize > maxFileSizeInBytes) {
-        double fileSizeInMB = fileSize / (1024 * 1024);
-        Utils.flushBarErrorMessage(
-            "দয়া করে ৫ এমবির কম সাইজের ছবি নির্বাচন করুন। (বর্তমান সাইজ: ${fileSizeInMB.toStringAsFixed(2)} MB)",
-            context
-        );
-        return;
-      }
+      // int fileSize = await pickedImage.length();
+      // if (fileSize > maxFileSizeInBytes) {
+      //   double fileSizeInMB = fileSize / (1024 * 1024);
+      //   Utils.flushBarErrorMessage(
+      //       "দয়া করে ৫ এমবির কম সাইজের ছবি নির্বাচন করুন। (বর্তমান সাইজ: ${fileSizeInMB.toStringAsFixed(2)} MB)",
+      //       context
+      //   );
+      //   return;
+      // }
 
       Uint8List imageData = await pickedImage.readAsBytes();
       String imageName = pickedImage.name;

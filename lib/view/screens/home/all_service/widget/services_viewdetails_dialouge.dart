@@ -240,9 +240,9 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: widget.getButtonColor(context).withOpacity(0.1),
+        color: AppColors.border(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: widget.getButtonColor(context).withOpacity(0.3)),
+        border: Border.all(  color: AppColors.border(context),),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -254,7 +254,7 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
             style: AppTextStyles.textSize14(
               context,
               weight: FontWeight.w500,
-              color: widget.getButtonColor(context),
+              color: AppColors.buttonTextColor(context),
             ),
           ),
         ],

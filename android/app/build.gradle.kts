@@ -14,6 +14,15 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+
+  // .env file load করুন
+  val envProperties = Properties()
+  val envFile = rootProject.file("../.env")
+  if (envFile.exists()) {
+      envProperties.load(FileInputStream(envFile))
+  }
+
+
 android {
     namespace = "com.dinmajurplatformservice.dinmajurcustomer"
     compileSdk = 36
@@ -37,6 +46,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        manifestPlaceholders["GOOGLE_MAPS_SDK_KEY"] =
+            envProperties.getProperty("GOOGLE_MAPS_SDK_KEY")
+                ?: System.getenv("GOOGLE_MAPS_SDK_KEY")
+                        ?: ""
     }
     signingConfigs {
         create("release") {
