@@ -79,8 +79,8 @@
 	<!-- ============================================================ -->
 
 	<!-- Google Maps iOS API Key ----Required by: google_maps_flutter-->
-	<key>GMSApiKey</key>
-	<string>REMOVED_KEY</string>
+    <key>GMSApiKey</key>
+    <string>$(GOOGLE_MAPS_SDK_KEY)</string>
 
 	<!-- Location Permissions -- Required by: geolocator, geocoding-->
 	<key>NSLocationWhenInUseUsageDescription</key>
