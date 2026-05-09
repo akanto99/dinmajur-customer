@@ -22,26 +22,29 @@ class WelcomeLoginValidation {
   }
 
   // Validate Bangladeshi phone number (supports +88 prefix)
+// In WelcomeLoginValidation:
+
   static String? validateBangladeshiPhone(String? phone) {
     if (phone == null || phone.isEmpty) {
       return 'Please enter phone number';
     }
 
-    // Remove spaces and special characters except +
     String cleanPhone = phone.replaceAll(RegExp(r'[\s\-()]'), '');
 
-    // Handle +88 prefix
+    // Remove +88 or 88 prefix if present
     if (cleanPhone.startsWith('+88')) {
-      cleanPhone = cleanPhone.substring(3); // Remove +88
+      cleanPhone = cleanPhone.substring(3);
     } else if (cleanPhone.startsWith('88') && cleanPhone.length > 11) {
-      cleanPhone = cleanPhone.substring(2); // Remove 88
+      cleanPhone = cleanPhone.substring(2);
     }
 
-    // Remove any remaining non-digit characters
     cleanPhone = cleanPhone.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Check if it's a valid Bangladeshi mobile number
-    // Bangladeshi mobile numbers: 11 digits starting with 0
+    // ✅ Auto-normalize: if 10 digits starting with 1, prepend 0
+    if (cleanPhone.length == 10 && cleanPhone.startsWith('1')) {
+      cleanPhone = '0$cleanPhone';
+    }
+
     if (cleanPhone.length != 11) {
       return 'Phone number must be 11 digits';
     }
@@ -50,18 +53,30 @@ class WelcomeLoginValidation {
       return 'Phone number must start with 0';
     }
 
-    // Check for valid operator prefixes (starting with 01)
     List<String> validPrefixes = ['013', '014', '015', '016', '017', '018', '019'];
-
-    String prefix = cleanPhone.substring(0, 3);
-    if (!validPrefixes.contains(prefix)) {
+    if (!validPrefixes.contains(cleanPhone.substring(0, 3))) {
       return 'Please enter a valid Bangladeshi phone number';
     }
 
     return null; // Valid
   }
 
+// ✅ New helper: normalize before sending to API
+  static String normalizePhone(String phone) {
+    String clean = phone.replaceAll(RegExp(r'[\s\-()+]'), '');
+    clean = clean.replaceAll(RegExp(r'[^\d]'), '');
 
+    if (clean.startsWith('88') && clean.length > 11) {
+      clean = clean.substring(2);
+    }
+
+    // Prepend 0 if 10 digits starting with 1
+    if (clean.length == 10 && clean.startsWith('1')) {
+      clean = '0$clean';
+    }
+
+    return clean;
+  }
 
   // Validate login form (Full Name + Phone) - fullName is now optional
   static Map<String, String?> validateLoginForm({String? fullName, required String phone}) {

@@ -46,7 +46,9 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
     final body = _body();
     return Scaffold(
       backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(child: ResPonsiveUi(mobile: body, desktop: body, tablet: body)),
+      body: SafeArea(
+        child: ResPonsiveUi(mobile: body, desktop: body, tablet: body),
+      ),
     );
   }
 
@@ -54,7 +56,8 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final screenHeight = MediaQuery.sizeOf(context).height;
 
-    return Column(  // ← no SingleChildScrollView
+    return Column(
+      // ← no SingleChildScrollView
       children: [
         // ── Top: SVG Part ─────────────────────────────────────────────
         Expanded(
@@ -66,13 +69,8 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Container(
-                      height: screenHeight*0.4,
-                      child: SvgPicture.asset(
-                        "assets/images/login/welcome.svg",
-                        width: screenWidth,
-                        fit: BoxFit.cover,
-                        placeholderBuilder: (context) => const SizedBox.shrink(),
-                      ),
+                      height: screenHeight * 0.4,
+                      child: SvgPicture.asset("assets/images/login/welcome.svg", width: screenWidth, fit: BoxFit.cover, placeholderBuilder: (context) => const SizedBox.shrink()),
                     ),
                   ),
                   Positioned(
@@ -100,31 +98,17 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
               width: screenWidth,
               decoration: BoxDecoration(
                 color: AppColors.containerBackground(context),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
               ),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     SizedboxSpaccing.height04(context),
-                    Text(
-                      AppLocalizations.of(context)!.welcome,
-                      style: AppTextStyles.textSize24(context, weight: FontWeight.w600),
-                    ),
-                    Text(
-                      AppLocalizations.of(context)!.welcome_subtitle,
-                      style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
-                    ),
+                    Text(AppLocalizations.of(context)!.welcome, style: AppTextStyles.textSize24(context, weight: FontWeight.w600)),
+                    Text(AppLocalizations.of(context)!.welcome_subtitle, style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                     SizedboxSpaccing.height04(context),
-                    CustomeMobileTextfield(
-                      placeholder: AppLocalizations.of(context)!.phone_hint_new,
-                      controller: _phoneController,
-                      focusCurrent: _phoneFocus,
-                      keyboardType: TextInputType.number,
-                    ),
+                    CustomeMobileTextfield(placeholder: AppLocalizations.of(context)!.phone_hint_new, controller: _phoneController, focusCurrent: _phoneFocus, keyboardType: TextInputType.number),
                     SizedboxSpaccing.height025(context),
                     Consumer<CustomerAuthLoginViewModel>(
                       builder: (context, vm, _) => SizedBox(
@@ -137,7 +121,6 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -149,37 +132,34 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
   }
 
   void _onLoginPressed(CustomerAuthLoginViewModel vm) {
-    final String? error = WelcomeLoginValidation.getFirstLoginError(
-      phone: _phoneController.text,
-    );
+    final String? error = WelcomeLoginValidation.getFirstLoginError(phone: _phoneController.text);
 
     if (error != null) {
       Utils.flushBarErrorMessage(error, context);
       return;
     }
 
-    final Map<String, String> data = {
-      'phone': _phoneController.text.trim(),
-      'role': 'CUSTOMER',
-    };
+    // ✅ Normalize: ensures 0 is prepended if user typed without it
+    final String normalizedPhone = WelcomeLoginValidation.normalizePhone(_phoneController.text);
 
-    vm.authApiSendOtp(data, context, onSuccess: () async {
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
-        Navigator.pushNamed(
-          context,
-          RoutesName.authOtp,
-          arguments: {
-            'phone': _phoneController.text.trim(),
-            'role': 'CUSTOMER',
-          },
-        );
-      }
-    });
+    final Map<String, String> data = {'phone': normalizedPhone, 'role': 'CUSTOMER'};
+
+    vm.authApiSendOtp(
+      data,
+      context,
+      onSuccess: () async {
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) {
+          Navigator.pushNamed(context, RoutesName.authOtp, arguments: {'phone': normalizedPhone, 'role': 'CUSTOMER'});
+        }
+      },
+    );
   }
 
   void _checkForUpgrade(BuildContext context) async {
-    final upgrader = Upgrader(countryCode: 'BD', languageCode: 'en',
+    final upgrader = Upgrader(
+      countryCode: 'BD',
+      languageCode: 'en',
       // debugDisplayAlways: true,
       // debugLogging: true,
     );
@@ -197,8 +177,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
       context: context,
       barrierDismissible: false,
       barrierColor: AppColors.showDialougeBackground(context),
-      builder:
-          (ctx) => Dialog(
+      builder: (ctx) => Dialog(
         backgroundColor: AppColors.containerBackground(context),
         insetPadding: EdgeInsets.all(screenHeight * 0.02),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -216,7 +195,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
               const SizedBox(height: 5),
               Text(
                 'Version ${upgrader.currentAppStoreVersion ?? 'Unknown'} is now available. '
-                    'You are using version ${upgrader.currentInstalledVersion ?? 'Unknown'}.',
+                'You are using version ${upgrader.currentInstalledVersion ?? 'Unknown'}.',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
               ),
@@ -230,7 +209,12 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
                   width: screenWidth * 0.5,
                   height: 45,
                   decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
-                  child: Center(child: Text('Update Now', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600))),
+                  child: Center(
+                    child: Text(
+                      'Update Now',
+                      style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
