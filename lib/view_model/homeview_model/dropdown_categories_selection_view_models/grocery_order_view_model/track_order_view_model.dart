@@ -880,10 +880,10 @@ class TrackOrderViewModel extends ChangeNotifier {
     if (_selectedPaymentMethod == 'cash') {
       await _handleCashPayment(context: context, payment: payment);
     }
-    // else if (_selectedPaymentMethod == 'online') {
-    //   debugPrint('${payment.toJson()}');
-    //   await _handleOnlinePayment(context: context, order: order, delivery: delivery);
-    // }
+    else if (_selectedPaymentMethod == 'online') {
+      debugPrint('${payment.toJson()}');
+      await _handleOnlinePayment(context: context, order: order, delivery: delivery);
+    }
   }
 
   Future<void> _handleCashPayment({
@@ -954,37 +954,37 @@ class TrackOrderViewModel extends ChangeNotifier {
     }
   }
 
-  // Future<void> _handleOnlinePayment({
-  //   required BuildContext context,
-  //   required Order order,
-  //   required Delivery delivery,
-  // }) async {
-  //   final double total      = calculateTotal(order);
-  //   final customer          = _orderDetailsProvider?.orderDetailsModel?.customer;
-  //   final deliveryModel     = _orderDetailsProvider?.orderDetailsModel?.delivery;
-  //
-  //   final result = await SSLCommerzPaymentService().initiatePayment(
-  //     trackingId:       deliveryModel?.trackingId ?? '',
-  //     totalAmount:      total,
-  //     productCategory:  'Delivery Service',
-  //     customerName:     customer?.fullName,
-  //     customerPhone:    customer?.phone,
-  //     customerEmail:    '',
-  //     customerAddress:  deliveryModel?.destinationFullAddress,
-  //   );
-  //
-  //   if (!isContextValid(context)) return;
-  //
-  //   if (result.success) {
-  //     debugPrint('💳 [VM] SSL payment success: ${result.transactionId}');
-  //     handleRefresh(context: context);
-  //   } else if (result.status == 'CANCELLED') {
-  //     Utils.flushBarErrorMessage('Payment was cancelled.', context);
-  //   } else {
-  //     Utils.flushBarErrorMessage(
-  //         result.errorMessage ?? 'Payment failed. Please try again.', context);
-  //   }
-  // }
+  Future<void> _handleOnlinePayment({
+    required BuildContext context,
+    required Order order,
+    required Delivery delivery,
+  }) async {
+    final double total      = calculateTotal(order);
+    final customer          = _orderDetailsProvider?.orderDetailsModel?.customer;
+    final deliveryModel     = _orderDetailsProvider?.orderDetailsModel?.delivery;
+
+    final result = await SSLCommerzPaymentService().initiatePayment(
+      trackingId:       deliveryModel?.trackingId ?? '',
+      totalAmount:      total,
+      productCategory:  'Delivery Service',
+      customerName:     customer?.fullName,
+      customerPhone:    customer?.phone,
+      customerEmail:    '',
+      customerAddress:  deliveryModel?.destinationFullAddress,
+    );
+
+    if (!isContextValid(context)) return;
+
+    if (result.success) {
+      debugPrint('💳 [VM] SSL payment success: ${result.transactionId}');
+      handleRefresh(context: context);
+    } else if (result.status == 'CANCELLED') {
+      Utils.flushBarErrorMessage('Payment was cancelled.', context);
+    } else {
+      Utils.flushBarErrorMessage(
+          result.errorMessage ?? 'Payment failed. Please try again.', context);
+    }
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // HELPERS

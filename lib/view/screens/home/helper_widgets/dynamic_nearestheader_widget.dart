@@ -18,24 +18,13 @@ class DynamicNearestHeader extends StatelessWidget {
     return Container(
       width: screenWidth * 0.9,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: screenWidth*0.4,
-                  color: Colors.transparent,
-                  child: Text(_getHeaderTitle(), style: AppTextStyles.textSize18(context, weight: FontWeight.w500))),
-              GestureDetector(
-                onTap: onSeeAllTap ?? _defaultSeeAllAction,
-                child: Container(
-                    width: screenWidth*0.2,
-                    alignment: Alignment.centerRight,
-                    color: Colors.transparent,
-                    child: Text('See All', style: AppTextStyles.textSize12(context, weight: FontWeight.w500))),
-              ),
-            ],
-          ),
+          Container(
+              width: screenWidth*0.4,
+              color: Colors.transparent,
+              child: Text(_getHeaderTitle(), style: AppTextStyles.textSize18(context, weight: FontWeight.w500))),
+
           SizedboxSpaccing.height005(context),
           Divider(height: 1, color: AppColors.border(context)),
         ],
@@ -45,23 +34,9 @@ class DynamicNearestHeader extends StatelessWidget {
 
   String _getHeaderTitle() {
     if (selectedStoreType == null) return 'Nearest';
-
     if (selectedStoreType == 'Retail') {
       return 'Nearest ($storeCount)';
     }
-
-    if (selectedStoreType == 'Premium House Keeper' ||
-        selectedStoreType == 'Premium Home Beauty & Salon' ||
-        selectedStoreType == 'Family Event Cooking') {
-      // ✅ Only show (1) if service is confirmed available
-      if (isInsideServiceArea == true) return 'Nearest (1)';
-      return 'Nearest (0)'; // not available or still checking
-    }
-
     return 'Nearest';
-  }
-
-  void _defaultSeeAllAction() {
-    debugPrint('See All tapped for: ${selectedStoreType ?? "default"}');
   }
 }

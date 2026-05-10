@@ -59,6 +59,7 @@ class _OrderNowState extends State<OrderNow> {
     super.didChangeDependencies();
     _loadArguments();
   }
+
   void _loadArguments() {
     final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
@@ -83,10 +84,12 @@ class _OrderNowState extends State<OrderNow> {
       customerLatitude = arguments['customerLatitude'];
     }
   }
+
   String _getStatusText() {
     if (store_isAvailable == null) return 'N/A';
     return store_isAvailable! ? 'Available' : 'N/A';
   }
+
   void _addOrderItem(Map<String, dynamic> item) {
     setState(() {
       orderItems.add(item);
@@ -98,6 +101,7 @@ class _OrderNowState extends State<OrderNow> {
       orderItems.removeAt(index);
     });
   }
+
   void _proceedToCheckout() {
     // Validation for manual entry tab
     if (_selectedTabIndex == 0) {
@@ -168,7 +172,6 @@ class _OrderNowState extends State<OrderNow> {
         'userID': store_userID,
         'storeLatitude': storeLatitude, // ADD THIS
         'storeLongitude': storeLongitude, // ADD THIS
-
         // Customer location data
         'customerFullAddress': customerFullAddress,
         'customerLongitude': customerLongitude,
@@ -192,22 +195,21 @@ class _OrderNowState extends State<OrderNow> {
     final screenHeight = MediaQuery.of(context).size.height * 1;
     return Column(
       children: [
-        // _buildAppBar(),
-
         GestureDetector(
-            onTap: (){
-              Navigator.pop(context);
-            },
-            child: AppBarHeader("New Order")),
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: AppBarHeader("New Order"),
+        ),
         Expanded(
           child: SingleChildScrollView(
             child: Column(
               children: [
                 SizedboxSpaccing.height02(context),
-                if ( store_businessName != null) _buildStoreInfoCard(),
+                if (store_businessName != null) _buildStoreInfoCard(),
                 SizedboxSpaccing.height02(context),
                 Container(
-                  width: screenWidth*0.9,
+                  width: screenWidth * 0.9,
                   decoration: BoxDecoration(
                     color: AppColors.containerBackground(context),
                     borderRadius: BorderRadius.circular(24),
@@ -216,36 +218,22 @@ class _OrderNowState extends State<OrderNow> {
                   child: Column(
                     children: [
                       Container(
-                        width: screenWidth*0.9,
-                        padding: EdgeInsets.only(left:screenHeight * 0.02,top:screenHeight * 0.015 ,bottom:screenHeight * 0.015 ),
-                        decoration:  BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(24),
-                            topRight: Radius.circular(24),
-                          ),
-                          border: Border(
-                            bottom: BorderSide(
-                              width: 1,
-                              color: AppColors.border(context),
-                            )
-                          )
+                        width: screenWidth * 0.9,
+                        padding: EdgeInsets.only(left: screenHeight * 0.02, top: screenHeight * 0.015, bottom: screenHeight * 0.015),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+                          border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
                         ),
-                        child:Text(
-                            'Set Budget',
-                            style: AppTextStyles.textSize18(context, weight: FontWeight.w500)
-                        ),
+                        child: Text('Set Budget', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
                       ),
                       Padding(
-                        padding:  EdgeInsets.all(screenHeight * 0.02),
+                        padding: EdgeInsets.all(screenHeight * 0.02),
                         child: Container(
                           height: 42,
                           decoration: BoxDecoration(
                             color: AppColors.textFieldFill(context),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              width: 1,
-                              color: AppColors.border(context),
-                            ),
+                            border: Border.all(width: 1, color: AppColors.border(context)),
                           ),
                           child: TextFormField(
                             controller: budgetController,
@@ -254,9 +242,7 @@ class _OrderNowState extends State<OrderNow> {
                             decoration: InputDecoration(
                               hintText: "e.g., 1500",
                               hintStyle: AppTextStyles.textSize16(context, color: AppColors.hintColor(context), weight: FontWeight.w400),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                              ),
+                              border: OutlineInputBorder(borderSide: BorderSide.none),
                               contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                             ),
                           ),
@@ -309,24 +295,11 @@ class _OrderNowState extends State<OrderNow> {
           width: 40,
           margin: EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
-            color: store_logoUrl != null && store_logoUrl!.isNotEmpty
-                ? Colors.transparent
-                : AppColors.textPrimary(context),
+            color: store_logoUrl != null && store_logoUrl!.isNotEmpty ? Colors.transparent : AppColors.textPrimary(context),
             borderRadius: BorderRadius.circular(6),
-            image: store_logoUrl != null && store_logoUrl!.isNotEmpty
-                ? DecorationImage(
-              image: NetworkImage(store_logoUrl!),
-              fit: BoxFit.cover,
-            )
-                : null,
+            image: store_logoUrl != null && store_logoUrl!.isNotEmpty ? DecorationImage(image: NetworkImage(store_logoUrl!), fit: BoxFit.cover) : null,
           ),
-          child: store_logoUrl == null || store_logoUrl!.isEmpty
-              ? Icon(
-            Icons.local_grocery_store,
-            color: AppColors.textPrimary(context),
-            size: 20,
-          )
-              : null,
+          child: store_logoUrl == null || store_logoUrl!.isEmpty ? Icon(Icons.local_grocery_store, color: AppColors.textPrimary(context), size: 20) : null,
         ),
         SizedboxSpaccing.width02(context),
         Text(
@@ -339,19 +312,21 @@ class _OrderNowState extends State<OrderNow> {
   }
 
   Widget _buildAvailabilityBadge(double screenHeight) {
-    String statusText = _getStatusText();  // CHANGED: Use helper method
+    String statusText = _getStatusText(); // CHANGED: Use helper method
     return Container(
       height: 24,
       width: 75,
       decoration: BoxDecoration(
-        color: store_isAvailable == true  // CHANGED: Use store_isAvailable boolean
+        color:
+            store_isAvailable ==
+                true // CHANGED: Use store_isAvailable boolean
             ? AppColors.oceanGreenColor
             : AppColors.darkRedColor,
         borderRadius: BorderRadius.circular(100),
       ),
       child: Center(
         child: Text(
-          statusText,  // CHANGED: Use converted string
+          statusText, // CHANGED: Use converted string
           style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w400),
         ),
       ),
@@ -370,9 +345,12 @@ class _OrderNowState extends State<OrderNow> {
         // borderRadius: BorderRadius.circular(24),
         // border: Border.all(width: 1, color: AppColors.border(context)),
       ),
-      child: Column(children: [
-        // _buildTabHeaders(screenWidth),
-        _buildTabContent()]),
+      child: Column(
+        children: [
+          // _buildTabHeaders(screenWidth),
+          _buildTabContent(),
+        ],
+      ),
     );
   }
 
@@ -436,10 +414,7 @@ class _OrderNowState extends State<OrderNow> {
       child: Center(
         child: Container(
           width: screenWidth * 0.9,
-          decoration: BoxDecoration(
-            color: AppColors.textFieldFill(context),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(8)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -467,7 +442,8 @@ class _OrderNowState extends State<OrderNow> {
               selectedDeliveryTime = time;
             });
           },
-        );      case 1:
+        );
+      case 1:
         return PhotoUploadTab(
           initialPhotos: uploadedPhotos, // PASS EXISTING PHOTOS
           onPhotosChanged: (photos) {
@@ -506,7 +482,6 @@ class _OrderNowState extends State<OrderNow> {
       child: RoundButton(title: "Place Order", onPress: _proceedToCheckout, iconData: Icons.arrow_forward_ios_rounded),
     );
   }
-
 
   @override
   void dispose() {

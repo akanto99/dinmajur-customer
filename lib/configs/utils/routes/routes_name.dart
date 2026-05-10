@@ -19,6 +19,7 @@ class RoutesName {
   static const String mapLocationScreen = 'mapLocationScreen_view';
 ///order in Home screen
   static const String orderNow = 'orderNow_view';
+  static const String instantBazarResultsScreen = 'instantBazarResultsScreen_view';
   // static const String checkoutScreen = 'checkout_view';
   static const String checkoutScreenNew = 'checkoutNew_view';
   static const String orderConfirmScreen = 'orderConfirmScreen_view';

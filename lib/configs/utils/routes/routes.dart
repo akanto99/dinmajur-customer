@@ -38,6 +38,7 @@ import 'package:dinmajur_customer/view/screens/home/location_screens/map_locatio
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/checkout_screen_new.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/deliverd_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/order_now_screens/instant_bazar_results_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/order_now_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/track_order_viewdetails_socket_screen.dart';
@@ -200,7 +201,23 @@ class Routes {
         ///order Now Screen For Retail after clicking Grocerry in HOME SCreen- DropDown 1
       case RoutesName.orderNow:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderNow(), settings: settings);
-      // case RoutesName.checkoutScreen:
+
+      case RoutesName.instantBazarResultsScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          return MaterialPageRoute(
+            builder: (BuildContext context) => InstantBazarResultsScreen(
+              stores: args['stores'],
+              storeTypes: args['storeTypes'],
+              currentPosition: args['currentPosition'],
+              currentAddress: args['currentAddress'],
+            ),
+            settings: settings,
+          );
+        }
+        return _errorRoute();
+
+        // case RoutesName.checkoutScreen:
       //   return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
         case RoutesName.checkoutScreenNew:
         return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreenNew(), settings: settings);

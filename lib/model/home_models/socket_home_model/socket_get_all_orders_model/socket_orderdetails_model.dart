@@ -468,27 +468,27 @@ class Retailer {
 }
 class Payment {
   String? id;
-  int? amount;
+  // int? amount;
   String? paymentType;
   String? status;
 
   Payment({
     this.id,
-    this.amount,
+    // this.amount,
     this.paymentType,
     this.status,
   });
 
   factory Payment.fromJson(Map<String, dynamic> json) => Payment(
     id: json["_id"],
-    amount: json["amount"],
+    // amount: json["amount"],
     paymentType: json["paymentType"],
     status: json["status"],
   );
 
   Map<String, dynamic> toJson() => {
     "_id": id,
-    "amount": amount,
+    // "amount": amount,
     "paymentType": paymentType,
     "status": status,
   };
