@@ -295,7 +295,7 @@ class _OrderNowState extends State<OrderNow> {
           width: 40,
           margin: EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
-            color: store_logoUrl != null && store_logoUrl!.isNotEmpty ? Colors.transparent : AppColors.textPrimary(context),
+            color: store_logoUrl != null && store_logoUrl!.isNotEmpty ? Colors.transparent : AppColors.appBackground(context),
             borderRadius: BorderRadius.circular(6),
             image: store_logoUrl != null && store_logoUrl!.isNotEmpty ? DecorationImage(image: NetworkImage(store_logoUrl!), fit: BoxFit.cover) : null,
           ),

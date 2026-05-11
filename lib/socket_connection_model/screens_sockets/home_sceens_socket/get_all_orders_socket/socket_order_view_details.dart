@@ -338,10 +338,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
   String? get error => _error;
   bool get isInitialized => _currentOrderId != null;
 
-  // ═══════════════════════════════════════════════════════════════════
-  // INITIALIZE — called from TrackOrderScreen and after Checkout
-  // ═══════════════════════════════════════════════════════════════════
-
+  // ══════════════════════════════INITIALIZE — called from TrackOrderScreen and after Checkout═════════════════════════════════════
   Future<void> initializeAndFetch({
     required SocketManager socketManager,
     required String orderId,
@@ -376,10 +373,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     await _setupAndFetch(socketManager, orderId, onSuccess: onSuccess, onError: onError);
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // REFRESH — pull-to-refresh or return from another screen
-  // ═══════════════════════════════════════════════════════════════════
-
+  // ══════════════════════════════ REFRESH — pull-to-refresh or return from another screen═════════════════════════════════════
   Future<void> refreshOrderDetails({
     required SocketManager socketManager,
     required String orderId,
@@ -400,10 +394,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     await _setupAndFetch(socketManager, orderId, onSuccess: onSuccess, onError: onError);
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // RESET — clears stale data before a new fetch
-  // ═══════════════════════════════════════════════════════════════════
-
+  // ═══════════════════════════════RESET — clears stale data before a new fetch════════════════════════════════════
   void reset() {
     _orderDetailsModel = null;
     _isLoading = false;
@@ -413,10 +404,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     if (kDebugMode) print('🔄 [OrderSocket] Provider reset');
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // INTERNAL
-  // ═══════════════════════════════════════════════════════════════════
-
+  // ══════════════════════════════INTERNAL═════════════════════════════════════
   Future<void> _setupAndFetch(
       SocketManager socketManager,
       String orderId, {
@@ -528,10 +516,7 @@ class OrderDetailsSocketProvider with ChangeNotifier {
     if (kDebugMode) print('🧹 [OrderSocket] Listeners cleared');
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // CLEANUP
-  // ═══════════════════════════════════════════════════════════════════
-
+  // ════════════════════════════════CLEANUP═══════════════════════════════════
   void clearAll(SocketManager socketManager) {
     _clearListeners(socketManager);
     _orderDetailsModel = null;

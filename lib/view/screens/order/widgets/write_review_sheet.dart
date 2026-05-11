@@ -56,7 +56,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
       return;
     }
 
-    final String freelancerId = widget.datum.freelancer?.id ?? '';
+    final String freelancerId = widget.datum.type == 'ORDER'
+        ? widget.datum.freelancerId ?? ''
+        : widget.datum.freelancer?.id ?? '';
     if (freelancerId.isEmpty) {
       Utils.flushBarErrorMessage("Freelancer not found", context);
       return;

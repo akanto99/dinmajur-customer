@@ -69,7 +69,7 @@ class Delivery {
   String? id;
   String? customerId;
   String? retailerId;
-    String? trackingId;
+  String? trackingId;
   String? orderId;
   Destination? pickup;
   String? pickupFullAddress;

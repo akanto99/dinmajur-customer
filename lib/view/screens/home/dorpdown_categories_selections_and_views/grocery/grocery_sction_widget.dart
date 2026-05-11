@@ -35,9 +35,9 @@ class GroceryStoresSection extends StatelessWidget {
       child: ListView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        itemCount: stores.length,
+        itemCount: stores.length * 20,
         itemBuilder: (context, index) {
-          final store = stores[index];
+          final store = stores[index % stores.length];
           return _buildRetailStoreCard(context, store, screenHeight, screenWidth);
         },
       ),
@@ -89,6 +89,7 @@ class GroceryStoresSection extends StatelessWidget {
                         margin: EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
+                          color: AppColors.appBackground(context),
                           border: Border.all(width: 1, color: AppColors.border(context)),
                           image: DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover),
                         ),
