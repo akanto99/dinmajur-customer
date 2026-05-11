@@ -135,8 +135,6 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
             SizedboxSpaccing.height02(context),
             _buildCustomerInfo(context, customer, retailer, order, delivery, freelancer, data), // ✅ PASS data HERE
             SizedboxSpaccing.height02(context),
-            // _buildRatingSection(context, freelancer),
-            // SizedboxSpaccing.height02(context),
             _buildBackToHomeButton(context),
             SizedboxSpaccing.height02(context),
           ],
@@ -463,103 +461,6 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
     DateTime bdTime = deliveredAt.add(Duration(hours: 6));
     return DateFormat('hh:mm a').format(bdTime);
   }
-
-  // Widget _buildRatingSection(BuildContext context, Freelancer? freelancer) {
-  //   final screenHeight = MediaQuery.of(context).size.height;
-  //
-  //   return Consumer<PatchFreelancerRatingViewModel>(
-  //     builder: (context, freelancerRatingModel, child) {
-  //       return Container(
-  //         padding: EdgeInsets.all(screenHeight * 0.02),
-  //         decoration: BoxDecoration(
-  //           color: AppColors.containerBackground(context),
-  //           borderRadius: BorderRadius.circular(16),
-  //           border: Border.all(color: AppColors.border(context)),
-  //         ),
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.center,
-  //           children: [
-  //             Text('How was your delivery?', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-  //             SizedboxSpaccing.height02(context),
-  //             // Rating stars
-  //             Row(
-  //               mainAxisAlignment: MainAxisAlignment.center,
-  //               children: List.generate(5, (index) {
-  //                 final isSelected = _selectedRating >= index + 1;
-  //                 return GestureDetector(
-  //                   onTap: (_isRatingSubmitted || freelancerRatingModel.createFreelancerRatingLoading)
-  //                       ? null
-  //                       : () async {
-  //                     if (freelancer == null || freelancer.id == null) {
-  //                       Utils.flushBarErrorMessage('Freelancer data not available', context);
-  //                       return;
-  //                     }
-  //
-  //                     setState(() {
-  //                       _selectedRating = index + 1;
-  //                     });
-  //
-  //                     if (_selectedRating == 0) {
-  //                       Utils.flushBarErrorMessage('Please select a rating', context);
-  //                       return;
-  //                     }
-  //
-  //                     if (_isRatingSubmitted) {
-  //                       Utils.flushBarErrorMessage('Rating already submitted', context);
-  //                       return;
-  //                     }
-  //
-  //                     Map<String, dynamic> fields = {"rating": _selectedRating};
-  //
-  //                     await freelancerRatingModel.FreelancerRatingPatchApi(context, freelancer.id!, fields);
-  //
-  //                     if (context.mounted) {
-  //                       setState(() {
-  //                         _isRatingSubmitted = true;
-  //                       });
-  //                     }
-  //                   },
-  //                   child: AnimatedContainer(
-  //                     duration: Duration(milliseconds: 250),
-  //                     margin: EdgeInsets.symmetric(horizontal: 4),
-  //                     width: 48,
-  //                     height: 48,
-  //                     decoration: BoxDecoration(
-  //                       shape: BoxShape.circle,
-  //                       color: isSelected ? Colors.amber.withOpacity(0.9) : AppColors.containerBackground(context),
-  //                       border: Border.all(width: 2, color: isSelected ? Colors.amber : AppColors.border(context)),
-  //                     ),
-  //                     child: Icon(Icons.star_rounded, color: isSelected ? Colors.white : Colors.grey, size: 28),
-  //                   ),
-  //                 );
-  //               }),
-  //             ),
-  //
-  //             if (_isRatingSubmitted) ...[
-  //               SizedboxSpaccing.height02(context),
-  //               Row(
-  //                 mainAxisAlignment: MainAxisAlignment.center,
-  //                 children: [
-  //                   Icon(Icons.check_circle, color: Colors.green, size: 16),
-  //                   SizedBox(width: 8),
-  //                   Text(
-  //                     'Rating submitted successfully!',
-  //                     style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: Colors.green),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ],
-  //
-  //             if (freelancerRatingModel.createFreelancerRatingLoading) ...[
-  //               SizedboxSpaccing.height02(context),
-  //               LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 30)
-  //             ],
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
   Widget _buildBackToHomeButton(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;

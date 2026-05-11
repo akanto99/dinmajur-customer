@@ -16,9 +16,7 @@ class OrderCard extends StatelessWidget {
   final bool isCompletedTab;
   final Future<void> Function(BuildContext context, Datum datum) onPayNow;
 
-  const OrderCard({super.key, required this.datum,
-    required this.onPayNow,
-    this.isPendingTab = false, this.isRunningTab = false, this.isCompletedTab = false});
+  const OrderCard({super.key, required this.datum, required this.onPayNow, this.isPendingTab = false, this.isRunningTab = false, this.isCompletedTab = false});
 
   // ─── Order type helpers ─────────────────────────────────────────────────────
   String get _orderType {
@@ -31,7 +29,7 @@ class OrderCard extends StatelessWidget {
         return 'Grocery Order';
       case 'EVENT_COOKING':
         return 'Family Event Cooking';
-        case 'SERVICES':
+      case 'SERVICES':
         return datum.categoryType ?? 'N/A';
       default:
         return '';
@@ -48,7 +46,7 @@ class OrderCard extends StatelessWidget {
         return datum.orderId ?? 'N/A';
       case 'EVENT_COOKING':
         return datum.eventCookingBookingId ?? 'N/A';
-        case 'SERVICES':
+      case 'SERVICES':
         return datum.servicesBookingId ?? 'N/A';
       default:
         return 'N/A';
@@ -65,7 +63,7 @@ class OrderCard extends StatelessWidget {
         return datum.orderId ?? '';
       case 'EVENT_COOKING':
         return datum.eventCookingBookingId ?? '';
-        case 'SERVICES':
+      case 'SERVICES':
         return datum.servicesBookingId ?? '';
       default:
         return '';
@@ -92,8 +90,8 @@ class OrderCard extends StatelessWidget {
         return FontAwesomeIcons.bowlRice;
       case 'ORDER':
         return FontAwesomeIcons.store;
-        case 'SERVICES':
-         return FontAwesomeIcons.clipboardList;
+      case 'SERVICES':
+        return FontAwesomeIcons.clipboardList;
       default:
         return FontAwesomeIcons.fileInvoice;
     }
@@ -127,7 +125,7 @@ class OrderCard extends StatelessWidget {
       Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': _orderIdForNavigation});
     } else if (datum.type == 'EVENT_COOKING') {
       Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': _orderIdForNavigation});
-    }else if (datum.type == 'SERVICES') {
+    } else if (datum.type == 'SERVICES') {
       Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': _orderIdForNavigation});
     }
   }
@@ -137,6 +135,11 @@ class OrderCard extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final bool hasFreelancer = datum.freelancer != null;
     final bool showFreelancer = hasFreelancer && (isRunningTab || isCompletedTab);
+
+
+
+    // Payment status badge
+    final String? payStatus = datum.paymentStatus;
 
     return Container(
       margin: EdgeInsets.only(bottom: screenHeight * 0.02),
@@ -161,26 +164,31 @@ class OrderCard extends StatelessWidget {
 
               SizedboxSpaccing.height015(context),
               Divider(height: 1, color: AppColors.border(context)),
+              // Text(
+              //   "$payStatus   ${datum.type}   ${datum.subTotalAmount},",
+              //   style: AppTextStyles.textSize10(context, weight: FontWeight.w600),
+              // ),
+              // Text(
+              //   "isReview: ${datum.isReview} | type: ${datum.isReview.runtimeType}",
+              //   style: AppTextStyles.textSize10(context, weight: FontWeight.w600),
+              // ),
 
               // ── Footer ────────────────────────────────────────────────────
               _buildFooter(context, screenHeight),
 
               // ── Completed actions ─────────────────────────────────────────
-              // Show actions section for running tab (Pay Now) or completed tab (Write Review)
-              if (isRunningTab && datum.paymentStatus == null) ...[
+              if (isRunningTab &&
+                  (datum.paymentStatus == null || datum.paymentStatus!.isEmpty|| datum.paymentStatus!="PAID") &&
+                  (datum.type != 'ORDER' || (datum.subTotalAmount ?? 0) > 0)) ...[
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
                 SizedboxSpaccing.height02(context),
-                CompletedActions(datum: datum,
-                    onPayNow: onPayNow,
-                    isRunningTab: true),
+                CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: true),
               ] else if (isCompletedTab && datum.isReview == false) ...[
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
                 SizedboxSpaccing.height02(context),
-                CompletedActions(datum: datum,
-                    onPayNow: onPayNow,
-                    isRunningTab: false),
+                CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: false),
               ],
             ],
           ),
@@ -231,7 +239,9 @@ class OrderCard extends StatelessWidget {
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(color: _statusColor(context, datum.status ?? '').withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.9) : _statusColor(context, datum.status ?? '').withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12)),
           child: Text(
             datum.status ?? 'Unknown',
             style: AppTextStyles.textSize10(context, color: _statusColor(context, datum.status ?? ''), weight: FontWeight.w500),
@@ -242,6 +252,12 @@ class OrderCard extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context, double screenHeight) {
+    // For ORDER: show subtotal only if > 0; for all others: always show total
+    final bool isOrder = datum.type == 'ORDER';
+    final bool orderHasSubtotal = isOrder && (datum.subTotalAmount != null && datum.subTotalAmount! > 0);
+    final bool showAmount = !isOrder || orderHasSubtotal;
+    final String amountText = isOrder ? "৳${_formatTotal(datum.totalAmount)}" : "৳${_formatTotal(datum.total)}";
+
     return Container(
       height: screenHeight * 0.04,
       color: Colors.transparent,
@@ -249,10 +265,20 @@ class OrderCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("৳${_formatTotal(datum.total)}", style: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.textPrimary(context))),
+          if (showAmount)
+            Text(
+              amountText,
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
+            )
+          else
+            const SizedBox.shrink(),
+
           Row(
             children: [
-              Text("View Details ", style: AppTextStyles.textSize14(context, weight: FontWeight.w400,color: AppColors.textPrimary(context))),
+              Text(
+                "View Details ",
+                style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
+              ),
               SizedboxSpaccing.width01(context),
               const Icon(FontAwesomeIcons.arrowRight, size: 15),
             ],

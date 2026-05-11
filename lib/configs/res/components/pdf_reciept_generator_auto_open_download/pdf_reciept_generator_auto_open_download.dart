@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -286,7 +287,7 @@ class ReceiptPdfGenerator {
                   _buildTableCell(item.name ?? 'N/A'),
                   _buildTableCell(
                       '${item.quantity?.toStringAsFixed(2) ?? '0'} ${item.unit ?? ''}'),
-                  _buildTableCell('tk ${item.totalPrice ?? 0}'),
+                  _buildTableCell('tk ${AmountFormatter.formatDynamic(item.totalPrice)}'),
                   _buildTableCell('${item.comment ?? "N/A"}'),
                 ],
               );
@@ -437,7 +438,7 @@ class ReceiptPdfGenerator {
     );
   }
 
-  static pw.Widget _buildPriceRow(String label, int amount) {
+  static pw.Widget _buildPriceRow(String label, num amount) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [

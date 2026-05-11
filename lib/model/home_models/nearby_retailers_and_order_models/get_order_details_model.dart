@@ -290,22 +290,22 @@ class Order {
   String? customerId;
   String? retailerId;
   String? paymentMethodId;
-  int? budget;
+  num? budget;
   String? estimatedDeliveryTime;
   List<Item>? items;
   String? status;
-  int? vat;
-  int? subTotalAmount;
-  int? totalAmount;
-  int? freelancerEarning;
-  int? customerPlatformFee;
+  num? vat;
+  num? subTotalAmount;
+  num? totalAmount;
+  num? freelancerEarning;
+  num? customerPlatformFee;
   String? customerNote;
   DateTime? createdAt;
   DateTime? updatedAt;
-  int? deliveryCharge;
-  int? ontimeBonus;
-  int? basePay;
-  int? customerTip;
+  num? deliveryCharge;
+  num? ontimeBonus;
+  num? basePay;
+  num? customerTip;
 
   Order({
     this.id,
@@ -397,8 +397,8 @@ class Item {
   String? name;
   double? quantity;
   String? unit;
-  int? unitPrice;
-  int? totalPrice;
+  num? unitPrice;
+  num? totalPrice;
   String? status;
   DateTime? createdAt;
   DateTime? updatedAt;

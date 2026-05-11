@@ -23,84 +23,7 @@ class GroceryStoresSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return Column(
-      children: [
-        // Loading indicator
-        if (isLoading)
-          Container(
-            width: screenWidth * 0.9,
-            height: 120,
-            child: Center(
-              child: Text(
-                "Fetching nearby retail stores...",
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
-              ),
-            ),
-          ),
-        if (!isLoading && stores.isEmpty)
-          Container(
-            width: screenWidth * 0.9,
-            height: 190,
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                    width: 1,
-                    color: AppColors.border(context)
-                )
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.store_outlined, size: 50, color: AppColors.subtitle(context)),
-                const SizedBox(height: 10),
-                Text(
-                  'No Stores Found',
-                  style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'No nearby retail stores available in your location at the moment.',
-                  style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-
-        // Header section - only show when not loading and stores exist
-        // if (!isLoading && stores.isNotEmpty)
-        //   Container(
-        //     width: screenWidth * 0.9,
-        //     child: Column(
-        //       children: [
-        //         Row(
-        //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //           children: [
-        //             Text(AppLocalizations.of(context)!.nearby_stores(stores.length), style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-        //             GestureDetector(
-        //               onTap: () {
-        //                 // Navigate to see all retail stores
-        //               },
-        //               child: Text(AppLocalizations.of(context)!.see_all, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
-        //             ),
-        //           ],
-        //         ),
-        //         Divider(height: 1, color: AppColors.border(context)),
-        //       ],
-        //     ),
-        //   ),
-
-        // if (!isLoading && stores.isNotEmpty) SizedboxSpaccing.height02(context),
-
-        // Stores list
-        if (!isLoading && stores.isNotEmpty) _buildRetailStoresList(context),
-      ],
-    );
+    return _buildRetailStoresList(context);
   }
 
   Widget _buildRetailStoresList(BuildContext context) {
@@ -112,7 +35,7 @@ class GroceryStoresSection extends StatelessWidget {
       child: ListView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        itemCount: stores.length,
+        itemCount: stores.length ,
         itemBuilder: (context, index) {
           final store = stores[index];
           return _buildRetailStoreCard(context, store, screenHeight, screenWidth);
@@ -166,6 +89,7 @@ class GroceryStoresSection extends StatelessWidget {
                         margin: EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
+                          color: AppColors.appBackground(context),
                           border: Border.all(width: 1, color: AppColors.border(context)),
                           image: DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover),
                         ),
@@ -180,7 +104,7 @@ class GroceryStoresSection extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   businessName,
-                                  style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                                  style: AppTextStyles.textSize18(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -231,7 +155,7 @@ class GroceryStoresSection extends StatelessWidget {
                   children: [
                     Text(
                       "Store Address",
-                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
                     ),
                     Text(
                       fullAddress,
@@ -239,6 +163,7 @@ class GroceryStoresSection extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    SizedboxSpaccing.height005(context),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -252,7 +177,7 @@ class GroceryStoresSection extends StatelessWidget {
                         Container(
                           child: Text(
                             distanceText,
-                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.button(context)),
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
                           ),
                         ),
                       ],
@@ -263,7 +188,7 @@ class GroceryStoresSection extends StatelessWidget {
             ],
           ),
           SizedboxSpaccing.height012(context),
-          Divider(height: 1,color: AppColors.border(context),),
+          Divider(height: 1, color: AppColors.border(context)),
           SizedboxSpaccing.height012(context),
           RoundButton(
             title: AppLocalizations.of(context)!.order_now,

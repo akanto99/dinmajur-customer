@@ -27,12 +27,6 @@ class _OrderScreenState extends State<OrderScreen> {
   RunningOrdersViewModel get _orderViewModel =>
       Provider.of<RunningOrdersViewModel>(context, listen: false);
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _orderViewModel.clearAllDataSilent();
-  //   WidgetsBinding.instance.addPostFrameCallback((_) => _fetchCurrentTab());
-  // }
   @override
   void initState() {
     super.initState();
@@ -79,28 +73,34 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   Future<void> _handlePayNow(BuildContext context, Datum datum) async {
-    String trackingId = '';
+    String trackingId = '';       // used for SSLCommerz payment
+    String refreshId = '';        // used for local list update
     String productCategory = '';
 
     switch (datum.type) {
       case 'ORDER':
-        trackingId = datum.orderId ?? '';
+        trackingId = datum.orderTrackingId ?? '';
+        refreshId = datum.orderId ?? '';          // ← orderId for refresh
         productCategory = 'Grocery Order';
         break;
       case 'HOUSEKEEPER':
         trackingId = datum.houseKeeperBookingId ?? '';
+        refreshId = trackingId;
         productCategory = 'House Keeper';
         break;
       case 'BEAUTY_SALON':
         trackingId = datum.beautySalonBookingId ?? '';
+        refreshId = trackingId;
         productCategory = 'Beauty Salon';
         break;
       case 'EVENT_COOKING':
         trackingId = datum.eventCookingBookingId ?? '';
+        refreshId = trackingId;
         productCategory = 'Event Cooking';
         break;
       case 'SERVICES':
         trackingId = datum.servicesBookingId ?? '';
+        refreshId = trackingId;
         productCategory = datum.categoryType ?? '';
         break;
     }
@@ -113,7 +113,10 @@ class _OrderScreenState extends State<OrderScreen> {
     try {
       final result = await SSLCommerzPaymentService().initiatePayment(
         trackingId: trackingId,
-        totalAmount: (datum.total ?? 0).toDouble(),
+        totalAmount: ((datum.type == 'ORDER' && (datum.subTotalAmount ?? 0) > 0
+            ? datum.totalAmount
+            : datum.total) ?? 0)
+            .toDouble(),
         productCategory: productCategory,
         customerName: datum.customer?.fullName,
         customerPhone: datum.customer?.phone,
@@ -123,8 +126,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
       if (result.success) {
         Utils.flushBarSuccessMessage("Payment successful!", context);
-        _orderViewModel.refreshSingleOrder(trackingId);
-
+        _orderViewModel.refreshSingleOrder(refreshId); // ← use refreshId
       } else if (result.status == 'CANCELLED') {
         Utils.flushBarErrorMessage("Payment cancelled", context);
       } else {
@@ -159,9 +161,19 @@ class _OrderScreenState extends State<OrderScreen> {
           ),
           child: AppBarHeader("Orders"),
         ),
-        OrderTabBar(
-          selectedIndex: _selectedTabIndex,
-          onTabChanged: _onTabChanged,
+
+        Consumer<RunningOrdersViewModel>(
+          builder: (context, orderViewModel, _) {
+            final meta = orderViewModel.pendingOrdersData.data?.data?.meta
+                ?? orderViewModel.runningOrdersData.data?.data?.meta
+                ?? orderViewModel.completeOrdersData.data?.data?.meta;
+
+            return OrderTabBar(
+              selectedIndex: _selectedTabIndex,
+              onTabChanged: _onTabChanged,
+              statusCount: meta?.statusCount,
+            );
+          },
         ),
         SizedboxSpaccing.height015(context),
         Expanded(

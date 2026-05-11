@@ -284,26 +284,24 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Called from AllServicesGridWidget when instant-bazar slug is tapped
   Future<void> handleInstantBazarTap() async {
     if (_loadingServiceSlug != null) return;
-
     if (!_hasValidLocation()) {
       _showLocationRequiredDialog();
       return;
     }
-
     setState(() {
       _loadingServiceSlug = 'instant-bazar';
-      _showRetailNearest = false;
-      nearbyStores = [];
     });
-
     try {
       await _fetchNearbyRetailers('Retail');
       if (!mounted) return;
-
       if (nearbyStores.isEmpty) {
         NoStoresFoundDialog.show(context);
       } else {
-        setState(() => _showRetailNearest = true);
+        Navigator.pushNamed(
+          context,
+          RoutesName.instantBazarResultsScreen,
+          arguments: {'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress},
+        );
       }
     } finally {
       if (mounted) setState(() => _loadingServiceSlug = null);
@@ -386,7 +384,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
 
-
                   // ── All Services Grid ──
                   Consumer<ProfileViewViewModel>(
                     builder: (context, profileViewModel, _) {
@@ -431,33 +428,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-
-                  // ── Retail nearest section (only when stores found) ──
-                  if (_showRetailNearest) ...[
-                    SizedboxSpaccing.height025(context),
-                    DynamicNearestHeader(
-                      selectedStoreType: 'Retail',
-                      storeCount: nearbyStores.length,
-                      screenWidth: screenWidth,
-                      isInsideServiceArea: null,
-                      onSeeAllTap: () => _handleRetailSeeAll(context),
-                    ),
-                    SizedboxSpaccing.height025(context),
-                    GroceryStoresSection(
-                      isLoading: isLoadingStores,
-                      stores: nearbyStores,
-                      storeTypes: storeTypes,
-                      selectedStoreType: 'Retail',
-                      currentPosition: _currentPosition,
-                      currentAddress: _currentAddress,
-                    ),
-                  ],
-                  TrendingServicesWidget(
-                    hasValidLocation: _hasValidLocation(),
-                    onLocationRequired: _showLocationRequiredDialog,
-                  ),
+                  TrendingServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
                   SizedboxSpaccing.height02(context),
-
                 ],
               ),
             ),

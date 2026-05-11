@@ -50,6 +50,8 @@ class Data {
 
 class Datum {
   String? orderId;
+  String? orderTrackingId;
+  String? freelancerId;
   String? id;
   String? houseKeeperBookingId;
   String? beautySalonBookingId;
@@ -65,10 +67,14 @@ class Datum {
   bool? isReview;
   String? status;
   double? total;
+  double? subTotalAmount;
+  double? totalAmount;
   DateTime? createdAt;
 
   Datum({
     this.orderId,
+    this.orderTrackingId,
+    this.freelancerId,
     this.id,
     this.houseKeeperBookingId,
     this.beautySalonBookingId,
@@ -84,11 +90,15 @@ class Datum {
     this.isReview,
     this.status,
     this.total,
+    this.subTotalAmount,
+    this.totalAmount,
     this.createdAt,
   });
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     orderId: json["orderId"],
+    orderTrackingId: json["orderTrackingId"],
+    freelancerId: json["freelancerId"],
     id: json["_id"],
     houseKeeperBookingId: json["houseKeeperBookingId"],
     beautySalonBookingId: json["beautySalonBookingId"],
@@ -104,11 +114,15 @@ class Datum {
     isReview: json["isReview"],
     status: json["status"],
     total: json["total"]?.toDouble(),
+    subTotalAmount: json["subTotalAmount"]?.toDouble(),
+    totalAmount: json["totalAmount"]?.toDouble(),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
   );
 
   Map<String, dynamic> toJson() => {
     "orderId": orderId,
+    "orderTrackingId": orderTrackingId,
+    "freelancerId": freelancerId,
     "id": id,
     "houseKeeperBookingId": houseKeeperBookingId,
     "beautySalonBookingId": beautySalonBookingId,
@@ -124,6 +138,8 @@ class Datum {
     "isReview": isReview,
     "status": status,
     "total": total,
+    "subTotalAmount": subTotalAmount,
+    "totalAmount": totalAmount,
     "createdAt": createdAt?.toIso8601String(),
   };
 }
@@ -273,12 +289,14 @@ class Meta {
   int? page;
   int? limit;
   int? totalPages;
+  StatusCount? statusCount;
 
   Meta({
     this.total,
     this.page,
     this.limit,
     this.totalPages,
+    this.statusCount,
   });
 
   factory Meta.fromJson(Map<String, dynamic> json) => Meta(
@@ -286,12 +304,40 @@ class Meta {
     page: json["page"],
     limit: json["limit"],
     totalPages: json["totalPages"],
+    statusCount: json["statusCount"] == null ? null : StatusCount.fromJson(json["statusCount"]),  // ← add this
   );
 
   Map<String, dynamic> toJson() => {
     "total": total,
     "page": page,
     "limit": limit,
-    "totalPages": totalPages,
+    "statusCount": statusCount?.toJson(),
+  };
+}
+class StatusCount {
+  int? pending;
+  int? running;
+  int? completed;
+  int? cancelled;
+
+  StatusCount({
+    this.pending,
+    this.running,
+    this.completed,
+    this.cancelled,
+  });
+
+  factory StatusCount.fromJson(Map<String, dynamic> json) => StatusCount(
+    pending: json["PENDING"],
+    running: json["RUNNING"],
+    completed: json["COMPLETED"],
+    cancelled: json["CANCELLED"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "PENDING": pending,
+    "RUNNING": running,
+    "COMPLETED": completed,
+    "CANCELLED": cancelled,
   };
 }

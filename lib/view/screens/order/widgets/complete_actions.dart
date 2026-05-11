@@ -19,7 +19,7 @@ class CompletedActions extends StatelessWidget {
 
   String get _bookingId {
     switch (datum.type) {
-      case 'ORDER':         return datum.orderId ?? '';
+      case 'ORDER':         return datum.freelancerId ?? '';
       case 'HOUSEKEEPER':   return datum.houseKeeperBookingId ?? '';
       case 'BEAUTY_SALON':  return datum.beautySalonBookingId ?? '';
       case 'EVENT_COOKING': return datum.eventCookingBookingId ?? '';
@@ -30,13 +30,13 @@ class CompletedActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool showPayNow = datum.paymentStatus == null;
-    final bool showReview = datum.isReview == false;
+    final bool showPayNow = datum.paymentStatus == null || datum.paymentStatus!.isEmpty || datum.paymentStatus!="PAID";
+    final bool showReview = datum.isReview == false ;
 
-    // Running tab: only Pay Now
-    // Completed tab: only Write Review
+
     final bool shouldShowPayNow = isRunningTab && showPayNow;
     final bool shouldShowReview = !isRunningTab && showReview;
+
 
     return Row(
       children: [
