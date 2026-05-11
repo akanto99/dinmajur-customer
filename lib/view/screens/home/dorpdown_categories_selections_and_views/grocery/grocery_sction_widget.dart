@@ -35,9 +35,9 @@ class GroceryStoresSection extends StatelessWidget {
       child: ListView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        itemCount: stores.length * 20,
+        itemCount: stores.length ,
         itemBuilder: (context, index) {
-          final store = stores[index % stores.length];
+          final store = stores[index];
           return _buildRetailStoreCard(context, store, screenHeight, screenWidth);
         },
       ),
