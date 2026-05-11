@@ -12,6 +12,7 @@ import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs/voice_list_tab.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class OrderNow extends StatefulWidget {
@@ -238,6 +239,9 @@ class _OrderNowState extends State<OrderNow> {
                           child: TextFormField(
                             controller: budgetController,
                             keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
                             style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                             decoration: InputDecoration(
                               hintText: "e.g., 1500",

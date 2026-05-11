@@ -260,16 +260,16 @@ class Order {
   String? customerId;
   String? retailerId;
   String? paymentMethodId;
-  dynamic deliveryCharge;
-  int? budget;
+  num? deliveryCharge;
+  num? budget;
   String? estimatedDeliveryTime;
-    int? freelancerEarning;
-  int? customerPlatformFee;
+  num? freelancerEarning;
+  num? customerPlatformFee;
   List<Item>? items;
   String? status;
-  int? vat;
-  int? subTotalAmount;
-  int? totalAmount;
+  num? vat;
+  num? subTotalAmount;
+  num? totalAmount;
   String? customerNote;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -354,10 +354,10 @@ class Order {
 class Item {
   String? id;
   String? name;
-  double? quantity; // ✅ Changed from int? to double? (from logs: quantity: 1.5, 0.5)
+  double? quantity;
   String? unit;
-  int? unitPrice;
-  int? totalPrice;
+  num? unitPrice;
+  num? totalPrice;
   String? status;
   DateTime? createdAt;
   DateTime? updatedAt;

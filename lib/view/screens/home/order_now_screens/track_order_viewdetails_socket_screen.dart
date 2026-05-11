@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/components/payment_method/payment_
 import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/socket_home_model/socket_get_all_orders_model/socket_orderdetails_model.dart';
@@ -425,9 +426,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
           Row(
             children: [
               Text('Budget: ', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-              // Text('৳${order.budget ?? 0}',
-              //     style: AppTextStyles.textSize14(context,
-              //         weight: FontWeight.w400)),
+              Text('৳${AmountFormatter.formatDynamic(order.budget)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
             ],
           ),
           SizedboxSpaccing.height01(context),
@@ -758,7 +757,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                               ),
                               Expanded(
                                 child: Text(
-                                  isNotFound ? '' : '৳${item.totalPrice ?? 0}',
+                                  isNotFound ? '' : '৳${AmountFormatter.formatDynamic(item.totalPrice)}',
                                   style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                                   textAlign: TextAlign.right,
                                 ),
@@ -856,9 +855,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    final double subtotal = _vm.calculateSubtotal(order);
+
     final double serviceFee = order.customerPlatformFee?.toDouble() ?? 0;
     final double deliveryFee = order.deliveryCharge?.toDouble() ?? 0;
+
+
+    final double subtotal = _vm.calculateSubtotal(order);
     final double total = _vm.calculateTotal(order);
     final int foundItems = _vm.getFoundItemsCount(order.items);
 
@@ -877,11 +879,11 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
             children: [
               _summaryRow('Total Order:', '$foundItems items'),
               SizedboxSpaccing.height015(context),
-              _summaryRow('Subtotal:', '৳${subtotal.toStringAsFixed(0)}'),
+              _summaryRow('Subtotal:', '৳${AmountFormatter.format(subtotal)}'),
               SizedboxSpaccing.height015(context),
-              _summaryRow('Delivery Fee:', '৳${deliveryFee.toStringAsFixed(0)}'),
+              _summaryRow('Delivery Fee:', '৳${AmountFormatter.formatDynamic(order.deliveryCharge)}'),
               SizedboxSpaccing.height015(context),
-              _summaryRow('Service Fee:', '৳${serviceFee.toStringAsFixed(0)}'),
+              _summaryRow('Service Fee:', '৳${AmountFormatter.formatDynamic(order.customerPlatformFee)}'),
               SizedboxSpaccing.height015(context),
               Divider(height: 1, color: AppColors.border(context)),
               SizedboxSpaccing.height015(context),
@@ -889,7 +891,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Total Amount:', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-                  Text('৳${total.toStringAsFixed(0)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                  Text('৳${AmountFormatter.format(total)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
                 ],
               ),
             ],

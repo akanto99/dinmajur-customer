@@ -2,6 +2,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/nearby_retailers_and_order_models/get_order_details_model.dart';
@@ -274,7 +275,7 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
           SizedboxSpaccing.height01(context),
           Divider(height: 1, color: AppColors.border(context)),
           SizedboxSpaccing.height01(context),
-          Text('Budget: ৳${order?.budget?.toString() ?? '0'}', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+          Text('Budget: ৳${AmountFormatter.formatDynamic(order?.budget)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
           SizedboxSpaccing.height01(context),
           _buildOrderDateTime(context, order?.createdAt, order?.estimatedDeliveryTime ?? 'ASAP'),
           SizedboxSpaccing.height01(context),
