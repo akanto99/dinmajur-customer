@@ -745,7 +745,7 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
   final VoidCallback onSuccess;
   final Function(String)? onAddressUpdate;
   final double transportFee;
-  final List<Datum> allServices; // ✅ NEW: All services from all categories
+  final List<Datum> allServices;
     final Map<String, dynamic>? customerLocation;
 
 
@@ -762,7 +762,7 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
     required this.onSuccess,
     this.onAddressUpdate,
     required this.transportFee,
-    required this.allServices, // ✅ NEW
+    required this.allServices,
         this.customerLocation,
 
   }) : super(key: key);
@@ -777,7 +777,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _specialRequestController = TextEditingController();
   bool _isTermsAccepted = false;
-  Map<String, dynamic>? _updatedLocation; // ✅ ADD THIS For addNew Location widget
+  Map<String, dynamic>? _updatedLocation;
 
   @override
   void initState() {
@@ -822,7 +822,8 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         RoutesName.confirmedScreen,
         arguments: {
           'trackingId': trackingId,
-          'valId': paymentResult.validationId ?? 'N/A'
+          'valId': paymentResult.validationId ?? 'N/A',
+          'fromCheckout': true,
         },
       );
     } else if (paymentResult.status == 'FAILED') {
@@ -978,7 +979,9 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
             Navigator.pushNamed(
                 context,
                 RoutesName.confirmedScreen,
-                arguments: {'trackingId': trackingId ?? '', 'valId': "COD"}
+                arguments: {'trackingId': trackingId ?? '', 'valId': "COD",
+                  'fromCheckout': true,
+                }
             );
           } else {
             Navigator.pushReplacementNamed(

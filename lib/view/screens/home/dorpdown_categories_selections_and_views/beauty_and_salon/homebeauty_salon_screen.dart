@@ -252,13 +252,14 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                                   ],
                                 ),
                               ),
-                              SizedboxSpaccing.height01(context),
-                              Text(
-                                // "Trained Beauticians • Premium Products Salon \n•  Experience at Home",
-                                widget.description,
-                                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                                textAlign: TextAlign.center,
-                              ),
+                              if (widget.description != null && widget.description!.isNotEmpty) ...[
+                                SizedboxSpaccing.height01(context),
+                                Text(
+                                  widget.description!,
+                                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ],
                           ),
                         ),

@@ -728,7 +728,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (paymentResult.success) {
       _clearAllData();
-      Navigator.pushReplacementNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A'});
+      Navigator.pushReplacementNamed(context, RoutesName.beautyConfirmedScreen, arguments: {
+        'trackingId': trackingId,
+        'valId': paymentResult.validationId ?? 'N/A',
+        'fromCheckout': true,
+      });
     } else if (paymentResult.status == 'FAILED') {
       print("---------------------Handle Payment result - FAILED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -868,7 +872,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'cleared': true,        // ✅ signal cart should clear
         'updatedLocation': _updatedLocation,
       });
-          Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': "COD"});
+          Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {
+            'trackingId': trackingId,
+            'valId': "COD",
+            'fromCheckout': true,
+          });
         } else {
           Navigator.pushReplacementNamed(
             context,

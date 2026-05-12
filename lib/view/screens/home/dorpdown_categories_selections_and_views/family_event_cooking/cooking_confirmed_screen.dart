@@ -374,8 +374,11 @@ import 'package:provider/provider.dart';
 class CookingConfirmedScreen extends StatefulWidget {
   final String? trackingId;
   final String? valId;
+  final bool fromCheckout;
 
-  const CookingConfirmedScreen({Key? key, this.trackingId, this.valId}) : super(key: key);
+  const CookingConfirmedScreen({Key? key, this.trackingId, this.valId,
+    this.fromCheckout = false,
+  }) : super(key: key);
 
   @override
   State<CookingConfirmedScreen> createState() => _CookingConfirmedScreenState();
@@ -396,10 +399,21 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(
-        child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
+    return PopScope(
+      canPop: !widget.fromCheckout,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+              (route) => false,
+        );
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.containerBackground(context),
+        body: SafeArea(
+          child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
+        ),
       ),
     );
   }
@@ -408,7 +422,17 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            if (widget.fromCheckout) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+                    (route) => false,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
           child: Container(height: 60, child: AppBarHeader("Booking Confirmation")),
         ),
         Expanded(
@@ -631,10 +655,5 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
         );
       },
     );
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'N/A';
-    return DateFormat('dd MMM yyyy').format(date);
   }
 }

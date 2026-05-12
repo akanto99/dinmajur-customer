@@ -912,9 +912,13 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
 
     if (paymentResult.success) {
       _clearAllData();
-      Navigator.pushReplacementNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A'});
+      Navigator.pushReplacementNamed(context, RoutesName.cookingConfirmedScreen, arguments: {
+        'trackingId': trackingId,
+        'valId': paymentResult.validationId ?? 'N/A',
+        'fromCheckout': true,
+      });
     } else if (paymentResult.status == 'FAILED') {
-      print("---------------------Handle Payment result - FAILED -----------");
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
@@ -1140,7 +1144,11 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         } else if (checkoutVM.selectedPaymentMethod == 'cash') {
           _clearAllData();
           Navigator.pop(context);
-          Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': "COD"});
+          Navigator.pushNamed(context, RoutesName.cookingConfirmedScreen, arguments: {
+            'trackingId': trackingId,
+            'valId': "COD",
+            'fromCheckout': true,
+          });
         } else {
           Navigator.pushReplacementNamed(
             context,

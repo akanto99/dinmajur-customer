@@ -21,7 +21,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 class TrackOrderViewdetailsSocketScreen extends StatefulWidget {
   final String orderId;
-  const TrackOrderViewdetailsSocketScreen({Key? key, required this.orderId}) : super(key: key);
+  final bool fromCheckout;
+  const TrackOrderViewdetailsSocketScreen({Key? key, required this.orderId,
+    this.fromCheckout = false,
+  }) : super(key: key);
 
   @override
   State<TrackOrderViewdetailsSocketScreen> createState() => _TrackOrderViewdetailsSocketScreenState();
@@ -81,17 +84,41 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<TrackOrderViewModel>.value(
       value: _vm,
-      child: Scaffold(
-        backgroundColor: AppColors.containerBackground(context),
-        body: SafeArea(
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0))),
-                child: SizedBox(height: 60, child: AppBarHeader('Track Order Details')),
-              ),
-              Expanded(child: _buildContent()),
-            ],
+      child:   PopScope(
+        canPop: !widget.fromCheckout,
+        onPopInvoked: (didPop) {
+          if (didPop) return;
+          // Only runs when fromCheckout: true
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+                (route) => false,
+          );
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.containerBackground(context),
+          body: SafeArea(
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    if (widget.fromCheckout) {
+                      // Clear stack, go home
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+                            (route) => false,
+                      );
+                    } else {
+                      // Just pop back to order screen
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: SizedBox(height: 60, child: AppBarHeader('Track Order Details')),
+                ),
+                Expanded(child: _buildContent()),
+              ],
+            ),
           ),
         ),
       ),

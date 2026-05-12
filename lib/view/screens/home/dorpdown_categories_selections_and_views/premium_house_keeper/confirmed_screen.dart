@@ -822,7 +822,10 @@ import 'package:provider/provider.dart';
 class ConfirmedScreen extends StatefulWidget {
   final String? trackingId; // Made optional
   final String? valId;
-  const ConfirmedScreen({Key? key, this.trackingId, this.valId}) : super(key: key);
+  final bool fromCheckout;
+  const ConfirmedScreen({Key? key, this.trackingId, this.valId,
+    this.fromCheckout = false,
+  }) : super(key: key);
 
   @override
   State<ConfirmedScreen> createState() => _ConfirmedScreenState();
@@ -844,10 +847,21 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(
-        child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
+    return PopScope(
+      canPop: !widget.fromCheckout,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+              (route) => false,
+        );
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.containerBackground(context),
+        body: SafeArea(
+          child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
+        ),
       ),
     );
   }
@@ -856,7 +870,17 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            if (widget.fromCheckout) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+                    (route) => false,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
           child: Container(height: 60, child: AppBarHeader("Booking Confirmation")),
         ),
         Expanded(

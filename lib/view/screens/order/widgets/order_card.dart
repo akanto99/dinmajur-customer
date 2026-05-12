@@ -115,7 +115,7 @@ class OrderCard extends StatelessWidget {
   void _onTap(BuildContext context) {
     if (datum.type == 'ORDER') {
       if (isPendingTab || isRunningTab) {
-        Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': _orderIdForNavigation});
+        Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': _orderIdForNavigation,    'fromCheckout': false,});
       } else {
         Navigator.pushNamed(context, RoutesName.completeOrdersDetailsScreen, arguments: {'orderId': _orderIdForNavigation});
       }

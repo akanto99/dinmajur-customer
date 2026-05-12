@@ -296,16 +296,17 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                         ],
                       ),
                     ),
-                    SizedboxSpaccing.height03(context),
-                    Container(
-                      width: screenWidth * 0.9,
-                      child: Text(
-                        // "Two highly-trained housekeepers will work together",
-                        widget.description,
-                        style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                        textAlign: TextAlign.center,
+                    if (widget.description != null && widget.description!.isNotEmpty) ...[
+                      SizedboxSpaccing.height03(context),
+                      Container(
+                        width: screenWidth * 0.9,
+                        child: Text(
+                          widget.description!,
+                          style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
+                    ],
                     SizedboxSpaccing.height03(context),
 
                     SectionHeader(title: 'Choose Date & Time', titleWidth: screenWidth * 0.9, showSeeAll: false),

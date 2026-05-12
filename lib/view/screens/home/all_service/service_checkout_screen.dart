@@ -109,7 +109,11 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
 
     if (paymentResult.success) {
       _clearAllData();
-      Navigator.pushReplacementNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A'});
+      Navigator.pushReplacementNamed(context, RoutesName.serviceConfirmedScreen, arguments: {
+        'trackingId': trackingId,
+        'valId': paymentResult.validationId ?? 'N/A',
+        'fromCheckout': true,
+      });
     } else if (paymentResult.status == 'FAILED') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -253,7 +257,11 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
           if (!mounted) return;
           _clearAllData();
           Navigator.pop(context, {'cleared': true, 'updatedLocation': _updatedLocation});
-          Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': 'COD'});
+          Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {
+            'trackingId': trackingId,
+            'valId': 'COD',
+            'fromCheckout': true,
+          });
         } else {
           if (!mounted) return;
           Navigator.pushReplacementNamed(
