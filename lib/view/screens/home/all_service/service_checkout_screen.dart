@@ -233,11 +233,17 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
         debugPrint('✅ Booking Success! TrackingId: $trackingId');
 
         if (trackingId == null || trackingId.isEmpty) {
+          bookingViewModel.setBookServiceLoading(false);
           if (!mounted) return;
           Navigator.pushReplacementNamed(
             context,
             RoutesName.serviceFailedScreen,
-            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking. Please try again.'},
+            arguments: {
+              'trackingId': 'N/A',
+              'valId': 'N/A',
+              'reason': 'Booking creation failed',
+              'errorMessage': 'Unable to create booking. Please try again.'
+            },
           );
           return;
         }
@@ -252,6 +258,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
             customerAddress: _addressController.text.trim(),
           );
           await _handlePaymentResult(viewModel: checkoutVM, paymentResult: paymentResult, trackingId: trackingId);
+          bookingViewModel.setBookServiceLoading(false);
         } else if (
         checkoutVM.selectedPaymentMethod == 'cash') {
           if (!mounted) return;
@@ -262,7 +269,9 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
             'valId': 'COD',
             'fromCheckout': true,
           });
+          bookingViewModel.setBookServiceLoading(false);
         } else {
+          bookingViewModel.setBookServiceLoading(false);
           if (!mounted) return;
           Navigator.pushReplacementNamed(
             context,
@@ -272,6 +281,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
         }
       });
     } catch (e) {
+      bookingViewModel.setBookServiceLoading(false);
       debugPrint('❌ Booking error: $e');
     }
   }

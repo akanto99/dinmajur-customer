@@ -233,15 +233,23 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
       paymentMethod: checkoutViewModel.selectedPaymentMethod,
     );
 
-    // print('Booking Data: $bookingData');
-
-    await bookingViewModel.bookPremiumHouseKeeperPostApi(
+    try {
+      await bookingViewModel.bookPremiumHouseKeeperPostApi(
         context,
         bookingData,
             (String? trackingId) async {
-          // print('Success! TrackingId: $trackingId');
+          if (trackingId == null || trackingId.isEmpty) {
+            bookingViewModel.setBookPremiumHouseKeeperLoading(false);
+            Navigator.pushReplacementNamed(
+              context,
+              RoutesName.failedOrderScreenWidget,
+              arguments: {'trackingId':  'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking.'},
+            );
+            return;
+          }
 
-          if (checkoutViewModel.selectedPaymentMethod == 'online' && trackingId != null) {
+          if (checkoutViewModel.selectedPaymentMethod == 'online') {
+            // SSL Payment চলাকালীন loading চলবে
             final paymentResult = await checkoutViewModel.initiatePayment(
               trackingId: trackingId,
               totalAmount: totalAmount,
@@ -251,27 +259,34 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               customerAddress: _addressController.text.trim(),
             );
 
-            // print('Payment Result: ${paymentResult.toString()}');
-
             await _handlePaymentResult(
-                viewModel: checkoutViewModel,
-                paymentResult: paymentResult,
-                trackingId: trackingId
+              viewModel: checkoutViewModel,
+              paymentResult: paymentResult,
+              trackingId: trackingId,
             );
 
-          } else if (checkoutViewModel.selectedPaymentMethod == 'cash') {
+            // ✅ SSL পুরোপুরি শেষ হওয়ার পর loading বন্ধ
+            bookingViewModel.setBookPremiumHouseKeeperLoading(false);
+          }
+          else if (checkoutViewModel.selectedPaymentMethod == 'cash') {
             _clearAllData();
             Navigator.pop(context);
             widget.onSuccess();
 
             Navigator.pushNamed(
-                context,
-                RoutesName.confirmedScreen,
-                arguments: {'trackingId': trackingId ?? '', 'valId': "COD",
-                  'fromCheckout': true,
-                }
+              context,
+              RoutesName.confirmedScreen,
+              arguments: {
+                'trackingId': trackingId ?? '',
+                'valId': "COD",
+                'fromCheckout': true,
+              },
             );
-          } else {
+
+            bookingViewModel.setBookPremiumHouseKeeperLoading(false);
+          }
+          else {
+            bookingViewModel.setBookPremiumHouseKeeperLoading(false);
             Navigator.pushReplacementNamed(
               context,
               RoutesName.failedOrderScreenWidget,
@@ -283,10 +298,21 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               },
             );
           }
+        },
+      );
+    } catch (e) {
+      bookingViewModel.setBookPremiumHouseKeeperLoading(false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            RoutesName.failedOrderScreenWidget,
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking failed', 'errorMessage': 'An error occurred.'},
+          );
         }
-    );
+      });
+    }
   }
-
   void _clearAllData() {
     final checkoutViewModel = Provider.of<CheckoutViewModel>(context, listen: false);
     checkoutViewModel.reset();

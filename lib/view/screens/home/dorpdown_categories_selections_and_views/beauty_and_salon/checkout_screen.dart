@@ -205,7 +205,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     Map<String, dynamic> bookingData = checkoutVM.prepareBookingData(
       userId: widget.userId,
       fullName: _fullNameController.text,
-      customerLocation: _updatedLocation, // ✅ uses updated location if edited, else original
+      customerLocation: _updatedLocation,
       phone: _phoneController.text,
       address: _updatedLocation?['fullAddress'] ?? _addressController.text,
       specialRequest: _specialRequestController.text,
@@ -224,6 +224,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         // print('Success! TrackingId: $trackingId');
 
         if (trackingId == null || trackingId.isEmpty) {
+          bookingViewModel.setBookPremiumHomeBeautySalonLoading(false);
           Navigator.pushReplacementNamed(
             context,
             RoutesName.failedOrderScreenWidget,
@@ -242,6 +243,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             customerAddress: _addressController.text.trim(),
           );
           await _handlePaymentResult(viewModel: checkoutVM, paymentResult: paymentResult, trackingId: trackingId);
+          bookingViewModel.setBookPremiumHomeBeautySalonLoading(false);
         } else if (checkoutVM.selectedPaymentMethod == 'cash') {
           _clearAllData();
           Navigator.pop(context, {
@@ -249,6 +251,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             'updatedLocation': _updatedLocation,
           });
           Navigator.pushNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': "COD", 'fromCheckout': true});
+          bookingViewModel.setBookPremiumHomeBeautySalonLoading(false);
         } else {
           Navigator.pushReplacementNamed(
             context,
@@ -258,6 +261,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       });
     } catch (e) {
+      bookingViewModel.setBookPremiumHomeBeautySalonLoading(false);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(

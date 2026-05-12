@@ -18,36 +18,28 @@ class PostBookPremiumHomeBeautySalonViewModel with ChangeNotifier {
   Future<void> bookPremiumHomeBeautySalonPostApi(
       BuildContext context,
       dynamic fields,
-      Function(String? trackingId) onSuccess // CHANGED: Now receives both paymentUrl and trackingId
+      Function(String? trackingId) onSuccess,
       ) async {
-    setBookPremiumHomeBeautySalonLoading(true);
+    setBookPremiumHomeBeautySalonLoading(true);   // loading শুরু
+
     try {
-      // Store the response
       dynamic response = await _myRepo.bookPremiumHomeBeautySalonPostApi(fields);
-      setBookPremiumHomeBeautySalonLoading(false);
+
       String? trackingId;
-
-
       if (response != null && response['data'] != null) {
         trackingId = response['data']['trackingId']?.toString();
 
-        if (kDebugMode) {
-          print('Tracking ID: $trackingId');
-        }
+        if (kDebugMode) print('Tracking ID: $trackingId');
 
-        // Call the success callback with both paymentUrl and trackingId
+        // ✅ এখানে loading false করবো না
         onSuccess(trackingId);
       } else {
-        if (kDebugMode) print('Warning: trackingId not found in response');
-        // Still call success but with null values
+        setBookPremiumHomeBeautySalonLoading(false);
         onSuccess(null);
       }
-
     } catch (error) {
       setBookPremiumHomeBeautySalonLoading(false);
       _handleError(error, context);
-      if (kDebugMode) print('Error: $error');
-      // Don't call onSuccess on error - dialog will stay open
     }
   }
 

@@ -253,9 +253,6 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
 
       return result;
     } catch (e, stackTrace) {
-      // print("💥 Payment Initiation Error in ViewModel: $e");
-      // print("Stack Trace: $stackTrace");
-
       return SSLPaymentResult(
         success: false,
         status: 'ERROR',
