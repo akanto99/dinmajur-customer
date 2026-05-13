@@ -176,15 +176,17 @@ class OrderCard extends StatelessWidget {
               // ── Footer ────────────────────────────────────────────────────
               _buildFooter(context, screenHeight),
 
-              // ── Completed actions ─────────────────────────────────────────
-              if (isRunningTab &&
-                  (datum.paymentStatus == null || datum.paymentStatus!.isEmpty|| datum.paymentStatus!="PAID") &&
-                  (datum.type != 'ORDER' || (datum.subTotalAmount ?? 0) > 0)) ...[
-                SizedboxSpaccing.height015(context),
-                Divider(height: 1, color: AppColors.border(context)),
-                SizedboxSpaccing.height02(context),
-                CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: true),
-              ] else if (isCompletedTab && datum.isReview == false) ...[
+              /// ── Completed actions ─────────────────────────────────────────
+              // if (isRunningTab &&
+              //     (datum.paymentStatus == null
+              //         || datum.paymentStatus!.isEmpty|| datum.paymentStatus!="PAID") &&
+              //     (datum.type != 'ORDER' || (datum.subTotalAmount ?? 0) > 0)) ...[
+              //   SizedboxSpaccing.height015(context),
+              //   Divider(height: 1, color: AppColors.border(context)),
+              //   SizedboxSpaccing.height02(context),
+              //   CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: true),
+              // ] else
+                if (isCompletedTab && datum.isReview == false) ...[
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
                 SizedboxSpaccing.height02(context),
@@ -256,7 +258,7 @@ class OrderCard extends StatelessWidget {
     final bool isOrder = datum.type == 'ORDER';
     final bool orderHasSubtotal = isOrder && (datum.subTotalAmount != null && datum.subTotalAmount! > 0);
     final bool showAmount = !isOrder || orderHasSubtotal;
-    final String amountText = isOrder ? "৳${_formatTotal(datum.totalAmount)}" : "৳${_formatTotal(datum.total)}";
+    final String amountText = isOrder ? "৳ ${_formatTotal(datum.totalAmount)}" : "৳ ${_formatTotal(datum.total)}";
 
     return Container(
       height: screenHeight * 0.04,
@@ -268,7 +270,7 @@ class OrderCard extends StatelessWidget {
           if (showAmount)
             Text(
               amountText,
-              style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)),
+              style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
             )
           else
             const SizedBox.shrink(),

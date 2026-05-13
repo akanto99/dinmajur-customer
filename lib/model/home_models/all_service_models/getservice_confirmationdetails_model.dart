@@ -32,6 +32,7 @@ class Data {
   String? status;
   Service? serviceSnapshot;
   String? paymentType;
+  String? paymentStatus;
   List<BookingItem>? bookingItems;
   num? discountValue;
 
@@ -54,6 +55,7 @@ class Data {
     this.status,
     this.serviceSnapshot,
     this.paymentType,
+    this.paymentStatus,
     this.bookingItems,
     this.discountValue,
   });
@@ -77,6 +79,7 @@ class Data {
     status: json["status"],
     serviceSnapshot: json["serviceSnapshot"] == null ? null : Service.fromJson(json["serviceSnapshot"]),
     paymentType: json["paymentType"],
+    paymentStatus: json["paymentStatus"],
     bookingItems: json["bookingItems"] == null ? [] : List<BookingItem>.from(json["bookingItems"]!.map((x) => BookingItem.fromJson(x))),
     discountValue: json["discountValue"],
   );

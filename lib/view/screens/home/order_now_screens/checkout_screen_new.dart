@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/checkout_order_view_model.dart';
@@ -46,6 +47,9 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
   String? budget;
   String? deliveryTime;
   String orderType = '';
+
+  num deliveryCharge = 0;
+  num platformFee = 0;
 
   // Payment method
   String? selectedPaymentMethod;
@@ -138,6 +142,8 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
       budget = arguments['budget'];
       deliveryTime = arguments['deliveryTime'];
       orderType = arguments['orderType'] ?? 'manual';
+      deliveryCharge = (arguments['deliveryCharge'] as num?) ?? 0;
+      platformFee = (arguments['platformFee'] as num?) ?? 0;
 
       debugPrint('========== CHECKOUT SCREEN DATA ==========');
       debugPrint('Business: $store_businessName');
@@ -311,12 +317,29 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
               children: [
                 // Budget
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Budget: ', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                    Text(
-                      '৳${budget ?? '0'}',
-                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.darkRedColor),
+                    Row(
+                      children: [
+                        Text('Budget: ', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                        Text(
+                          '৳${budget ?? '0'}',
+                          style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.darkRedColor),
+                        ),
+                      ],
                     ),
+
+                    if ((deliveryCharge + platformFee) > 0) ...[
+                      Row(
+                        children: [
+                          Text('Fee: ', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                          Text(
+                            '৳${AmountFormatter.formatDynamic(deliveryCharge + platformFee)}',
+                            style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
 

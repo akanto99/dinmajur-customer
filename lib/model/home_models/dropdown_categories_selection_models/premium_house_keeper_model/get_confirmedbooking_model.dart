@@ -57,6 +57,7 @@ class Data {
   num? vat; // Changed from int? to num?
   num? fare; // Changed from int? to num?
   String? status;
+  String? paymentStatus;
   List<HouseKeeperBookingItem>? houseKeeperBookingItems;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -86,6 +87,7 @@ class Data {
     this.vat,
     this.fare,
     this.status,
+    this.paymentStatus,
     this.houseKeeperBookingItems,
     this.createdAt,
     this.updatedAt,
@@ -116,6 +118,7 @@ class Data {
     vat: json["vat"],
     fare: json["fare"],
     status: json["status"],
+    paymentStatus: json["paymentStatus"],
     houseKeeperBookingItems: json["houseKeeperBookingItems"] == null ? [] : List<HouseKeeperBookingItem>.from(json["houseKeeperBookingItems"]!.map((x) => HouseKeeperBookingItem.fromJson(x))),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
@@ -146,6 +149,7 @@ class Data {
     "vat": vat,
     "fare": fare,
     "status": status,
+    "paymentStatus": paymentStatus,
     "houseKeeperBookingItems": houseKeeperBookingItems == null ? [] : List<dynamic>.from(houseKeeperBookingItems!.map((x) => x.toJson())),
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),

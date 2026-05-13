@@ -55,6 +55,11 @@ class GroceryStoresSection extends StatelessWidget {
 
     final businessName = store['businessName'] ?? 'দোকানের নাম উপলব্ধ নেই';
     final businessType = store['businessType'] ?? 'অজানা';
+
+    final num deliveryCharge = (store['deliveryCharge'] as num?) ?? 0;
+    final num platformFee = (store['platform_fee'] as num?) ?? 0;
+
+
     final userID = store['userId'] ?? '';
     final logo = store['logo'] as Map<String, dynamic>?;
     final logoUrl = logo?['url'];
@@ -192,7 +197,8 @@ class GroceryStoresSection extends StatelessWidget {
           SizedboxSpaccing.height012(context),
           RoundButton(
             title: AppLocalizations.of(context)!.order_now,
-            onPress: () => _navigateToOrderScreen(context, store, distanceText, durationText, businessName, isAvailable, businessType, userID, logoUrl, fullAddress, storeLatitude, storeLongitude),
+            onPress: () => _navigateToOrderScreen(context, store, distanceText, durationText, businessName, isAvailable, businessType, userID, logoUrl, fullAddress, storeLatitude, storeLongitude,deliveryCharge
+              ,platformFee,),
             iconData: Icons.arrow_forward_ios_rounded,
           ),
         ],
@@ -213,6 +219,8 @@ class GroceryStoresSection extends StatelessWidget {
     String fullAddress,
     double? storeLatitude,
     double? storeLongitude,
+      num deliveryCharge,
+      num platformFee,
   ) {
     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
 
@@ -260,6 +268,8 @@ class GroceryStoresSection extends StatelessWidget {
         'customerFullAddress': customerFullAddress,
         'customerLongitude': customerLongitude,
         'customerLatitude': customerLatitude,
+        'deliveryCharge': deliveryCharge,
+        'platformFee': platformFee,
       },
     );
   }

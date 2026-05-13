@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view/screens/home/order_now_screens/build_tabs/manual_entry_tab.dart';
@@ -55,6 +56,11 @@ class _OrderNowState extends State<OrderNow> {
   List<Map<String, dynamic>> uploadedPhotos = [];
   String? voiceRecordingPath;
   String? voiceRecordingDuration;
+
+  num deliveryCharge = 0;
+  num platformFee = 0;
+
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -83,6 +89,9 @@ class _OrderNowState extends State<OrderNow> {
       customerFullAddress = arguments['customerFullAddress'];
       customerLongitude = arguments['customerLongitude'];
       customerLatitude = arguments['customerLatitude'];
+
+      deliveryCharge = (arguments['deliveryCharge'] as num?) ?? 0;
+      platformFee = (arguments['platformFee'] as num?) ?? 0;
     }
   }
 
@@ -177,6 +186,8 @@ class _OrderNowState extends State<OrderNow> {
         'customerFullAddress': customerFullAddress,
         'customerLongitude': customerLongitude,
         'customerLatitude': customerLatitude,
+        'deliveryCharge': deliveryCharge,
+        'platformFee': platformFee,
       },
     );
   }
@@ -479,11 +490,36 @@ class _OrderNowState extends State<OrderNow> {
 
   Widget _buildActionButtons() {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final num total = deliveryCharge + platformFee;
 
-    return Container(
-      width: screenWidth * 0.9,
-      child: RoundButton(title: "Place Order", onPress: _proceedToCheckout, iconData: Icons.arrow_forward_ios_rounded),
+    return Column(
+      children: [
+        if (total > 0) ...[
+          Container(
+            width: screenWidth * 0.9,
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.button(context).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Fee', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                Text(
+                  '৳${AmountFormatter.formatDynamic(total)}',
+                  style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.darkRedColor),
+                ),
+              ],
+            ),
+          ),
+          SizedboxSpaccing.height02(context),
+        ],
+        Container(
+          width: screenWidth * 0.9,
+          child: RoundButton(title: "Place Order", onPress: _proceedToCheckout, iconData: Icons.arrow_forward_ios_rounded),
+        ),
+      ],
     );
   }
 

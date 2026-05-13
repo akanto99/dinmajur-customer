@@ -22,9 +22,7 @@ import 'package:url_launcher/url_launcher.dart';
 class TrackOrderViewdetailsSocketScreen extends StatefulWidget {
   final String orderId;
   final bool fromCheckout;
-  const TrackOrderViewdetailsSocketScreen({Key? key, required this.orderId,
-    this.fromCheckout = false,
-  }) : super(key: key);
+  const TrackOrderViewdetailsSocketScreen({Key? key, required this.orderId, this.fromCheckout = false}) : super(key: key);
 
   @override
   State<TrackOrderViewdetailsSocketScreen> createState() => _TrackOrderViewdetailsSocketScreenState();
@@ -84,16 +82,12 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<TrackOrderViewModel>.value(
       value: _vm,
-      child:   PopScope(
+      child: PopScope(
         canPop: !widget.fromCheckout,
         onPopInvoked: (didPop) {
           if (didPop) return;
           // Only runs when fromCheckout: true
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
-                (route) => false,
-          );
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false);
         },
         child: Scaffold(
           backgroundColor: AppColors.containerBackground(context),
@@ -104,11 +98,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
                   onTap: () {
                     if (widget.fromCheckout) {
                       // Clear stack, go home
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
-                            (route) => false,
-                      );
+                      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false);
                     } else {
                       // Just pop back to order screen
                       Navigator.pop(context);
@@ -882,11 +872,6 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-
-    final double serviceFee = order.customerPlatformFee?.toDouble() ?? 0;
-    final double deliveryFee = order.deliveryCharge?.toDouble() ?? 0;
-
-
     final double subtotal = _vm.calculateSubtotal(order);
     final double total = _vm.calculateTotal(order);
     final int foundItems = _vm.getFoundItemsCount(order.items);
@@ -930,19 +915,37 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   // ── Pay Now Button ────────────────────────────────────────────────────────────
   Widget _buildPayNowButton(Order order, Payment payment, Delivery delivery) {
-    return GestureDetector(
-      onTap: () => _vm.handlePayNow(context: context, order: order, payment: payment, delivery: delivery),
-      child: Container(
-        height: 48,
-        width: double.infinity,
-        decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-        child: Center(
-          child: Text(
-            'Pay Now',
-            style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+    return Consumer<TrackOrderViewModel>(
+      builder: (context, vm, _) {
+        final bool isProcessing = vm.isPaymentProcessing;
+
+        return AbsorbPointer(
+          absorbing: isProcessing,
+          child: GestureDetector(
+            onTap: isProcessing ? null : () => vm.handlePayNow(context: context, order: order, payment: payment, delivery: delivery),
+            child: Container(
+              height: 52,
+              width: double.infinity,
+              decoration: BoxDecoration(color: isProcessing ? AppColors.button(context).withOpacity(0.6) : AppColors.button(context), borderRadius: BorderRadius.circular(12)),
+              child: Center(
+                child: isProcessing
+                    ? LoadingAnimationWidget.progressiveDots(color: AppColors.whiteColor, size: 32)
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Pay Now',
+                            style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                          ),
+                          SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                        ],
+                      ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

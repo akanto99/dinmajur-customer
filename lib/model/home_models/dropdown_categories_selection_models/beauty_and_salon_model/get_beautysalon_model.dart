@@ -54,6 +54,7 @@ class Data {
   double? fare;
   double? discountValue;
   String? status;
+  String? paymentStatus;
   List<BeautySalonBookingItem>? beautySalonBookingItems;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -81,6 +82,7 @@ class Data {
     this.vat,
     this.fare,
     this.status,
+    this.paymentStatus,
     this.beautySalonBookingItems,
     this.createdAt,
     this.updatedAt,
@@ -109,6 +111,7 @@ class Data {
     fare: (json["fare"] as num?)?.toDouble(),
     discountValue: (json["discountValue"] as num?)?.toDouble(),
     status: json["status"],
+    paymentStatus: json["paymentStatus"],
     beautySalonBookingItems: json["beautySalonBookingItems"] == null ? [] : List<BeautySalonBookingItem>.from(json["beautySalonBookingItems"]!.map((x) => BeautySalonBookingItem.fromJson(x))),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
@@ -137,6 +140,7 @@ class Data {
     "vat": vat,
     "fare": fare,
     "status": status,
+    "paymentStatus": paymentStatus,
     "beautySalonBookingItems": beautySalonBookingItems == null ? [] : List<dynamic>.from(beautySalonBookingItems!.map((x) => x.toJson())),
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),

@@ -40,29 +40,29 @@ class CompletedActions extends StatelessWidget {
 
     return Row(
       children: [
-        if (shouldShowPayNow)
-          Expanded(
-            child: GestureDetector(
-              onTap: () => onPayNow(context, datum),
-              child: Container(
-                height: 42,
-                decoration: BoxDecoration(
-                  color: AppColors.textPrimary(context),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    "Pay Now",
-                    style: AppTextStyles.textSize14(
-                      context,
-                      weight: FontWeight.w600,
-                      color: AppColors.textSecondary(context),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+        // if (shouldShowPayNow)
+        //   Expanded(
+        //     child: GestureDetector(
+        //       onTap: () => onPayNow(context, datum),
+        //       child: Container(
+        //         height: 42,
+        //         decoration: BoxDecoration(
+        //           color: AppColors.textPrimary(context),
+        //           borderRadius: BorderRadius.circular(12),
+        //         ),
+        //         child: Center(
+        //           child: Text(
+        //             "Pay Now",
+        //             style: AppTextStyles.textSize14(
+        //               context,
+        //               weight: FontWeight.w600,
+        //               color: AppColors.textSecondary(context),
+        //             ),
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //   ),
 
         if (shouldShowReview)
           Expanded(

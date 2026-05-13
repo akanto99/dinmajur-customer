@@ -13,7 +13,7 @@ class SSLCommerzPaymentService {
   static final SSLCommerzPaymentService _instance = SSLCommerzPaymentService._internal();
   factory SSLCommerzPaymentService() => _instance;
   SSLCommerzPaymentService._internal();
-
+  static bool _isProcessing = false;
   Future<SSLPaymentResult> initiatePayment({
     required String trackingId,
     required double totalAmount,
@@ -24,6 +24,16 @@ class SSLCommerzPaymentService {
     String? customerEmail,
     String? customerAddress,
   }) async {
+
+    if (_isProcessing) {
+      return SSLPaymentResult(
+        success: false,
+        status: 'CANCELLED',
+        errorMessage: 'Payment already in progress',
+      );
+    }
+    _isProcessing = true;
+
     try {
       // Validate
       if (trackingId.isEmpty) {
@@ -69,8 +79,8 @@ class SSLCommerzPaymentService {
                   tran_id: trackingId,
                   currency: SSLCurrencyType.BDT,
                   product_category: productCategory ?? "",
-                  sdkType: SSLCSdkType.LIVE,
-                  // sdkType:SSLCSdkType.TESTBOX,
+                  // sdkType: SSLCSdkType.LIVE,
+                  sdkType:SSLCSdkType.TESTBOX,
                   // sdkType:useTestMode ?SSLCSdkType.TESTBOX: SSLCSdkType.LIVE,
                   //   multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay,tap,okwallet,"
                   //     "dbbl_visa,dbbl_master,city_visa,city_master,city_amex,"
@@ -80,26 +90,26 @@ class SSLCommerzPaymentService {
                   //     "southeast,islamibank,al_arafah,social,ific,shahjalal,"
                   //     "firstsecurity,onebank,qcash,fastcash",
                 ),
-              )
-              .addCustomerInfoInitializer(
-                customerInfoInitializer: SSLCCustomerInfoInitializer(
-                  customerName: name,
-                  customerEmail: email,
-                  customerAddress1: address,
-                  customerCountry: "Bangladesh",
-                  customerPhone: phone,
-                  customerState: 'BD',
-                  customerCity: '',
-                  customerPostCode: '',
-                ),
-              )
-              .addProductInitializer(
-                sslcProductInitializer: SSLCProductInitializer(
-                  productName: productCategory ?? "",
-                  productCategory: productCategory ?? "",
-                  general: General(general: productCategory ?? "", productProfile: "general"),
-                ),
               );
+              // .addCustomerInfoInitializer(
+              //   customerInfoInitializer: SSLCCustomerInfoInitializer(
+              //     customerName: name,
+              //     customerEmail: email,
+              //     customerAddress1: address,
+              //     customerCountry: "Bangladesh",
+              //     customerPhone: phone,
+              //     customerState: 'BD',
+              //     customerCity: '',
+              //     customerPostCode: '',
+              //   ),
+              // )
+              // .addProductInitializer(
+              //   sslcProductInitializer: SSLCProductInitializer(
+              //     productName: productCategory ?? "",
+              //     productCategory: productCategory ?? "",
+              //     general: General(general: productCategory ?? "", productProfile: "general"),
+              //   ),
+              // );
 
       print("✅ SSL Commerz configured - launching payment...");
 
@@ -162,6 +172,8 @@ class SSLCommerzPaymentService {
       print("💥 SSL Commerz Error: $e");
       print("Stack: $stackTrace");
       return SSLPaymentResult(success: false, status: 'ERROR', errorMessage: 'Payment failed: ${e.toString()}');
+    }finally {
+      _isProcessing = false; // ← ALWAYS unlocks after SSL returns (success/cancel/fail/error)
     }
   }
 }

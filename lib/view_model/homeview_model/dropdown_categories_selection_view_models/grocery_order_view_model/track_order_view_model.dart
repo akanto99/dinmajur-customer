@@ -42,6 +42,10 @@ class TrackOrderViewModel extends ChangeNotifier {
   String? get selectedPaymentMethod => _selectedPaymentMethod;
   bool get isInitialized => _isInitialized;
 
+
+  bool _isPaymentProcessing = false;
+  bool get isPaymentProcessing => _isPaymentProcessing;
+
   final List<Map<String, dynamic>> paymentMethods = [
     {'method': 'online', 'title': 'Online Payment', 'icon': 'wallet',      'color': 0xFFEE4237},
     {'method': 'cash',   'title': 'Hand Cash',       'icon': 'sackDollar', 'color': 0xFF45A986},
@@ -316,35 +320,40 @@ class TrackOrderViewModel extends ChangeNotifier {
     required Payment payment,
     required Delivery delivery,
   }) async {
+    if (_isPaymentProcessing) {
+      debugPrint('⚠️ Payment already in progress - ignoring duplicate tap');
+      return;
+    }
+
     if (_selectedPaymentMethod == null) {
       Utils.flushBarErrorMessage('Please select a payment method.', context);
       return;
     }
-    if (!_isTermsAccepted && !_isReviewAccepted) {
-      Utils.flushBarErrorMessage(
-          'Please accept the Terms & Conditions and confirm your review before paying.', context);
-      return;
-    }
-    if (!_isTermsAccepted) {
-      Utils.flushBarErrorMessage(
-          'Please accept the Terms & Conditions, Privacy Policy, and Return/Refund Policy.', context);
-      return;
-    }
-    if (!_isReviewAccepted) {
-      Utils.flushBarErrorMessage(
-          'Please confirm that you have reviewed the final items.', context);
+
+    if (!_isTermsAccepted || !_isReviewAccepted) {
+      Utils.flushBarErrorMessage('Please accept Terms & Conditions and Review confirmation.', context);
       return;
     }
 
-    if (_selectedPaymentMethod == 'cash') {
-      await _handleCashPayment(context: context, payment: payment);
-    }
-    else if (_selectedPaymentMethod == 'online') {
-      debugPrint('${payment.toJson()}');
-      await _handleOnlinePayment(context: context, order: order, delivery: delivery);
+    // Lock payment
+    _isPaymentProcessing = true;
+    notifyListeners();
+
+    try {
+      if (_selectedPaymentMethod == 'cash') {
+        await _handleCashPayment(context: context, payment: payment);
+      } else if (_selectedPaymentMethod == 'online') {
+        await _handleOnlinePayment(context: context, order: order, delivery: delivery);
+      }
+    } catch (e) {
+      debugPrint('❌ Payment error: $e');
+      Utils.flushBarErrorMessage('Payment failed. Please try again.', context);
+    } finally {
+      // ✅ Always unlock after everything is done (success or fail)
+      _isPaymentProcessing = false;
+      notifyListeners();
     }
   }
-
   Future<void> _handleCashPayment({
     required BuildContext context,
     required Payment payment,
