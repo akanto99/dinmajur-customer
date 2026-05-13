@@ -15,9 +15,14 @@ class BookingConfirmationData {
   final String serviceAddress;
   final String grandTotal;
   final String paymentMethod;
-  final Future<void> Function() onDownloadReceipt; // Changed to async function
+  final Future<void> Function() onDownloadReceipt;
   final VoidCallback onTrackOrder;
   final bool isDownloading;
+
+  final bool fromCheckout;
+  final String? paymentStatus;
+  final String? orderStatus;
+  final Future<void> Function()? onPayNow;
 
   BookingConfirmationData({
     required this.thankYouMessage,
@@ -30,13 +35,34 @@ class BookingConfirmationData {
     required this.onDownloadReceipt,
     required this.onTrackOrder,
     this.isDownloading = false,
+    this.fromCheckout = false,
+    this.paymentStatus,
+    this.orderStatus,
+    this.onPayNow,
   });
+
+  bool get shouldShowPayNow {
+    if (fromCheckout) return false;
+    if (onPayNow == null) return false;
+
+    final order = (orderStatus ?? '').toUpperCase();
+    final status = (paymentStatus ?? '').toUpperCase();
+
+    // Never show if order is completed
+    if (order == 'COMPLETED' || order == 'PENDING'|| order == 'CANCELLED'|| order == 'CONFIRMED') return false;
+
+    // Never show if already paid
+    if (status == 'PAID') return false;
+
+    // Show for any unpaid order (cash OR online) that is not completed
+    return true;
+  }
 }
 
 /// Service item model
 class ServiceItem {
   final String name;
-  final String? additionalInfo; // e.g., "(3)" for rooms or quantity details
+  final String? additionalInfo;
 
   ServiceItem({required this.name, this.additionalInfo});
 }
@@ -57,51 +83,28 @@ class BookingConfirmationUI extends StatelessWidget {
       child: Column(
         children: [
           SizedboxSpaccing.height02(context),
-
-          // Success Header Card
           _buildSuccessHeader(context, screenWidth, screenHeight),
-
           SizedboxSpaccing.height03(context),
-
-          // Booking Details Section
           _buildSectionTitle(context, screenWidth, 'Booking Details'),
-
           SizedboxSpaccing.height01(context),
-
-          // Booking Details Card
           _buildBookingDetailsCard(context, screenWidth, screenHeight),
-
           SizedboxSpaccing.height03(context),
-
-          // Download Receipt Button
           _buildDownloadButton(context, screenWidth),
-
+          if (data.shouldShowPayNow) ...[SizedboxSpaccing.height02(context), _buildPayNowButton(context, screenWidth)],
           SizedboxSpaccing.height04(context),
-
-          // What's Next Section
           _buildWhatsNextSection(context, screenWidth, screenHeight),
-
           SizedboxSpaccing.height03(context),
-
           CustomerCareSupportCard(),
-
           SizedboxSpaccing.height03(context),
-
-          // Track My Order Button
           _buildTrackOrderButton(context, screenWidth),
-
           SizedboxSpaccing.height02(context),
-
-          // Back to Home Button
           _buildBackToHomeButton(context, screenWidth, onBackToHome),
-
           SizedboxSpaccing.height04(context),
         ],
       ),
     );
   }
 
-  // Success Header with Icon and Message
   Widget _buildSuccessHeader(BuildContext context, double screenWidth, double screenHeight) {
     return Container(
       width: screenWidth * 0.9,
@@ -112,7 +115,6 @@ class BookingConfirmationUI extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Success Icon
           Container(
             width: 48,
             height: 48,
@@ -126,19 +128,13 @@ class BookingConfirmationUI extends StatelessWidget {
               ),
             ),
           ),
-
           SizedboxSpaccing.height01(context),
-
-          // Title
           Text(
             'Booking Confirmed!',
             style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
             textAlign: TextAlign.center,
           ),
-
           SizedboxSpaccing.height01(context),
-
-          // Thank You Message
           Container(
             width: screenWidth * 0.85,
             child: Text(
@@ -152,7 +148,6 @@ class BookingConfirmationUI extends StatelessWidget {
     );
   }
 
-  // Section Title Widget
   Widget _buildSectionTitle(BuildContext context, double screenWidth, String title) {
     return Container(
       width: screenWidth * 0.9,
@@ -167,7 +162,6 @@ class BookingConfirmationUI extends StatelessWidget {
     );
   }
 
-  // Booking Details Card
   Widget _buildBookingDetailsCard(BuildContext context, double screenWidth, double screenHeight) {
     return Container(
       width: screenWidth * 0.9,
@@ -180,38 +174,26 @@ class BookingConfirmationUI extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Order Number
           _buildDetailColumn('Order Number', '#${data.orderId.length > 6 ? data.orderId.substring(data.orderId.length - 6) : data.orderId}', context),
           SizedBox(height: 16),
-
-          // Services
           _buildServicesSection(context),
-
           SizedBox(height: 16),
-
-          // Date & Time
           _buildDetailColumn('Date & Time', _formatDateTime(data.dateTime), context),
-
           SizedBox(height: 16),
-
-          // Service Address
           _buildDetailColumn('Service Address', data.serviceAddress, context),
-
           SizedBox(height: 16),
-
-          // Total Payment
           _buildDetailRow('Total Payment', '৳ ${data.grandTotal}', context),
-
           SizedBox(height: 16),
-
-          // Payment Method
           _buildDetailRow('Payment Method', data.paymentMethod, context),
+          SizedBox(height: 16),
+          _buildDetailRow('Payment Status', data.paymentStatus?? 'N/A', context),
+          SizedBox(height: 16),
+          _buildDetailRow('Status', data.orderStatus?? 'N/A', context),
         ],
       ),
     );
   }
 
-  // Services Section with Dynamic Items
   Widget _buildServicesSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,7 +224,6 @@ class BookingConfirmationUI extends StatelessWidget {
     );
   }
 
-  // Download Receipt Button
   Widget _buildDownloadButton(BuildContext context, double screenWidth) {
     return GestureDetector(
       onTap: data.isDownloading
@@ -272,7 +253,26 @@ class BookingConfirmationUI extends StatelessWidget {
     );
   }
 
-  // What's Next Section
+  // ✅ INSIDE the class — data is accessible here
+  Widget _buildPayNowButton(BuildContext context, double screenWidth) {
+    return GestureDetector(
+      onTap: () async {
+        await data.onPayNow?.call();
+      },
+      child: Container(
+        width: screenWidth * 0.9,
+        height: 50,
+        decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(8)),
+        child: Center(
+          child: Text(
+            'Pay Now',
+            style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.containerBackground(context)),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildWhatsNextSection(BuildContext context, double screenWidth, double screenHeight) {
     return Container(
       width: screenWidth * 0.9,
@@ -322,7 +322,6 @@ class BookingConfirmationUI extends StatelessWidget {
     );
   }
 
-  // Track My Order Button
   Widget _buildTrackOrderButton(BuildContext context, double screenWidth) {
     return GestureDetector(
       onTap: data.onTrackOrder,
@@ -340,7 +339,6 @@ class BookingConfirmationUI extends StatelessWidget {
     );
   }
 
-  // Back to Home Button
   Widget _buildBackToHomeButton(BuildContext context, double screenWidth, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -364,7 +362,6 @@ class BookingConfirmationUI extends StatelessWidget {
     );
   }
 
-  // Helper: Detail Column
   Widget _buildDetailColumn(String label, String value, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +377,6 @@ class BookingConfirmationUI extends StatelessWidget {
     );
   }
 
-  // Helper: Detail Row
   Widget _buildDetailRow(String label, String value, BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,41 +393,32 @@ class BookingConfirmationUI extends StatelessWidget {
       ],
     );
   }
-}
+} // ← class closes here
 
-// Helper method to format datetime with AM/PM
+// ── Top-level helper (outside class is fine) ──────────────────────────────────
 String _formatDateTime(String dateTime) {
   try {
-    // Split the date and time parts
-    // Expected format: "11 Feb 2026, 18:00"
     final parts = dateTime.split(', ');
-    if (parts.length != 2) return dateTime; // Return original if format is unexpected
+    if (parts.length != 2) return dateTime;
 
-    final datePart = parts[0]; // "11 Feb 2026"
-    final timePart = parts[1]; // "18:00"
+    final datePart = parts[0];
+    final timePart = parts[1];
 
-    // Parse the time
     final timeComponents = timePart.split(':');
     if (timeComponents.length != 2) return dateTime;
 
     int hour = int.parse(timeComponents[0]);
     final minute = timeComponents[1];
 
-    // Determine AM/PM
     String period = 'AM';
     if (hour >= 12) {
       period = 'PM';
-      if (hour > 12) {
-        hour = hour - 12;
-      }
+      if (hour > 12) hour = hour - 12;
     }
-    if (hour == 0) {
-      hour = 12; // Midnight case
-    }
+    if (hour == 0) hour = 12;
 
-    // Format the time with AM/PM
     return '$datePart, $hour:$minute $period';
   } catch (e) {
-    return dateTime; // Return original if any error occurs
+    return dateTime;
   }
 }

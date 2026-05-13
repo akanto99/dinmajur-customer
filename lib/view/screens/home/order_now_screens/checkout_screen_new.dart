@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/checkout_order_view_model.dart';
@@ -47,15 +48,13 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
   String? deliveryTime;
   String orderType = '';
 
+  num deliveryCharge = 0;
+  num platformFee = 0;
+
   // Payment method
   String? selectedPaymentMethod;
 
-  // Payment methods data
-  final List<Map<String, dynamic>> paymentMethods = [
-    {'method': 'bkash', 'title': 'bkash', 'icon': FontAwesomeIcons.wallet, 'color': Color(0xFFE2136E)},
-    {'method': 'nagad', 'title': 'Nagad', 'icon': FontAwesomeIcons.wallet, 'color': Color(0xFFEE4237)},
-    {'method': 'cash', 'title': 'Hand Cash', 'icon': FontAwesomeIcons.sackDollar, 'color': Color(0xFF45A986)},
-  ];
+
   Map<String, dynamic> _getPaymentMethodData(String? method) {
     switch (method) {
       case 'bkash':
@@ -143,6 +142,8 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
       budget = arguments['budget'];
       deliveryTime = arguments['deliveryTime'];
       orderType = arguments['orderType'] ?? 'manual';
+      deliveryCharge = (arguments['deliveryCharge'] as num?) ?? 0;
+      platformFee = (arguments['platformFee'] as num?) ?? 0;
 
       debugPrint('========== CHECKOUT SCREEN DATA ==========');
       debugPrint('Business: $store_businessName');
@@ -316,12 +317,29 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
               children: [
                 // Budget
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Budget: ', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                    Text(
-                      '৳${budget ?? '0'}',
-                      style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.darkRedColor),
+                    Row(
+                      children: [
+                        Text('Budget: ', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                        Text(
+                          '৳${budget ?? '0'}',
+                          style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.darkRedColor),
+                        ),
+                      ],
                     ),
+
+                    if ((deliveryCharge + platformFee) > 0) ...[
+                      Row(
+                        children: [
+                          Text('Fee: ', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                          Text(
+                            '৳${AmountFormatter.formatDynamic(deliveryCharge + platformFee)}',
+                            style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
 
@@ -470,95 +488,6 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
     );
   }
 
-  // Widget _buildPaymentMethodSection() {
-  //   final screenWidth = MediaQuery.of(context).size.width;
-  //   final screenHeight = MediaQuery.of(context).size.height;
-  //
-  //   return Container(
-  //     width: screenWidth * 0.9,
-  //     decoration: BoxDecoration(
-  //       color: AppColors.containerBackground(context),
-  //       borderRadius: BorderRadius.circular(24),
-  //       border: Border.all(width: 1, color: AppColors.border(context)),
-  //     ),
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Padding(
-  //           padding: EdgeInsets.all(screenHeight * 0.02),
-  //           child: Text('Payment Method', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
-  //         ),
-  //         Container(
-  //           padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02),
-  //           decoration: BoxDecoration(
-  //             border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
-  //           ),
-  //           child: Column(
-  //             children: paymentMethods.asMap().entries.map((entry) {
-  //               final index = entry.key;
-  //               final methodData = entry.value;
-  //               final method = methodData['method'];
-  //               final title = methodData['title'];
-  //               final icon = methodData['icon'];
-  //               final iconColor = methodData['color'];
-  //               final isSelected = selectedPaymentMethod == method;
-  //
-  //               return Padding(
-  //                 padding: EdgeInsets.only(top: screenHeight * 0.015, bottom: index == paymentMethods.length - 1 ? screenHeight * 0.015 : screenHeight * 0.01),
-  //                 child: GestureDetector(
-  //                   onTap: () {
-  //                     setState(() {
-  //                       selectedPaymentMethod = method;
-  //                     });
-  //                   },
-  //                   child: Container(
-  //                     padding: EdgeInsets.all(screenHeight * 0.015),
-  //                     decoration: BoxDecoration(color: AppColors.textFieldFill(context), borderRadius: BorderRadius.circular(12)),
-  //                     child: Row(
-  //                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                       children: [
-  //                         Row(
-  //                           children: [
-  //                             Container(
-  //                               height: 32,
-  //                               width: 32,
-  //                               decoration: BoxDecoration(color: iconColor, borderRadius: BorderRadius.circular(8)),
-  //                               child: Icon(icon, size: 16, color: AppColors.whiteColor),
-  //                             ),
-  //                             SizedboxSpaccing.width03(context),
-  //                             Text(title, style: AppTextStyles.textSize16(context, weight: FontWeight.w400)),
-  //                           ],
-  //                         ),
-  //                         Container(
-  //                           height: 24,
-  //                           width: 24,
-  //                           decoration: BoxDecoration(
-  //                             shape: BoxShape.circle,
-  //                             border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 2),
-  //                           ),
-  //                           child: isSelected
-  //                               ? Center(
-  //                                   child: Container(
-  //                                     height: 12,
-  //                                     width: 12,
-  //                                     decoration: BoxDecoration(color: AppColors.button(context), shape: BoxShape.circle),
-  //                                   ),
-  //                                 )
-  //                               : null,
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 ),
-  //               );
-  //             }).toList(),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _buildActionButtons() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -599,10 +528,6 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                   title: "Confirm",
                   loading: checkOutViewModel.checkoutOrderLoading,
                   onPress: () async {
-                    //  if (selectedPaymentMethod == null) {
-                    // Utils.flushBarErrorMessage("No payment method selected", context);
-                    //    return;
-                    //  }
                     if (orderItems.isEmpty && uploadedPhotos.isEmpty && (voiceRecordingPath == null || voiceRecordingPath!.isEmpty)) {
                       Utils.flushBarErrorMessage("Please add items to your order", context);
                       return;
@@ -615,13 +540,6 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                       "customerNote": notes?.trim(),
                       "estimatedDeliveryTime": deliveryTime,
                       "budget": budget,
-
-                      // "deliveryAddress": {
-                      //   "geoLocation": {
-                      //     "type": "Point",
-                      //     "coordinates": [customerLongitude, customerLatitude]
-                      //   },},
-                      // "fullAddress":customerFullAddress,
                     };
 
                     print("🛒 Final Order Data: ${jsonEncode(orderData)}");

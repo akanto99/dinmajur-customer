@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/pdf_reciept_generator_auto_open_download/pdf_generator.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -23,7 +24,8 @@ import 'package:provider/provider.dart';
 class ServiceConfirmedScreen extends StatefulWidget {
   final String? trackingId;
   final String? valId;
-  const ServiceConfirmedScreen({Key? key, this.trackingId, this.valId}) : super(key: key);
+  final bool fromCheckout;
+  const ServiceConfirmedScreen({Key? key, this.trackingId, this.valId ,  this.fromCheckout = false,}) : super(key: key);
 
   @override
   State<ServiceConfirmedScreen> createState() => _ServiceConfirmedScreenState();
@@ -32,6 +34,43 @@ class ServiceConfirmedScreen extends StatefulWidget {
 class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
   bool _isDownloading = false;
 
+  Future<void> _handlePayNow() async {
+    final bookingData = Provider.of<GetServiceConfirmationDetailsViewModel>(
+        context, listen: false
+    ).getServiceData.data?.data;
+
+    if (bookingData == null) return;
+
+    final result = await SSLCommerzPaymentService().initiatePayment(
+      trackingId: bookingData.trackingId ?? '',
+      totalAmount: (bookingData.grandTotal ?? 0).toDouble(),
+      productCategory: 'BOOKING',
+      customerName: bookingData.fullName ?? '',
+      customerPhone: bookingData.phone ?? '',
+      customerEmail: bookingData.email ?? '',
+      customerAddress: bookingData.fullAddress ?? '',
+    );
+
+    if (!mounted) return;
+
+    if (result.success) {
+      // Refresh screen data after successful payment
+      final viewModel = Provider.of<GetServiceConfirmationDetailsViewModel>(
+          context, listen: false
+      );
+      viewModel.fetchGetServiceDataApi(widget.trackingId!);
+      Utils.flushBarSuccessMessage("Payment successful!", context);
+    } else {
+      Utils.flushBarErrorMessage(
+          result.errorMessage ?? "Payment failed", context
+      );
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    final viewModel = Provider.of<GetServiceConfirmationDetailsViewModel>(context, listen: false);
+    await viewModel.fetchGetServiceDataApi(widget.trackingId!);
+  }
   @override
   void initState() {
     super.initState();
@@ -44,10 +83,21 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(
-        child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
+    return PopScope(
+      canPop: !widget.fromCheckout,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+              (route) => false,
+        );
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.containerBackground(context),
+        body: SafeArea(
+          child: ResPonsiveUi(mobile: _body(), desktop: _body(), tablet: _body()),
+        ),
       ),
     );
   }
@@ -56,68 +106,92 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            if (widget.fromCheckout) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
+                    (route) => false,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
           child: Container(height: 60, child: AppBarHeader("Booking Confirmation")),
         ),
         Expanded(
-          child: Consumer<GetServiceConfirmationDetailsViewModel>(
-            builder: (context, viewModel, _) {
-              final status = viewModel.getServiceData.status;
+          child: RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: AppColors.textPrimary(context),
+            backgroundColor: AppColors.containerBackground(context),
+            displacement: 40,
+            strokeWidth: 2.0,
+            child: Consumer<GetServiceConfirmationDetailsViewModel>(
+              builder: (context, viewModel, _) {
+                final status = viewModel.getServiceData.status;
 
-              if (status == Status.LOADING) {
-                return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
-              }
+                if (status == Status.LOADING) {
+                  return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
+                }
 
-              if (status == Status.ERROR) {
-                return ErrorStateWidget(
-                  // errorMessage: viewModel.getServiceData.message.toString(),
-                  errorMessage: 'Failed to load booking details',
-                  onRetry: () {
-                    viewModel.fetchGetServiceDataApi(widget.trackingId!);
-                  },
-                );
-              }
+                if (status == Status.ERROR) {
+                  return ErrorStateWidget(
+                    // errorMessage: viewModel.getServiceData.message.toString(),
+                    errorMessage: 'Failed to load booking details',
+                    onRetry: () {
+                      viewModel.fetchGetServiceDataApi(widget.trackingId!);
+                    },
+                  );
+                }
 
-              final bookingData = viewModel.getServiceData.data?.data;
-              if (bookingData == null) {
-                return Center(child: Text('No booking data available', style: AppTextStyles.textSize16(context)));
-              }
+                final bookingData = viewModel.getServiceData.data?.data;
+                if (bookingData == null) {
+                  return Center(child: Text('No booking data available', style: AppTextStyles.textSize16(context)));
+                }
 
-              // Prepare service items
-              List<ServiceItem> services = [];
-              if (bookingData.bookingItems != null && bookingData.bookingItems!.isNotEmpty) {
-                for (var item in bookingData.bookingItems!) {
-                  if (item.task?.name != null) {
-                    String additionalInfo = '';
-                    additionalInfo = '(${item.quantity})';
-                    services.add(ServiceItem(name: item.task!.name!, additionalInfo: additionalInfo.isEmpty ? null : additionalInfo));
+                // Prepare service items
+                List<ServiceItem> services = [];
+                if (bookingData.bookingItems != null && bookingData.bookingItems!.isNotEmpty) {
+                  for (var item in bookingData.bookingItems!) {
+                    if (item.task?.name != null) {
+                      String additionalInfo = '';
+                      additionalInfo = '(${item.quantity})';
+                      services.add(ServiceItem(name: item.task!.name!, additionalInfo: additionalInfo.isEmpty ? null : additionalInfo));
+                    }
                   }
                 }
-              }
 
-              // Create confirmation data
-              final confirmationData = BookingConfirmationData(
-                thankYouMessage: "Thank you for choosing our beauty and salon service. We've received your order.",
-                orderId: bookingData.trackingId ?? 'N/A',
-                services: services,
-                dateTime: '${DateFormatter.formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
-                serviceAddress: bookingData.fullAddress ?? 'N/A',
-                grandTotal: AmountFormatter.formatDynamic(bookingData.grandTotal),
-                paymentMethod: bookingData.paymentType ?? 'N/A',
-                onDownloadReceipt: () => _handleDownloadReceipt(),
-                onTrackOrder: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2)));
-                },
-                isDownloading: _isDownloading,
-              );
+                // Create confirmation data
+                final confirmationData = BookingConfirmationData(
+                  thankYouMessage: "Thank you for choosing our beauty and salon service. We've received your order.",
+                  orderId: bookingData.trackingId ?? 'N/A',
+                  services: services,
+                  dateTime: '${DateFormatter.formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
+                  serviceAddress: bookingData.fullAddress ?? 'N/A',
+                  grandTotal: AmountFormatter.formatDynamic(bookingData.grandTotal),
+                  paymentMethod: bookingData.paymentType ?? 'N/A',
+                  onDownloadReceipt: () => _handleDownloadReceipt(),
+                  onTrackOrder: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2)));
+                  },
+                  isDownloading: _isDownloading,
 
-              return BookingConfirmationUI(
-                data: confirmationData,
-                onBackToHome: () {
-                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
-                },
-              );
-            },
+
+                  // ✅ ADD THESE
+                  fromCheckout: widget.fromCheckout,
+                  paymentStatus: bookingData.paymentStatus,
+                  orderStatus: bookingData.status,
+                  onPayNow: widget.fromCheckout ? null : () => _handlePayNow(),
+                );
+
+                return BookingConfirmationUI(
+                  data: confirmationData,
+                  onBackToHome: () {
+                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
+                  },
+                );
+              },
+            ),
           ),
         ),
       ],
@@ -244,25 +318,4 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
     );
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'N/A';
-    return DateFormat('dd MMM yyyy').format(date);
-  }
-
-  String _formatTo12Hour(String time) {
-    if (time.isEmpty) return time;
-    try {
-      final parts = time.split(':');
-      int hour = int.parse(parts[0]);
-      final String minute = parts.length > 1 ? parts[1] : '00';
-      final String period = hour >= 12 ? 'PM' : 'AM';
-      if (hour == 0)
-        hour = 12;
-      else if (hour > 12)
-        hour -= 12;
-      return '$hour:$minute $period';
-    } catch (_) {
-      return time;
-    }
-  }
 }

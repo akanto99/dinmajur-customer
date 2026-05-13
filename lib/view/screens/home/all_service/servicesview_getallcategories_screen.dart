@@ -237,13 +237,14 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                                   ],
                                 ),
                               ),
-                              SizedboxSpaccing.height01(context),
-                              Text(
-                                // "Professional services at your doorstep",
-                                widget.description,
-                                style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-                                textAlign: TextAlign.center,
-                              ),
+                              if (widget.description.isNotEmpty) ...[
+                                SizedboxSpaccing.height01(context),
+                                Text(
+                                  widget.description,
+                                  style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ],
                           ),
                         ),

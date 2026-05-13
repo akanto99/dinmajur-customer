@@ -24,10 +24,10 @@ class OrderTabBar extends StatelessWidget {
     switch (index) {
       case 0:
         final count = statusCount?.pending ?? 0;
-        return count > 0 ? 'Pending ($count)' : 'Pending';
+        return count > 0 ? 'Pending($count)' : 'Pending';
       case 1:
         final count = statusCount?.running ?? 0;
-        return count > 0 ? 'Running ($count)' : 'Running';
+        return count > 0 ? 'Running($count)' : 'Running';
       case 2:
         return 'Completed';
       default:

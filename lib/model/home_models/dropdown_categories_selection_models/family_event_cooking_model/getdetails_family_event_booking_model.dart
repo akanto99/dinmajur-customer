@@ -54,6 +54,7 @@ class Data {
   num? vat;
   num? transportFee;
   String? status;
+  String? paymentStatus;
   dynamic eventCookingCategory; // Can be String (ID) or EventCookingCategory object
   List<BookingItem>? items;
   DateTime? createdAt;
@@ -79,6 +80,7 @@ class Data {
     this.vat,
     this.transportFee,
     this.status,
+    this.paymentStatus,
     this.eventCookingCategory,
     this.items,
     this.createdAt,
@@ -143,6 +145,7 @@ class Data {
       vat: json["vat"],
       transportFee: json["transport_fee"],
       status: json["status"],
+      paymentStatus: json["paymentStatus"],
       eventCookingCategory: parsedCategory,
       items: json["items"] == null
           ? []
@@ -183,6 +186,7 @@ class Data {
       "vat": vat,
       "transport_fee": transportFee,
       "status": status,
+      "paymentStatus": paymentStatus,
       "eventCookingCategory": categoryJson,
       "items": items?.map((x) => x.toJson()).toList() ?? [],
       "createdAt": createdAt?.toIso8601String(),
