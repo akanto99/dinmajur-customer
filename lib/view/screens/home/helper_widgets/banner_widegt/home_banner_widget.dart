@@ -185,24 +185,29 @@ class _HomeBannerWidgetState extends State<HomeBannerWidget> {
   }
 
   Widget _buildNetworkImage(BuildContext context, String imageUrl) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.network(
-        imageUrl,
-        width: widget.screenWidth * 0.9,
-        height: 120,
-        fit: BoxFit.cover,
-        // loadingBuilder: (context, child, loadingProgress) {
-        //   if (loadingProgress == null) return child;
-        //   return Container(
-        //     width: widget.screenWidth * 0.9,
-        //     height: 120,
-        //     decoration: BoxDecoration(color: AppColors.appBackground(context), borderRadius: BorderRadius.circular(12)),
-        //   );
-        // },
-        errorBuilder: (context, error, stackTrace) => _placeholder(
-          context,
-          child: Center(child: Icon(Icons.broken_image_outlined, color: AppColors.textPrimary(context), size: 32)),
+    return Container(
+      width: widget.screenWidth * 0.9,
+      height: 120,
+      decoration: BoxDecoration(color: AppColors.appBackground(context), borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          imageUrl,
+          width: widget.screenWidth * 0.9,
+          height: 120,
+          fit: BoxFit.cover,
+          // loadingBuilder: (context, child, loadingProgress) {
+          //   if (loadingProgress == null) return child;
+          //   return Container(
+          //     width: widget.screenWidth * 0.9,
+          //     height: 120,
+          //     decoration: BoxDecoration(color: AppColors.appBackground(context), borderRadius: BorderRadius.circular(12)),
+          //   );
+          // },
+          errorBuilder: (context, error, stackTrace) => _placeholder(
+            context,
+            child: Center(child: Icon(Icons.broken_image_outlined, color: AppColors.textPrimary(context), size: 32)),
+          ),
         ),
       ),
     );

@@ -55,7 +55,7 @@ class _CategoryTabsState<T> extends State<CategoryTabs<T>> {
     if (widget.categories.isEmpty) return SizedBox();
 
     final screenWidth = MediaQuery.of(context).size.width;
-
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Container(
@@ -85,10 +85,12 @@ class _CategoryTabsState<T> extends State<CategoryTabs<T>> {
                         width: widget.iconSize,
                         height: widget.iconSize,
                         decoration: BoxDecoration(
-                          color: isSelected ? widget.getButtonColor(context) : widget.getBackgroundColor(context),
+                          color: widget.getBackgroundColor(context),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isSelected ? widget.getButtonColor(context) : widget.getBorderColor(context),
+                            color: isSelected
+                                ? (isDarkMode ? Color(0xffD78503).withOpacity(0.5) : AppColors.button(context))
+                                : AppColors.border(context),
                             width: 2,
                           ),
                         ),
@@ -120,7 +122,7 @@ class _CategoryTabsState<T> extends State<CategoryTabs<T>> {
     if (imageUrl == null || imageUrl.isEmpty) {
       return Icon(
         widget.defaultIcon,
-        color: isSelected ? AppColors.whiteColor : AppColors.blackColor,
+        color: isSelected ? AppColors.button(context) : AppColors.blackColor,
       );
     }
 

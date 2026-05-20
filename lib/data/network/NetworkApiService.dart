@@ -407,9 +407,9 @@ class NetworkApiService extends BaseApiServices {
 
   /// Parse response based on status code
   dynamic returnResponse(http.Response response) {
-    final url = response.request?.url.toString() ?? "---------Unknown URL--------";
-    print("🌐 $url : ${response.statusCode}");
-    print("📦 ${response.body}");
+    // final url = response.request?.url.toString() ?? "---------Unknown URL--------";
+    // print("🌐 $url : ${response.statusCode}");
+    // print("📦 ${response.body}");
 
     switch (response.statusCode) {
       case 200:

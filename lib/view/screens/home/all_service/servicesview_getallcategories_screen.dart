@@ -8,6 +8,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart' hide Image;
+import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/widget/services_cartdialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/widget/services_viewdetails_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
@@ -262,8 +263,16 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                           getSelectedIconColor: (ctx) => AppColors.whiteColor,
                           getSelectedImageColor: (ctx) => AppColors.whiteColor,
                           getTextColor: (ctx) => AppColors.textPrimary(ctx),
-                          getTextStyle: (ctx, isSelected) =>
-                              AppTextStyles.textSize12(ctx, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(ctx) : AppColors.textPrimary(ctx)),
+                          getTextStyle: (context, isSelected) {
+                            final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+                            return AppTextStyles.textSize12(
+                              context,
+                              weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                              color: isSelected
+                                  ? (isDarkMode ? Color(0xffD78503) : AppColors.button(context))
+                                  : AppColors.textPrimary(context),
+                            );
+                          },
                           defaultIcon: Icons.home_repair_service_outlined,
                           supportSvg: false,
                         ),
@@ -277,7 +286,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                     return _buildCategorySection(index: entry.key, category: entry.value, tasks: entry.value.tasks ?? [], screenWidth: screenWidth, screenHeight: screenHeight);
                   }),
 
-                  SliverToBoxAdapter(child: SizedBox(height: screenHeight / 1.5)),
+                  // SliverToBoxAdapter(child: SizedBox(height: screenHeight / 1.5)),
                 ],
               );
             },

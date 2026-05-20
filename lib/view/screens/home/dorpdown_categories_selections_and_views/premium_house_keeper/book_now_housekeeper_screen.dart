@@ -474,7 +474,9 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.containerBackground(context),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.border(context)
+                          : AppColors.containerBackground(context),
                       shape: BoxShape.circle,
                     ),
                     child: _buildCategoryIcon(context, imageUrl, isSvg, isSelected),
@@ -507,7 +509,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     if (imageUrl == null || imageUrl.isEmpty) {
       return Icon(
         Icons.cleaning_services,
-        color: isSelected ? AppColors.whiteColor : AppColors.blackColor,
+        color: isSelected ? AppColors.blackColor :  AppColors.textPrimary(context),
       );
     }
 
@@ -529,7 +531,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         color: AppColors.buttonTextColor(context),
         errorBuilder: (context, error, stackTrace) => Icon(
           Icons.cleaning_services,
-          color: isSelected ? AppColors.whiteColor : AppColors.blackColor,
+          color: isSelected ? AppColors.blackColor : AppColors.textPrimary(context),
         ),
       ),
     );
