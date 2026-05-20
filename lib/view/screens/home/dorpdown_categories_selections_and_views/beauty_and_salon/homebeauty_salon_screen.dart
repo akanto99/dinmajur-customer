@@ -12,6 +12,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart' hide Image;
+import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/cart_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/helper_widget/servicedetails_dialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
@@ -279,8 +280,16 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           getSelectedIconColor: (context) => AppColors.whiteColor,
                           getSelectedImageColor: (context) => AppColors.whiteColor,
                           getTextColor: (context) => AppColors.textPrimary(context),
-                          getTextStyle: (context, isSelected) =>
-                              AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
+                          getTextStyle: (context, isSelected) {
+                            final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+                            return AppTextStyles.textSize12(
+                              context,
+                              weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                              color: isSelected
+                                  ? (isDarkMode ? Color(0xffD78503) : AppColors.button(context))
+                                  : AppColors.textPrimary(context),
+                            );
+                          },
                           defaultIcon: Icons.spa,
                           supportSvg: false,
                         ),
@@ -302,7 +311,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                       return _buildCarouselCategorySection(index, category, items, screenWidth, screenHeight);
                     }
                   }).toList(),
-                  SliverToBoxAdapter(child: SizedBox(height: screenHeight / 1.5)),
+                  // SliverToBoxAdapter(child: SizedBox(height: screenHeight / 1.5)),
                 ],
               );
             },
@@ -568,7 +577,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                     children: [
                       Text(
                         'View Task Details',
-                        style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.button(context)),
+                        style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
                       ),
                       Icon(Icons.chevron_right, size: 16, color: AppColors.button(context)),
                     ],
@@ -744,7 +753,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
         'customerName': widget.customerName,
         'customerPhone': widget.customerPhone,
         'customerAddress': _currentCustomerAddress,
-        'customerLocation': _customerLocation, // ✅ now session location if edited
+        'customerLocation': _customerLocation,
         'userId': userId,
         'categories': categories,
         'serviceQuantities': _serviceQuantities,

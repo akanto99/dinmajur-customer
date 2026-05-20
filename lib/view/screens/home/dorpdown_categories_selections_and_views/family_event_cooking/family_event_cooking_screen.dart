@@ -9,6 +9,7 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/family_event_cooking_model/getall_family_event_cooking_model.dart';
+import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/cooking_cart_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/helper_widget/familyevent_cooking_packageimage.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/notifier/cooking_checkout_notifier.dart';
@@ -406,8 +407,16 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           getSelectedIconColor: (context) => AppColors.whiteColor,
                           getSelectedImageColor: (context) => AppColors.whiteColor,
                           getTextColor: (context) => AppColors.textPrimary(context),
-                          getTextStyle: (context, isSelected) =>
-                              AppTextStyles.textSize12(context, weight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? AppColors.button(context) : AppColors.textPrimary(context)),
+                          getTextStyle: (context, isSelected) {
+                            final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+                            return AppTextStyles.textSize12(
+                              context,
+                              weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                              color: isSelected
+                                  ? (isDarkMode ? Color(0xffD78503) : AppColors.button(context))
+                                  : AppColors.textPrimary(context),
+                            );
+                          },
                           defaultIcon: Icons.restaurant,
                           supportSvg: false,
                         ),
@@ -498,7 +507,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                   _buildSelectedCategorySliver(data, screenWidth),
 
                   // Bottom Padding
-                  SliverToBoxAdapter(child: SizedBox(height: screenHeight * .5)),
+                  // SliverToBoxAdapter(child: SizedBox(height: screenHeight * .5)),
                 ],
               );
             },
