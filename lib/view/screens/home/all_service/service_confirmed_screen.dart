@@ -62,7 +62,7 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
       Utils.flushBarSuccessMessage("Payment successful!", context);
     } else {
       Utils.flushBarErrorMessage(
-          result.errorMessage ?? "Payment failed", context
+          result.errorMessage ?? "Payment Cancelled", context
       );
     }
   }

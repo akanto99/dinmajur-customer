@@ -1,12 +1,12 @@
 class AppUrl {
-  // static var baseUrl = 'https://1490-103-153-170-227.ngrok-free.app/api/v1' ;// Staging Server
-  // static var socketUrl = 'https://1490-103-153-170-227.ngrok-free.app' ;// Staging
+  // static var baseUrl = 'https://c8c4-103-187-99-177.ngrok-free.app/api/v1' ;
+  // static var socketUrl = 'https://c8c4-103-187-99-177.ngrok-free.app' ;
 
-  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
-  static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
+  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
 
-  // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
-  // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
   static var loginEndPint = baseUrl + '/auth/auth_login';
