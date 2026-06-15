@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dinmajur_customer/configs/res/color.dart';
@@ -540,20 +541,23 @@ class _ViewProfileState extends State<ViewProfile> {
 
         SizedboxSpaccing.height02(context),
 
-        GestureDetector(
-          onTap: _showDeleteConfirmationDialog,
-          child: Container(
-            height: 50,
-            width: screenWidth * 0.68,
-            decoration: BoxDecoration(color: AppColors.darkRedColor, borderRadius: BorderRadius.circular(8)),
-            child: Center(
-              child: Text(
-                'Delete Account',
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+        if (!Platform.isAndroid) ...[
+          SizedboxSpaccing.height02(context),
+          GestureDetector(
+            onTap: _showDeleteConfirmationDialog,
+            child: Container(
+              height: 50,
+              width: screenWidth * 0.68,
+              decoration: BoxDecoration(color: AppColors.darkRedColor, borderRadius: BorderRadius.circular(8)),
+              child: Center(
+                child: Text(
+                  'Delete Account',
+                  style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

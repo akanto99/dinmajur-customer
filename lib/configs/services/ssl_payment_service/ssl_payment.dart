@@ -79,38 +79,29 @@ class SSLCommerzPaymentService {
                   tran_id: trackingId,
                   currency: SSLCurrencyType.BDT,
                   product_category: productCategory ?? "",
-                  // sdkType: SSLCSdkType.LIVE,
-                  sdkType:SSLCSdkType.TESTBOX,
-                  // sdkType:useTestMode ?SSLCSdkType.TESTBOX: SSLCSdkType.LIVE,
-                  //   multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay,tap,okwallet,"
-                  //     "dbbl_visa,dbbl_master,city_visa,city_master,city_amex,"
-                  //     "ebl_visa,ebl_master,sbl_visa,sbl_master,brac_visa,brac_master,"
-                  //     "ibbl,mtbl,city,ebl,sbl,brac,dbbl,dutchbangla,ab,scb,ucb,"
-                  //     "premier,nrb,trust,bankasia,midland,union,pubali,sibl,exim,"
-                  //     "southeast,islamibank,al_arafah,social,ific,shahjalal,"
-                  //     "firstsecurity,onebank,qcash,fastcash",
+                  sdkType: SSLCSdkType.LIVE,
+                  // sdkType:SSLCSdkType.TESTBOX,
                 ),
               )
-      ;
-      //         .addCustomerInfoInitializer(
-      //           customerInfoInitializer: SSLCCustomerInfoInitializer(
-      //             customerName: name,
-      //             customerEmail: email,
-      //             customerAddress1: address,
-      //             customerCountry: "Bangladesh",
-      //             customerPhone: phone,
-      //             customerState: 'BD',
-      //             customerCity: '',
-      //             customerPostCode: '',
-      //           ),
-      //         )
-      //         .addProductInitializer(
-      //           sslcProductInitializer: SSLCProductInitializer(
-      //             productName: productCategory ?? "",
-      //             productCategory: productCategory ?? "",
-      //             general: General(general: productCategory ?? "", productProfile: "general"),
-      //           ),
-      //         );
+              .addCustomerInfoInitializer(
+                customerInfoInitializer: SSLCCustomerInfoInitializer(
+                  customerName: name,
+                  customerEmail: email,
+                  customerAddress1: address,
+                  customerCountry: "Bangladesh",
+                  customerPhone: phone,
+                  customerState: 'BD',
+                  customerCity: '',
+                  customerPostCode: '',
+                ),
+              )
+              .addProductInitializer(
+                sslcProductInitializer: SSLCProductInitializer(
+                  productName: productCategory ?? "",
+                  productCategory: productCategory ?? "",
+                  general: General(general: productCategory ?? "", productProfile: "general"),
+                ),
+              );
 
       print("✅ SSL Commerz configured - launching payment...");
 
@@ -151,7 +142,7 @@ class SSLCommerzPaymentService {
       // SDK failed to initialize (no transaction data)
       if (status == 'FAILED' && tranId == null && valId == null && amount == null) {
         print("❌ CRITICAL: Payment gateway failed to initialize");
-        return SSLPaymentResult(success: false, status: 'FAILED', errorMessage: 'Payment gateway failed to open. Please check your internet connection and SSL Commerz credentials.');
+        return SSLPaymentResult(success: false, status: 'FAILED', errorMessage: 'Payment gateway failed to open. Please check your internet connection and credentials.');
       }
 
       bool isSuccess = status == 'VALID' || status == 'VALIDATED' || status == 'SUCCESS';
