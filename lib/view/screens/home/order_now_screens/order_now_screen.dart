@@ -60,7 +60,6 @@ class _OrderNowState extends State<OrderNow> {
   num deliveryCharge = 0;
   num platformFee = 0;
 
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -220,6 +219,8 @@ class _OrderNowState extends State<OrderNow> {
                 SizedboxSpaccing.height02(context),
                 if (store_businessName != null) _buildStoreInfoCard(),
                 SizedboxSpaccing.height02(context),
+                _buildNoPriceListCard(),
+                SizedboxSpaccing.height02(context),
                 Container(
                   width: screenWidth * 0.9,
                   decoration: BoxDecoration(
@@ -250,9 +251,7 @@ class _OrderNowState extends State<OrderNow> {
                           child: TextFormField(
                             controller: budgetController,
                             keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
                             decoration: InputDecoration(
                               hintText: "e.g., 1500",
@@ -269,6 +268,8 @@ class _OrderNowState extends State<OrderNow> {
                 SizedboxSpaccing.height02(context),
                 _buildTabSection(),
                 SizedboxSpaccing.height02(context),
+                _buildMarketRateCard(),
+                SizedboxSpaccing.height02(context),
                 _buildActionButtons(),
                 SizedboxSpaccing.height04(context),
               ],
@@ -276,13 +277,6 @@ class _OrderNowState extends State<OrderNow> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAppBar() {
-    return GestureDetector(
-      onTap: () => Navigator.pop(context),
-      child: const CustomAppBar(appBarTitle: "New Order"),
     );
   }
 
@@ -303,26 +297,33 @@ class _OrderNowState extends State<OrderNow> {
   }
 
   Widget _buildStoreInfo() {
-    return Row(
-      children: [
-        Container(
-          height: 40,
-          width: 40,
-          margin: EdgeInsets.only(right: 8),
-          decoration: BoxDecoration(
-            color: store_logoUrl != null && store_logoUrl!.isNotEmpty ? Colors.transparent : AppColors.appBackground(context),
-            borderRadius: BorderRadius.circular(6),
-            image: store_logoUrl != null && store_logoUrl!.isNotEmpty ? DecorationImage(image: NetworkImage(store_logoUrl!), fit: BoxFit.cover) : null,
+    return Expanded(
+      // ← WRAP ROW CONTENT WITH Expanded
+      child: Row(
+        children: [
+          Container(
+            height: 40,
+            width: 40,
+            margin: EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: store_logoUrl != null && store_logoUrl!.isNotEmpty ? Colors.transparent : AppColors.appBackground(context),
+              borderRadius: BorderRadius.circular(6),
+              image: store_logoUrl != null && store_logoUrl!.isNotEmpty ? DecorationImage(image: NetworkImage(store_logoUrl!), fit: BoxFit.cover) : null,
+            ),
+            child: store_logoUrl == null || store_logoUrl!.isEmpty ? Icon(Icons.local_grocery_store, color: AppColors.textPrimary(context), size: 20) : null,
           ),
-          child: store_logoUrl == null || store_logoUrl!.isEmpty ? Icon(Icons.local_grocery_store, color: AppColors.textPrimary(context), size: 20) : null,
-        ),
-        SizedboxSpaccing.width02(context),
-        Text(
-          store_businessName ?? 'Store Name',
-          style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+          SizedboxSpaccing.width02(context),
+          Expanded(
+            child: Text(
+              store_businessName ?? 'Store Name',
+              style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+              overflow: TextOverflow.visible,
+              softWrap: true,
+              maxLines: 2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -330,19 +331,20 @@ class _OrderNowState extends State<OrderNow> {
     String statusText = _getStatusText(); // CHANGED: Use helper method
     return Container(
       height: 24,
-      width: 75,
+      width: 100,
       decoration: BoxDecoration(
-        color:
-            store_isAvailable ==
-                true // CHANGED: Use store_isAvailable boolean
-            ? AppColors.oceanGreenColor
-            : AppColors.darkRedColor,
+        // color:
+        //     store_isAvailable ==
+        //         true // CHANGED: Use store_isAvailable boolean
+        //     ? AppColors.oceanGreenColor
+        //     : AppColors.darkRedColor,
+        color: Color(0xffFFF1DC),
         borderRadius: BorderRadius.circular(100),
       ),
       child: Center(
         child: Text(
-          statusText, // CHANGED: Use converted string
-          style: AppTextStyles.textSize10(context, color: AppColors.whiteColor, weight: FontWeight.w400),
+          "Grocery Only", // CHANGED: Use converted string
+          style: AppTextStyles.textSize10(context, color: AppColors.blackColor, weight: FontWeight.w500),
         ),
       ),
     );
@@ -498,14 +500,16 @@ class _OrderNowState extends State<OrderNow> {
           Container(
             width: screenWidth * 0.9,
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.button(context).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+            decoration: BoxDecoration(color: AppColors.button(context).withOpacity(0.1), borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              width: 1,
+              color: AppColors.border(context)
+            )
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Fee', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                Text('Delivery Fee', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                 Text(
                   '৳${AmountFormatter.formatDynamic(total)}',
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.darkRedColor),
@@ -517,12 +521,86 @@ class _OrderNowState extends State<OrderNow> {
         ],
         Container(
           width: screenWidth * 0.9,
-          child: RoundButton(title: "Place Order", onPress: _proceedToCheckout, iconData: Icons.arrow_forward_ios_rounded),
+          child: RoundButton(title: "Send List & Get Price", onPress: _proceedToCheckout, iconData: Icons.arrow_forward_ios_rounded),
         ),
       ],
     );
   }
 
+  // ── Widget 1: No price list info card ──────────────────────────────
+  Widget _buildNoPriceListCard() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.015),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border(context)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 48, height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.textFieldFill(context),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.info_outline, size: 18, color: AppColors.subtitle(context)),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('No price list — and that\'s fine.',
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text('Just write your grocery list. We\'ll buy & confirm the price.',
+                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// ── Widget 2: Market rate checklist card ───────────────────────────
+  Widget _buildMarketRateCard() {
+    final items = [
+      'Market rate — no hidden charge',
+      'See every item\'s price before you pay',
+      'Free cancel if the price isn\'t okay',
+    ];
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      width: screenWidth * 0.9,
+      padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.015),
+
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border(context)),
+      ),
+      child: Column(
+        children: items.map((item) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, size: 18, color: Colors.green),
+              const SizedBox(width: 10),
+              Expanded(child: Text(item, style: AppTextStyles.textSize14(context))),
+            ],
+          ),
+        )).toList(),
+      ),
+    );
+  }
   @override
   void dispose() {
     notesController.dispose();
