@@ -382,6 +382,7 @@ class BookingReceiptPdfGenerator {
     final subTotal = bookingData.subTotal ?? 0;
     final transport = bookingData.fare ?? 0;
     final total = bookingData.total ?? 0;
+    final extraAmount = bookingData.totalExtraAmount ?? 0;
     final grandTotal = bookingData.grandTotal ?? 0;
 
     return pw.Table(
@@ -419,7 +420,8 @@ class BookingReceiptPdfGenerator {
                 children: [
                   _buildPaymentTableRow('Subtotal', subTotal),
                   _buildPaymentTableRow('Transportation', transport),
-                  _buildPaymentTableRow('Total', total),
+                  // _buildPaymentTableRow('Total', total),
+                  _buildPaymentTableRow('Added Extra Items Amount', extraAmount),
                 ],
               ),
             ),

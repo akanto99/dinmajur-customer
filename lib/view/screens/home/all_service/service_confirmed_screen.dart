@@ -14,6 +14,7 @@ import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dropdown_categories_widget/confirmation_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/getservice_confirmationdetails_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/approve_booking_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -25,7 +26,7 @@ class ServiceConfirmedScreen extends StatefulWidget {
   final String? trackingId;
   final String? valId;
   final bool fromCheckout;
-  const ServiceConfirmedScreen({Key? key, this.trackingId, this.valId ,  this.fromCheckout = false,}) : super(key: key);
+  const ServiceConfirmedScreen({Key? key, this.trackingId, this.valId, this.fromCheckout = false}) : super(key: key);
 
   @override
   State<ServiceConfirmedScreen> createState() => _ServiceConfirmedScreenState();
@@ -35,15 +36,35 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
   bool _isDownloading = false;
 
   Future<void> _handlePayNow() async {
-    final bookingData = Provider.of<GetServiceConfirmationDetailsViewModel>(
-        context, listen: false
-    ).getServiceData.data?.data;
-
+    final bookingData = Provider.of<GetServiceConfirmationDetailsViewModel>(context, listen: false).getServiceData.data?.data;
     if (bookingData == null) return;
 
+    final bool mainPaid = bookingData.paymentStatus?.toUpperCase() == 'PAID';
+
+    final String trackingId;
+    final double amount;
+
+    if (mainPaid) {
+      final extraId = bookingData.extraItemsTrackingId;
+      if (extraId == null || extraId.isEmpty) {
+        Utils.flushBarErrorMessage("Extra items tracking ID not found", context);
+        return;
+      }
+      trackingId = extraId;
+      amount = (bookingData.totalExtraAmount ?? 0).toDouble();
+    } else {
+      final mainId = bookingData.trackingId;
+      if (mainId == null || mainId.isEmpty) {
+        Utils.flushBarErrorMessage("Booking tracking ID not found", context);
+        return;
+      }
+      trackingId = mainId;
+      amount = (bookingData.grandTotal ?? 0).toDouble();
+    }
+
     final result = await SSLCommerzPaymentService().initiatePayment(
-      trackingId: bookingData.trackingId ?? '',
-      totalAmount: (bookingData.grandTotal ?? 0).toDouble(),
+      trackingId: trackingId,
+      totalAmount: amount,
       productCategory: 'BOOKING',
       customerName: bookingData.fullName ?? '',
       customerPhone: bookingData.phone ?? '',
@@ -54,16 +75,11 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
     if (!mounted) return;
 
     if (result.success) {
-      // Refresh screen data after successful payment
-      final viewModel = Provider.of<GetServiceConfirmationDetailsViewModel>(
-          context, listen: false
-      );
+      final viewModel = Provider.of<GetServiceConfirmationDetailsViewModel>(context, listen: false);
       viewModel.fetchGetServiceDataApi(widget.trackingId!);
       Utils.flushBarSuccessMessage("Payment successful!", context);
     } else {
-      Utils.flushBarErrorMessage(
-          result.errorMessage ?? "Payment Cancelled", context
-      );
+      Utils.flushBarErrorMessage(result.errorMessage ?? "Payment Cancelled", context);
     }
   }
 
@@ -71,6 +87,7 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
     final viewModel = Provider.of<GetServiceConfirmationDetailsViewModel>(context, listen: false);
     await viewModel.fetchGetServiceDataApi(widget.trackingId!);
   }
+
   @override
   void initState() {
     super.initState();
@@ -87,11 +104,7 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
       canPop: !widget.fromCheckout,
       onPopInvoked: (didPop) {
         if (didPop) return;
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
-              (route) => false,
-        );
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false);
       },
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),
@@ -108,11 +121,7 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
         GestureDetector(
           onTap: () {
             if (widget.fromCheckout) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
-                    (route) => false,
-              );
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false);
             } else {
               Navigator.pop(context);
             }
@@ -126,44 +135,49 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
             backgroundColor: AppColors.containerBackground(context),
             displacement: 40,
             strokeWidth: 2.0,
-            child: Consumer<GetServiceConfirmationDetailsViewModel>(
-              builder: (context, viewModel, _) {
+            child: Consumer2<GetServiceConfirmationDetailsViewModel, ApproveBookingViewModel>(
+              builder: (context, viewModel, approveVm, _) {
                 final status = viewModel.getServiceData.status;
+                final bookingData = viewModel.getServiceData.data?.data;
 
                 if (status == Status.LOADING) {
                   return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
                 }
 
                 if (status == Status.ERROR) {
-                  return ErrorStateWidget(
-                    // errorMessage: viewModel.getServiceData.message.toString(),
-                    errorMessage: 'Failed to load booking details',
-                    onRetry: () {
-                      viewModel.fetchGetServiceDataApi(widget.trackingId!);
-                    },
+                  return Center(
+                    child: ErrorStateWidget(errorMessage: 'Failed to load booking details', onRetry: () => viewModel.fetchGetServiceDataApi(widget.trackingId!)),
                   );
                 }
 
-                final bookingData = viewModel.getServiceData.data?.data;
                 if (bookingData == null) {
                   return Center(child: Text('No booking data available', style: AppTextStyles.textSize16(context)));
                 }
 
-                // Prepare service items
+                // Sync extraItemsStatus into ViewModel on every rebuild
+                final apiStatus = bookingData.extraItemsStatus;
+                if (approveVm.extraItemsStatus != apiStatus && !approveVm.isApproveLoading && !approveVm.isRejectLoading) {
+                  approveVm.setStatusFromApi(apiStatus);
+                }
+
+                // Build service items
                 List<ServiceItem> services = [];
                 if (bookingData.bookingItems != null && bookingData.bookingItems!.isNotEmpty) {
                   for (var item in bookingData.bookingItems!) {
                     if (item.task?.name != null) {
-                      String additionalInfo = '';
-                      additionalInfo = '(${item.quantity})';
-                      services.add(ServiceItem(name: item.task!.name!, additionalInfo: additionalInfo.isEmpty ? null : additionalInfo));
+                      services.add(ServiceItem(name: item.task!.name!, additionalInfo: '(${item.quantity})'));
                     }
                   }
                 }
 
-                // Create confirmation data
+                // Build extra items
+                final extraItems = (bookingData.extraItems ?? []).map((e) => ExtraItem(name: e.name ?? 'Extra', price: e.price ?? 0)).toList();
+
+                final orderStatus = (bookingData.status ?? '').toUpperCase();
+                final bool showExtraActions = orderStatus == 'RUNNING' && extraItems.isNotEmpty && !widget.fromCheckout;
+
                 final confirmationData = BookingConfirmationData(
-                  thankYouMessage: "Thank you for choosing our beauty and salon service. We've received your order.",
+                  thankYouMessage: "Thank you for choosing our service. We've received your order.",
                   orderId: bookingData.trackingId ?? 'N/A',
                   services: services,
                   dateTime: '${DateFormatter.formatDate(bookingData.date)}, ${bookingData.timeSlotSnapshot?.timeLabel ?? bookingData.time ?? 'N/A'}',
@@ -171,24 +185,30 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
                   grandTotal: AmountFormatter.formatDynamic(bookingData.grandTotal),
                   paymentMethod: bookingData.paymentType ?? 'N/A',
                   onDownloadReceipt: () => _handleDownloadReceipt(),
-                  onTrackOrder: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2)));
-                  },
+                  onTrackOrder: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2))),
                   isDownloading: _isDownloading,
-
-
-                  // ✅ ADD THESE
                   fromCheckout: widget.fromCheckout,
                   paymentStatus: bookingData.paymentStatus,
                   orderStatus: bookingData.status,
-                  onPayNow: widget.fromCheckout ? null : () => _handlePayNow(),
+                  extraItems: extraItems,
+                  extraItemsStatus: approveVm.extraItemsStatus, // ← from approveVm, not bookingData
+                  extraItemsPaymentStatus: bookingData.extraItemsPaymentStatus,
+                  totalExtraAmount: bookingData.totalExtraAmount,
+                  extraItemsTrackingId: bookingData.extraItemsTrackingId,
+                  isApproveLoading: approveVm.isApproveLoading,
+                  isRejectLoading: approveVm.isRejectLoading,
+                  onPayNow: widget.fromCheckout ? null : _handlePayNow,
+                  onApprove: showExtraActions
+                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchGetServiceDataApi(widget.trackingId!))
+                      : null,
+                  onReject: showExtraActions
+                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchGetServiceDataApi(widget.trackingId!))
+                      : null,
                 );
 
                 return BookingConfirmationUI(
                   data: confirmationData,
-                  onBackToHome: () {
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
-                  },
+                  onBackToHome: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false),
                 );
               },
             ),
@@ -317,5 +337,4 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
       },
     );
   }
-
 }

@@ -69,6 +69,10 @@ class Datum {
   double? total;
   double? subTotalAmount;
   double? totalAmount;
+  bool? isApproved;
+  int? approvedExtraItemsCount;
+  int? extraTotal;
+  List<ExtraItem>? extraItems;
   DateTime? createdAt;
 
   Datum({
@@ -92,6 +96,10 @@ class Datum {
     this.total,
     this.subTotalAmount,
     this.totalAmount,
+    this.isApproved,
+    this.approvedExtraItemsCount,
+    this.extraTotal,
+    this.extraItems,
     this.createdAt,
   });
 
@@ -116,6 +124,10 @@ class Datum {
     total: json["total"]?.toDouble(),
     subTotalAmount: json["subTotalAmount"]?.toDouble(),
     totalAmount: json["totalAmount"]?.toDouble(),
+    isApproved: json["isApproved"],
+    approvedExtraItemsCount: json["approvedExtraItemsCount"],
+    extraTotal: json["extraTotal"],
+    extraItems: json["extraItems"] == null ? [] : List<ExtraItem>.from(json["extraItems"]!.map((x) => ExtraItem.fromJson(x))),
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
   );
 
@@ -140,6 +152,10 @@ class Datum {
     "total": total,
     "subTotalAmount": subTotalAmount,
     "totalAmount": totalAmount,
+    "isApproved": isApproved,
+    "approvedExtraItemsCount": approvedExtraItemsCount,
+    "extraTotal": extraTotal,
+    "extraItems": extraItems == null ? [] : List<dynamic>.from(extraItems!.map((x) => x.toJson())),
     "createdAt": createdAt?.toIso8601String(),
   };
 }
@@ -284,6 +300,57 @@ class Skill {
   };
 }
 
+class ExtraItem {
+  String? id;
+  String? bookingId;
+  String? name;
+  int? price;
+  int? quantity;
+  int? total;
+  String? status;
+  String? paymentStatus;
+  DateTime? createdAt;
+  String? trackingId;
+
+  ExtraItem({
+    this.id,
+    this.bookingId,
+    this.name,
+    this.price,
+    this.quantity,
+    this.total,
+    this.status,
+    this.paymentStatus,
+    this.createdAt,
+    this.trackingId,
+  });
+
+  factory ExtraItem.fromJson(Map<String, dynamic> json) => ExtraItem(
+    id: json["_id"],
+    bookingId: json["bookingId"],
+    name: json["name"],
+    price: json["price"],
+    quantity: json["quantity"],
+    total: json["total"],
+    status: json["status"],
+    paymentStatus: json["paymentStatus"],
+    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+    trackingId: json["trackingId"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "bookingId": bookingId,
+    "name": name,
+    "price": price,
+    "quantity": quantity,
+    "total": total,
+    "status": status,
+    "paymentStatus": paymentStatus,
+    "createdAt": createdAt?.toIso8601String(),
+    "trackingId": trackingId,
+  };
+}
 class Meta {
   int? total;
   int? page;

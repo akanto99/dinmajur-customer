@@ -11,23 +11,23 @@ import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatte
 import 'package:dinmajur_customer/configs/utils/date_formater/date_formater.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
+import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/get_confirmedbooking_model.dart' hide ExtraItem;
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dropdown_categories_widget/confirmation_widget.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/approve_booking_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/get_confirmedbooking_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class ConfirmedScreen extends StatefulWidget {
-  final String? trackingId; // Made optional
+  final String? trackingId;
   final String? valId;
   final bool fromCheckout;
-  const ConfirmedScreen({Key? key, this.trackingId, this.valId,
-    this.fromCheckout = false,
-  }) : super(key: key);
+
+  const ConfirmedScreen({Key? key, this.trackingId, this.valId, this.fromCheckout = false}) : super(key: key);
 
   @override
   State<ConfirmedScreen> createState() => _ConfirmedScreenState();
@@ -35,16 +35,41 @@ class ConfirmedScreen extends StatefulWidget {
 
 class _ConfirmedScreenState extends State<ConfirmedScreen> {
   bool _isDownloading = false;
+
+  // ── Pay Now (smart: picks tracking ID and amount based on payment state) ────
   Future<void> _handlePayNow() async {
-    final bookingData = Provider.of<GetConfirmedbookingViewModel>(
-        context, listen: false
-    ).getConfirmBookingData.data?.data;
+    final bookingData = Provider.of<GetConfirmedbookingViewModel>(context, listen: false).getConfirmBookingData.data?.data;
 
     if (bookingData == null) return;
 
+    final bool mainPaid = bookingData.paymentStatus?.toUpperCase() == 'PAID';
+
+    final String trackingId;
+    final double amount;
+
+    if (mainPaid) {
+      // Main already paid → pay only the extra items
+      final extraId = bookingData.extraItemsTrackingId;
+      if (extraId == null || extraId.isEmpty) {
+        Utils.flushBarErrorMessage("Extra items tracking ID not found", context);
+        return;
+      }
+      trackingId = extraId;
+      amount = (bookingData.totalExtraAmount ?? 0).toDouble();
+    } else {
+      // Main unpaid → pay everything via the main tracking ID
+      final mainId = bookingData.trackingId;
+      if (mainId == null || mainId.isEmpty) {
+        Utils.flushBarErrorMessage("Booking tracking ID not found", context);
+        return;
+      }
+      trackingId = mainId;
+      amount = (bookingData.grandTotal ?? 0).toDouble();
+    }
+
     final result = await SSLCommerzPaymentService().initiatePayment(
-      trackingId: bookingData.trackingId  ?? '',
-      totalAmount: (bookingData.grandTotal ?? 0).toDouble(),
+      trackingId: trackingId,
+      totalAmount: amount,
       productCategory: 'BEAUTY_SALON',
       customerName: bookingData.fullName ?? '',
       customerPhone: bookingData.phone ?? '',
@@ -55,18 +80,14 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
     if (!mounted) return;
 
     if (result.success) {
-      // Refresh screen data after successful payment
-      final viewModel = Provider.of<GetConfirmedbookingViewModel>(
-          context, listen: false
-      );
+      final viewModel = Provider.of<GetConfirmedbookingViewModel>(context, listen: false);
       viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!);
       Utils.flushBarSuccessMessage("Payment successful!", context);
     } else {
-      Utils.flushBarErrorMessage(
-          result.errorMessage ?? "Payment Cancelled", context
-      );
+      Utils.flushBarErrorMessage(result.errorMessage ?? "Payment cancelled", context);
     }
   }
+
   Future<void> _handleRefresh() async {
     final viewModel = Provider.of<GetConfirmedbookingViewModel>(context, listen: false);
     await viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!);
@@ -89,11 +110,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
       canPop: !widget.fromCheckout,
       onPopInvoked: (didPop) {
         if (didPop) return;
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
-              (route) => false,
-        );
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false);
       },
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),
@@ -110,16 +127,12 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
         GestureDetector(
           onTap: () {
             if (widget.fromCheckout) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
-                    (route) => false,
-              );
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false);
             } else {
               Navigator.pop(context);
             }
           },
-          child: Container(height: 60, child: AppBarHeader("Booking Confirmation")),
+          child: SizedBox(height: 60, child: AppBarHeader("Booking Confirmation")),
         ),
         Expanded(
           child: RefreshIndicator(
@@ -128,42 +141,48 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
             backgroundColor: AppColors.containerBackground(context),
             displacement: 40,
             strokeWidth: 2.0,
-            child: Consumer<GetConfirmedbookingViewModel>(
-              builder: (context, viewModel, _) {
+            child: Consumer2<GetConfirmedbookingViewModel, ApproveBookingViewModel>(
+              builder: (context, viewModel, approveVm, _) {
                 final status = viewModel.getConfirmBookingData.status;
+                final bookingData = viewModel.getConfirmBookingData.data?.data;
+
+                // Sync extraItemsStatus into ViewModel on every rebuild
+                if (bookingData != null) {
+                  final apiStatus = bookingData.extraItemsStatus;
+                  if (approveVm.extraItemsStatus != apiStatus && !approveVm.isApproveLoading && !approveVm.isRejectLoading) {
+                    approveVm.setStatusFromApi(apiStatus);
+                  }
+                }
 
                 if (status == Status.LOADING) {
                   return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
                 }
 
                 if (status == Status.ERROR) {
-                  return ErrorStateWidget(
-                    // errorMessage: viewModel.getConfirmBookingData.message.toString(),
-                    errorMessage: "Failed to load booking details",
-                    onRetry: () {
-                      viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!);
-                    },
+                  return Center(
+                    child: ErrorStateWidget(errorMessage: "Failed to load booking details", onRetry: () => viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!)),
                   );
                 }
 
-                final bookingData = viewModel.getConfirmBookingData.data?.data;
                 if (bookingData == null) {
                   return Center(child: Text('No booking data available', style: AppTextStyles.textSize16(context)));
                 }
 
-                // Prepare service items for housekeeping
-                List<ServiceItem> services = [];
-                if (bookingData.houseKeeperBookingItems != null && bookingData.houseKeeperBookingItems!.isNotEmpty) {
-                  services = bookingData.houseKeeperBookingItems!.map((item) {
-                    String additionalInfo = '';
-                    if (item.totalRooms != null && item.totalRooms! > 0) {
-                      additionalInfo = '(${item.totalRooms})';
-                    }
-                    return ServiceItem(name: item.houseKeeperTaskId?.name ?? 'Service', additionalInfo: additionalInfo.isEmpty ? null : additionalInfo);
-                  }).toList();
-                }
+                // Build service items
+                final services = (bookingData.houseKeeperBookingItems ?? []).map((item) {
+                  final rooms = item.totalRooms ?? 0;
+                  return ServiceItem(name: item.houseKeeperTaskId?.name ?? 'Service', additionalInfo: rooms > 0 ? '($rooms)' : null);
+                }).toList();
 
-                // Create confirmation data
+                // Build extra items
+                final extraItems = (bookingData.extraItems ?? []).map((e) => ExtraItem(name: e.name ?? 'Extra', price: e.price ?? 0)).toList();
+
+                final orderStatus = (bookingData.status ?? '').toUpperCase();
+
+                // Show approve/reject only when order is RUNNING,
+                // extra items exist, and not from checkout
+                final bool showExtraActions = orderStatus == 'RUNNING' && extraItems.isNotEmpty && !widget.fromCheckout;
+
                 final confirmationData = BookingConfirmationData(
                   thankYouMessage: "Thank you for choosing our premium house keeping service. We've received your order.",
                   orderId: bookingData.id ?? 'N/A',
@@ -172,25 +191,32 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                   serviceAddress: bookingData.fullAddress ?? 'N/A',
                   grandTotal: AmountFormatter.formatDynamic(bookingData.grandTotal),
                   paymentMethod: bookingData.paymentType ?? 'N/A',
-                  onDownloadReceipt: () => _handleDownloadReceipt(),
-                  onTrackOrder: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2)));
-                  },
+                  onDownloadReceipt: _handleDownloadReceipt,
+                  onTrackOrder: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 2))),
                   isDownloading: _isDownloading,
-
-
-                  // ✅ ADD THESE
                   fromCheckout: widget.fromCheckout,
                   paymentStatus: bookingData.paymentStatus,
                   orderStatus: bookingData.status,
-                  onPayNow: widget.fromCheckout ? null : () => _handlePayNow(),
+                  extraItemsPaymentStatus: bookingData.extraItemsPaymentStatus,
+                  totalExtraAmount: bookingData.totalExtraAmount,
+                  extraItemsTrackingId: bookingData.extraItemsTrackingId,
+                  // Single Pay Now handler — smart routing inside
+                  onPayNow: widget.fromCheckout ? null : _handlePayNow,
+                  extraItems: extraItems,
+                  extraItemsStatus: approveVm.extraItemsStatus,
+                  isApproveLoading: approveVm.isApproveLoading,
+                  isRejectLoading: approveVm.isRejectLoading,
+                  onApprove: showExtraActions
+                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!))
+                      : null,
+                  onReject: showExtraActions
+                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!))
+                      : null,
                 );
 
                 return BookingConfirmationUI(
                   data: confirmationData,
-                  onBackToHome: () {
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 0)), (route) => false);
-                  },
+                  onBackToHome: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false),
                 );
               },
             ),
@@ -200,9 +226,7 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
     );
   }
 
-  // KEY FIX: Fetch bookingData directly from Provider inside the function
   Future<void> _handleDownloadReceipt() async {
-    // Get bookingData from Provider with correct type
     final bookingData = Provider.of<GetConfirmedbookingViewModel>(context, listen: false).getConfirmBookingData.data?.data;
 
     if (bookingData == null) {
@@ -210,37 +234,28 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
       return;
     }
 
-    setState(() {
-      _isDownloading = true;
-    });
+    setState(() => _isDownloading = true);
 
     try {
       if (Platform.isAndroid) {
         try {
-          final androidInfo = await DeviceInfoPlugin().androidInfo;
-          final sdkInt = androidInfo.version.sdkInt;
-
+          final sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
           if (sdkInt <= 32) {
             final status = await Permission.storage.request();
             if (!status.isGranted) {
               Utils.flushBarErrorMessage("Storage permission is required to download receipt", context);
-              setState(() {
-                _isDownloading = false;
-              });
+              setState(() => _isDownloading = false);
               return;
             }
           }
         } catch (e) {
-          print('❌ Permission check error: $e');
+          debugPrint('Permission check error: $e');
         }
       }
 
-      // For housekeeping - pass bookingData directly
       final file = await BookingReceiptPdfGenerator.generateAndDownloadReceipt(bookingData);
 
-      setState(() {
-        _isDownloading = false;
-      });
+      setState(() => _isDownloading = false);
 
       if (file != null) {
         Utils.flushBarSuccessMessage("Receipt saved successfully!", context);
@@ -249,70 +264,65 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
         Utils.flushBarErrorMessage("Failed to generate receipt", context);
       }
     } catch (e) {
-      setState(() {
-        _isDownloading = false;
-      });
-      print('❌ PDF Generation Error: $e');
+      setState(() => _isDownloading = false);
+      debugPrint('PDF Generation Error: $e');
       Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
     }
   }
 
   void _showDownloadSuccessDialog(String filePath) {
     final screenWidth = MediaQuery.of(context).size.width;
-
     showDialog(
       context: context,
       barrierColor: AppColors.showDialougeBackground(context),
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.containerBackground(context),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Text('Download Complete', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Receipt saved successfully!', style: AppTextStyles.textSize14(context)),
-              SizedBox(height: 12),
-              Container(
-                width: screenWidth,
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppColors.button(context).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '📁 Location:',
-                      style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
-                    ),
-                    SizedBox(height: 4),
-                    Text('Downloads/Dinmajur Booking', style: AppTextStyles.textSize12(context)),
-                  ],
-                ),
-              ),
-              SizedBox(height: 12),
-              Text('Would you like to open it now?', style: AppTextStyles.textSize14(context)),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Later', style: TextStyle(color: Colors.grey[600])),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await OpenFile.open(filePath);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
-              child: Text(
-                'Open Now',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.containerBackground(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Text('Download Complete', style: AppTextStyles.textSize18(context, weight: FontWeight.w600)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Receipt saved successfully!', style: AppTextStyles.textSize14(context)),
+            const SizedBox(height: 12),
+            Container(
+              width: screenWidth,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: AppColors.button(context).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '📁 Location:',
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Downloads/Dinmajur Booking', style: AppTextStyles.textSize12(context)),
+                ],
               ),
             ),
+            const SizedBox(height: 12),
+            Text('Would you like to open it now?', style: AppTextStyles.textSize14(context)),
           ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('Later', style: TextStyle(color: Colors.grey[600])),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await OpenFile.open(filePath);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.button(context)),
+            child: const Text(
+              'Open Now',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

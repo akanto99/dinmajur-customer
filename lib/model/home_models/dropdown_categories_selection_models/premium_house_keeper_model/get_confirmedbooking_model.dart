@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getConfirmedBookingModel = getConfirmedBookingModelFromJson(jsonString);
-
 import 'dart:convert';
 
 GetConfirmedBookingModel getConfirmedBookingModelFromJson(String str) => GetConfirmedBookingModel.fromJson(json.decode(str));
@@ -50,15 +46,22 @@ class Data {
   ShiftId? shiftId;
   String? paymentType;
   String? discountType;
-  num? discountValue; // Changed from int? to num?
-  num? total; // Changed from int? to num?
-  num? subTotal; // Changed from int? to num?
-  num? grandTotal; // Changed from int? to num?
-  num? vat; // Changed from int? to num?
-  num? fare; // Changed from int? to num?
+  num? discountValue;
+  num? total;
+  num? subTotal;
+  num? grandTotal;
+  num? vat;
+  num? fare;
   String? status;
   String? paymentStatus;
   List<HouseKeeperBookingItem>? houseKeeperBookingItems;
+
+  String? extraItemsTrackingId;
+  String? extraItemsPaymentStatus;
+  String? extraItemsStatus;
+  List<ExtraItem>? extraItems;
+  num?totalExtraAmount;
+
   DateTime? createdAt;
   DateTime? updatedAt;
 
@@ -89,6 +92,13 @@ class Data {
     this.status,
     this.paymentStatus,
     this.houseKeeperBookingItems,
+
+    this.extraItemsTrackingId,
+    this.extraItemsPaymentStatus,
+    this.extraItemsStatus,
+    this.extraItems,
+    this.totalExtraAmount,
+
     this.createdAt,
     this.updatedAt,
   });
@@ -120,6 +130,13 @@ class Data {
     status: json["status"],
     paymentStatus: json["paymentStatus"],
     houseKeeperBookingItems: json["houseKeeperBookingItems"] == null ? [] : List<HouseKeeperBookingItem>.from(json["houseKeeperBookingItems"]!.map((x) => HouseKeeperBookingItem.fromJson(x))),
+
+    extraItemsTrackingId: json["extraItemsTrackingId"],
+    extraItemsPaymentStatus: json["extraItemsPaymentStatus"],
+    extraItemsStatus: json["extraItemsStatus"],
+    extraItems: json["extraItems"] == null ? [] : List<ExtraItem>.from(json["extraItems"]!.map((x) => ExtraItem.fromJson(x))),
+    totalExtraAmount: json["totalExtraAmount"],
+
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
     updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
   );
@@ -151,8 +168,55 @@ class Data {
     "status": status,
     "paymentStatus": paymentStatus,
     "houseKeeperBookingItems": houseKeeperBookingItems == null ? [] : List<dynamic>.from(houseKeeperBookingItems!.map((x) => x.toJson())),
+
+    "extraItemsTrackingId": extraItemsTrackingId,
+    "extraItemsPaymentStatus": extraItemsPaymentStatus,
+    "extraItemsStatus": extraItemsStatus,
+    "extraItems": extraItems == null ? [] : List<dynamic>.from(extraItems!.map((x) => x.toJson())),
+    "totalExtraAmount": totalExtraAmount,
+
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
+  };
+}
+
+class ExtraItem {
+  String? id;
+  String? name;
+  int? price;
+  int? quantity;
+  int? total;
+  String? status;
+  DateTime? createdAt;
+
+  ExtraItem({
+    this.id,
+    this.name,
+    this.price,
+    this.quantity,
+    this.total,
+    this.status,
+    this.createdAt,
+  });
+
+  factory ExtraItem.fromJson(Map<String, dynamic> json) => ExtraItem(
+    id: json["_id"],
+    name: json["name"],
+    price: json["price"],
+    quantity: json["quantity"],
+    total: json["total"],
+    status: json["status"],
+    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "name": name,
+    "price": price,
+    "quantity": quantity,
+    "total": total,
+    "status": status,
+    "createdAt": createdAt?.toIso8601String(),
   };
 }
 

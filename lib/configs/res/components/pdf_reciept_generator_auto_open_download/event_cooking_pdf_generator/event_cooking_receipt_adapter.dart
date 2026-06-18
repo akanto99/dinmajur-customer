@@ -54,6 +54,7 @@ extension EventCookingReceiptAdapter on Data {
         transportationFee: transportFee ?? 0,
         discount: discountValue ?? 0,
         total: total ?? 0,
+        extraAmount:totalExtraAmount??0,
         grandTotal: grandTotal ?? 0,
       ),
       footerMessage: 'Thank you for choosing our event cooking service!',
