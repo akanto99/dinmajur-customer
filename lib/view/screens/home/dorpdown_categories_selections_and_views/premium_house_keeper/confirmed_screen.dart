@@ -207,10 +207,12 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
                   isApproveLoading: approveVm.isApproveLoading,
                   isRejectLoading: approveVm.isRejectLoading,
                   onApprove: showExtraActions
-                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!))
+                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!,freelancerId:bookingData.freelancerId!, onSuccess: () => viewModel
+                      .fetchGetConfirmBookingDataApi(widget
+                    .trackingId!))
                       : null,
                   onReject: showExtraActions
-                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!))
+                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!,freelancerId:bookingData.freelancerId!, onSuccess: () => viewModel.fetchGetConfirmBookingDataApi(widget.trackingId!))
                       : null,
                 );
 

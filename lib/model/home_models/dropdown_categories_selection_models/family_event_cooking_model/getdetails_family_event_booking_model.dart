@@ -37,6 +37,7 @@ class GetDetailesFamilyEventBookingModel {
 
 class Data {
   String? id;
+  String? freelancerId;
   String? customerId;
   String? trackingId;
   String? paymentType;
@@ -70,6 +71,7 @@ class Data {
 
   Data({
     this.id,
+    this.freelancerId,
     this.customerId,
     this.trackingId,
     this.paymentType,
@@ -142,6 +144,7 @@ class Data {
 
     return Data(
       id: json["_id"],
+      freelancerId: json["freelancerId"],
       customerId: json["customerId"],
       trackingId: json["trackingId"],
       paymentType: json["paymentType"],
@@ -190,6 +193,7 @@ class Data {
 
     return {
       "_id": id,
+      "freelancerId": freelancerId,
       "customerId": customerId,
       "trackingId": trackingId,
       "paymentType": paymentType,

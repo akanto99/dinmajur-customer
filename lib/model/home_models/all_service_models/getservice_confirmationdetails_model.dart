@@ -15,6 +15,7 @@ class ServiceConfirmationDetailsModel {
 
 class Data {
   String? id;
+  String? freelancerId;
   String? trackingId;
   String? fullName;
   String? fullAddress;
@@ -44,6 +45,7 @@ class Data {
 
   Data({
     this.id,
+    this.freelancerId,
     this.trackingId,
     this.fullName,
     this.fullAddress,
@@ -74,6 +76,7 @@ class Data {
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     id: json["_id"],
+    freelancerId: json["freelancerId"],
     trackingId: json["trackingId"],
     fullName: json["fullName"],
     fullAddress: json["fullAddress"],

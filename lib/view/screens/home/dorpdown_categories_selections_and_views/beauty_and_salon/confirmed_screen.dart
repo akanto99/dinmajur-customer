@@ -221,6 +221,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                       ? () => approveVm.approveBooking(
                     context: context,
                     bookingId: bookingData.id!,
+                    freelancerId:bookingData.freelancerId!,
                     onSuccess: () => viewModel.fetchGetBeautySalonDataApi(widget.trackingId!),
                   )
                       : null,
@@ -228,6 +229,7 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
                       ? () => approveVm.rejectBooking(
                     context: context,
                     bookingId: bookingData.id!,
+                    freelancerId:bookingData.freelancerId!,
                     onSuccess: () => viewModel.fetchGetBeautySalonDataApi(widget.trackingId!),
                   )
                       : null,

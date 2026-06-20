@@ -259,10 +259,10 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                   isApproveLoading: approveVm.isApproveLoading,
                   isRejectLoading: approveVm.isRejectLoading,
                   onApprove: showExtraActions
-                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!))
+                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!,freelancerId:bookingData.freelancerId!, onSuccess: () => viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!))
                       : null,
                   onReject: showExtraActions
-                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!))
+                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!,freelancerId:bookingData.freelancerId!, onSuccess: () => viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!))
                       : null,
                 );
 

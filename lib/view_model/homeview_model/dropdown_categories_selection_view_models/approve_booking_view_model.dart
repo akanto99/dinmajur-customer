@@ -43,6 +43,7 @@ class ApproveBookingViewModel with ChangeNotifier {
   Future<void> approveBooking({
     required BuildContext context,
     required String bookingId,
+    required String freelancerId,
     required VoidCallback onSuccess,
   }) async {
     if (isApproved || _isApproveLoading) return;
@@ -51,7 +52,10 @@ class ApproveBookingViewModel with ChangeNotifier {
     try {
       final response = await _repo.approveBookingApi(
         bookingId: bookingId,
-        data: {"status": "APPROVED"},
+        data: {
+          "status": "APPROVED",
+          "freelancerId":freelancerId,
+        },
       );
 
       if (response != null && response['success'] == true) {
@@ -74,6 +78,7 @@ class ApproveBookingViewModel with ChangeNotifier {
   Future<void> rejectBooking({
     required BuildContext context,
     required String bookingId,
+    required String freelancerId,
     required VoidCallback onSuccess,
   }) async {
     if (isRejected || _isRejectLoading) return;
@@ -82,7 +87,10 @@ class ApproveBookingViewModel with ChangeNotifier {
     try {
       final response = await _repo.approveBookingApi(
         bookingId: bookingId,
-        data: {"status": "REJECTED"},
+        data: {
+          "status": "REJECTED",
+          "freelancerId":freelancerId,
+        },
       );
 
       if (response != null && response['success'] == true) {

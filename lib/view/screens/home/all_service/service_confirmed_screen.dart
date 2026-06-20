@@ -199,10 +199,11 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
                   isRejectLoading: approveVm.isRejectLoading,
                   onPayNow: widget.fromCheckout ? null : _handlePayNow,
                   onApprove: showExtraActions
-                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchGetServiceDataApi(widget.trackingId!))
+                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!, freelancerId:bookingData.freelancerId!,onSuccess: () => viewModel.fetchGetServiceDataApi(widget
+                      .trackingId!))
                       : null,
                   onReject: showExtraActions
-                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!, onSuccess: () => viewModel.fetchGetServiceDataApi(widget.trackingId!))
+                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!, freelancerId:bookingData.freelancerId!,onSuccess: () => viewModel.fetchGetServiceDataApi(widget.trackingId!))
                       : null,
                 );
 

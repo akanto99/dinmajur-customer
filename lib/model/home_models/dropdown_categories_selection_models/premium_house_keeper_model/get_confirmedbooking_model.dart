@@ -30,6 +30,7 @@ class GetConfirmedBookingModel {
 
 class Data {
   String? id;
+  String? freelancerId;
   String? userId;
   String? trackingId;
   String? serviceType;
@@ -67,6 +68,7 @@ class Data {
 
   Data({
     this.id,
+    this.freelancerId,
     this.userId,
     this.trackingId,
     this.serviceType,
@@ -105,6 +107,7 @@ class Data {
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     id: json["_id"],
+    freelancerId: json["freelancerId"],
     userId: json["userId"],
     trackingId: json["trackingId"],
     serviceType: json["serviceType"],
@@ -143,6 +146,7 @@ class Data {
 
   Map<String, dynamic> toJson() => {
     "_id": id,
+    "freelancerId": freelancerId,
     "userId": userId,
     "trackingId": trackingId,
     "serviceType": serviceType,
