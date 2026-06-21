@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/services/nointernet_connectivity_service/nointernet_connectivity_service.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/widget/api_services_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/drawer.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
@@ -89,6 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
       trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed");
     });
+    ConnectivityMonitorService().addReconnectListener(_onInternetReconnected);
+  }
+  void _onInternetReconnected() {
+    if (!mounted) return;
+    _handleRefresh();
   }
 
   Future<void> _handleRefresh() async {
@@ -308,6 +314,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    ConnectivityMonitorService().removeReconnectListener(_onInternetReconnected);
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;

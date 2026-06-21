@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/components/payment_method/payment_
 import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/services/nointernet_connectivity_service/nointernet_connectivity_service.dart';
 import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -42,7 +43,16 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _initializeScreen();
     });
+    ConnectivityMonitorService().addReconnectListener(_onInternetReconnected);
   }
+  void _onInternetReconnected() {
+    if (!mounted) return;
+    if (_vm.isInitialized) {
+      _vm.handleRefresh(context: context);
+    }
+  }
+
+
 
   @override
   void didChangeDependencies() {
@@ -73,6 +83,7 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
 
   @override
   void dispose() {
+    ConnectivityMonitorService().removeReconnectListener(_onInternetReconnected);
     routeObserver.unsubscribe(this);
     _vm.dispose();
     super.dispose();
