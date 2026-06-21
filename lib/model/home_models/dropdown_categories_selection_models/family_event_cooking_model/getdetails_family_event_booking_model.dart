@@ -37,6 +37,7 @@ class GetDetailesFamilyEventBookingModel {
 
 class Data {
   String? id;
+  String? freelancerId;
   String? customerId;
   String? trackingId;
   String? paymentType;
@@ -55,14 +56,22 @@ class Data {
   num? transportFee;
   String? status;
   String? paymentStatus;
-  dynamic eventCookingCategory; // Can be String (ID) or EventCookingCategory object
+  dynamic eventCookingCategory;
   List<BookingItem>? items;
+
+  String? extraItemsTrackingId;
+  String? extraItemsPaymentStatus;
+  String? extraItemsStatus;
+  List<ExtraItem>? extraItems;
+  num?totalExtraAmount;
+
   DateTime? createdAt;
   DateTime? updatedAt;
   int? v;
 
   Data({
     this.id,
+    this.freelancerId,
     this.customerId,
     this.trackingId,
     this.paymentType,
@@ -83,6 +92,13 @@ class Data {
     this.paymentStatus,
     this.eventCookingCategory,
     this.items,
+
+    this.extraItemsTrackingId,
+    this.extraItemsPaymentStatus,
+    this.extraItemsStatus,
+    this.extraItems,
+    this.totalExtraAmount,
+
     this.createdAt,
     this.updatedAt,
     this.v,
@@ -128,6 +144,7 @@ class Data {
 
     return Data(
       id: json["_id"],
+      freelancerId: json["freelancerId"],
       customerId: json["customerId"],
       trackingId: json["trackingId"],
       paymentType: json["paymentType"],
@@ -151,6 +168,13 @@ class Data {
           ? []
           : List<BookingItem>.from(
           json["items"].map((x) => BookingItem.fromJson(x))),
+
+      extraItemsTrackingId: json["extraItemsTrackingId"],
+      extraItemsPaymentStatus: json["extraItemsPaymentStatus"],
+      extraItemsStatus: json["extraItemsStatus"],
+      extraItems: json["extraItems"] == null ? [] : List<ExtraItem>.from(json["extraItems"]!.map((x) => ExtraItem.fromJson(x))),
+      totalExtraAmount: json["totalExtraAmount"],
+
       createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
       updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"]),
       v: json["__v"],
@@ -169,6 +193,7 @@ class Data {
 
     return {
       "_id": id,
+      "freelancerId": freelancerId,
       "customerId": customerId,
       "trackingId": trackingId,
       "paymentType": paymentType,
@@ -189,6 +214,13 @@ class Data {
       "paymentStatus": paymentStatus,
       "eventCookingCategory": categoryJson,
       "items": items?.map((x) => x.toJson()).toList() ?? [],
+
+      "extraItemsTrackingId": extraItemsTrackingId,
+      "extraItemsPaymentStatus": extraItemsPaymentStatus,
+      "extraItemsStatus": extraItemsStatus,
+      "extraItems": extraItems == null ? [] : List<dynamic>.from(extraItems!.map((x) => x.toJson())),
+      "totalExtraAmount": totalExtraAmount,
+
       "createdAt": createdAt?.toIso8601String(),
       "updatedAt": updatedAt?.toIso8601String(),
       "__v": v,
@@ -228,6 +260,48 @@ class EventCookingCategory {
     "position": position,
   };
 }
+
+
+class ExtraItem {
+  String? id;
+  String? name;
+  int? price;
+  int? quantity;
+  int? total;
+  String? status;
+  DateTime? createdAt;
+
+  ExtraItem({
+    this.id,
+    this.name,
+    this.price,
+    this.quantity,
+    this.total,
+    this.status,
+    this.createdAt,
+  });
+
+  factory ExtraItem.fromJson(Map<String, dynamic> json) => ExtraItem(
+    id: json["_id"],
+    name: json["name"],
+    price: json["price"],
+    quantity: json["quantity"],
+    total: json["total"],
+    status: json["status"],
+    createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "_id": id,
+    "name": name,
+    "price": price,
+    "quantity": quantity,
+    "total": total,
+    "status": status,
+    "createdAt": createdAt?.toIso8601String(),
+  };
+}
+
 
 class BookingItem {
   String? id;

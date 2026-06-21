@@ -54,7 +54,6 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
   // Payment method
   String? selectedPaymentMethod;
 
-
   Map<String, dynamic> _getPaymentMethodData(String? method) {
     switch (method) {
       case 'bkash':
@@ -197,6 +196,9 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                           if (notes != null && notes!.isNotEmpty) SizedboxSpaccing.height02(context),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      _buildNoPaymentYetCard(),
+                      const SizedBox(height: 12),
                       Column(children: [_buildActionButtons(), SizedboxSpaccing.height04(context)]),
                     ],
                   ),
@@ -333,10 +335,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                       Row(
                         children: [
                           Text('Fee: ', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
-                          Text(
-                            '৳${AmountFormatter.formatDynamic(deliveryCharge + platformFee)}',
-                            style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
-                          ),
+                          Text('৳${AmountFormatter.formatDynamic(deliveryCharge + platformFee)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
                         ],
                       ),
                     ],
@@ -525,7 +524,7 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
               return Container(
                 width: screenWidth * 0.42,
                 child: RoundButtonFlexible(
-                  title: "Confirm",
+                  title: "Send list",
                   loading: checkOutViewModel.checkoutOrderLoading,
                   onPress: () async {
                     if (orderItems.isEmpty && uploadedPhotos.isEmpty && (voiceRecordingPath == null || voiceRecordingPath!.isEmpty)) {
@@ -554,6 +553,105 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
           ),
         ],
       ),
+    );
+  }
+
+  // ── Widget 3: No payment yet card ──────────────────────────────────
+  Widget _buildNoPaymentYetCard() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    return Container(
+      width: screenWidth * 0.9,
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.015),
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border(context)),
+            ),
+            child: Column(
+              children: [
+                // Header
+                Text('No payment yet 🔒', style: AppTextStyles.textSize16(context, weight: FontWeight.w500)),
+                const SizedBox(height: 4),
+                Text(
+                  'We\'re sending your list. Here\'s what happens:',
+                  style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                // Steps
+                _buildStep(isChecked: true, number: 1, label: 'Send your list now'),
+                const SizedBox(height: 10),
+                _buildStep(isChecked: false, number: 2, label: 'We buy & message the exact price'),
+                const SizedBox(height: 10),
+                _buildStep(isChecked: false, number: 3, label: 'You approve, then pay (cash or online)'),
+
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.02, vertical: screenHeight * 0.015),
+            decoration: BoxDecoration(
+              color: AppColors.textFieldFill(context),
+              border: Border.all(width: 1, color: AppColors.border(context)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: _buildPaymentMethod('Under ৳500', 'Cash on delivery')),
+                Container(
+                    width: 10,
+                    child: Center(child: Container(width: 2, height: 52, color: AppColors.border(context)))),
+                Expanded(child: _buildPaymentMethod('৳500 & up', 'Online payment')),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep({required bool isChecked, required int number, required String label}) {
+    return Row(
+      children: [
+        isChecked
+            ? Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(color: Colors.green.withOpacity(0.15), shape: BoxShape.circle),
+                child: const Icon(Icons.check, size: 14, color: Colors.green),
+              )
+            : Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border(context)),
+                ),
+                child: Center(
+                  child: Text('$number', style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))),
+                ),
+              ),
+        const SizedBox(width: 12),
+        Expanded(child: Text(label, style: AppTextStyles.textSize14(context))),
+      ],
+    );
+  }
+
+  Widget _buildPaymentMethod(String subtitle, String title) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(subtitle, style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context))),
+        const SizedBox(height: 2),
+        Text(title, style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+      ],
     );
   }
 

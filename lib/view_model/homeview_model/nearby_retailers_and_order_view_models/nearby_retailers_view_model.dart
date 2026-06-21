@@ -57,6 +57,7 @@ class PostNearbyRetailersViewModel with ChangeNotifier {
 
         if (responseMap['success'] == true && responseMap['data'] != null) {
           List<dynamic> stores = responseMap['data'];
+          print(responseMap['data'].length);
           setNearbyStores(stores);
           return stores;
         } else {

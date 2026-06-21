@@ -115,7 +115,7 @@ class OrderCard extends StatelessWidget {
   void _onTap(BuildContext context) {
     if (datum.type == 'ORDER') {
       if (isPendingTab || isRunningTab) {
-        Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': _orderIdForNavigation,    'fromCheckout': false,});
+        Navigator.pushNamed(context, RoutesName.trackOrderViewdetailsSocketScreen, arguments: {'orderId': _orderIdForNavigation, 'fromCheckout': false});
       } else {
         Navigator.pushNamed(context, RoutesName.completeOrdersDetailsScreen, arguments: {'orderId': _orderIdForNavigation});
       }
@@ -135,8 +135,6 @@ class OrderCard extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final bool hasFreelancer = datum.freelancer != null;
     final bool showFreelancer = hasFreelancer && (isRunningTab || isCompletedTab);
-
-
 
     // Payment status badge
     final String? payStatus = datum.paymentStatus;
@@ -186,7 +184,27 @@ class OrderCard extends StatelessWidget {
               //   SizedboxSpaccing.height02(context),
               //   CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: true),
               // ] else
-                if (isCompletedTab && datum.isReview == false) ...[
+              ///Completed action as Play store
+              //   if (isCompletedTab && datum.isReview == false) ...[
+              //   SizedboxSpaccing.height015(context),
+              //   Divider(height: 1, color: AppColors.border(context)),
+              //   SizedboxSpaccing.height02(context),
+              //   CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: false),
+              // ],
+              // ── Completed actions ─────────────────────────────────────────────
+              if (isRunningTab &&
+                  datum.isApproved == false &&
+                  (datum.approvedExtraItemsCount ?? 0) > 0) ...[
+                SizedboxSpaccing.height015(context),
+                Divider(height: 1, color: AppColors.border(context)),
+                SizedboxSpaccing.height02(context),
+                CompletedActions(
+                  datum: datum,
+                  onPayNow: onPayNow,
+                  isRunningTab: true,
+                  onReviewAndApprove: (ctx) => _onTap(ctx), // ← navigates to view details
+                ),
+              ] else if (isCompletedTab && datum.isReview == false) ...[
                 SizedboxSpaccing.height015(context),
                 Divider(height: 1, color: AppColors.border(context)),
                 SizedboxSpaccing.height02(context),
@@ -242,8 +260,9 @@ class OrderCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.9) : _statusColor(context, datum.status ?? '').withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12)),
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.9) : _statusColor(context, datum.status ?? '').withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Text(
             datum.status ?? 'Unknown',
             style: AppTextStyles.textSize10(context, color: _statusColor(context, datum.status ?? ''), weight: FontWeight.w500),

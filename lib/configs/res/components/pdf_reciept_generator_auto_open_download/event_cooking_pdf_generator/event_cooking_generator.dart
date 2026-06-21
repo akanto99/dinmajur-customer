@@ -710,6 +710,7 @@ class UniversalPaymentSummary {
   final num transportationFee;
   final num discount;
   final num total;
+  final num extraAmount;
   final num grandTotal;
 
   UniversalPaymentSummary({
@@ -718,6 +719,7 @@ class UniversalPaymentSummary {
     this.transportationFee = 0,
     this.discount = 0,
     required this.total,
+    required this.extraAmount,
     required this.grandTotal,
   });
 }
@@ -1114,7 +1116,8 @@ class UniversalPDFReceiptGenerator {
                     _buildPaymentTableRow('Transportation', payment.transportationFee),
                   if (payment.discount > 0)
                     _buildPaymentTableRow('Discount', -payment.discount, isDiscount: true),
-                  _buildPaymentTableRow('Total', payment.total),
+                  // _buildPaymentTableRow('Total', payment.total),
+    _buildPaymentTableRow('Added Extra Items Amount', payment.extraAmount),
                 ],
               ),
             ),

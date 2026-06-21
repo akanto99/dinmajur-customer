@@ -78,6 +78,7 @@ class ReceiptPaymentSummary {
   final num transportationFee;
   final num discount;
   final num total;
+  final num extraAmount;
   final num grandTotal;
 
   ReceiptPaymentSummary({
@@ -86,6 +87,7 @@ class ReceiptPaymentSummary {
     this.transportationFee = 0,
     this.discount = 0,
     required this.total,
+    required this.extraAmount,
     required this.grandTotal,
   });
 }
@@ -437,7 +439,8 @@ class PDFReceiptGenerator {
                     _buildPaymentTableRow('Transportation', payment.transportationFee),
                   if (payment.discount > 0)
                     _buildPaymentTableRow('Discount', -payment.discount, isDiscount: true),
-                  _buildPaymentTableRow('Total', payment.total),
+                  // _buildPaymentTableRow('Total', payment.total),
+                  _buildPaymentTableRow('Added Extra Items Amount', payment.extraAmount),
                 ],
               ),
             ),
@@ -675,6 +678,7 @@ extension BeautySalonReceiptAdapter on Data {
         transportationFee: fare ?? 0,
         discount: discountValue ?? 0,
         total: total ?? 0,
+        extraAmount: totalExtraAmount ?? 0,
         grandTotal: grandTotal ?? 0,
       ),
       footerMessage: 'Thank you for choosing our beauty and salon service!',
@@ -726,6 +730,7 @@ extension ServiceReceiptAdapter on service_model.Data {
         transportationFee: fare ?? 0,
         discount: 0,
         total: total ?? 0,
+        extraAmount: totalExtraAmount ?? 0,
         grandTotal: grandTotal ?? 0,
       ),
       footerMessage: 'Thank you for choosing our service!',

@@ -15,6 +15,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dropdown_categories_widget/confirmation_widget.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/approve_booking_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/getdetails_event_cooking_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -23,14 +24,14 @@ import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../../model/home_models/dropdown_categories_selection_models/family_event_cooking_model/getdetails_family_event_booking_model.dart' hide ExtraItem;
+
 class CookingConfirmedScreen extends StatefulWidget {
   final String? trackingId;
   final String? valId;
   final bool fromCheckout;
 
-  const CookingConfirmedScreen({Key? key, this.trackingId, this.valId,
-    this.fromCheckout = false,
-  }) : super(key: key);
+  const CookingConfirmedScreen({Key? key, this.trackingId, this.valId, this.fromCheckout = false}) : super(key: key);
 
   @override
   State<CookingConfirmedScreen> createState() => _CookingConfirmedScreenState();
@@ -39,15 +40,38 @@ class CookingConfirmedScreen extends StatefulWidget {
 class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
   bool _isDownloading = false;
   Future<void> _handlePayNow() async {
-    final bookingData = Provider.of<GetDetailsEventCookingViewModel>(
-        context, listen: false
-    ).getDetailsEventCookingData.data?.data;
+    final bookingData = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false).getDetailsEventCookingData.data?.data;
 
     if (bookingData == null) return;
 
+    final bool mainPaid = bookingData.paymentStatus?.toUpperCase() == 'PAID';
+
+    final String trackingId;
+    final double amount;
+
+    if (mainPaid) {
+      // Main already paid → pay only the extra items
+      final extraId = bookingData.extraItemsTrackingId;
+      if (extraId == null || extraId.isEmpty) {
+        Utils.flushBarErrorMessage("Extra items tracking ID not found", context);
+        return;
+      }
+      trackingId = extraId;
+      amount = (bookingData.totalExtraAmount ?? 0).toDouble();
+    } else {
+      // Main unpaid → pay everything via the main tracking ID
+      final mainId = bookingData.trackingId;
+      if (mainId == null || mainId.isEmpty) {
+        Utils.flushBarErrorMessage("Booking tracking ID not found", context);
+        return;
+      }
+      trackingId = mainId;
+      amount = (bookingData.grandTotal ?? 0).toDouble();
+    }
+
     final result = await SSLCommerzPaymentService().initiatePayment(
-      trackingId: bookingData.trackingId ?? '',
-      totalAmount: (bookingData.grandTotal ?? 0).toDouble(),
+      trackingId: trackingId,
+      totalAmount: amount,
       productCategory: 'EVENT_COOKING',
       customerName: bookingData.fullName ?? '',
       customerPhone: bookingData.phone ?? '',
@@ -59,18 +83,13 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
 
     if (result.success) {
       // Refresh screen data after successful payment
-      final viewModel = Provider.of<GetDetailsEventCookingViewModel>(
-          context, listen: false
-      );
+      final viewModel = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false);
       viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!);
       Utils.flushBarSuccessMessage("Payment successful!", context);
     } else {
-      Utils.flushBarErrorMessage(
-          result.errorMessage ?? "Payment failed", context
-      );
+      Utils.flushBarErrorMessage(result.errorMessage ?? "Payment failed", context);
     }
   }
-
 
   Future<void> _handleRefresh() async {
     final viewModel = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false);
@@ -93,11 +112,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
       canPop: !widget.fromCheckout,
       onPopInvoked: (didPop) {
         if (didPop) return;
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
-              (route) => false,
-        );
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false);
       },
       child: Scaffold(
         backgroundColor: AppColors.containerBackground(context),
@@ -114,11 +129,7 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
         GestureDetector(
           onTap: () {
             if (widget.fromCheckout) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)),
-                    (route) => false,
-              );
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0)), (route) => false);
             } else {
               Navigator.pop(context);
             }
@@ -126,31 +137,41 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
           child: Container(height: 60, child: AppBarHeader("Booking Confirmation")),
         ),
         Expanded(
-          child:  RefreshIndicator(
+          child: RefreshIndicator(
             onRefresh: _handleRefresh,
             color: AppColors.textPrimary(context),
             backgroundColor: AppColors.containerBackground(context),
             displacement: 40,
             strokeWidth: 2.0,
-            child: Consumer<GetDetailsEventCookingViewModel>(
-              builder: (context, viewModel, _) {
+            child: Consumer2<GetDetailsEventCookingViewModel, ApproveBookingViewModel>(
+              builder: (context, viewModel, approveVm, _) {
                 final status = viewModel.getDetailsEventCookingData.status;
+                final bookingData = viewModel.getDetailsEventCookingData.data?.data;
+
+                // Sync extraItemsStatus into ViewModel on every rebuild
+                if (bookingData != null) {
+                  final apiStatus = bookingData.extraItemsStatus;
+                  if (approveVm.extraItemsStatus != apiStatus && !approveVm.isApproveLoading && !approveVm.isRejectLoading) {
+                    approveVm.setStatusFromApi(apiStatus);
+                  }
+                }
 
                 if (status == Status.LOADING) {
                   return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
                 }
 
                 if (status == Status.ERROR) {
-                  return ErrorStateWidget(
-                    // errorMessage: viewModel.getConfirmBookingData.message.toString(),
-                    errorMessage: "Failed to load booking details",
-                    onRetry: () {
-                      viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!);
-                    },
+                  return Center(
+                    child: ErrorStateWidget(
+                      // errorMessage: viewModel.getConfirmBookingData.message.toString(),
+                      errorMessage: "Failed to load booking details",
+                      onRetry: () {
+                        viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!);
+                      },
+                    ),
                   );
                 }
 
-                final bookingData = viewModel.getDetailsEventCookingData.data?.data;
                 if (bookingData == null) {
                   return Center(child: Text('No booking data available', style: AppTextStyles.textSize16(context)));
                 }
@@ -204,6 +225,9 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                     }
                   }
                 }
+                final extraItems = (bookingData.extraItems ?? []).map((e) => ExtraItem(name: e.name ?? 'Extra', price: e.price ?? 0)).toList();
+                final orderStatus = (bookingData.status ?? '').toUpperCase();
+                final bool showExtraActions = orderStatus == 'RUNNING' && extraItems.isNotEmpty && !widget.fromCheckout;
 
                 // Create confirmation data
                 final confirmationData = BookingConfirmationData(
@@ -224,7 +248,22 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
                   fromCheckout: widget.fromCheckout,
                   paymentStatus: bookingData.paymentStatus,
                   orderStatus: bookingData.status,
-                  onPayNow: widget.fromCheckout ? null : () => _handlePayNow(),
+
+                  extraItemsPaymentStatus: bookingData.extraItemsPaymentStatus,
+                  totalExtraAmount: bookingData.totalExtraAmount,
+                  extraItemsTrackingId: bookingData.extraItemsTrackingId,
+                  // Single Pay Now handler — smart routing inside
+                  onPayNow: widget.fromCheckout ? null : _handlePayNow,
+                  extraItems: extraItems,
+                  extraItemsStatus: approveVm.extraItemsStatus,
+                  isApproveLoading: approveVm.isApproveLoading,
+                  isRejectLoading: approveVm.isRejectLoading,
+                  onApprove: showExtraActions
+                      ? () => approveVm.approveBooking(context: context, bookingId: bookingData.id!,freelancerId:bookingData.freelancerId!, onSuccess: () => viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!))
+                      : null,
+                  onReject: showExtraActions
+                      ? () => approveVm.rejectBooking(context: context, bookingId: bookingData.id!,freelancerId:bookingData.freelancerId!, onSuccess: () => viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!))
+                      : null,
                 );
 
                 return BookingConfirmationUI(

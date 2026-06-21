@@ -8,63 +8,59 @@ class CompletedActions extends StatelessWidget {
   final Datum datum;
   final Future<void> Function(BuildContext context, Datum datum) onPayNow;
   final bool isRunningTab;
-
+  final void Function(BuildContext context)? onReviewAndApprove; // ← new
 
   const CompletedActions({
     super.key,
     required this.datum,
     required this.onPayNow,
     this.isRunningTab = false,
+    this.onReviewAndApprove, // ← new
   });
 
   String get _bookingId {
     switch (datum.type) {
-      case 'ORDER':         return datum.freelancerId ?? '';
-      case 'HOUSEKEEPER':   return datum.houseKeeperBookingId ?? '';
-      case 'BEAUTY_SALON':  return datum.beautySalonBookingId ?? '';
-      case 'EVENT_COOKING': return datum.eventCookingBookingId ?? '';
-      case 'SERVICES':       return datum.servicesBookingId ?? '';
-      default:              return '';
+      case 'ORDER':
+        return datum.freelancerId ?? '';
+      case 'HOUSEKEEPER':
+        return datum.houseKeeperBookingId ?? '';
+      case 'BEAUTY_SALON':
+        return datum.beautySalonBookingId ?? '';
+      case 'EVENT_COOKING':
+        return datum.eventCookingBookingId ?? '';
+      case 'SERVICES':
+        return datum.servicesBookingId ?? '';
+      default:
+        return '';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool showPayNow = datum.paymentStatus == null || datum.paymentStatus!.isEmpty || datum.paymentStatus!="PAID";
-    final bool showReview = datum.isReview == false ;
+    final bool shouldShowReviewAndApprove = isRunningTab && (datum.isApproved == false) && ((datum.approvedExtraItemsCount ?? 0) > 0);
+    final bool shouldShowWriteReview = !isRunningTab && (datum.isReview == false);
 
-
-    final bool shouldShowPayNow = isRunningTab && showPayNow;
-    final bool shouldShowReview = !isRunningTab && showReview;
-
+    if (!shouldShowReviewAndApprove && !shouldShowWriteReview) return const SizedBox.shrink();
 
     return Row(
       children: [
-        // if (shouldShowPayNow)
-        //   Expanded(
-        //     child: GestureDetector(
-        //       onTap: () => onPayNow(context, datum),
-        //       child: Container(
-        //         height: 42,
-        //         decoration: BoxDecoration(
-        //           color: AppColors.textPrimary(context),
-        //           borderRadius: BorderRadius.circular(12),
-        //         ),
-        //         child: Center(
-        //           child: Text(
-        //             "Pay Now",
-        //             style: AppTextStyles.textSize14(
-        //               context,
-        //               weight: FontWeight.w600,
-        //               color: AppColors.textSecondary(context),
-        //             ),
-        //           ),
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-
-        if (shouldShowReview)
+        if (shouldShowReviewAndApprove)
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onReviewAndApprove?.call(context),
+              child: Container(
+                height: 42,
+                decoration: BoxDecoration(color: AppColors.textPrimary(context), borderRadius: BorderRadius.circular(12)),
+                child: Center(
+                  child: Text(
+                    "View & Approve",
+                    style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.textSecondary(context)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        if (shouldShowWriteReview)
           Expanded(
             child: GestureDetector(
               onTap: () => showWriteReviewSheet(context, datum, _bookingId),
@@ -76,10 +72,7 @@ class CompletedActions extends StatelessWidget {
                   border: Border.all(color: AppColors.border(context), width: 1),
                 ),
                 child: Center(
-                  child: Text(
-                    "Write Review",
-                    style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
-                  ),
+                  child: Text("Write Review", style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
                 ),
               ),
             ),

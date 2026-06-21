@@ -24,8 +24,7 @@ class OrderScreen extends StatefulWidget {
 class _OrderScreenState extends State<OrderScreen> {
   int _selectedTabIndex = 0;
 
-  RunningOrdersViewModel get _orderViewModel =>
-      Provider.of<RunningOrdersViewModel>(context, listen: false);
+  RunningOrdersViewModel get _orderViewModel => Provider.of<RunningOrdersViewModel>(context, listen: false);
 
   @override
   void initState() {
@@ -34,6 +33,7 @@ class _OrderScreenState extends State<OrderScreen> {
     _orderViewModel.clearAllDataSilent();
     WidgetsBinding.instance.addPostFrameCallback((_) => _fetchCurrentTab());
   }
+
   void _onTabChanged(int index) {
     setState(() => _selectedTabIndex = index);
     switch (index) {
@@ -54,18 +54,30 @@ class _OrderScreenState extends State<OrderScreen> {
 
   void _fetchCurrentTab() {
     switch (_selectedTabIndex) {
-      case 0: _orderViewModel.fetchPendingOrdersGetDataApi(); break;
-      case 1: _orderViewModel.fetchRunningOrdersGetDataApi(); break;
-      case 2: _orderViewModel.fetchCompleteOrdersGetDataApi(); break;
+      case 0:
+        _orderViewModel.fetchPendingOrdersGetDataApi();
+        break;
+      case 1:
+        _orderViewModel.fetchRunningOrdersGetDataApi();
+        break;
+      case 2:
+        _orderViewModel.fetchCompleteOrdersGetDataApi();
+        break;
     }
   }
 
   Future<void> _handleRefresh() async {
     try {
       switch (_selectedTabIndex) {
-        case 0: await _orderViewModel.fetchPendingOrdersGetDataApi(isRefresh: true); break;
-        case 1: await _orderViewModel.fetchRunningOrdersGetDataApi(isRefresh: true); break;
-        case 2: await _orderViewModel.fetchCompleteOrdersGetDataApi(isRefresh: true); break;
+        case 0:
+          await _orderViewModel.fetchPendingOrdersGetDataApi(isRefresh: true);
+          break;
+        case 1:
+          await _orderViewModel.fetchRunningOrdersGetDataApi(isRefresh: true);
+          break;
+        case 2:
+          await _orderViewModel.fetchCompleteOrdersGetDataApi(isRefresh: true);
+          break;
       }
     } catch (_) {
       if (mounted) Utils.flushBarErrorMessage("Refresh failed", context);
@@ -73,14 +85,14 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   Future<void> _handlePayNow(BuildContext context, Datum datum) async {
-    String trackingId = '';       // used for SSLCommerz payment
-    String refreshId = '';        // used for local list update
+    String trackingId = ''; // used for SSLCommerz payment
+    String refreshId = ''; // used for local list update
     String productCategory = '';
 
     switch (datum.type) {
       case 'ORDER':
         trackingId = datum.orderTrackingId ?? '';
-        refreshId = datum.orderId ?? '';          // ← orderId for refresh
+        refreshId = datum.orderId ?? ''; // ← orderId for refresh
         productCategory = 'Grocery Order';
         break;
       case 'HOUSEKEEPER':
@@ -113,10 +125,7 @@ class _OrderScreenState extends State<OrderScreen> {
     try {
       final result = await SSLCommerzPaymentService().initiatePayment(
         trackingId: trackingId,
-        totalAmount: ((datum.type == 'ORDER' && (datum.subTotalAmount ?? 0) > 0
-            ? datum.totalAmount
-            : datum.total) ?? 0)
-            .toDouble(),
+        totalAmount: ((datum.type == 'ORDER' && (datum.subTotalAmount ?? 0) > 0 ? datum.totalAmount : datum.total) ?? 0).toDouble(),
         productCategory: productCategory,
         customerName: datum.customer?.fullName,
         customerPhone: datum.customer?.phone,
@@ -154,25 +163,19 @@ class _OrderScreenState extends State<OrderScreen> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => NavigationScreen(initialIndex: 0)),
-          ),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NavigationScreen(initialIndex: 0))),
           child: AppBarHeader("Orders"),
         ),
 
         Consumer<RunningOrdersViewModel>(
           builder: (context, orderViewModel, _) {
-            final meta = orderViewModel.pendingOrdersData.data?.data?.meta
-                ?? orderViewModel.runningOrdersData.data?.data?.meta
-                ?? orderViewModel.completeOrdersData.data?.data?.meta;
+            final meta = _selectedTabIndex == 0
+                ? orderViewModel.pendingOrdersData.data?.data?.meta
+                : _selectedTabIndex == 1
+                ? orderViewModel.runningOrdersData.data?.data?.meta
+                : orderViewModel.completeOrdersData.data?.data?.meta;
 
-            return OrderTabBar(
-              selectedIndex: _selectedTabIndex,
-              onTabChanged: _onTabChanged,
-              statusCount: meta?.statusCount,
-            );
+            return OrderTabBar(selectedIndex: _selectedTabIndex, onTabChanged: _onTabChanged, statusCount: meta?.statusCount);
           },
         ),
         SizedboxSpaccing.height015(context),
@@ -183,10 +186,7 @@ class _OrderScreenState extends State<OrderScreen> {
             backgroundColor: AppColors.containerBackground(context),
             displacement: 40,
             strokeWidth: 2.0,
-            child: Container(
-              width: screenWidth * 0.9,
-              child: _buildCurrentTab(),
-            ),
+            child: Container(width: screenWidth * 0.9, child: _buildCurrentTab()),
           ),
         ),
       ],
