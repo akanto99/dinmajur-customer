@@ -7,55 +7,55 @@ import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
 
-class NoConnectionScreen extends StatelessWidget {
+class NoConnectionDialog extends StatelessWidget {
   final VoidCallback onRetry;
 
-  const NoConnectionScreen({super.key, required this.onRetry});
+  const NoConnectionDialog({super.key, required this.onRetry});
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final double w = MediaQuery.of(context).size.width;
+
+    return Dialog(
       backgroundColor: AppColors.containerBackground(context),
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(CupertinoIcons.wifi_exclamationmark, size: 90, color: CupertinoColors.systemRed),
-                const SizedBox(height: 24),
-                Text(
-                  'Connection Lost',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.textSize22(context, weight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'You seem to be offline. Check your connection to stay updated.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400, color: CupertinoColors.systemGrey),
-                ),
-                const SizedBox(height: 36),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(5),
-                  child: CupertinoButton(
-                    color: AppColors.button(context),
-                    borderRadius: BorderRadius.circular(100),
-                    onPressed: onRetry,
-                    child: Text('Retry', style: AppTextStyles.textSize16(context, color: AppColors.whiteColor)),
-                  ),
-                ),
-              ],
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(CupertinoIcons.wifi_exclamationmark, size: 70, color: CupertinoColors.systemRed),
+            const SizedBox(height: 20),
+            Text(
+              'Connection Lost',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
             ),
-          ),
+            const SizedBox(height: 10),
+            Text(
+              'You seem to be offline. Check your connection to stay updated.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: w,
+              child: CupertinoButton(
+                color: AppColors.button(context),
+                borderRadius: BorderRadius.circular(100),
+                onPressed: onRetry,
+                child: Text('Retry', style: AppTextStyles.textSize16(context, color: AppColors.whiteColor)),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// SERVICE —
+///SERVICE —
 
 class ConnectivityMonitorService {
   static final ConnectivityMonitorService _instance = ConnectivityMonitorService._internal();
@@ -65,7 +65,7 @@ class ConnectivityMonitorService {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   Timer? _debounceTimer;
 
-  bool _isNoConnectionScreenShown = false;
+  bool _isNoConnectionDialogShown = false;
   bool _isMonitoring = false;
 
   /// Tracks the last known REAL internet state, so we only react on an
@@ -170,39 +170,38 @@ class ConnectivityMonitorService {
   }
 
   void _handleDisconnected() {
-    if (_isNoConnectionScreenShown) return;
+    if (_isNoConnectionDialogShown) return;
 
     final navCtx = NavigationService.navigatorKey.currentContext;
     if (navCtx == null) return;
 
-    _isNoConnectionScreenShown = true;
+    _isNoConnectionDialogShown = true;
     onDisconnected?.call();
 
-    Navigator.of(navCtx, rootNavigator: true)
-        .push(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (_) => NoConnectionScreen(
-              onRetry: () async {
-                await checkNow();
-              },
-            ),
-          ),
-        )
-        .then((_) {
-          _isNoConnectionScreenShown = false;
-        });
+    showDialog<void>(
+      context: navCtx,
+      barrierDismissible: false,
+      barrierColor: AppColors.showDialougeBackground(navCtx),
+      useRootNavigator: true,
+      builder: (_) => NoConnectionDialog(
+        onRetry: () async {
+          await checkNow();
+        },
+      ),
+    ).then((_) {
+      _isNoConnectionDialogShown = false;
+    });
   }
 
   void _handleReconnected() {
-    final bool wasShowingNoConnectionScreen = _isNoConnectionScreenShown;
+    final bool wasShowingNoConnectionDialog = _isNoConnectionDialogShown;
 
-    if (wasShowingNoConnectionScreen) {
+    if (wasShowingNoConnectionDialog) {
       final navCtx = NavigationService.navigatorKey.currentContext;
       if (navCtx != null && Navigator.canPop(navCtx)) {
         Navigator.of(navCtx, rootNavigator: true).pop();
       }
-      _isNoConnectionScreenShown = false;
+      _isNoConnectionDialogShown = false;
     }
 
     onReconnected?.call();
