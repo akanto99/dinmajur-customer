@@ -152,33 +152,4 @@ class NavigationService {
       },
     );
   }
-
-  // Method to handle automatic logout
-  // Future<void> handleSessionExpired() async {
-  //   if (navigatorKey.currentContext != null) {
-  //     // Show a dialog to inform user about session expiry
-  //     await showDialog(
-  //       context: navigatorKey.currentContext!,
-  //       barrierDismissible: false,
-  //       builder: (context) => AlertDialog(
-  //         title: const Text('Session Expired'),
-  //         content: const Text('Your session has expired. Please login again.'),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: ()async {
-  //               Navigator.of(context).pop();
-  //               await OneSignal.logout();
-  //               // Navigate to login and clear all previous routes
-  //               navigateAndClearStack('/auth_login');
-  //             },
-  //             child: const Text('OK'),
-  //           ),
-  //         ],
-  //       ),
-  //     );
-  //   } else {
-  //     // If no context available, just navigate to auth_login
-  //     navigateAndClearStack('/auth_login');
-  //   }
-  // }
 }

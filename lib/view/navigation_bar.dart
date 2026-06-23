@@ -1,17 +1,7 @@
-/// Customer App — NavigationScreen
-///
-/// KEY DESIGN RULES (read before editing):
-/// ─────────────────────────────────────────────────────────────────────────────
-/// 1. Internet checker  → ONLY controls the "no connection" dialog.
-/// 2. SocketManager     → manages itself completely (connect / reconnect / retry).
-/// 3. These two are COMPLETELY INDEPENDENT. Socket disconnect never shows dialog.
-///    Internet restore never directly calls socket — socket watches itself.
-/// ─────────────────────────────────────────────────────────────────────────────
-
 import 'dart:async';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
-import 'package:dinmajur_customer/configs/services/navigator_services/navigator_services_refreshToken.dart';
+import 'package:dinmajur_customer/configs/services/nointernet_connectivity_service/nointernet_connectivity_service.dart';
 import 'package:dinmajur_customer/configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
@@ -30,8 +20,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
@@ -53,16 +41,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late final List<Widget> _pages;
 
-  // ─── Internet monitoring ──One shared instance — created once, never recreated.─────────────────────────────────
-  late final InternetConnection _internetChecker;
-  StreamSubscription<InternetStatus>? _internetSub;
-  Timer? _debounceTimer;
-
-  // ─── Dialog guard ─────────────────────────────────────────────────────────────
-  // True ONLY while the "no connection" CupertinoDialog is on screen Never set by socket events — only set by internet checker events.
-  bool _isNoConnectionDialogVisible = false;
-
-  // ─── Upgrade check guard Prevents the upgrade dialog from showing more than once per session.──────────────────────────────────────────────────────
+  // ─── Upgrade check guard ── Prevents the upgrade dialog from showing more than once per session.
   bool _upgradeChecked = false;
   final List<String> _icons = [
     "assets/images/navBar/navbar_new/home.svg",
@@ -77,36 +56,33 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    _pages = [
-      HomeScreen(scaffoldKey: _scaffoldKey),
-      OffersScreen(),
-      // OrderScreen(),
-      OrderScreen(initialTabIndex: widget.orderTabIndex),
-      DraftScreen(),
-    ];
+    _pages = [HomeScreen(scaffoldKey: _scaffoldKey), OffersScreen(), OrderScreen(initialTabIndex: widget.orderTabIndex), DraftScreen()];
     _currentIndex = widget.initialIndex;
 
     WakelockPlus.enable();
 
-    // Reliable DNS endpoints — same across customer & freelancer apps.
-    _internetChecker = InternetConnection.createInstance(
-      customCheckOptions: [
-        InternetCheckOption(uri: Uri.parse('https://one.one.one.one')),
-        InternetCheckOption(uri: Uri.parse('https://www.google.com')),
-      ],
-    );
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _initServices();
-      _startInternetMonitoring();
+      ConnectivityMonitorService().start(
+        onReconnected: () {
+          // Optional: nudge socket/SSE back in sync when internet returns.
+          if (!mounted) return;
+          context.read<SocketManager>().handleAppResume();
+          _ensureSSERunning();
+        },
+      );
     });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _stopInternetMonitoring();
     WakelockPlus.disable();
+
+    // Stop watching connectivity when NavigationScreen is torn down
+    // (e.g. user logs out and goes back to splash/login).
+    ConnectivityMonitorService().stop();
+
     super.dispose();
   }
 
@@ -136,8 +112,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   void _onAppPaused() {
     if (kDebugMode) print('📱 App paused');
     WakelockPlus.disable();
-    // Stop monitoring while app is in background — avoids stale buffered events.
-    _stopInternetMonitoring();
   }
 
   Future<void> _onAppResumed() async {
@@ -145,27 +119,11 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     if (kDebugMode) print('📱 App resumed');
     WakelockPlus.enable();
 
-    // Check actual internet status RIGHT NOW (not from stream buffer).
-    final bool hasInternet = await _internetChecker.hasInternetAccess;
-    if (!mounted) return;
+    // Let socket handle its own reconnect logic.
+    context.read<SocketManager>().handleAppResume();
 
-    if (hasInternet) {
-      // Internet is fine — dismiss dialog if it was somehow left open.
-      _dismissNoConnectionDialog();
-
-      // Let socket handle its own reconnect logic.
-      context.read<SocketManager>().handleAppResume();
-
-      // Ensure SSE is running.
-      await _ensureSSERunning();
-    } else {
-      // Genuinely offline — show dialog if not already showing.
-      _showNoConnectionDialog();
-    }
-
-    // Restart stream monitoring AFTER the point-in-time check,
-    // so we don't get stale buffered events from when app was paused.
-    _startInternetMonitoring();
+    // Ensure SSE is running.
+    await _ensureSSERunning();
   }
 
   // ═══════════════════════════════════ INIT SERVICES — called once after first mount════════════════════════════════════════
@@ -207,77 +165,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     if (kDebugMode) print('🎉 Socket connected');
   }
 
-  // ═════════════════════════════════════INTERNET MONITORING — fully decoupled from socket══════════════════════════════════════
-  void _startInternetMonitoring() {
-    _stopInternetMonitoring();
-
-    _internetSub = _internetChecker.onStatusChange.listen((InternetStatus status) {
-      if (!mounted) return;
-
-      // Debounce 2.5s — prevents false triggers on brief network blips or
-      // the stale events that fire right after subscription is created.
-      _debounceTimer?.cancel();
-      _debounceTimer = Timer(const Duration(milliseconds: 2500), () {
-        if (!mounted) return;
-        if (status == InternetStatus.disconnected) {
-          _onInternetLost();
-        } else {
-          _onInternetRestored();
-        }
-      });
-    });
-  }
-
-  void _stopInternetMonitoring() {
-    _debounceTimer?.cancel();
-    _debounceTimer = null;
-    _internetSub?.cancel();
-    _internetSub = null;
-  }
-
-  // ── Internet lost ──────────────────────────────────────────────────────────
-  void _onInternetLost() {
-    if (!mounted) return;
-    if (kDebugMode) print('📵 Internet lost');
-    _showNoConnectionDialog();
-  }
-
-  // ── Internet restored ─────────────────────────────────────────────────────
-  // ONLY dismisses the dialog and reconnects SSE.
-  // Socket reconnects itself via its own internal retry logic.
-  Future<void> _onInternetRestored() async {
-    if (!mounted) return;
-    if (kDebugMode) print('📶 Internet restored');
-
-    _dismissNoConnectionDialog();
-
-    // Reconnect services that need a nudge when internet comes back.
-    await _reconnectServicesAfterInternetRestored();
-  }
-
-  Future<void> _reconnectServicesAfterInternetRestored() async {
-    if (!mounted) return;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String token = prefs.getString('accessToken') ?? '';
-      if (token.isEmpty) return;
-
-      // Socket: only connect if not already connected.
-      // SocketManager's internal retry handles most cases automatically.
-      final socket = context.read<SocketManager>();
-      if (!socket.isConnected) {
-        await socket.connect(token);
-      }
-
-      // SSE: restart if stopped.
-      await _ensureSSERunning();
-
-      if (kDebugMode) print('✅ Services reconnected after internet restore');
-    } catch (e) {
-      if (kDebugMode) print('❌ Reconnect error — $e');
-    }
-  }
-
   // ══════════════════════════════════SSE═════════════════════════════════════════
   Future<void> _ensureSSERunning() async {
     if (!mounted) return;
@@ -305,91 +192,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     }
   }
 
-  // ═══════════════════════════════NO-CONNECTION DIALOG════════════════════════════════════════════
-  void _showNoConnectionDialog() {
-    // Guard: never stack multiple dialogs.
-    if (!mounted || _isNoConnectionDialogVisible) return;
-
-    if (kDebugMode) print('🔴 Showing no-connection dialog');
-    _isNoConnectionDialogVisible = true;
-
-    showCupertinoDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => CupertinoAlertDialog(
-        title: Column(
-          children: [
-            const Icon(CupertinoIcons.wifi_exclamationmark, size: 40, color: CupertinoColors.systemRed),
-            const SizedBox(height: 10),
-            Text('Connection Lost', style: GoogleFonts.hindSiliguri(fontSize: 16, fontWeight: FontWeight.w600)),
-          ],
-        ),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            'You seem to be offline. Check your connection to stay updated.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.hindSiliguri(fontSize: 14, fontWeight: FontWeight.w400),
-          ),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () async {
-              // Pop this dialog instance.
-              Navigator.of(dialogCtx).pop();
-              // NOTE: _isNoConnectionDialogVisible is reset in the .then() below,
-              // but we also need to reset it here so _showNoConnectionDialog()
-              // can be called again if still offline.
-              _isNoConnectionDialogVisible = false;
-
-              final bool hasInternet = await _internetChecker.hasInternetAccess;
-              if (!mounted) return;
-
-              if (hasInternet) {
-                // Back online — reconnect everything.
-                await _reconnectServicesAfterInternetRestored();
-              } else {
-                // Still offline — show dialog again.
-                _showNoConnectionDialog();
-              }
-            },
-            child: const Text(
-              'Retry',
-              style: TextStyle(color: CupertinoColors.activeBlue, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    ).then((_) {
-      // Safety reset — handles any edge-case where dialog closes unexpectedly
-      // (e.g., system back gesture, Navigator.popUntil from elsewhere).
-      if (mounted) {
-        _isNoConnectionDialogVisible = false;
-      }
-    });
-  }
-
-  void _dismissNoConnectionDialog() {
-    if (!_isNoConnectionDialogVisible) return;
-
-    try {
-      // Try NavigationService key first (works even if context is stale).
-      final navCtx = NavigationService.navigatorKey.currentContext;
-      if (navCtx != null && Navigator.canPop(navCtx)) {
-        Navigator.of(navCtx, rootNavigator: true).pop();
-        return;
-      }
-      if (mounted && Navigator.canPop(context)) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-    } catch (_) {
-      // Silently ignore — dialog may have already been dismissed.
-    } finally {
-      // Always reset the flag so a new dialog can appear if needed.
-      if (mounted) _isNoConnectionDialogVisible = false;
-    }
-  }
-
   // ══════════════════════════════════════HELPERS═════════════════════════════════════
   void _syncSystemUIColors() {
     final bool isDark = context.read<ThemeProvider>().isDarkMode;
@@ -407,7 +209,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
 
   // ═════════════════════════════════════UPGRADE CHECK — runs ONCE per session══════════════════════════════════════
   Future<void> _checkForUpgrade() async {
-    // Guard: only run once per session — avoids showing dialog on every rebuild.
     if (_upgradeChecked) return;
     _upgradeChecked = true;
 
@@ -600,7 +401,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         onPopInvokedWithResult: (didPop, result) async {
           if (didPop) return;
 
-          // Close drawer if open
           if (_currentIndex == 0 && _scaffoldKey.currentState?.isDrawerOpen == true) {
             _scaffoldKey.currentState!.closeDrawer();
             return;
@@ -620,7 +420,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                 ),
                 duration: const Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
-                backgroundColor:AppColors.appBackground(context),
+                backgroundColor: AppColors.appBackground(context),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
               ),
             );
