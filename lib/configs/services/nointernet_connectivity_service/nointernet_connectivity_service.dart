@@ -14,38 +14,72 @@ class NoConnectionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double w = MediaQuery.of(context).size.width;
-
-    return Dialog(
-      backgroundColor: AppColors.containerBackground(context),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+    return PopScope(
+      canPop: false,
+      child: Dialog(
+        backgroundColor: AppColors.containerBackground(context),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(CupertinoIcons.wifi_exclamationmark, size: 70, color: CupertinoColors.systemRed),
-            const SizedBox(height: 20),
-            Text(
-              'Connection Lost',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Icon in a soft circle background
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.textFieldFill(context),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        CupertinoIcons.wifi_exclamationmark,
+                        size: 48,
+                        color: AppColors.subtitle(context),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Connection Lost',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    'You seem to be offline. Check your connection to stay updated.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              'You seem to be offline. Check your connection to stay updated.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-            ),
-            const SizedBox(height: 28),
-            SizedBox(
-              width: w,
-              child: CupertinoButton(
-                color: AppColors.button(context),
-                borderRadius: BorderRadius.circular(100),
-                onPressed: onRetry,
-                child: Text('Retry', style: AppTextStyles.textSize16(context, color: AppColors.whiteColor)),
+            Divider(height: 1, color: AppColors.border(context)),
+            // Flat text-only action — no colored button, matches reference UI
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+                onTap: onRetry,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      'TRY AGAIN',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w700),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -54,6 +88,7 @@ class NoConnectionDialog extends StatelessWidget {
     );
   }
 }
+
 
 ///SERVICE —
 

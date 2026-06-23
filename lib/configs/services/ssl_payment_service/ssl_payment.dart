@@ -79,29 +79,29 @@ class SSLCommerzPaymentService {
                   tran_id: trackingId,
                   currency: SSLCurrencyType.BDT,
                   product_category: productCategory ?? "",
-                  // sdkType: SSLCSdkType.LIVE,
-                  sdkType:SSLCSdkType.TESTBOX,
+                  sdkType: SSLCSdkType.LIVE,
+                  // sdkType:SSLCSdkType.TESTBOX,
+                ),
+              )
+              .addCustomerInfoInitializer(
+                customerInfoInitializer: SSLCCustomerInfoInitializer(
+                  customerName: name,
+                  customerEmail: email,
+                  customerAddress1: address,
+                  customerCountry: "Bangladesh",
+                  customerPhone: phone,
+                  customerState: 'BD',
+                  customerCity: '',
+                  customerPostCode: '',
+                ),
+              )
+              .addProductInitializer(
+                sslcProductInitializer: SSLCProductInitializer(
+                  productName: productCategory ?? "",
+                  productCategory: productCategory ?? "",
+                  general: General(general: productCategory ?? "", productProfile: "general"),
                 ),
               );
-              // .addCustomerInfoInitializer(
-              //   customerInfoInitializer: SSLCCustomerInfoInitializer(
-              //     customerName: name,
-              //     customerEmail: email,
-              //     customerAddress1: address,
-              //     customerCountry: "Bangladesh",
-              //     customerPhone: phone,
-              //     customerState: 'BD',
-              //     customerCity: '',
-              //     customerPostCode: '',
-              //   ),
-              // )
-              // .addProductInitializer(
-              //   sslcProductInitializer: SSLCProductInitializer(
-              //     productName: productCategory ?? "",
-              //     productCategory: productCategory ?? "",
-              //     general: General(general: productCategory ?? "", productProfile: "general"),
-              //   ),
-              // );
 
       print("✅ SSL Commerz configured - launching payment...");
 
