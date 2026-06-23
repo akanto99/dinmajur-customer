@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/view/auth_login/auth_login_welcome.dart';
 import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart';
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/nearby_service_store/nearby_service_stores_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/service_checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/service_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/service_failed_screen.dart';
@@ -47,6 +48,7 @@ import 'package:dinmajur_customer/view/screens/home/unified_seeall_screen/unifie
 import 'package:dinmajur_customer/view/screens/order/assigned_freelancer/freelancer_profile.dart';
 import 'package:dinmajur_customer/view/screens/order/complete_orders/complete_orders_details_screen.dart';
 import 'package:dinmajur_customer/view/splash_screen/splash_view.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/nearby_service_stores_view_model/nearby_servic_stores_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -420,6 +422,15 @@ class Routes {
           );
         }
         return _errorRoute();
+        //For dynamic Stores
+      case RoutesName.getAllNearbyServiceStoresScreen:
+        return MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => GetAllNearbyServicStoresViewModel(),
+            child: const GetAllNearbyServiceStoresScreen(),
+          ),
+          settings: settings,
+        );
 
 
 
@@ -459,6 +470,8 @@ class Routes {
                 description:      args['description'],
                 isFromHome:       args['isFromHome'] as bool? ?? false,
                 customerLocation: args['customerLocation'] as Map<String, dynamic>?,
+                  //For dynamic stores
+                retailerId:        args['retailerId'] as String,
               ),
             ),
             settings: settings,
@@ -481,6 +494,10 @@ class Routes {
               totalPrice: args['totalPrice'],
               transportFee: args['transportFee'],
               onAddressUpdate: args['onAddressUpdate'],
+
+              ///for dynamic stores
+              retailerId: args['retailerId'] ,
+
             ),
             settings: settings,
           );

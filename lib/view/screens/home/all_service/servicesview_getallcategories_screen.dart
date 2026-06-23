@@ -34,6 +34,9 @@ class ServicesViewScreen extends StatefulWidget {
   final String description;
   final bool isFromHome;
   final Map<String, dynamic>? customerLocation;
+///for dynamic stores
+  final String? retailerId;
+
 
   const ServicesViewScreen({
     Key? key,
@@ -45,6 +48,8 @@ class ServicesViewScreen extends StatefulWidget {
     required this.description,
     this.isFromHome = false,
     this.customerLocation,
+    ///for dynamic stores
+    this.retailerId,
   }) : super(key: key);
 
   @override
@@ -52,6 +57,10 @@ class ServicesViewScreen extends StatefulWidget {
 }
 
 class _ServicesViewScreenState extends State<ServicesViewScreen> {
+  ///for Dynamic Stores
+  String? _retailerId;
+
+
   final ScrollController _mainScrollController = ScrollController();
   int _selectedTabIndex = 0;
   final Map<int, GlobalKey> _categoryKeys = {};
@@ -64,6 +73,8 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
   @override
   void initState() {
     super.initState();
+    ///for Dynamic Stores
+    _retailerId = widget.retailerId;
 
     if (widget.isFromHome) CheckoutSessionLocationService.clear();
 
@@ -515,6 +526,10 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         'onAddressUpdate': (String newAddress) {
           setState(() => _currentCustomerAddress = newAddress);
         },
+
+
+        ///for dynamic stores
+        'retailerId': _retailerId ?? '',
       },
     );
 

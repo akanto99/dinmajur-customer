@@ -72,6 +72,9 @@ class RoutesName {
   static const String familyEventCookingScreen= 'familyEventCookingScreen_view';
   static const String cookingCheckoutScreen= 'cookingCheckoutScreen_view';
   static const String cookingConfirmedScreen= 'CookingConfirmedScreen_view';
+//for dynamic stores
+  static const String getAllNearbyServiceStoresScreen = 'getAllNearbyServiceStoresScreen_view';
+
 
 
   ///All Service

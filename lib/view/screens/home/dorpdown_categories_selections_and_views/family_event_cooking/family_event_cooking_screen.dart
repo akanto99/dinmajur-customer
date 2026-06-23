@@ -53,16 +53,11 @@ class FamilyEventCookingScreen extends StatefulWidget {
 class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   final ScrollController _mainScrollController = ScrollController();
   int _selectedTabIndex = 0;
-  int _selectedGuestRangeIndex = 0; // Default to 25-30
-  // final Map<int, GlobalKey> _categoryKeys = {};
+  int _selectedGuestRangeIndex = 0;
   Map<String, dynamic>? _customerLocation;
-  // Track selected packages per category for REGULAR type (only one category can have selections)
-  Map<String, String?> _selectedPackages = {}; // categoryId -> packageId
-
-  // Track selected items for MANUAL type (only one category can have selections)
-  Map<String, Set<String>> _selectedManualItems = {}; // categoryId -> Set of itemIds
-
-  String? _activeCategoryId; // Track which category has active selections
+  Map<String, String?> _selectedPackages = {};
+  Map<String, Set<String>> _selectedManualItems = {};
+  String? _activeCategoryId;
 
   late String _currentCustomerAddress;
 

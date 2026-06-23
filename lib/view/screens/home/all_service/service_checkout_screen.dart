@@ -30,6 +30,8 @@ class ServiceCheckoutScreen extends StatefulWidget {
   final double transportFee;
   final Function(String)? onAddressUpdate;
   final Map<String, dynamic>? customerLocation;
+//for dynamic STores
+  final String? retailerId;
 
   const ServiceCheckoutScreen({
     Key? key,
@@ -44,6 +46,8 @@ class ServiceCheckoutScreen extends StatefulWidget {
     required this.transportFee,
     required this.onAddressUpdate,
     this.customerLocation,
+//for dynamic Stores
+    this.retailerId,
   }) : super(key: key);
 
   @override

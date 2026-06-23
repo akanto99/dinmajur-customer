@@ -143,6 +143,22 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           );
           break;
 
+        case "mens-salon":
+          Navigator.pushNamed(
+            context,
+            RoutesName.getAllNearbyServiceStoresScreen,
+            arguments: {
+              'serviceId':      service.id,
+              'customerName':   customerName,
+              'customerPhone':  customerPhone,
+              'customerAddress': customerAddress,
+              'serviceName':    service.name,
+              'description':    service.description,
+              'customerLocation': customerLocation,
+            },
+          );
+          break;
+
         default:
       print(service.id);
           Navigator.pushNamed(
