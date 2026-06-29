@@ -142,6 +142,7 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
   /// Only [timeSlotId] (the `_id` from the slot response) is sent to the
   /// booking API — no raw date/time strings are needed.
   Map<String, dynamic> prepareBookingData({
+    String? retailerId,
     required String serviceId,
     required String customerId,
     required String? paymentMethod,
@@ -160,6 +161,8 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
 
   }) {
     return {
+      if (retailerId != null && retailerId.isNotEmpty)
+        'retailerId': retailerId,
       'serviceId': serviceId,
       'customerId': customerId,
       'paymentType': getPaymentMethodData(paymentMethod),

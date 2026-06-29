@@ -34,7 +34,7 @@ class ServicesViewScreen extends StatefulWidget {
   final String description;
   final bool isFromHome;
   final Map<String, dynamic>? customerLocation;
-///for dynamic stores
+  ///for dynamic stores
   final String? retailerId;
 
 
@@ -82,7 +82,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     _customerLocation = widget.customerLocation;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false).fetchServicesViewGetAllCategoriesGetApi(widget.serviceId);
+      Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false).fetchServicesViewGetAllCategoriesGetApi(widget.serviceId, widget.retailerId?? "");
 
       Provider.of<GetSlotViewModel>(context, listen: false).fetchGetSlotDataApi(DateTime.now(), widget.serviceId);
     });
@@ -211,7 +211,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                   // errorMessage: viewModel.servicesViewGetAllCategoryData.message.toString(),
                   errorMessage: 'Failed to load services',
                   onRetry: () {
-                    viewModel.fetchServicesViewGetAllCategoriesGetApi(widget.serviceId);
+                    viewModel.fetchServicesViewGetAllCategoriesGetApi(widget.serviceId,widget.retailerId?? "");
                   },
                 );
               }

@@ -36,24 +36,22 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
     if (!_initialized) {
       _initialized = true;
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      serviceId       = args?['serviceId']       as String? ?? '';
-      serviceName     = args?['serviceName']     as String? ?? '';
-      description     = args?['description']     as String? ?? '';
-      customerName    = args?['customerName']    as String? ?? '';
-      customerPhone   = args?['customerPhone']   as String? ?? '';
+      serviceId = args?['serviceId'] as String? ?? '';
+      serviceName = args?['serviceName'] as String? ?? '';
+      description = args?['description'] as String? ?? '';
+      customerName = args?['customerName'] as String? ?? '';
+      customerPhone = args?['customerPhone'] as String? ?? '';
       customerAddress = args?['customerAddress'] as String? ?? '';
       customerLocation = args?['customerLocation'] as Map<String, dynamic>?;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<GetAllNearbyServicStoresViewModel>(context, listen: false)
-            .fetchGetAllNearbyServiceStores(serviceId);
+        Provider.of<GetAllNearbyServicStoresViewModel>(context, listen: false).fetchGetAllNearbyServiceStores(serviceId);
       });
     }
   }
 
   Future<void> _handleRefresh() async {
-    await Provider.of<GetAllNearbyServicStoresViewModel>(context, listen: false)
-        .fetchGetAllNearbyServiceStores(serviceId);
+    await Provider.of<GetAllNearbyServicStoresViewModel>(context, listen: false).fetchGetAllNearbyServiceStores(serviceId);
   }
 
   @override
@@ -90,17 +88,13 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                   case Status.LOADING:
                     return Center(child: LoadingAnimationWidget.progressiveDots(color: AppColors.button(context), size: 50));
 
-
                   case Status.ERROR:
                     return Center(
-                      child:    GestureDetector(
+                      child: GestureDetector(
                         onTap: _handleRefresh,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.button(context),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                          decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
                           child: Text('Retry', style: AppTextStyles.textSize14(context, color: AppColors.whiteColor)),
                         ),
                       ),
@@ -110,21 +104,14 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                     final stores = viewModel.getAllNearbyServiceStoresData.data?.data ?? [];
                     if (stores.isEmpty) {
                       return Center(
-                        child: Text(
-                          'No stores available in your area',
-                          style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-                        ),
+                        child: Text('No stores available in your area', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
                       );
                     }
                     return ListView.builder(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: screenWidth * 0.05,
-                        vertical: screenHeight * 0.02,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: screenHeight * 0.02),
                       itemCount: stores.length,
-                      itemBuilder: (context, index) =>
-                          _buildStoreCard(context, stores[index], screenWidth, screenHeight),
+                      itemBuilder: (context, index) => _buildStoreCard(context, stores[index], screenWidth, screenHeight),
                     );
 
                   default:
@@ -165,13 +152,9 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                   borderRadius: BorderRadius.circular(8),
                   color: AppColors.appBackground(context),
                   border: Border.all(width: 1, color: AppColors.border(context)),
-                  image: logoUrl != null
-                      ? DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover)
-                      : null,
+                  image: logoUrl != null ? DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover) : null,
                 ),
-                child: logoUrl == null
-                    ? Icon(Icons.store, color: AppColors.subtitle(context), size: 24)
-                    : null,
+                child: logoUrl == null ? Icon(Icons.store, color: AppColors.subtitle(context), size: 24) : null,
               ),
               SizedboxSpaccing.width02(context),
               Expanded(
@@ -184,17 +167,14 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                         Expanded(
                           child: Text(
                             store.businessName ?? '',
-                            style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+                            style: AppTextStyles.textSize18(context, weight: FontWeight.w500),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Container(
                           height: 24,
                           width: 80,
-                          decoration: BoxDecoration(
-                            color: isAvailable ? AppColors.button(context) : Colors.red.shade400,
-                            borderRadius: BorderRadius.circular(100),
-                          ),
+                          decoration: BoxDecoration(color: isAvailable ? AppColors.button(context) : Colors.red.shade400, borderRadius: BorderRadius.circular(100)),
                           child: Center(
                             child: Text(
                               isAvailable ? 'Available' : 'N/A',
@@ -206,7 +186,7 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                     ),
                     Text(
                       serviceName,
-                      style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
                     ),
                   ],
                 ),
@@ -222,12 +202,21 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.location_on, size: 16, color: AppColors.button(context)),
-              const SizedBox(width: 6),
+              Container(
+                height: 20,
+                width: 12,
+                alignment: Alignment.centerLeft,
+                child: Icon(Icons.location_on, size: 16, color: AppColors.button(context)),
+              ),
+              SizedboxSpaccing.width03(context),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      "Store Address",
+                      style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
+                    ),
                     Text(
                       store.fullAddress ?? '',
                       style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
@@ -236,12 +225,20 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                     ),
                     SizedboxSpaccing.height005(context),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(FontAwesomeIcons.car, size: 12, color: AppColors.textPrimary(context)),
-                        const SizedBox(width: 6),
-                        Text(
-                          '$distanceText  ·  $durationText',
-                          style: AppTextStyles.textSize12(context, color: AppColors.textPrimary(context)),
+                        Container(
+                          height: 20,
+                          width: 12,
+                          alignment: Alignment.centerLeft,
+                          child: Icon(FontAwesomeIcons.car, size: 12, color: AppColors.textPrimary(context)),
+                        ),
+                        SizedboxSpaccing.width02(context),
+                        Container(
+                          child: Text(
+                            distanceText,
+                            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
+                          ),
                         ),
                       ],
                     ),
@@ -259,17 +256,14 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
           GestureDetector(
             onTap: () => _navigateToServicesView(store),
             child: Container(
-              height: 46,
+              height: 42,
               width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColors.button(context),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(8)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'View Details',
+                    'Book Service',
                     style: AppTextStyles.textSize14(context, color: AppColors.whiteColor, weight: FontWeight.w600),
                   ),
                   const SizedBox(width: 6),
@@ -288,16 +282,16 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
       context,
       RoutesName.servicesViewScreen,
       arguments: {
-        'serviceId':       serviceId,
-        'customerName':    customerName,
-        'customerPhone':   customerPhone,
+        'serviceId': serviceId,
+        'customerName': customerName,
+        'customerPhone': customerPhone,
         'customerAddress': customerAddress,
-        'serviceName':     serviceName,
-        'description':     description,
-        'isFromHome':      true,
+        'serviceName': serviceName,
+        'description': description,
+        'isFromHome': true,
         'customerLocation': customerLocation,
 
-        'retailerId':      store.id ?? '', // ← extra field for checkout
+        'retailerId': store.userId ?? '',
       },
     );
   }

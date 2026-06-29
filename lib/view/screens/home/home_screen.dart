@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bannerViewModel.fetchBannerData();
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
-      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed");
+      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
     });
     ConnectivityMonitorService().addReconnectListener(_onInternetReconnected);
   }
@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bannerViewModel.fetchBannerData();
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
-      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed");
+      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
 
       if (_showRetailNearest) {
         await _fetchNearbyRetailers('Retail');

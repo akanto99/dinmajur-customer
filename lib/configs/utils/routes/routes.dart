@@ -61,44 +61,36 @@ class Routes {
       case RoutesName.onBoardUpdated:
         return MaterialPageRoute(builder: (BuildContext context) => const OnboardingScreenUpdated());
 
-
-        ///New
-         case RoutesName.authLoginWelcome:
-         return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginScreen());
-        case RoutesName.authOtp:
+      ///New
+      case RoutesName.authLoginWelcome:
+        return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginScreen());
+      case RoutesName.authOtp:
         return MaterialPageRoute(builder: (BuildContext context) => const CustomerAuthOtpScreen(), settings: settings);
-    // case RoutesName.verificationSuccessScreen:
-    //     return MaterialPageRoute(builder: (BuildContext context) => const ());
-
-
-
+      // case RoutesName.verificationSuccessScreen:
+      //     return MaterialPageRoute(builder: (BuildContext context) => const ());
 
       case RoutesName.navigationBar:
         final args = settings.arguments;
         int initialIndex = 0;
         int orderTabIndex = 0;
         if (args is Map) {
-          initialIndex  = args['initialIndex']  as int? ?? 0;
+          initialIndex = args['initialIndex'] as int? ?? 0;
           orderTabIndex = args['orderTabIndex'] as int? ?? 0;
         }
         return MaterialPageRoute(
-          builder: (_) => NavigationScreen(
-            initialIndex: initialIndex,
-            orderTabIndex: orderTabIndex,
-          ),
+          builder: (_) => NavigationScreen(initialIndex: initialIndex, orderTabIndex: orderTabIndex),
           settings: settings,
         );
-
 
       ///Home
       case RoutesName.home:
         return MaterialPageRoute(builder: (BuildContext context) => const HomeScreen());
-        case RoutesName.addLocationScreenWidget:
+      case RoutesName.addLocationScreenWidget:
         return MaterialPageRoute(builder: (BuildContext context) => const AddLocationScreenWidget());
-        case RoutesName.notificationsListScreen:
-        return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just
-        //  case RoutesName.notificationsListScreen:
-        // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just//
+      case RoutesName.notificationsListScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen()); //Notifications ListScreen SSE Just
+      //  case RoutesName.notificationsListScreen:
+      // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just//
       case RoutesName.unifiedSeeAllScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
@@ -139,17 +131,14 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => FailedOrderScreenWidget(
-              trackingId: args['trackingId'] ?? 'N/A',
-              valId: args['valId'] ?? 'N/A',
-              reason: args['reason'],
-              errorMessage: args['errorMessage'],
-            ),
+            builder: (BuildContext context) =>
+                FailedOrderScreenWidget(trackingId: args['trackingId'] ?? 'N/A', valId: args['valId'] ?? 'N/A', reason: args['reason'], errorMessage: args['errorMessage']),
             settings: settings,
           );
         }
         return _errorRoute();
-        ///House Keeper
+
+      ///House Keeper
       case RoutesName.failedCancelledPaymentScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -161,7 +150,8 @@ class Routes {
             isCancelled: args?['isCancelled'] ?? false,
           ),
         );
-        ///Beauty Salon
+
+      ///Beauty Salon
       case RoutesName.beautyFailedCancelledPaymentScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -173,7 +163,8 @@ class Routes {
             isCancelled: args?['isCancelled'] ?? false,
           ),
         );
-///Family Event Cancel Failed
+
+      ///Family Event Cancel Failed
       case RoutesName.cookingFailedCancelledPaymentScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -185,22 +176,16 @@ class Routes {
             isCancelled: args?['isCancelled'] ?? false,
           ),
         );
-    ///Service Failed Screen
+
+      ///Service Failed Screen
       case RoutesName.serviceFailedScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (BuildContext context) => ServiceFailedScreen(
-            trackingId: args?['trackingId'],
-            valId: args?['valId'],
-            reason: args?['reason'],
-            errorMessage: args?['errorMessage'],
-            isCancelled: args?['isCancelled'] ?? false,
-          ),
+          builder: (BuildContext context) =>
+              ServiceFailedScreen(trackingId: args?['trackingId'], valId: args?['valId'], reason: args?['reason'], errorMessage: args?['errorMessage'], isCancelled: args?['isCancelled'] ?? false),
         );
 
-
-
-        ///order Now Screen For Retail after clicking Grocerry in HOME SCreen- DropDown 1
+      ///order Now Screen For Retail after clicking Grocerry in HOME SCreen- DropDown 1
       case RoutesName.orderNow:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderNow(), settings: settings);
 
@@ -208,20 +193,16 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => InstantBazarResultsScreen(
-              stores: args['stores'],
-              storeTypes: args['storeTypes'],
-              currentPosition: args['currentPosition'],
-              currentAddress: args['currentAddress'],
-            ),
+            builder: (BuildContext context) =>
+                InstantBazarResultsScreen(stores: args['stores'], storeTypes: args['storeTypes'], currentPosition: args['currentPosition'], currentAddress: args['currentAddress']),
             settings: settings,
           );
         }
         return _errorRoute();
 
-        // case RoutesName.checkoutScreen:
+      // case RoutesName.checkoutScreen:
       //   return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
-        case RoutesName.checkoutScreenNew:
+      case RoutesName.checkoutScreenNew:
         return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreenNew(), settings: settings);
       case RoutesName.orderConfirmScreen:
         final args = settings.arguments as Map<String, dynamic>?;
@@ -236,15 +217,12 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => TrackOrderViewdetailsSocketScreen(
-              orderId: args['orderId'],
-              fromCheckout: args['fromCheckout'] ?? false,
-            ),
+            builder: (BuildContext context) => TrackOrderViewdetailsSocketScreen(orderId: args['orderId'], fromCheckout: args['fromCheckout'] ?? false),
             settings: settings,
           );
         }
         return _errorRoute();
-        case RoutesName.deliverdScreen:
+      case RoutesName.deliverdScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
@@ -254,15 +232,15 @@ class Routes {
         }
         return _errorRoute();
 
-    ///In HOME SCreen- DropDown 2 Premium House Keeper
+      ///In HOME SCreen- DropDown 2 Premium House Keeper
       case RoutesName.bookNowPremiumHouseKeeper:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
             builder: (BuildContext context) => BookNowHousekeeperScreen(
-                customerName: args['customerName'],
-                customerPhone: args['customerPhone'],
-                customerAddress: args['customerAddress'],
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
               serviceName: args['serviceName'],
               description: args['description'],
               customerLocation: args['customerLocation'],
@@ -276,29 +254,25 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => ConfirmedScreen(
-              trackingId: args['trackingId'] as String? ?? '',
-              valId: args['valId'] as String? ?? '',
-              fromCheckout: args['fromCheckout'] ?? false,
-            ),
+            builder: (BuildContext context) => ConfirmedScreen(trackingId: args['trackingId'] as String? ?? '', valId: args['valId'] as String? ?? '', fromCheckout: args['fromCheckout'] ?? false),
             settings: settings,
           );
         }
         return _errorRoute();
 
-        case RoutesName.checkoutHouseKeeperScreen:
+      case RoutesName.checkoutHouseKeeperScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
             builder: (BuildContext context) => CheckoutHouseKeeperScreen(
-              serviceQuantities: args['serviceQuantities'] ,
-              selectedTaskItems: args['selectedTaskItems'] ,
-              selectedFrequency: args['selectedFrequency'] ,
+              serviceQuantities: args['serviceQuantities'],
+              selectedTaskItems: args['selectedTaskItems'],
+              selectedFrequency: args['selectedFrequency'],
               selectedDate: args['selectedDate'],
-              selectedTime: args['selectedTime'] ,
-              customerName: args['customerName'] ,
-              customerPhone: args['customerPhone'] ,
-              customerAddress: args['customerAddress'] ,
+              selectedTime: args['selectedTime'],
+              customerName: args['customerName'],
+              customerPhone: args['customerPhone'],
+              customerAddress: args['customerAddress'],
               customerLocation: args['customerLocation'],
               onAddressUpdate: args['onAddressUpdate'],
               transportFee: args['transportFee'],
@@ -311,7 +285,8 @@ class Routes {
           );
         }
         return _errorRoute();
-    ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
+
+      ///In HOME Screen- DropDown 3 Premium Home Beauty Salon
       case RoutesName.bookNowHomeBeautySalonScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
@@ -333,11 +308,8 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => BeautyConfirmedScreen(
-              trackingId: args['trackingId'] as String? ?? '',
-              valId: args['valId'] as String? ?? '',
-              fromCheckout: args['fromCheckout'] ?? false,
-            ),
+            builder: (BuildContext context) =>
+                BeautyConfirmedScreen(trackingId: args['trackingId'] as String? ?? '', valId: args['valId'] as String? ?? '', fromCheckout: args['fromCheckout'] ?? false),
             settings: settings,
           );
         }
@@ -363,8 +335,7 @@ class Routes {
         }
         return _errorRoute();
 
-
-    ///In HOME Screen- DropDown 4 Family Event Cooking
+      ///In HOME Screen- DropDown 4 Family Event Cooking
       case RoutesName.familyEventCookingScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
@@ -413,48 +384,20 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => CookingConfirmedScreen(
-              trackingId: args['trackingId'] as String? ?? '',
-              valId: args['valId'] as String? ?? '',
-              fromCheckout: args['fromCheckout'] ?? false,
-            ),
+            builder: (BuildContext context) =>
+                CookingConfirmedScreen(trackingId: args['trackingId'] as String? ?? '', valId: args['valId'] as String? ?? '', fromCheckout: args['fromCheckout'] ?? false),
             settings: settings,
           );
         }
         return _errorRoute();
-        //For dynamic Stores
+      //For dynamic Stores
       case RoutesName.getAllNearbyServiceStoresScreen:
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => GetAllNearbyServicStoresViewModel(),
-            child: const GetAllNearbyServiceStoresScreen(),
-          ),
+          builder: (_) => ChangeNotifierProvider(create: (_) => GetAllNearbyServicStoresViewModel(), child: const GetAllNearbyServiceStoresScreen()),
           settings: settings,
         );
 
-
-
-
-
-        ///ALl Service
-      // case RoutesName.servicesViewScreen:
-      //   final args = settings.arguments as Map<String, dynamic>?;
-      //   if (args != null) {
-      //     return MaterialPageRoute(
-      //       builder: (BuildContext context) => ServicesViewScreen(
-      //         serviceId:       args['serviceId'] as String,
-      //         customerName:    args['customerName'] as String? ?? '',
-      //         customerPhone:   args['customerPhone'] as String? ?? '',
-      //         customerAddress: args['customerAddress'] as String? ?? '',
-      //         serviceName: args['serviceName'],
-      //         description: args['description'],
-      //         isFromHome:      args['isFromHome'] as bool? ?? false,
-      //         customerLocation: args['customerLocation'] as Map<String, dynamic>?,
-      //       ),
-      //       settings: settings,
-      //     );
-      //   }
-      //   return _errorRoute();
+      ///ALl Service
       case RoutesName.servicesViewScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
@@ -462,28 +405,29 @@ class Routes {
             builder: (BuildContext context) => ChangeNotifierProvider(
               create: (_) => ServicesViewGetAllCategoriesViewModel(),
               child: ServicesViewScreen(
-                serviceId:        args['serviceId'] as String,
-                customerName:     args['customerName'] as String? ?? '',
-                customerPhone:    args['customerPhone'] as String? ?? '',
-                customerAddress:  args['customerAddress'] as String? ?? '',
-                serviceName:      args['serviceName'],
-                description:      args['description'],
-                isFromHome:       args['isFromHome'] as bool? ?? false,
+                serviceId: args['serviceId'] as String? ?? '',
+                customerName: args['customerName'] as String? ?? '',
+                customerPhone: args['customerPhone'] as String? ?? '',
+                customerAddress: args['customerAddress'] as String? ?? '',
+                serviceName: args['serviceName'] as String? ?? '',
+                description: args['description'] as String? ?? '',
+                isFromHome: args['isFromHome'] as bool? ?? false,
                 customerLocation: args['customerLocation'] as Map<String, dynamic>?,
-                  //For dynamic stores
-                retailerId:        args['retailerId'] as String,
+                //For dynamic stores
+                retailerId: args['retailerId'] as String? ?? '',
               ),
             ),
             settings: settings,
           );
         }
         return _errorRoute();
+
       case RoutesName.serviceCheckoutScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
             builder: (BuildContext context) => ServiceCheckoutScreen(
-              serviceId: args['serviceId'] ,
+              serviceId: args['serviceId'],
               customerName: args['customerName'],
               customerPhone: args['customerPhone'],
               customerAddress: args['customerAddress'],
@@ -496,8 +440,7 @@ class Routes {
               onAddressUpdate: args['onAddressUpdate'],
 
               ///for dynamic stores
-              retailerId: args['retailerId'] ,
-
+              retailerId: args['retailerId'],
             ),
             settings: settings,
           );
@@ -507,20 +450,15 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
           return MaterialPageRoute(
-            builder: (BuildContext context) => ServiceConfirmedScreen(
-              trackingId: args['trackingId'] as String? ?? '',
-              valId: args['valId'] as String? ?? '',
-              fromCheckout: args['fromCheckout'] ?? false,
-            ),
+            builder: (BuildContext context) =>
+                ServiceConfirmedScreen(trackingId: args['trackingId'] as String? ?? '', valId: args['valId'] as String? ?? '', fromCheckout: args['fromCheckout'] ?? false),
             settings: settings,
           );
         }
         return _errorRoute();
 
-
-
-    //drawer===========>
-        case RoutesName.viewProfile:
+      //drawer===========>
+      case RoutesName.viewProfile:
         return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());
       case RoutesName.ordersScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
@@ -536,13 +474,13 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const TermsConditionsScreen());
       case RoutesName.privacyPolicy:
         return MaterialPageRoute(builder: (BuildContext context) => const PrivacyPolicyScreen());
-        case RoutesName.cookiesPolicyScreen:
+      case RoutesName.cookiesPolicyScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const CookiesPolicyScreen());
-        case RoutesName.deliveryPolicyScreen:
+      case RoutesName.deliveryPolicyScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const DeliveryPolicyScreen());
-        case RoutesName.refundPolicyScreen:
+      case RoutesName.refundPolicyScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const RefundPolicyScreen());
-        case RoutesName.language:
+      case RoutesName.language:
         return MaterialPageRoute(builder: (BuildContext context) => const LanguageScreen());
 
       ///Task
@@ -553,7 +491,7 @@ class Routes {
           builder: (BuildContext context) => const FreelancerProfileScreen(),
           settings: settings, // ← add this
         );
-        //pending Order Details SOCKET.IO Screen
+      //pending Order Details SOCKET.IO Screen
       // case RoutesName.pendingOrdersViewDetailsSocketscreen:
       //   final args = settings.arguments as Map<String, dynamic>?;
       //   if (args != null) {
@@ -564,7 +502,7 @@ class Routes {
       //   }
       //   return _errorRoute();
 
-        //running Order Details SOCKET.IO Screen
+      //running Order Details SOCKET.IO Screen
       // case RoutesName.runningOrdersViewDetailsSocketscreen:
       //   final args = settings.arguments as Map<String, dynamic>?;
       //   if (args != null) {
@@ -574,7 +512,7 @@ class Routes {
       //     );
       //   }
       //   return _errorRoute();
-        //Complete Order Details API Get Data
+      //Complete Order Details API Get Data
       case RoutesName.completeOrdersDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
@@ -585,7 +523,6 @@ class Routes {
         }
         return _errorRoute();
 
-
       // case RoutesName.orderDetailsScreen:
       //   final args = settings.arguments as Map<String, dynamic>?;
       //   if (args == null) {
@@ -595,7 +532,6 @@ class Routes {
       //     builder: (BuildContext context) => OrderDetailsScreen(orderData: args),
       //     settings: settings,
       //   );
-
 
       default:
         return _errorRoute();
