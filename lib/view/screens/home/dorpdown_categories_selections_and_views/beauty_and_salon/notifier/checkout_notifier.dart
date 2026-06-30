@@ -1,3 +1,4 @@
+import 'dart:io';
 
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:flutter/material.dart';
@@ -23,18 +24,8 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
 
   // Payment methods data
   final List<Map<String, dynamic>> paymentMethods = [
-    {
-      'method': 'online',
-      'title': 'Online Payment',
-      'icon': 'wallet',
-      'color': 0xFFEE4237
-    },
-    {
-      'method': 'cash',
-      'title': 'Hand Cash',
-      'icon': 'sackDollar',
-      'color': 0xFF45A986
-    },
+    {'method': 'online', 'title': 'Online Payment', 'icon': 'wallet', 'color': 0xFFEE4237},
+    {'method': 'cash', 'title': 'Hand Cash', 'icon': 'sackDollar', 'color': 0xFF45A986},
   ];
 
   void setServiceTime(String time) {
@@ -58,10 +49,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
   }
 
   // Calculate total price
-  double calculateTotal({
-    required Map<String, int> serviceQuantities,
-    required List<dynamic> categories,
-  }) {
+  double calculateTotal({required Map<String, int> serviceQuantities, required List<dynamic> categories}) {
     double total = 0;
 
     for (var category in categories) {
@@ -69,8 +57,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
         for (var service in category.items!) {
           int qty = serviceQuantities[service.id ?? ''] ?? 0;
           if (qty > 0) {
-            double price = service.salePrice?.toDouble() ??
-                service.originalPrice?.toDouble() ?? 0;
+            double price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
             total += price * qty;
           }
         }
@@ -80,10 +67,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
   }
 
   // Calculate saved amount
-  double calculateSaved({
-    required Map<String, int> serviceQuantities,
-    required List<dynamic> categories,
-  }) {
+  double calculateSaved({required Map<String, int> serviceQuantities, required List<dynamic> categories}) {
     double saved = 0;
 
     for (var category in categories) {
@@ -109,11 +93,8 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
 
   // In checkout_notifier.dart
 
-// Validation for cart dialog (date & time only)
-  String? validateCartForm({
-    required DateTime? selectedDate,
-    required String? serviceTime,
-  }) {
+  // Validation for cart dialog (date & time only)
+  String? validateCartForm({required DateTime? selectedDate, required String? serviceTime}) {
     if (selectedDate == null) {
       return "Please select a date";
     }
@@ -123,13 +104,8 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     return null;
   }
 
-// Validation for checkout screen (name, phone, address, payment)
-  String? validateCheckoutDetails({
-    required String fullName,
-    required String phone,
-    required String address,
-    required String? paymentMethod,
-  }) {
+  // Validation for checkout screen (name, phone, address, payment)
+  String? validateCheckoutDetails({required String fullName, required String phone, required String address, required String? paymentMethod}) {
     if (fullName.trim().isEmpty) {
       return "Please enter your full name";
     }
@@ -144,6 +120,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
     }
     return null;
   }
+
   // Get payment method data for API
   String getPaymentMethodData(String? method) {
     switch (method) {
@@ -157,10 +134,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
   }
 
   // Prepare tasks data for booking
-  List<Map<String, dynamic>> prepareTasksData({
-    required Map<String, int> serviceQuantities,
-    required List<dynamic> categories,
-  }) {
+  List<Map<String, dynamic>> prepareTasksData({required Map<String, int> serviceQuantities, required List<dynamic> categories}) {
     List<Map<String, dynamic>> tasks = [];
 
     for (var category in categories) {
@@ -172,9 +146,7 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
               'beautySalonTaskId': category.id,
               'quantity': qty,
               'subTasks': [
-                {
-                  'beautySalonTaskItemId': service.id,
-                },
+                {'beautySalonTaskItemId': service.id},
               ],
             });
           }
@@ -201,24 +173,24 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
   }) {
     String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
     // Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
-     String paymentData = getPaymentMethodData(paymentMethod);
+    String paymentData = getPaymentMethodData(paymentMethod);
 
     return {
       'userId': userId,
       'fullName': fullName.trim(),
       'time': serviceTime,
-      'timeSlot':timeSlot,
+      'timeSlot': timeSlot,
       'phone': phone.trim(),
       if (customerLocation != null) 'location': customerLocation,
       'fullAddress': address.trim(),
-      'notes': specialRequest?.trim().isEmpty == true
-          ? null
-          : specialRequest?.trim(),
+      'notes': specialRequest?.trim().isEmpty == true ? null : specialRequest?.trim(),
       'date': formattedDate,
       'tasks': tasks,
-         "paymentType": paymentData,
+      "paymentType": paymentData,
+      "source": Platform.isAndroid ? "android" : "ios",
     };
   }
+
   Future<SSLPaymentResult> initiatePayment({
     required String trackingId,
     required double totalAmount,
@@ -253,15 +225,11 @@ class CheckoutBeautySalonViewModel extends ChangeNotifier {
 
       return result;
     } catch (e, stackTrace) {
-      return SSLPaymentResult(
-        success: false,
-        status: 'ERROR',
-        errorMessage: 'Failed to initiate payment: ${e.toString()}',
-      );
+      return SSLPaymentResult(success: false, status: 'ERROR', errorMessage: 'Failed to initiate payment: ${e.toString()}');
     }
   }
 
-void reset() {
+  void reset() {
     _selectedServiceTime = null;
     _selectedPaymentMethod = null;
     _selectedDate = null;

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart';
 import 'package:flutter/material.dart';
@@ -180,6 +182,7 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
 
 
       'tasks': tasks,
+      "source": Platform.isAndroid ? "android" : "ios",
 
     };
   }

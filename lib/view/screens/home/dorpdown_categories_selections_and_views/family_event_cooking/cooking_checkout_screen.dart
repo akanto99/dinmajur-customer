@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/iagree_terms&condition/iagree_terms&condition.dart';
@@ -188,6 +190,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
       },
       "eventCookingCategoryId": activeCategory.id,
+      "source": Platform.isAndroid ? "android" : "ios",
     };
 
     if (activeCategory.type == 'REGULAR') {

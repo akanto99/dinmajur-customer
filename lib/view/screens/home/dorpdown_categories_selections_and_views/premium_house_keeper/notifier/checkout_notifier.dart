@@ -1,5 +1,7 @@
 
 ///For Ssl Integration using store id and Password
+import 'dart:io';
+
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -258,6 +260,7 @@ class CheckoutViewModel extends ChangeNotifier {
       "shiftId": shiftId,
 
       "paymentType": paymentData,
+      "source": Platform.isAndroid ? "android" : "ios",
     };
   }
 
