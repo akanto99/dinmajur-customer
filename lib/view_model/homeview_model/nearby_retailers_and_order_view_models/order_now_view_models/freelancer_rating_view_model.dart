@@ -17,8 +17,7 @@ class PatchFreelancerRatingViewModel with ChangeNotifier {
   Future<bool> FreelancerRatingPatchApi(BuildContext context, dynamic fields, {VoidCallback? onSuccess}) async {
     setCreateFreelancerRatingLoading(true);
     try {
-      dynamic value = await _myRepo.freelancerRatingPatchApi(fields);
-      if (kDebugMode) print(value.toString());
+      await _myRepo.freelancerRatingPatchApi(fields);
 
       // ✅ Fire callback BEFORE notifyListeners() to avoid rebuild conflict
       onSuccess?.call();

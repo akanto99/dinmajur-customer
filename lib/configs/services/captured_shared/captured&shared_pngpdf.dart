@@ -208,7 +208,6 @@ class ScreenshotHandler {
       }
     } catch (e) {
       errorMsg = "Error processing: $e";
-      print("Screenshot error: $e"); // For debugging
     }
 
     Navigator.of(context).pop(); // Close loading dialog

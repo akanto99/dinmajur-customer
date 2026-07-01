@@ -19,7 +19,6 @@ class LanguageChangeProvider with ChangeNotifier {
       _appLocale = Locale('bn');
     }
 
-    print('Language changed to: ${_appLocale?.languageCode}'); // Debug print
     notifyListeners();
   }
 
@@ -28,7 +27,6 @@ class LanguageChangeProvider with ChangeNotifier {
     SharedPreferences sp = await SharedPreferences.getInstance();
     String? languageCode = sp.getString('language_code');
 
-    print('Retrieved language code: $languageCode'); // Debug print
 
     if (languageCode != null) {
       if (languageCode == 'en') {
@@ -42,7 +40,6 @@ class LanguageChangeProvider with ChangeNotifier {
       await sp.setString('language_code', 'en');
     }
 
-    print('Final app locale: ${_appLocale?.languageCode}'); // Debug print
     notifyListeners();
   }
 }

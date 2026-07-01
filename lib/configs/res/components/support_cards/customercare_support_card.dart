@@ -28,7 +28,6 @@ class CustomerCareSupportCard extends StatelessWidget {
       await launchUrl(launchUri);
     } else {
       // Handle error - phone call not available
-      print('Could not launch phone call to $phoneNumber');
     }
   }
 

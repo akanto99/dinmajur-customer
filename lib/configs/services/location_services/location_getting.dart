@@ -83,7 +83,6 @@ class LocationService {
         return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
       }
     } catch (e) {
-      print('Error getting address: $e');
       return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
     }
   }

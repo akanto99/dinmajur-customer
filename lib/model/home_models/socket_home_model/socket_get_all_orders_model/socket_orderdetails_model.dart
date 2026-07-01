@@ -110,7 +110,6 @@ class Delivery {
         }
         return null;
       } catch (e) {
-        print('⚠️ Delivery date parse error: $value - $e');
         return null;
       }
     }
@@ -204,7 +203,6 @@ class Freelancer {
         }
         return null;
       } catch (e) {
-        print('⚠️ Freelancer date parse error: $value - $e');
         return null;
       }
     }
@@ -304,7 +302,6 @@ class Order {
         }
         return null;
       } catch (e) {
-        print('⚠️ Order date parse error: $value - $e');
         return null;
       }
     }
@@ -386,7 +383,6 @@ class Item {
         }
         return null;
       } catch (e) {
-        print('⚠️ Item date parse error: $value - $e');
         return null;
       }
     }

@@ -27,7 +27,6 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
   @override
   void initState() {
     super.initState();
-    print('Order ID: ${widget.orderId}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final getOrderDetailsModel = Provider.of<GetOrderDetailsViewModel>(context, listen: false);
       getOrderDetailsModel.fetchOrderDetailsData(widget.orderId);

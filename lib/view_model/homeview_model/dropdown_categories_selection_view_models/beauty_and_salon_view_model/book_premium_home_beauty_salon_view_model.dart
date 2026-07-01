@@ -29,7 +29,6 @@ class PostBookPremiumHomeBeautySalonViewModel with ChangeNotifier {
       if (response != null && response['data'] != null) {
         trackingId = response['data']['trackingId']?.toString();
 
-        if (kDebugMode) print('Tracking ID: $trackingId');
 
         // ✅ এখানে loading false করবো না
         onSuccess(trackingId);

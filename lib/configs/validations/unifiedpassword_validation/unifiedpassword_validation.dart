@@ -1,7 +1,7 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class UnifiedPasswordValidation {
   // Password requirements
@@ -271,38 +271,10 @@ class UnifiedPasswordValidation {
           ),
           Text(
             text,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: isMet ? Colors.green : AppColors.textPrimary(context),
-              fontWeight: FontWeight.w400,
-            ),
+            style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: isMet ? Colors.green : AppColors.textPrimary(context)),
           ),
         ],
       ),
-    );
-  }
-
-  Widget buildProgressBar() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        LinearProgressIndicator(
-          value: passwordStrength,
-          backgroundColor: Colors.grey[300],
-          borderRadius: BorderRadius.circular(4),
-          valueColor: AlwaysStoppedAnimation(strengthColor),
-          minHeight: 6,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Password strength: $strengthText',
-          style: TextStyle(
-            fontSize: 14,
-            color: strengthColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 

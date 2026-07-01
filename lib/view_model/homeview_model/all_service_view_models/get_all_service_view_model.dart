@@ -20,14 +20,9 @@ class GetAllServiceViewModel with ChangeNotifier {
     _myRepo
         .fetchGetAllServicesGetApi()
         .then((value) {
-          print(value);
           setgetAllServicesData(ApiResponse.completed(value));
         })
         .onError((error, stackTrace) {
-          if (kDebugMode) {
-            print(error);
-            print(stackTrace);
-          }
           setgetAllServicesData(ApiResponse.error(error.toString()));
         });
   }

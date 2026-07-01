@@ -340,13 +340,10 @@ class CheckoutViewModel extends ChangeNotifier {
     String? customerEmail,
     String? customerAddress,
   }) async {
-    print("═══════════════════════════════════════════");
-    print("🚀 CheckoutViewModel: Initiating Payment");
     // print("Tracking ID: $trackingId");
     // print("Total Amount: $totalAmount");
     // print("Customer: $customerName");
     // print("Phone: $customerPhone");
-    print("═══════════════════════════════════════════");
 
     try {
       final result = await _paymentService.initiatePayment(
@@ -359,15 +356,10 @@ class CheckoutViewModel extends ChangeNotifier {
         customerAddress: customerAddress,
       );
 
-      print("═══════════════════════════════════════════");
-      print("📥 Payment Service Result:");
       // print(result.toString());
-      print("═══════════════════════════════════════════");
 
       return result;
     } catch (e, stackTrace) {
-      print("💥 Payment Initiation Error in ViewModel: $e");
-      print("Stack Trace: $stackTrace");
 
       return SSLPaymentResult(
         success: false,

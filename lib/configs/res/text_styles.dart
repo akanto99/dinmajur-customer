@@ -7,6 +7,18 @@ import 'package:provider/provider.dart';
 
 class AppTextStyles {
 
+  ///h1 large — hero numbers (e.g. prominent rating/stat displays)
+  static TextStyle textSize36(BuildContext context, {FontWeight? weight, Color? color}) {
+    final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: false);
+    final isBengali = languageProvider.appLocale?.languageCode == 'bn';
+    return TextStyle(
+      fontFamily: isBengali ? "hindSiliguri" : "poppins",
+      fontSize: 36,
+      fontWeight: weight ?? FontWeight.w600,
+      color: color ?? AppColors.textPrimary(context),
+    );
+  }
+
   ///h1
   static TextStyle textSize32(BuildContext context, {FontWeight? weight, Color? color}) {
 final languageProvider = Provider.of<LanguageChangeProvider>(context, listen: false);    final isBengali = languageProvider.appLocale?.languageCode == 'bn';

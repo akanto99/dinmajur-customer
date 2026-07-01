@@ -61,7 +61,6 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
         await prefs.setString('userId', userId);
       }
 
-      if (kDebugMode) print('✅ OTP Verify: credentials saved, navigating…');
 
       // ── Navigate — NavigationScreen._initServices() takes over ────────
       // It reads accessToken + userId from SharedPreferences and boots:

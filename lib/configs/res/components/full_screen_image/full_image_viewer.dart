@@ -31,7 +31,6 @@ class _FullScreenImageState extends State<FullScreenImage> {
   Widget body() {
     final screenWidth = MediaQuery.of(context).size.width * 1;
     final screenHeight = MediaQuery.of(context).size.height * 1;
-    print("Image URL:----------- ${widget.imageUrl}");
     return Container(
         height: screenHeight,
         // color: Colors.white,

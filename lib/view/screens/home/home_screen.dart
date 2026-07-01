@@ -99,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _handleRefresh() async {
     try {
-      debugPrint('🔄 HomeScreen: Pull to refresh triggered');
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       await profileViewModel.refreshProfileData();
       final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
@@ -127,7 +126,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!locationAlreadyPosted) {
       await _getLocationWithAddress();
     } else {
-      debugPrint('Location already posted. Skipping location_screens fetch.');
     }
   }
 
@@ -150,12 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoadingLocation = false;
         });
 
-        debugPrint('========== CURRENT LOCATION WITH ADDRESS ==========');
-        debugPrint('Latitude: ${position.latitude}');
-        debugPrint('Longitude: ${position.longitude}');
-        debugPrint('Full Address: $fullAddress');
-        debugPrint('Short Address: $shortAddr');
-        debugPrint('==================================================');
 
         await _postLocationToApi(position.longitude, position.latitude, fullAddress);
         await _markLocationAsPosted();
@@ -164,12 +156,10 @@ class _HomeScreenState extends State<HomeScreen> {
         await profileViewModel.fetchProfileViewUserDataApi(forceRefresh: true);
       }
     } catch (e) {
-      debugPrint('Error getting location with address: $e');
       if (mounted) {
         setState(() {
           _isLoadingLocation = false;
         });
-        print(e.toString());
         // Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
       }
     }
@@ -178,7 +168,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _markLocationAsPosted() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_locationPostedKey, true);
-    debugPrint('Location marked as posted.');
   }
 
   String _stripSuffix(String raw) => raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
@@ -216,7 +205,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
       await addLocationViewModel.addLocationPostApi(context, locationData, false);
     } catch (e) {
-      debugPrint('Error posting location to API: $e');
     }
   }
 
@@ -638,8 +626,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder: (context, countViewModel, _) {
                       return GestureDetector(
                         onTap: () {
-                          debugPrint('🔔 Notification tapped');
-                          debugPrint('Count: ${countViewModel.notificationCount}');
                           Navigator.pushNamed(context, RoutesName.notificationsListScreen);
                         },
                         child: Stack(
@@ -658,7 +644,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   constraints: BoxConstraints(minWidth: 14, minHeight: 14),
                                   child: Text(
                                     '${countViewModel.notificationCount > 9 ? '9+' : countViewModel.notificationCount}',
-                                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                    style: AppTextStyles.textSize10(context, weight: FontWeight.bold, color: Colors.white),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),

@@ -28,29 +28,22 @@ class NotificationViewModel extends ChangeNotifier {
   void initializeNotificationListener(Stream<Map<String, dynamic>> notificationStream) {
     _notificationSubscription?.cancel();
 
-    debugPrint('🎯 NotificationViewModel: Initializing notification listener...');
 
     _notificationSubscription = notificationStream.listen(
           (notificationData) {
         _handleNewNotification(notificationData);
       },
       onError: (error) {
-        debugPrint('❌ Error in notification stream: $error');
       },
       onDone: () {
-        debugPrint('⚠️ Notification stream closed');
       },
       cancelOnError: false,
     );
 
-    debugPrint('✅ Notification listener initialized');
   }
 
   // Handle new notification
   void _handleNewNotification(Map<String, dynamic> data) {
-    debugPrint('═══════════════════════════════════════════════════════');
-    debugPrint('🆕 NEW NOTIFICATION RECEIVED');
-    debugPrint('═══════════════════════════════════════════════════════');
 
     try {
       // Parse to model (data already has ssePayload wrapper)
@@ -58,7 +51,6 @@ class NotificationViewModel extends ChangeNotifier {
 
       // Validate that we have the payload
       if (notification.ssePayload == null) {
-        debugPrint('⚠️ Notification has no ssePayload, ignoring');
         return;
       }
 
@@ -67,28 +59,13 @@ class NotificationViewModel extends ChangeNotifier {
       notifyListeners();
 
       // Log notification details
-      debugPrint('✅ Notification added:');
-      debugPrint('   Type: ${notification.ssePayload?.type}');
-      debugPrint('   Message: ${notification.ssePayload?.message}');
-      debugPrint('   Priority: ${notification.ssePayload?.priority}');
-      debugPrint('   Order ID: ${notification.ssePayload?.data?.orderId}');
-      debugPrint('   Action URL: ${notification.ssePayload?.actionUrl}');
-      debugPrint('   Read: ${notification.ssePayload?.read}');
-      debugPrint('───────────────────────────────────────────────────────');
-      debugPrint('📈 Total Notifications: ${_notifications.length}');
-      debugPrint('🔴 Unread Count: $unreadCount');
-      debugPrint('═══════════════════════════════════════════════════════');
     } catch (e, stackTrace) {
-      debugPrint('❌ Error parsing notification: $e');
-      debugPrint('❌ Stack trace: $stackTrace');
-      debugPrint('❌ Raw data: $data');
     }
   }
 
   // Mark notification as read by index
   void markAsRead(int index) {
     if (index < 0 || index >= _notifications.length) {
-      debugPrint('⚠️ Invalid notification index: $index');
       return;
     }
 
@@ -96,7 +73,6 @@ class NotificationViewModel extends ChangeNotifier {
 
     if (notification.ssePayload?.read != true) {
       notification.ssePayload?.read = true;
-      debugPrint('✅ Notification marked as read at index $index');
       notifyListeners();
     }
   }
@@ -110,7 +86,6 @@ class NotificationViewModel extends ChangeNotifier {
     if (index != -1) {
       markAsRead(index);
     } else {
-      debugPrint('⚠️ Notification not found with ID: $notificationId');
     }
   }
 
@@ -125,7 +100,6 @@ class NotificationViewModel extends ChangeNotifier {
       }
     }
 
-    debugPrint('✅ Marked $markedCount notifications as read');
     notifyListeners();
   }
 
@@ -133,19 +107,16 @@ class NotificationViewModel extends ChangeNotifier {
   void clearAllNotifications() {
     final count = _notifications.length;
     _notifications.clear();
-    debugPrint('✅ Cleared $count notifications');
     notifyListeners();
   }
 
   // Delete a single notification
   void deleteNotification(int index) {
     if (index < 0 || index >= _notifications.length) {
-      debugPrint('⚠️ Invalid notification index: $index');
       return;
     }
 
     _notifications.removeAt(index);
-    debugPrint('✅ Notification deleted at index $index');
     notifyListeners();
   }
 
@@ -158,7 +129,6 @@ class NotificationViewModel extends ChangeNotifier {
     if (index != -1) {
       deleteNotification(index);
     } else {
-      debugPrint('⚠️ Notification not found with ID: $notificationId');
     }
   }
 
@@ -169,7 +139,6 @@ class NotificationViewModel extends ChangeNotifier {
             (notification) => notification.ssePayload?.id == id,
       );
     } catch (e) {
-      debugPrint('⚠️ Notification not found with ID: $id');
       return null;
     }
   }
@@ -235,7 +204,6 @@ class NotificationViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _notificationSubscription?.cancel();
-    debugPrint('🔴 NotificationViewModel disposed');
     super.dispose();
   }
 }

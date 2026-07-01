@@ -112,7 +112,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _clearAllData();
       Navigator.pushReplacementNamed(context, RoutesName.beautyConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A', 'fromCheckout': true});
     } else if (paymentResult.status == 'FAILED') {
-      print("---------------------Handle Payment result - FAILED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
@@ -129,7 +128,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       });
     } else if (paymentResult.status == 'CLOSED') {
-      print("---------------------Handle Payment result - CLOSED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(

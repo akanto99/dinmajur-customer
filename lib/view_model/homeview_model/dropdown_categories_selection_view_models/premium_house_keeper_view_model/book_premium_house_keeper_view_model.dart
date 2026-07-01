@@ -30,9 +30,6 @@ class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
       if (response != null && response['data'] != null) {
         trackingId = response['data']['trackingId']?.toString();
 
-        if (kDebugMode) {
-          print('Tracking ID: $trackingId');
-        }
         onSuccess(trackingId);
       } else {
         setBookPremiumHouseKeeperLoading(false);
@@ -41,7 +38,6 @@ class PostBookPremiumHouseKeeperViewModel with ChangeNotifier {
     } catch (error) {
       setBookPremiumHouseKeeperLoading(false);
       _handleError(error, context);
-      if (kDebugMode) print('Error: $error');
     }
   }
   void _handleError(dynamic error, BuildContext context) {

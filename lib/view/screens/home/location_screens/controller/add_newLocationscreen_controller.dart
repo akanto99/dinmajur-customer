@@ -122,12 +122,6 @@ class AddNewLocationController {
         isLoadingLocation = false;
       });
 
-      debugPrint('========== CURRENT LOCATION WITH ADDRESS ==========');
-      debugPrint('Latitude: ${position.latitude}');
-      debugPrint('Longitude: ${position.longitude}');
-      debugPrint('Full Address: $fullAddress');
-      debugPrint('Short Address: $shortAddr');
-      debugPrint('==================================================');
 
       await _postLocationToApi(
         position.longitude,
@@ -135,7 +129,6 @@ class AddNewLocationController {
         fullAddress,
       );
     } catch (e) {
-      debugPrint('Error getting location with address: $e');
       setState(() {
         locationMessage = "Please enable location to use this app.";
         isLoadingLocation = false;
@@ -223,7 +216,6 @@ class AddNewLocationController {
       final addLocationViewModel = context.read<AddLocationViewModel>();
       await addLocationViewModel.addLocationPostApi(context, locationData, true);
     } catch (e) {
-      debugPrint('Error posting location to API: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save location: ${e.toString()}'), backgroundColor: Colors.orange),
       );
@@ -269,10 +261,7 @@ class AddNewLocationController {
         locationId,
       );
 
-      debugPrint('Updated location data: $locationData');
-      debugPrint('Location ID: $locationId');
     } catch (e) {
-      debugPrint('Error updating location: $e');
 
       setState(() {
         isUpdating = false;
@@ -312,7 +301,6 @@ class AddNewLocationController {
       });
 
     } catch (e) {
-      debugPrint('Error deleting location: $e');
 
       setState(() {
         isDeleting = false;

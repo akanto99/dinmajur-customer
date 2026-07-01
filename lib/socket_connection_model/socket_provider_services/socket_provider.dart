@@ -35,7 +35,6 @@ class SocketProvider with ChangeNotifier {
       _isConnecting = true;
       _connectionError = null;
       notifyListeners();
-print("------------------ACCESS TOKEN Connection-----------------------$accessToken");
       // Initialize socket with access token
       await _socketService.initializeSocket(accessToken: accessToken);
 
@@ -45,18 +44,12 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _isConnecting = false;
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Connection initiated with access token');
-      }
     } catch (e) {
       _isConnecting = false;
       _connectionError = e.toString();
       _isConnected = false;
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Connection failed - $e');
-      }
     }
   }
 
@@ -68,20 +61,12 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _lastActivity = DateTime.now().toString();
       notifyListeners();
 
-      if (kDebugMode) {
-        print('-----------------------------------');
-        print('🎉 Socket Provider: Connected Successfully');
-        print('-----------------------------------');
-      }
 
       // ✅ Trigger all ready callbacks
       for (var callback in _onReadyCallbacks) {
         try {
           callback();
         } catch (e) {
-          if (kDebugMode) {
-            print('🔌 Socket Provider: Error in ready callback - $e');
-          }
         }
       }
     });
@@ -91,9 +76,6 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _lastActivity = DateTime.now().toString();
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Disconnected');
-      }
     });
 
     _socketService.socket?.on('connect_error', (error) {
@@ -102,18 +84,12 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _lastActivity = DateTime.now().toString();
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Connection error - $error');
-      }
     });
   }
 
   /// Disconnect socket
   Future<void> disconnect() async {
     try {
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Disconnect called');
-      }
 
       await _socketService.disconnect();
 
@@ -123,13 +99,7 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _onReadyCallbacks.clear();
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: ✅ Disconnected successfully');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Disconnect error - $e');
-      }
 
       // Update state even on error
       _isConnected = false;
@@ -146,13 +116,7 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _lastActivity = DateTime.now().toString();
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Emitted event: $event');
-      }
     } else {
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Cannot emit $event - socket not connected');
-      }
     }
   }
 
@@ -179,9 +143,6 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _connectionError = null;
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Attempting reconnection...');
-      }
 
       // Check if we can reconnect
       if (!_socketService.canReconnect()) {
@@ -194,18 +155,12 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _isConnecting = false;
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Reconnection attempt completed');
-      }
     } catch (e) {
       _isConnecting = false;
       _connectionError = e.toString();
       _isConnected = false;
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Reconnection failed - $e');
-      }
       rethrow;
     }
   }
@@ -219,9 +174,6 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
 
     while (retryCount < maxRetries && !_isConnected) {
       try {
-        if (kDebugMode) {
-          print('🔌 Socket Provider: Auto-reconnect attempt ${retryCount + 1}/$maxRetries');
-        }
 
         await reconnect();
 
@@ -229,9 +181,6 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
         await Future.delayed(Duration(milliseconds: 500));
 
         if (_isConnected) {
-          if (kDebugMode) {
-            print('🔌 Socket Provider: Auto-reconnect successful');
-          }
           return;
         }
 
@@ -241,9 +190,6 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
         }
       } catch (e) {
         retryCount++;
-        if (kDebugMode) {
-          print('🔌 Socket Provider: Auto-reconnect attempt $retryCount failed - $e');
-        }
 
         if (retryCount < maxRetries) {
           await Future.delayed(delay);
@@ -255,17 +201,11 @@ print("------------------ACCESS TOKEN Connection-----------------------$accessTo
       _connectionError = 'Failed to reconnect after $maxRetries attempts';
       notifyListeners();
 
-      if (kDebugMode) {
-        print('🔌 Socket Provider: Auto-reconnect failed after $maxRetries attempts');
-      }
     }
   }
 
   @override
   void dispose() {
-    if (kDebugMode) {
-      print('🔌 Socket Provider: Disposing...');
-    }
     _onReadyCallbacks.clear();
     super.dispose();
   }

@@ -2,6 +2,7 @@ import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:flutter/material.dart';
 
+@Deprecated('Use CustomTextFieldWithFormField (customtext_with_formfield.dart) with prefixBoxText: "+88" instead.')
 class CustomeMobileTextfield extends StatefulWidget {
   final String placeholder;
   final double? dynamicheight;

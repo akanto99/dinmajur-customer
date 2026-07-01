@@ -34,12 +34,6 @@ class PostCheckOutOrderViewModel with ChangeNotifier {
       setCheckoutOrderLoading(false);
 
       // Print the response
-      if (kDebugMode) {
-        print('========== CHECKOUT ORDER RESPONSE ==========');
-        // print('Response: ${jsonEncode(value)}');
-        // print('Response Type: ${value.runtimeType}');
-        // print('==========================================');
-      }
 
       // Extract orderId from response: data.order._id
       String? orderId;

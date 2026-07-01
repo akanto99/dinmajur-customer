@@ -170,7 +170,6 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     final bookingViewModel = Provider.of<BookServiceViewModel>(context, listen: false);
 
     if (bookingViewModel.createBookServiceLoading) {
-      debugPrint('⚠️ Already processing, ignoring duplicate tap');
       return;
     }
 
@@ -226,11 +225,9 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
       tasks: tasks,
     );
 
-    debugPrint('📦 Booking Data: $bookingData');
 
     try {
       await bookingViewModel.bookServicePostApi(context, bookingData, (String? trackingId) async {
-        debugPrint('✅ Booking Success! TrackingId: $trackingId');
 
         if (trackingId == null || trackingId.isEmpty) {
           bookingViewModel.setBookServiceLoading(false);
@@ -272,7 +269,6 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
       });
     } catch (e) {
       bookingViewModel.setBookServiceLoading(false);
-      debugPrint('❌ Booking error: $e');
     }
   }
 

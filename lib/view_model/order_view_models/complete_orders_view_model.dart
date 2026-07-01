@@ -21,15 +21,10 @@ class CompleteOrdersViewModel with ChangeNotifier {
     setCompleteOrdersData(ApiResponse.loading());
 
     _myRepo.fetchCompleteOrderGetApi().then((value){
-      print(value);
       setCompleteOrdersData(ApiResponse.completed(value));
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setCompleteOrdersData(ApiResponse.error(error.toString()));
     });
   }

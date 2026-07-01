@@ -123,7 +123,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         }
       });
     } else if (paymentResult.status == 'CLOSED') {
-      print("---------------------Handle Payment result - CLOSED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
@@ -277,7 +276,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookFamilyEventCookingViewModel>(context, listen: false);
     if (bookingViewModel.createBookFamilyEventCookingLoading) {
-      print('⚠️ Already processing payment, ignoring duplicate tap');
       return;
     }
     // Calculate total amount

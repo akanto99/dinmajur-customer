@@ -115,7 +115,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         },
       );
     } else if (paymentResult.status == 'FAILED') {
-      print("---------------------Handle Payment result - FAILED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
@@ -132,7 +131,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         }
       });
     } else if (paymentResult.status == 'CLOSED') {
-      print("---------------------Handle Payment result - CLOSED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
@@ -166,7 +164,6 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     final bookingViewModel = Provider.of<PostBookPremiumHouseKeeperViewModel>(context, listen: false);
 
     if (bookingViewModel.createBookPremiumHouseKeeperLoading) {
-      print('⚠️ Already processing payment, ignoring duplicate tap');
       return;
     }
 

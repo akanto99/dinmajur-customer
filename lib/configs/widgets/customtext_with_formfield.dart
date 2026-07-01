@@ -47,6 +47,14 @@ class CustomTextFieldWithFormField extends StatefulWidget {
   final int? maxLines;
   final int? minLines;
 
+  // Password-style input
+  final bool obscureText;
+
+  // Country-code style leading box (e.g. "+88"), rendered as its own
+  // bordered box to the left of the field instead of inline prefix text.
+  final String? prefixBoxText;
+  final double prefixBoxWidth;
+
   const CustomTextFieldWithFormField({
     Key? key,
     this.titleText,
@@ -88,6 +96,13 @@ class CustomTextFieldWithFormField extends StatefulWidget {
     // Multiline
     this.maxLines,
     this.minLines,
+
+    // Password-style input
+    this.obscureText = false,
+
+    // Country-code style leading box
+    this.prefixBoxText,
+    this.prefixBoxWidth = 57,
   }) : super(key: key);
 
   @override
@@ -159,89 +174,130 @@ class _CustomTextFieldWithFormFieldState extends State<CustomTextFieldWithFormFi
           validator: widget.validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           builder: (FormFieldState<String> fieldState) {
-            // Determine border color based on state
-            Color currentBorderColor = actualBorderColor;
+            // Determine border color based on state: error takes priority,
+            // then focus, then the resting border color.
+            final Color currentBorderColor = fieldState.hasError
+                ? actualErrorBorderColor
+                : (_isFocused ? actualFocusedBorderColor : actualBorderColor);
+
+            final Widget fieldContainer = Container(
+              height: actualHeight,
+              width: widget.prefixBoxText == null ? actualWidth : null,
+              decoration: BoxDecoration(
+                color: actualBackgroundColor,
+                borderRadius: widget.prefixBoxText == null
+                    ? BorderRadius.circular(actualBorderRadius)
+                    : BorderRadius.only(
+                        topRight: Radius.circular(actualBorderRadius),
+                        bottomRight: Radius.circular(actualBorderRadius),
+                      ),
+                border: Border.all(
+                  width: actualBorderWidth,
+                  color: currentBorderColor,
+                ),
+              ),
+              child: TextFormField(
+                controller: widget.controller,
+                focusNode: widget.focusCurrent,
+                keyboardType: widget.keyboardType,
+                obscureText: widget.obscureText,
+                maxLines: widget.obscureText ? 1 : widget.maxLines ?? (widget.keyboardType == TextInputType.multiline ? 5 : 1),
+                minLines: widget.minLines,
+                readOnly: widget.isReadOnly,
+                style: widget.inputTextStyle ??
+                    AppTextStyles.textSize14(
+                        context,
+                        weight: FontWeight.w500,
+                        color: AppColors.textPrimary(context)
+                    ),
+                decoration: InputDecoration(
+                  hintText: widget.placeholder,
+                  hintStyle: widget.hintTextStyle ??
+                      AppTextStyles.textSize14(
+                          context,
+                          color: AppColors.subtitle(context).withOpacity(0.5),
+                          weight: FontWeight.w400
+                      ),
+                  prefixIcon: widget.prefixIcon,
+                  suffixIcon: widget.suffixIcon ??
+                      (widget.isReadOnly && widget.showLockIconWhenReadOnly
+                          ? Icon(
+                          Icons.lock_outline,
+                          size: 18,
+                          color: AppColors.subtitle(context)
+                      )
+                          : null),
+                  border: OutlineInputBorder(borderSide: BorderSide.none),
+                  contentPadding: widget.contentPadding ??
+                      EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: widget.keyboardType == TextInputType.multiline ? 12.0 : 0
+                      ),
+                ),
+                onChanged: (value) {
+                  fieldState.didChange(value);
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(value);
+                  }
+                },
+                onFieldSubmitted: (_) {
+                  if (widget.focusNext != null) {
+                    FocusScope.of(context).requestFocus(widget.focusNext);
+                  }
+                },
+              ),
+            );
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: actualHeight,
-                  width: actualWidth,
-                  decoration: BoxDecoration(
-                    color: actualBackgroundColor,
-                    borderRadius: BorderRadius.circular(actualBorderRadius),
-                    border: Border.all(
-                      width: actualBorderWidth,
-                      color: currentBorderColor,
-                    ),
-                  ),
-                  child: TextFormField(
-                    controller: widget.controller,
-                    focusNode: widget.focusCurrent,
-                    keyboardType: widget.keyboardType,
-                    maxLines: widget.maxLines ?? (widget.keyboardType == TextInputType.multiline ? 5 : 1),
-                    minLines: widget.minLines,
-                    readOnly: widget.isReadOnly,
-                    style: widget.inputTextStyle ??
-                        AppTextStyles.textSize14(
-                            context,
-                            weight: FontWeight.w500,
-                            color: AppColors.textPrimary(context)
+                widget.prefixBoxText == null
+                    ? fieldContainer
+                    : SizedBox(
+                        width: actualWidth,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: widget.prefixBoxWidth,
+                              height: actualHeight,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: actualBackgroundColor,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(actualBorderRadius),
+                                  bottomLeft: Radius.circular(actualBorderRadius),
+                                ),
+                                border: Border(
+                                  left: BorderSide(width: actualBorderWidth, color: currentBorderColor),
+                                  top: BorderSide(width: actualBorderWidth, color: currentBorderColor),
+                                  bottom: BorderSide(width: actualBorderWidth, color: currentBorderColor),
+                                ),
+                              ),
+                              child: Text(
+                                widget.prefixBoxText!,
+                                style: widget.inputTextStyle ?? AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                              ),
+                            ),
+                            Expanded(child: fieldContainer),
+                          ],
                         ),
-                    decoration: InputDecoration(
-                      hintText: widget.placeholder,
-                      hintStyle: widget.hintTextStyle ??
-                          AppTextStyles.textSize14(
-                              context,
-                              color: AppColors.subtitle(context).withOpacity(0.5),
-                              weight: FontWeight.w400
-                          ),
-                      prefixIcon: widget.prefixIcon,
-                      suffixIcon: widget.suffixIcon ??
-                          (widget.isReadOnly && widget.showLockIconWhenReadOnly
-                              ? Icon(
-                              Icons.lock_outline,
-                              size: 18,
-                              color: AppColors.subtitle(context)
-                          )
-                              : null),
-                      border: OutlineInputBorder(borderSide: BorderSide.none),
-                      contentPadding: widget.contentPadding ??
-                          EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                              vertical: widget.keyboardType == TextInputType.multiline ? 12.0 : 0
-                          ),
-                    ),
-                    onChanged: (value) {
-                      fieldState.didChange(value);
-                      if (widget.onChanged != null) {
-                        widget.onChanged!(value);
-                      }
-                    },
-                    onFieldSubmitted: (_) {
-                      if (widget.focusNext != null) {
-                        FocusScope.of(context).requestFocus(widget.focusNext);
-                      }
-                    },
-                  ),
-                ),
+                      ),
 
                 // Error Text
-                // if (fieldState.hasError)
-                //   Padding(
-                //     padding: const EdgeInsets.only(top: 4.0, left: 12.0),
-                //     child: Text(
-                //       fieldState.errorText ?? '',
-                //       style: widget.errorTextStyle ??
-                //           const TextStyle(
-                //               fontSize: 12,
-                //               fontWeight: FontWeight.w400,
-                //               color: Colors.red,
-                //               letterSpacing: 0.2
-                //           ),
-                //     ),
-                //   ),
+                if (fieldState.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0, left: 12.0),
+                    child: Text(
+                      fieldState.errorText ?? '',
+                      style: widget.errorTextStyle ??
+                          const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.red,
+                              letterSpacing: 0.2
+                          ),
+                    ),
+                  ),
               ],
             );
           },

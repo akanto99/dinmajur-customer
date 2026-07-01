@@ -152,7 +152,6 @@ class _TrendingServicesWidgetState extends State<TrendingServicesWidget> {
         },
       );
     } catch (e) {
-      debugPrint('Trending tap failed: $e');
     } finally {
       if (mounted) setState(() => _loadingTaskId = null);
     }

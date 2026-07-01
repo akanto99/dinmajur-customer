@@ -22,10 +22,6 @@ class GetSlotViewModel with ChangeNotifier {
     _myRepo.fetchSlotGetApi(formattedDate,serviceId ).then((value) {
       setGetSlotData(ApiResponse.completed(value));
     }).onError((error, stackTrace) {
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setGetSlotData(ApiResponse.error(error.toString()));
     });
   }

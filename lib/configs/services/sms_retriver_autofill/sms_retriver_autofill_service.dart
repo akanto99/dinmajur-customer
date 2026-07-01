@@ -25,10 +25,8 @@ class SmsRetrieverImpl implements SmsRetriever {
     try {
       final res = await smartAuth.getSmsWithUserConsentApi();
       if (res.hasData) {
-        debugPrint('SMS received: ${res.data?.sms}');
         final code = res.data?.code;
         if (code != null) {
-          debugPrint('OTP code extracted: $code');
 
           // ✅ Trigger callback to update UI
           onSmsReceived?.call(code);
@@ -37,7 +35,6 @@ class SmsRetrieverImpl implements SmsRetriever {
         }
       }
     } catch (e) {
-      debugPrint('Error getting SMS code: $e');
     }
     return null;
   }

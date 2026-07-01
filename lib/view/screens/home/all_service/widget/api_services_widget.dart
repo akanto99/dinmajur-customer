@@ -160,7 +160,6 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           break;
 
         default:
-      print(service.id);
           Navigator.pushNamed(
             context,
             RoutesName.servicesViewScreen,
@@ -178,7 +177,6 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           break;
       }
     } catch (e) {
-      debugPrint('Coverage check / navigation failed: $e');
     } finally {
       if (mounted) {
         setState(() => _loadingServiceId = null);

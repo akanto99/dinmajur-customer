@@ -493,9 +493,6 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     String? discountBadge;
 
     // Debug print to see what values we're getting
-    print('Service: ${service.name}');
-    print('DiscountType: ${service.discountType}');
-    print('DiscountValue: ${service.discountValue}');
 
     if (service.discountType != null && service.discountValue != null) {
       final discountVal = service.discountValue!;
@@ -510,7 +507,6 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     }
 
     // Debug print to see final badge
-    print('Discount Badge: $discountBadge');
     return Container(
       width: screenWidth * 0.9,
       padding: EdgeInsets.all(12),
@@ -563,7 +559,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           SizedBox(width: 8),
                           Text(
                             '৳${originalPrice.toStringAsFixed(2)}',
-                            style: TextStyle(fontSize: 10, color: AppColors.subtitle(context), decoration: TextDecoration.lineThrough),
+                            style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                           ),
                         ],
                       ],

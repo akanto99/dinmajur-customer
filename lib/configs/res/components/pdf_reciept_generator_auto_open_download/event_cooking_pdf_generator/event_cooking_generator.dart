@@ -741,9 +741,7 @@ class UniversalPDFReceiptGenerator {
         final fontDataBold = await rootBundle.load('assets/fonts/hind-siliguri/HindSiliguri-Bold.ttf');
         _bengaliFontBold = pw.Font.ttf(fontDataBold);
 
-        print('✅ Bengali fonts loaded successfully');
       } catch (e) {
-        print('❌ Error loading Bengali fonts: $e');
         rethrow;
       }
     }
@@ -787,7 +785,6 @@ class UniversalPDFReceiptGenerator {
       final output = await _savePdf(pdf, receiptData.trackingId);
       return output;
     } catch (e) {
-      print('❌ Error generating PDF: $e');
       return null;
     }
   }
@@ -1269,7 +1266,6 @@ class UniversalPDFReceiptGenerator {
           try {
             await baseDirectory.create(recursive: true);
           } catch (e) {
-            print("Could not create Downloads: $e");
             baseDirectory = await getExternalStorageDirectory();
           }
         }
@@ -1285,9 +1281,7 @@ class UniversalPDFReceiptGenerator {
       final Directory bookingFolder = Directory('${baseDirectory.path}/Dinajpur Booking');
       if (!await bookingFolder.exists()) {
         await bookingFolder.create(recursive: true);
-        print('📁 Created folder: ${bookingFolder.path}');
       } else {
-        print('📁 Folder already exists: ${bookingFolder.path}');
       }
 
       final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -1297,10 +1291,8 @@ class UniversalPDFReceiptGenerator {
       final File file = File(filePath);
       await file.writeAsBytes(await pdf.save());
 
-      print('✅ PDF saved to: $filePath');
       return file;
     } catch (e) {
-      print('❌ Error saving PDF: $e');
       rethrow;
     }
   }

@@ -20,7 +20,6 @@ class GetServiceConfirmationDetailsViewModel with ChangeNotifier {
     setGetServiceData(ApiResponse.loading());
 
     _myRepo.fetchServiceViewGetApi(byTrackId).then((value){
-      print(value);
       setGetServiceData(ApiResponse.completed(value));
 
 

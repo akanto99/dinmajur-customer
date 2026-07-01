@@ -18,7 +18,6 @@ class SessionExpiredService {
     final context = navigatorKey.currentContext;
 
     if (context == null || !context.mounted) {
-      print('❌ Context not available for dialog');
       return;
     }
 
@@ -88,7 +87,6 @@ class SessionExpiredService {
                         // ✅ 1. Close the dialog first
                         Navigator.of(dialogContext).pop();
 
-                        print('🔄 User clicked Login Again, logging out...');
 
                         // ✅ 2. Perform logout
                         final loginLogoutViewModel = Provider.of<LoginLogoutViewModel>(
@@ -98,7 +96,6 @@ class SessionExpiredService {
 
                         await loginLogoutViewModel.logoutUser(context);
 
-                        print('✅ Logout successful');
 
                         // ✅ 3. Navigate to welcome screen
                         if (context.mounted) {
@@ -106,10 +103,8 @@ class SessionExpiredService {
                             RoutesName.authLoginWelcome,
                                 (Route<dynamic> route) => false,
                           );
-                          print('✅ Navigated to welcome screen');
                         }
                       } catch (e) {
-                        print('❌ Error during logout/navigation: $e');
                       }
                     },
                     child: Container(
@@ -146,7 +141,6 @@ class SessionExpiredService {
       await showSessionExpiredDialog();
 
     } catch (e) {
-      print('❌ Error in handleSessionExpired: $e');
 
       // Fallback: If dialog fails, navigate directly
       final context = navigatorKey.currentContext;

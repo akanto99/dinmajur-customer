@@ -20,15 +20,10 @@ class GetConfirmedbookingViewModel with ChangeNotifier {
     setgetConfirmBookingData(ApiResponse.loading());
 
     _myRepo.fetchGetConfirmedBookingGetApi(byTrackId).then((value){
-      print(value);
       setgetConfirmBookingData(ApiResponse.completed(value));
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setgetConfirmBookingData(ApiResponse.error(error.toString()));
     });
   }

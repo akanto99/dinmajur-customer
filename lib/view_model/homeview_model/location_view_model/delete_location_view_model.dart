@@ -26,7 +26,7 @@ class DeleteLocationViewModel with ChangeNotifier {
     setCreateDeleteLocationLoading(true);
 
     try {
-      dynamic response = await _myRepo.deleteAddressDeleteApi(addressId);
+      await _myRepo.deleteAddressDeleteApi(addressId);
 
       setCreateDeleteLocationLoading(false);
       Utils.flushBarSuccessMessage('Location Deleted successfully', context);
@@ -34,10 +34,6 @@ class DeleteLocationViewModel with ChangeNotifier {
       final locationListViewModel = Provider.of<GetLocationListViewModel>(context, listen: false);
       locationListViewModel.clearCache(); // Clear the cached data
       await locationListViewModel.fetchLocationListApi();
-      if (kDebugMode) {
-        // print('Location API Response: ${jsonEncode(response)}');
-        print('========================================');
-      }
 
     } catch (error) {
       setCreateDeleteLocationLoading(false);

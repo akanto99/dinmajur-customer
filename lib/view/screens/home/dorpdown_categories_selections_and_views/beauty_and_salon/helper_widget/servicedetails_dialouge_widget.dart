@@ -207,22 +207,14 @@ class ServiceDetailsDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  // '৳${discountedPrice.toStringAsFixed(2)}',
                   '৳${AmountFormatter.format(discountedPrice)}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: Colors.white),
                 ),
                 if (showDiscount) ...[
                   SizedBox(width: 8),
                   Text(
                     '৳${AmountFormatter.format(originalPrice)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white.withOpacity(0.8),
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: Colors.white.withOpacity(0.8)).copyWith(
                       decoration: TextDecoration.lineThrough,
                     ),
                   ),

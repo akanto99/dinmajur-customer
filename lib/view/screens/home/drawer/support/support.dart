@@ -110,8 +110,6 @@ class _SupportState extends State<Support> {
                         // Add other required fields based on your API requirements
                       };
 
-                      print("userId : $userId");
-                      print(supportTextController);
 
                       // Call the API
                       await supportModel.supportPostAPI(context, supportData);

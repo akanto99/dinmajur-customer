@@ -64,7 +64,6 @@ class TrackOrderViewModel extends ChangeNotifier {
   }) async {
     if (!isContextValid(context)) return;
 
-    debugPrint('🎬 [VM] initialize() for orderId: $orderId');
 
     _orderDetailsProvider = orderDetailsProvider;
     _socketManager        = socketManager;
@@ -81,7 +80,6 @@ class TrackOrderViewModel extends ChangeNotifier {
     // SocketManager.connect() is idempotent: NavigationScreen already called
     // it on startup, so this only does real work if we're offline.
     if (!_socketManager!.isConnected) {
-      debugPrint('🔌 [VM] Socket not connected — connecting before first fetch…');
       final token = await _getAccessToken();
       if (token != null) await _socketManager!.connect(token);
     }
@@ -90,7 +88,6 @@ class TrackOrderViewModel extends ChangeNotifier {
 
     _isInitialized = true;
     notifyListeners();
-    debugPrint('✅ [VM] Initialization complete');
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -107,7 +104,6 @@ class TrackOrderViewModel extends ChangeNotifier {
     }
 
     _onSocketConnectedCallback = () {
-      debugPrint('🔌 [VM] Socket reconnected — re-fetching order details…');
       if (_isInitialized) {
         // Small delay so the socket handshake fully completes before emitting
         Future.delayed(const Duration(milliseconds: 800), () {
@@ -119,7 +115,6 @@ class TrackOrderViewModel extends ChangeNotifier {
     };
 
     _socketManager?.onConnected = _onSocketConnectedCallback;
-    debugPrint('👂 [VM] Socket reconnect callback registered');
   }
 
   // ════════════════════════════════FETCH WITH RETRY═══════════════════════════════════════════
@@ -129,34 +124,27 @@ class TrackOrderViewModel extends ChangeNotifier {
   }) async {
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        debugPrint('🔄 [VM] Fetch attempt $attempt/$maxRetries');
 
         await _orderDetailsProvider!.initializeAndFetch(
           socketManager: _socketManager!,
           orderId: orderId,
           onSuccess: (model) => handleOrderDetailsUpdate(model: model, context: context),
           onError: (error) {
-            debugPrint('❌ [VM] Server error: $error');
             if (error.contains('Invalid order ID')) throw Exception(error);
           },
         );
 
-        debugPrint('✅ [VM] Fetch initiated on attempt $attempt');
         return;
       } catch (e) {
-        debugPrint('❌ [VM] Attempt $attempt failed: $e');
 
         if (e.toString().contains('Invalid order ID')) {
-          debugPrint('❌ [VM] Stopping retries — invalid order ID');
           return;
         }
 
         if (attempt < maxRetries) {
-          debugPrint('🔌 [VM] Reconnecting socket before retry…');
           await _reconnectSocket();
           await Future.delayed(const Duration(seconds: 3));
         } else {
-          debugPrint('❌ [VM] All $maxRetries attempts exhausted');
         }
       }
     }
@@ -166,7 +154,6 @@ class TrackOrderViewModel extends ChangeNotifier {
   Future<void> handleRefresh({required BuildContext context}) async {
     try {
       if (!_socketManager!.isConnected) {
-        debugPrint('⚠️ [VM] Socket disconnected — reconnecting before refresh');
         await _reconnectSocket();
         await Future.delayed(const Duration(milliseconds: 500));
       }
@@ -176,14 +163,12 @@ class TrackOrderViewModel extends ChangeNotifier {
         orderId: orderId,
         onSuccess: (model) => handleOrderDetailsUpdate(model: model, context: context),
         onError: (error) {
-          debugPrint('❌ [VM] Refresh error: $error');
           if (isContextValid(context)) {
             Utils.flushBarErrorMessage('Failed to update order details', context);
           }
         },
       );
     } catch (e) {
-      debugPrint('❌ [VM] handleRefresh error: $e');
       if (isContextValid(context)) {
         Utils.flushBarErrorMessage('Failed to refresh order details', context);
       }
@@ -196,17 +181,13 @@ class TrackOrderViewModel extends ChangeNotifier {
   // but we also call connect() directly here so the VM controls the timing.
   Future<void> _reconnectSocket() async {
     try {
-      debugPrint('🔌 [VM] _reconnectSocket()');
       final token = await _getAccessToken();
       if (token == null) {
-        debugPrint('❌ [VM] No access token — cannot reconnect');
         return;
       }
       await _socketManager!.connect(token);
       await Future.delayed(const Duration(milliseconds: 1000));
-      debugPrint('✅ [VM] Socket reconnected');
     } catch (e) {
-      debugPrint('❌ [VM] Socket reconnect failed: $e');
     }
   }
 
@@ -222,14 +203,12 @@ class TrackOrderViewModel extends ChangeNotifier {
     required OrderDetailsModel model,
     required BuildContext context,
   }) {
-    debugPrint('📊 [VM] handleOrderDetailsUpdate — status: ${model.delivery?.status}');
 
     final currentStatus = model.delivery?.status;
 
     if (currentStatus?.toUpperCase() == 'DELIVERED' &&
         _previousDeliveryStatus?.toUpperCase() != 'DELIVERED' &&
         !_hasNavigatedToDelivered) {
-      debugPrint('🎉 [VM] Order delivered — navigating in 2s');
       _hasNavigatedToDelivered = true;
       notifyListeners();
 
@@ -321,7 +300,6 @@ class TrackOrderViewModel extends ChangeNotifier {
     required Delivery delivery,
   }) async {
     if (_isPaymentProcessing) {
-      debugPrint('⚠️ Payment already in progress - ignoring duplicate tap');
       return;
     }
 
@@ -346,7 +324,6 @@ class TrackOrderViewModel extends ChangeNotifier {
         await _handleOnlinePayment(context: context, order: order, delivery: delivery);
       }
     } catch (e) {
-      debugPrint('❌ Payment error: $e');
       Utils.flushBarErrorMessage('Payment failed. Please try again.', context);
     } finally {
       // ✅ Always unlock after everything is done (success or fail)
@@ -405,7 +382,6 @@ class TrackOrderViewModel extends ChangeNotifier {
       if (!isContextValid(context)) return;
 
       final groceryVM = Provider.of<GroceryOrdernowViewModel>(context, listen: false);
-      debugPrint('====== payment.id: ${payment.id}');
       final fields = {
         'paymentId': payment.id,
         'paymentType': 'CASH_ON_DELIVERY',
@@ -415,7 +391,6 @@ class TrackOrderViewModel extends ChangeNotifier {
         context,
         fields,
             () {
-          debugPrint('✅ [VM] Cash payment confirmed for payment ID: ${payment.id}');
           handleRefresh(context: context);
         },
       );
@@ -430,7 +405,6 @@ class TrackOrderViewModel extends ChangeNotifier {
     final double total      = calculateTotal(order);
     final customer          = _orderDetailsProvider?.orderDetailsModel?.customer;
     final deliveryModel     = _orderDetailsProvider?.orderDetailsModel?.delivery;
-    print("--------------${deliveryModel?.trackingId}");
     final result = await SSLCommerzPaymentService().initiatePayment(
       trackingId:       deliveryModel?.trackingId ?? '',
       totalAmount:      total,
@@ -444,7 +418,6 @@ class TrackOrderViewModel extends ChangeNotifier {
     if (!isContextValid(context)) return;
 
     if (result.success) {
-      debugPrint('💳 [VM] SSL payment success: ${result.transactionId}');
       handleRefresh(context: context);
     } else if (result.status == 'CANCELLED') {
       Utils.flushBarErrorMessage('Payment was cancelled.', context);
@@ -466,7 +439,6 @@ class TrackOrderViewModel extends ChangeNotifier {
   // ════════════════════════════════════DISPOSE═══════════════════════════════════════
   @override
   void dispose() {
-    debugPrint('🗑️ [VM] Disposing TrackOrderViewModel');
 
     // Unregister our socket reconnect callback so it doesn't fire after dispose
     if (_socketManager?.onConnected == _onSocketConnectedCallback) {

@@ -98,7 +98,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
     return Consumer<ProfileViewViewModel>(
       builder: (context, profileViewModel, _) {
         // Debug print to check the status
-        print("ProfileViewModel Status: ${profileViewModel.profileviewUserData.status}");
 
         switch (profileViewModel.profileviewUserData.status) {
           case Status.LOADING:
@@ -125,7 +124,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
             );
           case Status.COMPLETED:
             // Debug print to check data
-            print("Data: ${profileViewModel.profileviewUserData.data}");
 
             // Check if data is null
             if (profileViewModel.profileviewUserData.data?.data?.user == null) {
@@ -408,7 +406,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
         }
       }
     } catch (e) {
-      print("Error launching URL: $e");
       if (mounted) {
         Utils.flushBarErrorMessage("Could not open the link", context);
       }
@@ -564,7 +561,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
         Navigator.of(dialogContext).pop();
       }
     } catch (e) {
-      print("🔥 CustomDrawer: Logout error - $e");
 
       // Close dialog on error
       if (mounted && Navigator.of(dialogContext).canPop()) {

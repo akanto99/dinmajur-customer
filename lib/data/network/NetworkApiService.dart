@@ -352,7 +352,6 @@ class NetworkApiService extends BaseApiServices {
   Future<Map<String, String>> _getAuthHeaders([Map<String, String>? additionalHeaders]) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
-    print(accessToken);
     Map<String, String> headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
 
     if (accessToken != null && accessToken.isNotEmpty) {
@@ -408,8 +407,6 @@ class NetworkApiService extends BaseApiServices {
   /// Parse response based on status code
   dynamic returnResponse(http.Response response) {
     final url = response.request?.url.toString() ?? "---------Unknown URL--------";
-    print("🌐 $url : ${response.statusCode}");
-    print("📦 ${response.body}");
 
     switch (response.statusCode) {
       case 200:

@@ -250,38 +250,6 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
     );
   }
 
-  // Widget _buildTimeSlots(BuildContext context) {
-  //   return AnimatedBuilder(
-  //     animation: widget.bookedSlotViewModel,
-  //     builder: (context, _) {
-  //       final List<BookedSlotDatum> slots = widget.bookedSlotViewModel.getBookedSlotData.data?.data ?? [];
-  //
-  //       if (slots.isEmpty) {
-  //         return Padding(
-  //           padding: EdgeInsets.symmetric(vertical: 8),
-  //           child: Text('No time slots available', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
-  //         );
-  //       }
-  //
-  //       // Build rows of 2 buttons
-  //       return Column(
-  //         children: [
-  //           for (int i = 0; i < slots.length; i += 2)
-  //             Padding(
-  //               padding: EdgeInsets.only(bottom: 10),
-  //               child: Row(
-  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                 children: [
-  //                   _serviceTimeButton(context, slots[i]),
-  //                   if (i + 1 < slots.length) _serviceTimeButton(context, slots[i + 1]) else Expanded(child: SizedBox()),
-  //                 ],
-  //               ),
-  //             ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
   Widget _buildTimeSlots(BuildContext context) {
     return AnimatedBuilder(
       animation: widget.bookedSlotViewModel,

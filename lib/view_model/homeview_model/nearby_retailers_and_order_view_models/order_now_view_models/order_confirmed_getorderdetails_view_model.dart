@@ -20,15 +20,10 @@ class GetOrderDetailsViewModel with ChangeNotifier {
     setorderDetailsData(ApiResponse.loading());
 
     _myRepo.fetchOrderDetailsData(orderId).then((value){
-      print(value);
       setorderDetailsData(ApiResponse.completed(value));
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setorderDetailsData(ApiResponse.error(error.toString()));
     });
   }

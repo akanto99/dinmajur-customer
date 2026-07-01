@@ -37,10 +37,6 @@ class PostNearbyRetailersViewModel with ChangeNotifier {
       dynamic value = await _myRepo.nearbyRetailersPostApi(fields);
       setnearbyRetailersLoading(false);
 
-      if (kDebugMode) {
-        // print('Parsed response JSON: $value');
-        // print(value.toString());
-      }
 
       // Parse the response and extract the stores data
       if (value != null) {
@@ -57,7 +53,6 @@ class PostNearbyRetailersViewModel with ChangeNotifier {
 
         if (responseMap['success'] == true && responseMap['data'] != null) {
           List<dynamic> stores = responseMap['data'];
-          print(responseMap['data'].length);
           setNearbyStores(stores);
           return stores;
         } else {

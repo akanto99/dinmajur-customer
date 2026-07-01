@@ -20,14 +20,9 @@ class ServicesViewGetAllCategoriesViewModel with ChangeNotifier {
     _myRepo
         .fetchServicesViewGetAllCategoriesGetApi(serviceId, userId)
         .then((value) {
-          print(value);
           setServicesViewGetAllCategoryData(ApiResponse.completed(value));
         })
         .onError((error, stackTrace) {
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
           setServicesViewGetAllCategoryData(ApiResponse.error(error.toString()));
         });
   }

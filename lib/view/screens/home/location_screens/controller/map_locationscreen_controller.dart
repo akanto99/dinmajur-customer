@@ -66,7 +66,6 @@ class MapLocationController {
       darkMapTheme = await rootBundle.loadString('assets/map_theme/nighttheme.json');
       lightMapTheme = await rootBundle.loadString('assets/map_theme/standaredtheme.json');
     } catch (e) {
-      debugPrint('Error loading map themes: $e');
     }
   }
 
@@ -145,7 +144,6 @@ class MapLocationController {
         ),
       );
     } catch (e) {
-      debugPrint('Error getting current location: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error getting current location: ${e.toString()}'),
@@ -223,7 +221,6 @@ class MapLocationController {
         });
       }
     } catch (e) {
-      debugPrint('Error getting address: $e');
       setState(() {
         selectedAddress = 'Address not found';
         addressController.text = selectedAddress;
@@ -318,7 +315,6 @@ class MapLocationController {
         addressFocusNode.unfocus();
       }
     } catch (e) {
-      debugPrint('Error selecting place: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error selecting place: ${e.toString()}'),
@@ -366,7 +362,6 @@ class MapLocationController {
         final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
         await addLocationViewModel.addLocationPostApi(context, locationData, true);
       } catch (e) {
-        debugPrint('Error saving location: $e');
         Utils.flushBarErrorMessage('Failed to save location', context);
       }
     } else {

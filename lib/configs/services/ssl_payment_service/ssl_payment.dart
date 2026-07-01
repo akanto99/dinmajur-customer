@@ -58,15 +58,12 @@ class SSLCommerzPaymentService {
       final email = customerEmail?.isNotEmpty == true ? customerEmail! : "";
       final address = customerAddress?.isNotEmpty == true ? customerAddress! : "";
 
-      print("═══════════════════════════════════════════");
-      print("🔄 Initiating SSL Commerz Payment");
       // print("Store ID: $storeId");
       // print("Tracking ID: $trackingId");
       // print("Amount: $totalAmount BDT");
       // print("Customer: $name");
       // print("Phone: $phone");
       // print("Mode: ${useTestMode ? 'TESTBOX' : 'LIVE'}");
-      print("═══════════════════════════════════════════");
 
       // Initialize SSL Commerz with ALL required fields
       Sslcommerz sslcommerz =
@@ -103,14 +100,10 @@ class SSLCommerzPaymentService {
               //   ),
               // );
 
-      print("✅ SSL Commerz configured - launching payment...");
 
       var result = await sslcommerz.payNow();
 
-      print("═══════════════════════════════════════════");
-      print("📦 Payment Result Received");
       // print("Type: ${result.runtimeType}");
-      print("═══════════════════════════════════════════");
 
       if (result is PlatformException) {
         // print("❌ Platform Exception: ${result}");
@@ -124,15 +117,12 @@ class SSLCommerzPaymentService {
       String? valId = result.valId?.toString();
       String? riskTitle = result.riskTitle?.toString();
 
-      print("═══════════════════════════════════════════");
-      print("✅ Payment Response:");
       // print("Status: $status");
       // print("Amount: $amount");
       // print("Card Type: $cardType");
       // print("Transaction ID: $tranId");
       // print("Validation ID: $valId");
       // print("Risk Title: $riskTitle");
-      print("═══════════════════════════════════════════");
 
       // User cancelled
       if (status == 'CANCELLED' || status == 'CANCELED') {
@@ -141,7 +131,6 @@ class SSLCommerzPaymentService {
 
       // SDK failed to initialize (no transaction data)
       if (status == 'FAILED' && tranId == null && valId == null && amount == null) {
-        print("❌ CRITICAL: Payment gateway failed to initialize");
         return SSLPaymentResult(success: false, status: 'FAILED', errorMessage: 'Payment gateway failed to open. Please check your internet connection and credentials.');
       }
 
@@ -161,8 +150,6 @@ class SSLCommerzPaymentService {
 
       return SSLPaymentResult(success: isSuccess, status: status ?? 'UNKNOWN', amount: amount, cardType: cardType, transactionId: tranId, validationId: valId);
     } catch (e, stackTrace) {
-      print("💥 SSL Commerz Error: $e");
-      print("Stack: $stackTrace");
       return SSLPaymentResult(success: false, status: 'ERROR', errorMessage: 'Payment failed: ${e.toString()}');
     }finally {
       _isProcessing = false; // ← ALWAYS unlocks after SSL returns (success/cancel/fail/error)

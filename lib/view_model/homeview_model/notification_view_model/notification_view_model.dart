@@ -1,75 +1,3 @@
-//
-// import 'package:dinmajur_customer/data/response/api_response.dart';
-// import 'package:dinmajur_customer/model/home_models/location_model/get_location_model.dart';
-// import 'package:dinmajur_customer/model/home_models/notification_model/get_notificationlist_model.dart';
-// import 'package:dinmajur_customer/respository/home_repositories/location_repository/get_locationlist_repository.dart';
-// import 'package:dinmajur_customer/respository/home_repositories/notification_repository/notification_repository.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/foundation.dart';
-//
-// class GetNotificationViewModel with ChangeNotifier {
-//   final _myRepo = NotificationListRepository();
-//
-//
-//   ApiResponse<NotificationListModel> notificationListData = ApiResponse.loading();
-//
-//   setNotificationListLoading(ApiResponse<NotificationListModel> response) {
-//     notificationListData = response;
-//     notifyListeners();
-//   }
-//
-//
-//   Future<void> fetchLocationListApi() async {
-//     setNotificationListLoading(ApiResponse.loading());
-//
-//     _myRepo.fetchNotificationListGetApi().then((value){
-//       print(value);
-//       setNotificationListLoading(ApiResponse.completed(value));
-//
-//
-//     }).onError((error, stackTrace){
-//       if (kDebugMode) {
-//         print(error);
-//         print(stackTrace);
-//       }
-//       setNotificationListLoading(ApiResponse.error(error.toString()));
-//     });
-//   }
-//
-// }
-///Corrected
-// import 'package:dinmajur_customer/data/response/api_response.dart';
-// import 'package:dinmajur_customer/model/home_models/notification_model/get_notificationlist_model.dart';
-// import 'package:dinmajur_customer/respository/home_repositories/notification_repository/notification_repository.dart';
-// import 'package:flutter/foundation.dart';
-//
-// class GetNotificationViewModel with ChangeNotifier {
-//   final _myRepo = NotificationListRepository();
-//
-//   ApiResponse<NotificationListModel> notificationListData = ApiResponse.loading();
-//
-//   setNotificationListLoading(ApiResponse<NotificationListModel> response) {
-//     notificationListData = response;
-//     notifyListeners();
-//   }
-//
-//   Future<void> fetchLocationListApi({String? type}) async {
-//     setNotificationListLoading(ApiResponse.loading());
-//
-//     _myRepo.fetchNotificationListGetApi(type: type).then((value) {
-//       print(value);
-//       setNotificationListLoading(ApiResponse.completed(value));
-//     }).onError((error, stackTrace) {
-//       if (kDebugMode) {
-//         print(error);
-//         print(stackTrace);
-//       }
-//       setNotificationListLoading(ApiResponse.error(error.toString()));
-//     });
-//   }
-// }
-
-///Corrected
 import 'package:dinmajur_customer/data/response/api_response.dart';
 import 'package:dinmajur_customer/model/home_models/notification_model/get_notificationlist_model.dart';
 import 'package:dinmajur_customer/respository/home_repositories/notification_repository/notification_repository.dart';
@@ -168,14 +96,7 @@ class GetNotificationViewModel with ChangeNotifier {
 
       setNotificationListLoading(ApiResponse.completed(updatedModel));
 
-      if (kDebugMode) {
-        print('✅ Notifications loaded - Page: $_currentPage, Total: ${_allNotifications.length}, HasMore: $_hasMore');
-      }
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        print('❌ Error loading notifications: $error');
-        print(stackTrace);
-      }
+    } catch (error) {
       setNotificationListLoading(ApiResponse.error(error.toString()));
     }
   }
@@ -183,15 +104,9 @@ class GetNotificationViewModel with ChangeNotifier {
   // ✅ Load more notifications
   Future<void> loadMoreNotifications({String? type}) async {
     if (_loadingMore || !_hasMore) {
-      if (kDebugMode) {
-        print('⚠️ Load more blocked - Loading: $_loadingMore, HasMore: $_hasMore');
-      }
       return;
     }
 
-    if (kDebugMode) {
-      print('🔄 Starting load more - Setting loading to TRUE');
-    }
 
     _loadingMore = true;
     notifyListeners();
@@ -201,13 +116,7 @@ class GetNotificationViewModel with ChangeNotifier {
     try {
       await fetchLocationListApi(type: type, isLoadMore: true);
 
-      if (kDebugMode) {
-        print('✅ Load more completed - Setting loading to FALSE');
-      }
     } catch (error) {
-      if (kDebugMode) {
-        print('❌ Load more failed: $error');
-      }
     } finally {
       _loadingMore = false;
       notifyListeners();

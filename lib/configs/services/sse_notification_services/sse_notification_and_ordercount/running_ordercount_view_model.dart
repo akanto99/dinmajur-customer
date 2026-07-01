@@ -14,7 +14,6 @@ class RunningOrderCountViewModel extends ChangeNotifier {
   // Initialize listener for runningOrderCount event
   void initializeCountListener(Stream<int> countStream) {
     if (_isInitialized) {
-      debugPrint('⚠️ RunningOrderCountViewModel: Already initialized, skipping...');
       return;
     }
 
@@ -36,10 +35,8 @@ class RunningOrderCountViewModel extends ChangeNotifier {
         // debugPrint('✅ Listeners notified');
       },
       onError: (error) {
-        debugPrint('❌ Error in running order count stream: $error');
       },
       onDone: () {
-        debugPrint('⚠️ Running order count stream closed');
         _isInitialized = false;
       },
       cancelOnError: false,
@@ -59,7 +56,6 @@ class RunningOrderCountViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _countSubscription?.cancel();
-    debugPrint('🔴 RunningOrderCountViewModel disposed');
     super.dispose();
   }
 }
