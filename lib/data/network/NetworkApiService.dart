@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:async';
@@ -407,7 +408,8 @@ class NetworkApiService extends BaseApiServices {
   /// Parse response based on status code
   dynamic returnResponse(http.Response response) {
     final url = response.request?.url.toString() ?? "---------Unknown URL--------";
-
+    developer.log("🌐 URL: $url  || ${response.statusCode}");
+    developer.log("📦 Response Body: ${response.body}");
     switch (response.statusCode) {
       case 200:
       case 201:

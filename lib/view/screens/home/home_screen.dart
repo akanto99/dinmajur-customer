@@ -14,6 +14,7 @@ import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/banner_widegt/home_banner_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/home_service_search_box/home_service_search_box.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/trending_service_widget/trending_service_widget.dart';
@@ -341,6 +342,48 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   SizedboxSpaccing.height025(context),
+
+                  // ── Home Service Search ──
+                  Consumer<ProfileViewViewModel>(
+                    builder: (context, profileViewModel, _) {
+                      String customerName = '';
+                      String customerPhone = '';
+                      String customerAddress = '';
+                      Map<String, dynamic>? customerLocation;
+
+                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                        final userData = profileViewModel.profileviewUserData.data?.data;
+                        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                        final addressData = userData?.addresses;
+                        if (addressData != null) {
+                          customerLocation = {
+                            "fullAddress": addressData.fullAddress ?? '',
+                            "country": addressData.country ?? '',
+                            "city": addressData.city ?? '',
+                            "geoLocation": {
+                              "type": addressData.geoLocation?.type ?? "Point",
+                              "coordinates": addressData.geoLocation?.coordinates ?? [],
+                              "timestamp": DateTime.now().toUtc().toIso8601String(),
+                            },
+                          };
+                        }
+                      }
+
+                      return HomeServiceSearchBox(
+                        customerName: customerName,
+                        customerPhone: customerPhone,
+                        customerAddress: customerAddress,
+                        customerLocation: customerLocation,
+                        hasValidLocation: _hasValidLocation(),
+                        onLocationRequired: _showLocationRequiredDialog,
+                        onInstantBazarTap: handleInstantBazarTap,
+                      );
+                    },
+                  ),
+                  SizedboxSpaccing.height02(context),
+
                   // ── Banner Section ──
                   Consumer<ProfileViewViewModel>(
                     builder: (context, profileViewModel, _) {

@@ -1,6 +1,6 @@
 class AppUrl {
-  static var baseUrl = 'https://2604-103-187-99-176.ngrok-free.app/api/v1' ;
-  static var socketUrl = 'https://2604-103-187-99-176.ngrok-free.app' ;
+  static var baseUrl = 'https://e29f-103-187-99-179.ngrok-free.app/api/v1' ;
+  static var socketUrl = 'https://e29f-103-187-99-179.ngrok-free.app' ;
 
 
 
