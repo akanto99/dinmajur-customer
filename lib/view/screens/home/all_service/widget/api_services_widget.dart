@@ -144,7 +144,6 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           break;
 
         default:
-      print(service.id);
           Navigator.pushNamed(
             context,
             RoutesName.servicesViewScreen,
@@ -246,7 +245,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ...rowItems.map((service) => _buildServiceCard(context, service)),
-            ...List.generate(3 - rowItems.length, (_) => const SizedBox(width: 100)),
+            ...List.generate(3 - rowItems.length, (_) => const SizedBox(width: 105)),
           ],
         ),
       );
@@ -309,8 +308,8 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
 
               if (isLoading)
                 Container(
-                  height: 100,
-                  width: 100,
+                  height: 105,
+                  width: 105,
                   decoration: BoxDecoration(color: AppColors.containerBackground(context).withOpacity(0.5), borderRadius: BorderRadius.circular(12)),
                   child: Center(
                     child: SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.textPrimary(context))),
@@ -320,7 +319,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           ),
           const SizedBox(height: 8),
           SizedBox(
-            width: 100,
+            width: 105,
             child: Text(
               service.name ?? '',
               textAlign: TextAlign.center,

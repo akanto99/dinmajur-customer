@@ -353,6 +353,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   SizedboxSpaccing.height025(context),
+                  // ── Search Bar ──
+                  _buildSearchBar(context),
+                  SizedboxSpaccing.height025(context),
                   // ── Banner Section ──
                   Consumer<ProfileViewViewModel>(
                     builder: (context, profileViewModel, _) {
@@ -603,7 +606,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
-                            Container(width: 22, height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
+                            Icon(Icons.arrow_drop_down_sharp, size: 22, color: AppColors.textPrimary(context)),
                           ],
                         ),
                       ),
@@ -643,22 +646,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.pushNamed(context, RoutesName.notificationsListScreen);
                         },
                         child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
                             _buildIconButton(svgAsset: 'assets/images/home/notification.svg', context: context),
                             if (countViewModel.hasNotifications)
                               Positioned(
-                                right: 0,
-                                top: 2,
+                                right: 4,
+                                top: 4,
                                 child: Container(
+                                  padding: const EdgeInsets.all(2),
                                   decoration: BoxDecoration(
                                     color: Colors.red,
                                     shape: BoxShape.circle,
                                     border: Border.all(color: AppColors.containerBackground(context), width: 1),
                                   ),
-                                  constraints: BoxConstraints(minWidth: 14, minHeight: 14),
+                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                                   child: Text(
                                     '${countViewModel.notificationCount > 9 ? '9+' : countViewModel.notificationCount}',
-                                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -677,6 +682,34 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildSearchBar(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.pushNamed(context, RoutesName.searchScreen),
+      child: Container(
+        width: screenWidth * 0.9,
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.appBackground(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.button(context), width: 1.2),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 14),
+            Icon(Icons.search, color: AppColors.button(context), size: 22),
+            const SizedBox(width: 10),
+            Text(
+              "Search for services...",
+              style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _handleRetailSeeAll(BuildContext context) {
     Navigator.pushNamed(
       context,
@@ -689,9 +722,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 30,
-        width: 30,
-        padding: const EdgeInsets.all(2),
+        height: 44,
+        width: 44,
+        padding: const EdgeInsets.all(10),
         color: Colors.transparent,
         child: RepaintBoundary(
           child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),

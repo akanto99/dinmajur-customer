@@ -1,9 +1,9 @@
 class AppUrl {
-  static var baseUrl = 'https://9cea-103-187-99-178.ngrok-free.app/api/v1' ;
-  static var socketUrl = 'https://9cea-103-187-99-178.ngrok-free.app' ;
+//   static var baseUrl = 'https://9cea-103-187-99-178.ngrok-free.app/api/v1' ;
+//   static var socketUrl = 'https://9cea-103-187-99-178.ngrok-free.app' ;
 
-  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
-  // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
+  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
 
   // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
   // static var socketUrl = 'https://api.dinmajur.com' ;// Dev

@@ -74,6 +74,9 @@ class RoutesName {
   static const String cookingConfirmedScreen= 'CookingConfirmedScreen_view';
 
 
+  ///Search
+  static const String searchScreen = 'searchScreen_view';
+
   ///All Service
   static const String servicesViewScreen= 'servicesViewScreen_view';
   static const String serviceCheckoutScreen= 'serviceCheckoutScreen_view';
