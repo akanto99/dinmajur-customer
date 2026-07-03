@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -90,6 +91,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
   @override
   void dispose() {
+    Provider.of<GlobalCartProvider>(context, listen: false).clear();
     _mainScrollController.dispose();
     super.dispose();
   }
@@ -129,6 +131,23 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
       int next = (_serviceQuantities[taskId] ?? 0) + change;
       if (next >= 0) _serviceQuantities[taskId] = next;
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
+  }
+
+  void _syncGlobalCart() {
+    if (!mounted) return;
+    final cart = Provider.of<GlobalCartProvider>(context, listen: false);
+    final count = _getTotalItems();
+    if (count > 0) {
+      cart.update(
+        itemCount: count,
+        totalPrice: _calculateTotal(),
+        serviceName: widget.serviceName,
+        onViewCart: _showCartDialog,
+      );
+    } else {
+      cart.clear();
+    }
   }
 
   int _getTotalItems() => _serviceQuantities.entries.where((e) => e.value > 0).length;

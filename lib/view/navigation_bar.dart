@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/configs/services/nointernet_connectivity_service/nointernet_connectivity_service.dart';
 import 'package:dinmajur_customer/configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
@@ -423,9 +424,70 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
         child: Scaffold(
           backgroundColor: AppColors.containerBackground(context),
           body: _pages[_currentIndex],
-          bottomNavigationBar: SafeArea(
-            child: Container(
-              height: 60,
+          bottomNavigationBar: Consumer<GlobalCartProvider>(
+            builder: (context, cart, _) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ── Global Cart Bar ──
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, anim) => SlideTransition(
+                      position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(anim),
+                      child: child,
+                    ),
+                    child: cart.hasItems
+                        ? GestureDetector(
+                            key: const ValueKey('cart_bar'),
+                            onTap: cart.onViewCart,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.button(context),
+                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, -3))],
+                              ),
+                              child: Row(
+                                children: [
+                                  // Item badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                                    child: Text(
+                                      '${cart.itemCount} item${cart.itemCount > 1 ? 's' : ''}',
+                                      style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.whiteColor),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      cart.serviceName,
+                                      style: AppTextStyles.textSize13(context, weight: FontWeight.w500, color: AppColors.whiteColor),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    '৳${cart.totalPrice.toStringAsFixed(0)}',
+                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.whiteColor),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(color: AppColors.whiteColor, borderRadius: BorderRadius.circular(8)),
+                                    child: Text(
+                                      'View Cart',
+                                      style: AppTextStyles.textSize12(context, weight: FontWeight.w700, color: AppColors.button(context)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(key: ValueKey('cart_empty')),
+                  ),
+                  // ── Bottom Nav ──
+                  Container(
+                    height: 60,
               decoration: BoxDecoration(
                 color: AppColors.globalBlackWhite(context),
                 boxShadow: [
@@ -515,7 +577,10 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
                 ],
               ),
             ),
-          ),
+          ],
+        ),
+      ),
+    ),
         ),
       ),
     );
