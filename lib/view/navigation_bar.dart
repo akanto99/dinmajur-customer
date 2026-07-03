@@ -11,6 +11,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
 import 'package:dinmajur_customer/socket_connection_model/socket_provider_services/socket_manager.dart';
+import 'package:dinmajur_customer/view/screens/cart/cart_screen.dart';
 import 'package:dinmajur_customer/view/screens/draft/draft_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/home_screen.dart';
@@ -47,6 +48,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   final List<String> _icons = [
     "assets/images/navBar/navbar_new/home.svg",
     "assets/images/navBar/navbar_new/offers.svg",
+    "", // cart — rendered with Material icon
     "assets/images/navBar/navbar_new/order.svg",
     "assets/images/navBar/navbar_new/support.svg",
   ];
@@ -57,7 +59,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    _pages = [HomeScreen(scaffoldKey: _scaffoldKey), OffersScreen(), OrderScreen(initialTabIndex: widget.orderTabIndex), DraftScreen()];
+    _pages = [HomeScreen(scaffoldKey: _scaffoldKey), OffersScreen(), const CartScreen(), OrderScreen(initialTabIndex: widget.orderTabIndex), DraftScreen()];
     _currentIndex = widget.initialIndex;
 
     WakelockPlus.enable();
@@ -91,7 +93,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   void didChangeDependencies() {
     super.didChangeDependencies();
     _syncSystemUIColors();
-    _labels = [AppLocalizations.of(context)!.home, AppLocalizations.of(context)!.offers, AppLocalizations.of(context)!.order, AppLocalizations.of(context)!.callus];
+    _labels = [AppLocalizations.of(context)!.home, AppLocalizations.of(context)!.offers, 'Cart', AppLocalizations.of(context)!.order, AppLocalizations.of(context)!.callus];
   }
 
   // ══════════════════════════════ APP LIFECYCLE — pause / resume═════════════════════════════════════════════
@@ -426,161 +428,142 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
           body: _pages[_currentIndex],
           bottomNavigationBar: Consumer<GlobalCartProvider>(
             builder: (context, cart, _) => SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ── Global Cart Bar ──
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    transitionBuilder: (child, anim) => SlideTransition(
-                      position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(anim),
-                      child: child,
-                    ),
-                    child: cart.hasItems
-                        ? GestureDetector(
-                            key: const ValueKey('cart_bar'),
-                            onTap: cart.onViewCart,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: AppColors.button(context),
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, -3))],
+              child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.globalBlackWhite(context),
+                  boxShadow: [
+                    isDark
+                        ? BoxShadow(color: Colors.white12.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, -2))
+                        : const BoxShadow(color: Colors.white10, blurRadius: 10, offset: Offset(0, -2)),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Divider(color: AppColors.border(context), height: 1),
+                    Row(
+                      children: List.generate(_icons.length, (index) {
+                        final bool isSelected = _currentIndex == index;
+                        final bool isCartTab = index == 2;
+                        final bool isOrderTab = index == 3;
+                        final bool isCallUsTab = index == 4;
+
+                        Widget iconWidget;
+                        if (isCartTab) {
+                          iconWidget = Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Icon(
+                                isSelected ? Icons.shopping_cart : Icons.shopping_cart_outlined,
+                                size: 20,
+                                color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
                               ),
-                              child: Row(
+                              if (cart.hasItems)
+                                Positioned(
+                                  right: -6,
+                                  top: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
+                                    ),
+                                    constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                                    child: Text(
+                                      cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
+                                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        } else if (isOrderTab) {
+                          iconWidget = Consumer<RunningOrderCountViewModel>(
+                            builder: (context, vm, _) => Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                SvgPicture.asset(
+                                  _icons[index],
+                                  width: 18,
+                                  height: 18,
+                                  color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                                  semanticsLabel: _labels[index],
+                                ),
+                                if (vm.hasRunningOrders)
+                                  Positioned(
+                                    right: -6,
+                                    top: -4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
+                                      ),
+                                      constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                                      child: Text(
+                                        vm.runningOrderCount > 9 ? '9+' : '${vm.runningOrderCount}',
+                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          iconWidget = SvgPicture.asset(
+                            _icons[index],
+                            width: 18,
+                            height: 18,
+                            color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
+                            semanticsLabel: _labels[index],
+                          );
+                        }
+
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              if (index == 0 && _currentIndex == 0 && _scaffoldKey.currentState?.isDrawerOpen == true) {
+                                _scaffoldKey.currentState!.closeDrawer();
+                              } else if (isCallUsTab) {
+                                await _openWhatsAppSupport();
+                              } else {
+                                setState(() => _currentIndex = index);
+                              }
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  // Item badge
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                                    child: Text(
-                                      '${cart.itemCount} item${cart.itemCount > 1 ? 's' : ''}',
-                                      style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.whiteColor),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      cart.serviceName,
-                                      style: AppTextStyles.textSize13(context, weight: FontWeight.w500, color: AppColors.whiteColor),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
+                                  iconWidget,
+                                  const SizedBox(height: 6),
                                   Text(
-                                    '৳${cart.totalPrice.toStringAsFixed(0)}',
-                                    style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.whiteColor),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(color: AppColors.whiteColor, borderRadius: BorderRadius.circular(8)),
-                                    child: Text(
-                                      'View Cart',
-                                      style: AppTextStyles.textSize12(context, weight: FontWeight.w700, color: AppColors.button(context)),
+                                    _labels[index],
+                                    style: AppTextStyles.textSize11(
+                                      context,
+                                      weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                      color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          )
-                        : const SizedBox.shrink(key: ValueKey('cart_empty')),
-                  ),
-                  // ── Bottom Nav ──
-                  Container(
-                    height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.globalBlackWhite(context),
-                boxShadow: [
-                  isDark
-                      ? BoxShadow(color: Colors.white12.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, -2))
-                      : const BoxShadow(color: Colors.white10, blurRadius: 10, offset: Offset(0, -2)),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Divider(color: AppColors.border(context), height: 1),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: List.generate(_icons.length, (index) {
-                      final bool isSelected = _currentIndex == index;
-                      final bool isOrderTab = index == 2;
-
-                      return GestureDetector(
-                        onTap: () async {
-                          if (index == 0 && _currentIndex == 0 && _scaffoldKey.currentState?.isDrawerOpen == true) {
-                            _scaffoldKey.currentState!.closeDrawer();
-                          } else if (index == 3) {
-                            await _openWhatsAppSupport();
-                          } else {
-                            setState(() => _currentIndex = index);
-                          }
-                        },
-                        child: Container(
-                          width: w * 0.2,
-                          color: Colors.transparent,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              isOrderTab
-                                  ? Consumer<RunningOrderCountViewModel>(
-                                      builder: (context, vm, _) => Stack(
-                                        clipBehavior: Clip.none,
-                                        children: [
-                                          SvgPicture.asset(
-                                            _icons[index],
-                                            width: 18,
-                                            height: 18,
-                                            color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                                            semanticsLabel: _labels[index],
-                                          ),
-                                          if (vm.hasRunningOrders)
-                                            Positioned(
-                                              right: -6,
-                                              top: -4,
-                                              child: Container(
-                                                padding: const EdgeInsets.all(2),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red,
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(color: AppColors.globalBlackWhite(context), width: 1),
-                                                ),
-                                                constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                                                child: Text(
-                                                  vm.runningOrderCount > 9 ? '9+' : '${vm.runningOrderCount}',
-                                                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    )
-                                  : SvgPicture.asset(_icons[index], width: 18, height: 18, color: isSelected ? AppColors.button(context) : AppColors.subtitle(context), semanticsLabel: _labels[index]),
-                              const SizedBox(height: 6),
-                              Text(
-                                _labels[index],
-                                style: AppTextStyles.textSize12(
-                                  context,
-                                  weight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                                  color: isSelected ? AppColors.button(context) : AppColors.subtitle(context),
-                                ),
-                              ),
-                            ],
                           ),
-                        ),
-                      );
-                    }),
-                  ),
-                  Container(height: 1),
-                ],
+                        );
+                      }),
+                    ),
+                    Container(height: 1),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-      ),
-    ),
+          ),
         ),
       ),
     );
