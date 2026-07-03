@@ -69,12 +69,10 @@ class _VoiceListTabState extends State<VoiceListTab> {
 
   void _startRecording() {
     // TODO: Implement voice recording start logic
-    print("Started recording...");
   }
 
   void _stopRecording() {
     // TODO: Implement voice recording stop logic
-    print("Stopped recording...");
   }
 
   void _deleteRecording() {
@@ -95,7 +93,6 @@ class _VoiceListTabState extends State<VoiceListTab> {
 
   void _playRecording() {
     // TODO: Implement audio playback
-    print("Playing recording...");
   }
 
   @override

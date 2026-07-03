@@ -268,7 +268,6 @@ class DynamicImagePicker {
       onImageSelected(croppedData, actualImageName, displayName);
       onApiCall();
     } catch (e) {
-      print("Error processing cropped image: $e");
     }
   }
 
@@ -305,7 +304,6 @@ class DynamicImagePicker {
       await prefs.remove(prefKeys['imageName']!);
       await prefs.remove(prefKeys['displayName']!);
     } catch (e) {
-      print("Error removing saved image: $e");
     }
   }
 }

@@ -37,18 +37,12 @@ class SocketManager extends ChangeNotifier {
   void addConnectedListener(VoidCallback cb) {
     if (!_connectedListeners.contains(cb)) {
       _connectedListeners.add(cb);
-      if (kDebugMode) {
-        print('👂 SocketManager: connected-listener added (total: ${_connectedListeners.length})');
-      }
     }
   }
 
   /// Remove a previously registered callback.
   void removeConnectedListener(VoidCallback cb) {
     _connectedListeners.remove(cb);
-    if (kDebugMode) {
-      print('🧹 SocketManager: connected-listener removed (total: ${_connectedListeners.length})');
-    }
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -80,11 +74,6 @@ class SocketManager extends ChangeNotifier {
   // ═══════════════════════════════════════════════════════════════════
 
   void disconnect() {
-    if (kDebugMode) {
-      print('-----------------------------------');
-      print('🔌 SocketManager: disconnect called');
-      print('-----------------------------------');
-    }
     _accessToken = null; // stops auto-retry
     _destroySocket();
     notifyListeners();
@@ -112,9 +101,6 @@ class SocketManager extends ChangeNotifier {
       _socket!.emit(event, data);
       // if (kDebugMode) print('📤 SocketManager: emit "$event"');
     } else {
-      if (kDebugMode) {
-        print('⚠️ SocketManager: cannot emit "$event" – not connected');
-      }
     }
   }
 
@@ -128,33 +114,16 @@ class SocketManager extends ChangeNotifier {
 
   void _attachEvents() {
     _socket!.onConnect((_) {
-      if (kDebugMode) {
-        print('-----------------------------------');
-        print('🎉 Socket Connected Successfully');
-        // print('   Socket ID : ${_socket?.id}');
-        print('-----------------------------------');
-      }
       notifyListeners();
       _fireConnectedCallbacks();
     });
 
     _socket!.onDisconnect((_) {
-      if (kDebugMode) {
-        print('-----------------------------------');
-        print('🔌 Socket Disconnected');
-        print('-----------------------------------');
-      }
       notifyListeners();
       if (_accessToken != null) _reconnectWithRetry();
     });
 
     _socket!.onConnectError((error) {
-      if (kDebugMode) {
-        print('-----------------------------------');
-        print('❌ Socket Connection Error');
-        print('   Error : $error');
-        print('-----------------------------------');
-      }
       notifyListeners();
     });
   }
@@ -174,9 +143,6 @@ class SocketManager extends ChangeNotifier {
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
       if (isConnected || _accessToken == null) return;
 
-      if (kDebugMode) {
-        print('🔄 SocketManager: reconnect attempt $attempt/$maxAttempts');
-      }
 
       await Future.delayed(gap);
       if (isConnected || _accessToken == null) return;
@@ -185,19 +151,10 @@ class SocketManager extends ChangeNotifier {
         await connect(_accessToken!);
         await Future.delayed(const Duration(milliseconds: 1500));
         if (isConnected) {
-          if (kDebugMode) {
-            print('✅ SocketManager: reconnected on attempt $attempt');
-          }
           return;
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('❌ SocketManager: attempt $attempt failed – $e');
-        }
       }
-    }
-    if (kDebugMode) {
-      print('❌ SocketManager: gave up after $maxAttempts attempts');
     }
   }
 

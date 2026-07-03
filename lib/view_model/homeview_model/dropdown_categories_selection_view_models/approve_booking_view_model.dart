@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/respository/home_repositories/dropdown_categories_selection_repositories/approve_booking_repository.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +56,7 @@ class ApproveBookingViewModel with ChangeNotifier {
         data: {
           "status": "APPROVED",
           "freelancerId":freelancerId,
+          "source": Platform.isAndroid ? "android" : "ios",
         },
       );
 
@@ -90,6 +92,7 @@ class ApproveBookingViewModel with ChangeNotifier {
         data: {
           "status": "REJECTED",
           "freelancerId":freelancerId,
+          "source": Platform.isAndroid ? "android" : "ios",
         },
       );
 

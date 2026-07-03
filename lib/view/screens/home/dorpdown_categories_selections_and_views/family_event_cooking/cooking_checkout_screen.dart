@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/components/iagree_terms&condition/iagree_terms&condition.dart';
@@ -121,7 +123,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         }
       });
     } else if (paymentResult.status == 'CLOSED') {
-      print("---------------------Handle Payment result - CLOSED -----------");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.pushReplacementNamed(
@@ -188,6 +189,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
       },
       "eventCookingCategoryId": activeCategory.id,
+      "source": Platform.isAndroid ? "android" : "ios",
     };
 
     if (activeCategory.type == 'REGULAR') {
@@ -274,7 +276,6 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
     final bookingViewModel = Provider.of<PostBookFamilyEventCookingViewModel>(context, listen: false);
     if (bookingViewModel.createBookFamilyEventCookingLoading) {
-      print('⚠️ Already processing payment, ignoring duplicate tap');
       return;
     }
     // Calculate total amount

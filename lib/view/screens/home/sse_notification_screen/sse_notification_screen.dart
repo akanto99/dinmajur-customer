@@ -35,9 +35,7 @@ class _NotificationsListScreenOldState extends State<NotificationsListScreenOld>
         sseService.notificationStream,
       );
 
-      debugPrint('✅ NotificationsListScreen: Notification listener initialized');
     } catch (e) {
-      debugPrint('❌ NotificationsListScreen: Error initializing listener: $e');
     }
   }
 
@@ -146,7 +144,6 @@ class _NotificationsListScreenOldState extends State<NotificationsListScreenOld>
 
                         // TODO: Navigate based on actionUrl or notification type
                         if (payload.actionUrl != null) {
-                          debugPrint('Navigate to: ${payload.actionUrl}');
                         }
                       },
                     ),

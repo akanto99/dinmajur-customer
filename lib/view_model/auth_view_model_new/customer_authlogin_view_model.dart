@@ -33,7 +33,6 @@ class CustomerAuthLoginViewModel with ChangeNotifier {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('otp_token', otpToken);
 
-        if (kDebugMode) print('✅ OTP Token received and saved: $otpToken');
       } else {
         Utils.flushBarErrorMessage('Invalid token received from server', context);
         return;
@@ -49,8 +48,6 @@ class CustomerAuthLoginViewModel with ChangeNotifier {
         timerProvider.startTimer(seconds: cooldownInSeconds);
       }
 
-      if (kDebugMode) print(value.toString());
-      debugPrint('🔁 Full OTP API Response:\n${jsonEncode(value)}', wrapWidth: 1024);
     } catch (error) {
       setAuthApiSendOtpLoading(false);
       String errorMessage = '$error';
@@ -72,7 +69,6 @@ class CustomerAuthLoginViewModel with ChangeNotifier {
         errorMessage = 'Unexpected error';
       }
       Utils.flushBarErrorMessage(errorMessage, context);
-      if (kDebugMode) print('OTP API Error: $error');
     }
   }
 }

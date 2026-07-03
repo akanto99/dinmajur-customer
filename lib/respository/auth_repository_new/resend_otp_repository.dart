@@ -14,7 +14,6 @@ class ResendOtpRepository {
           'x-token-type':'auth-otp',
         },
       );
-      print('📥 Raw response body: $response');
 
       if (response['success'] == false) {
         String errorMsg = response['message'] ?? 'Unknown error occurred';

@@ -34,7 +34,6 @@ class _LanguageSlideSwitcherState extends State<LanguageSlideSwitcher> {
         int currentIndex = languageProvider.appLocale?.languageCode == 'bn' ? 1 : 0;
 
         // Debug print
-        print('SlideSwitcher - Current language: ${languageProvider.appLocale?.languageCode}, Index: $currentIndex');
 
         // Update _currentIndex if it's different
         if (_currentIndex != currentIndex) {
@@ -76,11 +75,7 @@ class _LanguageSlideSwitcherState extends State<LanguageSlideSwitcher> {
                   'Bn',
                   style:
                   widget.textStyle?.copyWith(color: currentIndex == 1 ? (widget.activeColor ?? Colors.white) : (widget.inactiveColor ?? AppColors.textPrimary(context))) ??
-                      GoogleFonts.hindSiliguri(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: currentIndex == 1 ? (widget.activeColor ?? Colors.white) : (widget.inactiveColor ?? AppColors.textPrimary(context)),
-                      ),
+                      AppTextStyles.textSize14(context, weight: FontWeight.w500, color: currentIndex == 1 ? (widget.activeColor ?? Colors.white) : (widget.inactiveColor ?? AppColors.textPrimary(context))),
                 ),
               ),
             ),
@@ -106,7 +101,7 @@ class _LanguageSlideSwitcherState extends State<LanguageSlideSwitcher> {
     // Optional: Show a brief feedback to user
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(index == 0 ? 'Language changed to English' : 'ভাষা বাংলায় পরিবর্তিত হয়েছে', style: GoogleFonts.poppins(fontSize: 14)),
+        content: Text(index == 0 ? 'Language changed to English' : 'ভাষা বাংলায় পরিবর্তিত হয়েছে', style: AppTextStyles.textSize14(context, color: Colors.white)),
         duration: Duration(seconds: 1),
         backgroundColor: AppColors.textPrimary(context),
       ),

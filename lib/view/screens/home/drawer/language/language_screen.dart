@@ -130,7 +130,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.border(context)),
               ),
-              child: Center(child: Text(flag, style: TextStyle(fontSize: 18))),
+              child: Center(child: Text(flag, style: AppTextStyles.textSize18(context))),
             ),
             SizedBox(width: 16),
 

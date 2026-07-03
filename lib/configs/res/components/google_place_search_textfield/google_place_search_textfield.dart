@@ -142,7 +142,6 @@ class _GooglePlaceSearchTextFieldState extends State<GooglePlaceSearchTextField>
         }
       }
     } catch (e) {
-      debugPrint('_fetchPredictions: $e');
     }
     if (mounted) setState(() => _showSuggestions = false);
   }
@@ -190,10 +189,6 @@ class _GooglePlaceSearchTextFieldState extends State<GooglePlaceSearchTextField>
         }
       }
 
-      print('=== Serviceability Check ===');
-      print('Prediction: ${prediction.description}');
-      print('Level2: $level2');
-      print('Level1: $level1');
 
       const serviceableKeywords = [
         'chittagong', 'chattogram', 'chottogram', 'chattagam', 'ctg',
@@ -205,15 +200,11 @@ class _GooglePlaceSearchTextFieldState extends State<GooglePlaceSearchTextField>
       final checkText = level2.isNotEmpty ? level2 : level1;
       final result = serviceableKeywords.any((kw) => checkText.contains(kw));
 
-      print('CheckText: $checkText');
-      print('Serviceable: $result');
-      print('============================');
 
       _serviceabilityCache[prediction.placeId] = result;
       return result;
 
     } catch (e) {
-      debugPrint('_isPredictionServiceableAsync error: $e');
       return false;
     }
   }
@@ -296,7 +287,6 @@ class _GooglePlaceSearchTextFieldState extends State<GooglePlaceSearchTextField>
         ),
       );
     } catch (e) {
-      debugPrint('_fetchPlaceDetails: $e');
     }
   }
 

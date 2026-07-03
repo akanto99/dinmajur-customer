@@ -46,7 +46,6 @@ class LoginLogoutViewModel with ChangeNotifier {
       final token = prefs.getString('accessToken') ?? '';
 
       if (token.isEmpty) {
-        print("❌ Logout: No accessToken found");
         setLoggingOut(false);
         Utils.flushBarErrorMessage("Invalid session. Please login again.", context);
         return;
@@ -65,7 +64,6 @@ class LoginLogoutViewModel with ChangeNotifier {
       try {
         await oneSignal.logoutUser();
       } catch (e) {
-        print("⚠️ OneSignal logout failed: $e");
       }
 
       // 2. Disconnect socket (clears token so auto-retry stops)
@@ -75,15 +73,12 @@ class LoginLogoutViewModel with ChangeNotifier {
       try {
         await sseService.stopListening();
       } catch (e) {
-        print("⚠️ SSE stop failed: $e");
       }
 
       // ✅ STEP 4: Call logout API
       try {
         await _myRepo.logoutApi(token).timeout(Duration(seconds: 10));
-        print("🔓 ✅ Logout API call successful");
       } catch (e) {
-        print("⚠️ Logout API failed: $e");
         // Continue with local cleanup even if API fails
       }
       await userPreference.remove();
@@ -99,10 +94,8 @@ class LoginLogoutViewModel with ChangeNotifier {
             (route) => false,
       );
 
-      print("🔓 ✅ Logout Completed Successfully");
 
     } catch (error) {
-      print("❌ Logout Error: $error");
       setLoggingOut(false);
       _handleError(error, context);
     }
@@ -134,7 +127,6 @@ class LoginLogoutViewModel with ChangeNotifier {
         errorMessage = errorBody.replaceAll('Exception: ', '');
       }
     } catch (e) {
-      print("Error parsing error message: $e");
       errorMessage = 'Unexpected error occurred';
     }
 

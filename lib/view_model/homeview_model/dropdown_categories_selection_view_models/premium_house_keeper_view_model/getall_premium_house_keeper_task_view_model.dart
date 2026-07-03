@@ -18,13 +18,8 @@ class GetallPremiumHouseKeeperTaskViewModel with ChangeNotifier {
     setgetAllPremiumHouseKeeperTaskData(ApiResponse.loading());
 
     _myRepo.fetchGetAllPremiumHouseKeeperTaskGetApi(categoryId).then((value) {
-      print(value);
       setgetAllPremiumHouseKeeperTaskData(ApiResponse.completed(value));
     }).onError((error, stackTrace) {
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setgetAllPremiumHouseKeeperTaskData(ApiResponse.error(error.toString()));
     });
   }

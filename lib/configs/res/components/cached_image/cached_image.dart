@@ -170,19 +170,12 @@ class DynamicCachedImage extends StatelessWidget {
           if (hasHour == true)
             Text(
               'Hourly Service',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.orange, // distinct color for Hours
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppTextStyles.textSize10(context, weight: FontWeight.w600, color: Colors.orange), // distinct color for Hours
             )
           else if (hasRoom == true && roomNumberLabel != null)
             Text(
               roomNumberLabel!,
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.buttonTextColor(context),
-              ),
+              style: AppTextStyles.textSize10(context, color: AppColors.buttonTextColor(context)),
             ),
         ],
       ],
@@ -322,10 +315,7 @@ class DynamicCachedImage extends StatelessWidget {
           child: Center(
             child: Text(
               quantity.toString(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
             ),
           ),
         ),

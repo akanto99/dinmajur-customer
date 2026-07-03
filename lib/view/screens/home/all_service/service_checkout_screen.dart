@@ -30,6 +30,8 @@ class ServiceCheckoutScreen extends StatefulWidget {
   final double transportFee;
   final Function(String)? onAddressUpdate;
   final Map<String, dynamic>? customerLocation;
+  //for dynamic STores
+  final String? retailerId;
 
   const ServiceCheckoutScreen({
     Key? key,
@@ -44,6 +46,8 @@ class ServiceCheckoutScreen extends StatefulWidget {
     required this.transportFee,
     required this.onAddressUpdate,
     this.customerLocation,
+    //for dynamic Stores
+    this.retailerId,
   }) : super(key: key);
 
   @override
@@ -109,11 +113,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
 
     if (paymentResult.success) {
       _clearAllData();
-      Navigator.pushReplacementNamed(context, RoutesName.serviceConfirmedScreen, arguments: {
-        'trackingId': trackingId,
-        'valId': paymentResult.validationId ?? 'N/A',
-        'fromCheckout': true,
-      });
+      Navigator.pushReplacementNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A', 'fromCheckout': true});
     } else if (paymentResult.status == 'FAILED') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -170,7 +170,6 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     final bookingViewModel = Provider.of<BookServiceViewModel>(context, listen: false);
 
     if (bookingViewModel.createBookServiceLoading) {
-      debugPrint('⚠️ Already processing, ignoring duplicate tap');
       return;
     }
 
@@ -209,6 +208,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     final List<Map<String, dynamic>> tasks = checkoutVM.prepareTasksData(serviceQuantities: _serviceQuantities, categories: widget.categories);
 
     final Map<String, dynamic> bookingData = checkoutVM.prepareBookingData(
+      retailerId: (widget.retailerId?.isNotEmpty == true) ? widget.retailerId : null,
       serviceId: widget.serviceId,
       customerId: widget.userId,
       paymentMethod: checkoutVM.selectedPaymentMethod,
@@ -223,14 +223,11 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
 
       customerLocation: _updatedLocation,
       tasks: tasks,
-
     );
 
-    debugPrint('📦 Booking Data: $bookingData');
 
     try {
       await bookingViewModel.bookServicePostApi(context, bookingData, (String? trackingId) async {
-        debugPrint('✅ Booking Success! TrackingId: $trackingId');
 
         if (trackingId == null || trackingId.isEmpty) {
           bookingViewModel.setBookServiceLoading(false);
@@ -238,12 +235,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
           Navigator.pushReplacementNamed(
             context,
             RoutesName.serviceFailedScreen,
-            arguments: {
-              'trackingId': 'N/A',
-              'valId': 'N/A',
-              'reason': 'Booking creation failed',
-              'errorMessage': 'Unable to create booking. Please try again.'
-            },
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking. Please try again.'},
           );
           return;
         }
@@ -259,16 +251,11 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
           );
           await _handlePaymentResult(viewModel: checkoutVM, paymentResult: paymentResult, trackingId: trackingId);
           bookingViewModel.setBookServiceLoading(false);
-        } else if (
-        checkoutVM.selectedPaymentMethod == 'cash') {
+        } else if (checkoutVM.selectedPaymentMethod == 'cash') {
           if (!mounted) return;
           _clearAllData();
           Navigator.pop(context, {'cleared': true, 'updatedLocation': _updatedLocation});
-          Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {
-            'trackingId': trackingId,
-            'valId': 'COD',
-            'fromCheckout': true,
-          });
+          Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': 'COD', 'fromCheckout': true});
           bookingViewModel.setBookServiceLoading(false);
         } else {
           bookingViewModel.setBookServiceLoading(false);
@@ -282,7 +269,6 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
       });
     } catch (e) {
       bookingViewModel.setBookServiceLoading(false);
-      debugPrint('❌ Booking error: $e');
     }
   }
 
@@ -324,6 +310,8 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
             body: SafeArea(
               child: Column(
                 children: [
+                  // Text(widget.serviceId),
+                  // Text(widget.retailerId??""),
                   GestureDetector(
                     onTap: () => Navigator.pop(context, false),
                     child: Container(height: 60, child: AppBarHeader("Checkout")),

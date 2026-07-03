@@ -5,7 +5,6 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 enum ErrorType {
   network,
@@ -169,11 +168,7 @@ class ErrorStateWidget extends StatelessWidget {
                         errorType == ErrorType.timeout
                             ? 'Try Again'
                             : 'Retry',
-                        style: GoogleFonts.hindSiliguri(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.whiteColor,
-                        ),
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.whiteColor),
                       ),
                     ],
                   ),
@@ -207,11 +202,7 @@ class ErrorStateWidget extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           'Troubleshooting Tips',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textPrimary(context),
-                          ),
+                          style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                         ),
                       ],
                     ),
@@ -234,12 +225,7 @@ class ErrorStateWidget extends StatelessWidget {
                           Expanded(
                             child: Text(
                               tip,
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.textPrimary(context),
-                                height: 1.4,
-                              ),
+                              style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.textPrimary(context)).copyWith(height: 1.4),
                             ),
                           ),
                         ],

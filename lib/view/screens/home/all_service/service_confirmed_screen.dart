@@ -91,7 +91,6 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
   @override
   void initState() {
     super.initState();
-    print("--------------------------------------${widget.valId}");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = Provider.of<GetServiceConfirmationDetailsViewModel>(context, listen: false);
       viewModel.fetchGetServiceDataApi(widget.trackingId!);
@@ -250,7 +249,6 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
             }
           }
         } catch (e) {
-          print('❌ Permission check error: $e');
         }
       }
 
@@ -271,13 +269,11 @@ class _ServiceConfirmedScreenState extends State<ServiceConfirmedScreen> {
       setState(() {
         _isDownloading = false;
       });
-      print('❌ PDF Generation Error: $e');
       Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
     }
   }
 
   void _handleTrackOrder() {
-    print('Navigate to track order screen');
   }
 
   void _showDownloadSuccessDialog(String filePath) {

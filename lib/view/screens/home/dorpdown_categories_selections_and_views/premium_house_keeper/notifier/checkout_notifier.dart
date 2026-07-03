@@ -1,5 +1,7 @@
 
 ///For Ssl Integration using store id and Password
+import 'dart:io';
+
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -258,6 +260,7 @@ class CheckoutViewModel extends ChangeNotifier {
       "shiftId": shiftId,
 
       "paymentType": paymentData,
+      "source": Platform.isAndroid ? "android" : "ios",
     };
   }
 
@@ -337,13 +340,10 @@ class CheckoutViewModel extends ChangeNotifier {
     String? customerEmail,
     String? customerAddress,
   }) async {
-    print("═══════════════════════════════════════════");
-    print("🚀 CheckoutViewModel: Initiating Payment");
     // print("Tracking ID: $trackingId");
     // print("Total Amount: $totalAmount");
     // print("Customer: $customerName");
     // print("Phone: $customerPhone");
-    print("═══════════════════════════════════════════");
 
     try {
       final result = await _paymentService.initiatePayment(
@@ -356,15 +356,10 @@ class CheckoutViewModel extends ChangeNotifier {
         customerAddress: customerAddress,
       );
 
-      print("═══════════════════════════════════════════");
-      print("📥 Payment Service Result:");
       // print(result.toString());
-      print("═══════════════════════════════════════════");
 
       return result;
     } catch (e, stackTrace) {
-      print("💥 Payment Initiation Error in ViewModel: $e");
-      print("Stack Trace: $stackTrace");
 
       return SSLPaymentResult(
         success: false,

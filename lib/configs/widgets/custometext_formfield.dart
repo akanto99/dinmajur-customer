@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:flutter/material.dart';
 
 /// Poppins TextField with customizable text styles
+@Deprecated('Use CustomTextFieldWithFormField (customtext_with_formfield.dart) instead — it covers this widget\'s features plus prefix boxes and obscureText.')
 class CustometextFormfield extends StatefulWidget {
   final String? titleText;
   final String? requiredStar;

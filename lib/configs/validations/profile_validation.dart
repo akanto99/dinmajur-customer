@@ -37,9 +37,6 @@ class ProfileValidators {
   static bool validateFullNameLength(
       String firstName, String lastName, BuildContext context) {
     final combinedLength = (firstName + lastName).length;
-    print("First Name: $firstName");
-    print("Last Name: $lastName");
-    print("Combined Length: $combinedLength");
 
     if (combinedLength > 24) {
       Utils.flushBarErrorMessage(

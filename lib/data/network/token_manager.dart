@@ -48,7 +48,6 @@ class TokenManager {
             body: jsonEncode({'refreshToken': refreshToken}),
           )
           .timeout(const Duration(seconds: 30));
-      print('🔄 ${AppUrl.baseUrl}${AppUrl.refreshTokenEndpoint} : ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final newToken = await _parseAndSaveTokens(response);
@@ -56,7 +55,6 @@ class TokenManager {
         return newToken;
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         // Refresh token itself expired → logout
-        print("-------- expired 2--------------");
         await _logout();
         _notifyQueue(null);
         throw UnauthorisedException('Session expired. Please login again.');
@@ -124,10 +122,8 @@ class TokenManager {
 
   Future<void> _logout() async {
     try {
-      print("--------Session expired.--------------");
       await SessionExpiredService().handleSessionExpired();
     } catch (e) {
-      print('❌ TokenManager logout error: $e');
     }
   }
 }

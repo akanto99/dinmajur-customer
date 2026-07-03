@@ -14,20 +14,15 @@ class ServicesViewGetAllCategoriesViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchServicesViewGetAllCategoriesGetApi(String serviceId) async {
+  Future<void> fetchServicesViewGetAllCategoriesGetApi(String serviceId, String ?userId) async {
     setServicesViewGetAllCategoryData(ApiResponse.loading());
 
     _myRepo
-        .fetchServicesViewGetAllCategoriesGetApi(serviceId)
+        .fetchServicesViewGetAllCategoriesGetApi(serviceId, userId)
         .then((value) {
-          print(value);
           setServicesViewGetAllCategoryData(ApiResponse.completed(value));
         })
         .onError((error, stackTrace) {
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
           setServicesViewGetAllCategoryData(ApiResponse.error(error.toString()));
         });
   }

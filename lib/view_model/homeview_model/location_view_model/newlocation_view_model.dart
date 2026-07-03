@@ -38,14 +38,8 @@ class AddLocationViewModel with ChangeNotifier {
         return;
       }
 
-      if (kDebugMode) {
-        print('========== POSTING LOCATION DATA ==========');
-        // print('Request data: ${jsonEncode(fields)}');
-        // print('Access token: ${accessToken.substring(0, 20)}...');
-        // print('Should Navigate: $shouldNavigate');
-      }
 
-      dynamic response = await _myRepo.addLocationPatchApi(fields);
+      await _myRepo.addLocationPatchApi(fields);
 
       setCreateAddLocationLoading(false);
       Utils.flushBarSuccessMessage('Location saved successfully', context);
@@ -67,10 +61,6 @@ class AddLocationViewModel with ChangeNotifier {
         });
       }
 
-      if (kDebugMode) {
-        // print('Location API Response: ${jsonEncode(response)}');
-        print('========================================');
-      }
 
     } catch (error) {
       setCreateAddLocationLoading(false);
@@ -90,7 +80,7 @@ class AddLocationViewModel with ChangeNotifier {
         setCreateAddLocationLoading(false);
         return;
       }
-      dynamic response = await _myRepo.updateAddressPatchApi(fields, userId);
+      await _myRepo.updateAddressPatchApi(fields, userId);
 
       setCreateAddLocationLoading(false);
       Utils.flushBarSuccessMessage('Location updated successfully', context);

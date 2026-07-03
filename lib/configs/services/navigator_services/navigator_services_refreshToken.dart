@@ -122,7 +122,6 @@ class NavigationService {
                           );
                         }
                       } catch (e) {
-                        debugPrint('Error during logout: $e');
                       }
                     },
                     child: Container(

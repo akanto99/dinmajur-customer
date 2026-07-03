@@ -128,7 +128,6 @@ class PDFReceiptGenerator {
       final output = await _savePdf(pdf, receiptData.trackingId);
       return output;
     } catch (e) {
-      print('Error generating PDF: $e');
       return null;
     }
   }
@@ -594,7 +593,6 @@ class PDFReceiptGenerator {
           try {
             await baseDirectory.create(recursive: true);
           } catch (e) {
-            print("Could not create Downloads: $e");
             baseDirectory = await getExternalStorageDirectory();
           }
         }
@@ -610,9 +608,7 @@ class PDFReceiptGenerator {
       final Directory bookingFolder = Directory('${baseDirectory.path}/Dinajpur Booking');
       if (!await bookingFolder.exists()) {
         await bookingFolder.create(recursive: true);
-        print('📁 Created folder: ${bookingFolder.path}');
       } else {
-        print('📁 Folder already exists: ${bookingFolder.path}');
       }
 
       // Create file name with timestamp
@@ -624,10 +620,8 @@ class PDFReceiptGenerator {
       final File file = File(filePath);
       await file.writeAsBytes(await pdf.save());
 
-      print('✅ PDF saved to: $filePath');
       return file;
     } catch (e) {
-      print('❌ Error saving PDF: $e');
       rethrow;
     }
   }

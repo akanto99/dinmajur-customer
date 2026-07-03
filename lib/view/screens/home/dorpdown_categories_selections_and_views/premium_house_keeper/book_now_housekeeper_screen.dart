@@ -116,7 +116,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         _selectedTime = null;
       });
     } catch (e) {
-      print('Error parsing date: $e');
     }
   }
 

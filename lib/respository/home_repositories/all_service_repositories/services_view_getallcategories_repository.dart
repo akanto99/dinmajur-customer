@@ -6,11 +6,13 @@ import 'package:dinmajur_customer/model/home_models/all_service_models/services_
 class ServicesViewGetAllCategoriesRepository{
   BaseApiServices _apiServices = NetworkApiService();
 
-  Future<ServicesViewGetAllCategoryModel> fetchServicesViewGetAllCategoriesGetApi(String serviceId) async {
+  Future<ServicesViewGetAllCategoryModel> fetchServicesViewGetAllCategoriesGetApi(String serviceId, String? userId) async {
     try {
-      dynamic response = await _apiServices.getGetApiResponse(
-        "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId",
-      );
+      final String url = (userId != null && userId.isNotEmpty)
+          ? "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId?retailerId=$userId"
+          : "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId";
+
+      dynamic response = await _apiServices.getGetApiResponse(url);
       return ServicesViewGetAllCategoryModel.fromJson(response);
     } catch (e) {
       throw e;

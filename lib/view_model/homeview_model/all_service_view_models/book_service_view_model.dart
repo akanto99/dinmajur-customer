@@ -22,7 +22,6 @@ class BookServiceViewModel with ChangeNotifier {
       if (response != null && response['data'] != null) {
         final booking = response['data']['booking'];
         trackingId = booking?['trackingId']?.toString();
-        if (kDebugMode) print('Tracking ID: $trackingId');
         onSuccess(trackingId);
       } else {
         setBookServiceLoading(false);

@@ -20,15 +20,10 @@ class GetBeautySalonViewModel with ChangeNotifier {
     setgetBeautySalonData(ApiResponse.loading());
 
     _myRepo.fetchBeautysalonGetApi(byTrackId).then((value){
-      print(value);
       setgetBeautySalonData(ApiResponse.completed(value));
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setgetBeautySalonData(ApiResponse.error(error.toString()));
     });
   }

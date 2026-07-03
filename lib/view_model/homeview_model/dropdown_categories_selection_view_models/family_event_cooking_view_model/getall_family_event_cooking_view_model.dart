@@ -20,15 +20,10 @@ class GetAllFamilyEventCookingViewModel with ChangeNotifier {
     setgetAllFamilyEventCookingData(ApiResponse.loading());
 
     _myRepo.fetchGetAllFamilyEventCookingGetApi().then((value){
-      print(value);
       setgetAllFamilyEventCookingData(ApiResponse.completed(value));
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setgetAllFamilyEventCookingData(ApiResponse.error(error.toString()));
     });
   }

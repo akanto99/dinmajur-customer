@@ -76,7 +76,6 @@ class _TrackOrderViewdetailsSocketScreenState extends State<TrackOrderViewdetail
     // User returned from a screen pushed on top of this one
     // (e.g., payment screen). Silently refresh data.
     if (_vm.isInitialized) {
-      debugPrint('🔄 [SCREEN] Returned to screen — silent refresh');
       _vm.handleRefresh(context: context);
     }
   }

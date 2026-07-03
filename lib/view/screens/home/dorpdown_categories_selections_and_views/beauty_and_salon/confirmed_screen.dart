@@ -280,7 +280,6 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
             }
           }
         } catch (e) {
-          print('❌ Permission check error: $e');
         }
       }
 
@@ -301,13 +300,11 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
       setState(() {
         _isDownloading = false;
       });
-      print('❌ PDF Generation Error: $e');
       Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
     }
   }
 
   void _handleTrackOrder() {
-    print('Navigate to track order screen');
   }
 
   void _showDownloadSuccessDialog(String filePath) {

@@ -110,13 +110,11 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   }
 
   void _onAppPaused() {
-    if (kDebugMode) print('📱 App paused');
     WakelockPlus.disable();
   }
 
   Future<void> _onAppResumed() async {
     if (!mounted) return;
-    if (kDebugMode) print('📱 App resumed');
     WakelockPlus.enable();
 
     // Let socket handle its own reconnect logic.
@@ -139,9 +137,7 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     if (userId.isNotEmpty) {
       try {
         await context.read<OneSignalNotificationService>().loginUser(userId);
-        if (kDebugMode) print('🔔 OneSignal login done');
       } catch (e) {
-        if (kDebugMode) print('⚠️ OneSignal error — $e');
       }
     }
 
@@ -162,7 +158,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   // ═══════════════════════════════SOCKET — callback only, no dialog logic here════════════════════════════════════════════
   void _onSocketConnected() {
     if (!mounted) return;
-    if (kDebugMode) print('🎉 Socket connected');
   }
 
   // ══════════════════════════════════SSE═════════════════════════════════════════
@@ -188,7 +183,6 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
       }
       runningOrderVM.setInitialCount(sseService.currentRunningOrderCount);
     } catch (e) {
-      if (kDebugMode) print('❌ SSE error — $e');
     }
   }
 

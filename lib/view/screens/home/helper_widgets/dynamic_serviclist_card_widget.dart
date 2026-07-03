@@ -228,9 +228,8 @@ class DynamicServiceCard extends StatelessWidget {
             if (showDiscount && originalPrice > discountedPrice) ...[
               SizedBox(width: 8),
               Text(
-                // '৳${originalPrice.toStringAsFixed(2)}',
                 '৳${AmountFormatter.format(originalPrice)}',
-                style: TextStyle(fontSize: 10, color: getSubtitleColor(context), decoration: TextDecoration.lineThrough),
+                style: AppTextStyles.textSize10(context, color: getSubtitleColor(context)).copyWith(decoration: TextDecoration.lineThrough),
               ),
             ],
           ],

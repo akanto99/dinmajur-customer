@@ -1,3 +1,4 @@
+import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:flutter/material.dart';
 
@@ -94,9 +95,8 @@ class DynamicBottomCartBar extends StatelessWidget {
             if (savedAmount > 0) ...[
               SizedBox(width: 8),
               Text(
-                // 'Saved ৳${savedAmount.toStringAsFixed(2)}',
                 'Saved ৳${AmountFormatter.format(savedAmount)}',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: getWhiteColor(context)),
+                style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: getWhiteColor(context)),
               ),
             ],
           ],
@@ -121,7 +121,7 @@ class DynamicBottomCartBar extends StatelessWidget {
           children: [
             Text(
               cartButtonText,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: getWhiteColor(context)),
+              style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: getWhiteColor(context)),
             ),
             SizedBox(width: 8),
             Icon(cartIcon, color: getWhiteColor(context), size: 20),

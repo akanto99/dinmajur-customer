@@ -30,9 +30,6 @@ class PostBookFamilyEventCookingViewModel with ChangeNotifier {
       if (response != null && response['data'] != null) {
         trackingId = response['data']['trackingId']?.toString();
 
-        if (kDebugMode) {
-          print('Tracking ID: $trackingId');
-        }
         onSuccess(trackingId);
       } else {
         setBookFamilyEventCookingLoading(false);
@@ -41,7 +38,6 @@ class PostBookFamilyEventCookingViewModel with ChangeNotifier {
     } catch (error) {
       setBookFamilyEventCookingLoading(false);
       _handleError(error, context);
-      if (kDebugMode) print('Error: $error');
     }
   }
   void _handleError(dynamic error, BuildContext context) {

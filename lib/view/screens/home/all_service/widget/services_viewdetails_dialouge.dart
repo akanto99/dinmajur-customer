@@ -477,20 +477,13 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
               children: [
                 Text(
                   '৳${widget.discountedPrice.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: Colors.white),
                 ),
                 if (widget.showDiscount) ...[
                   const SizedBox(width: 8),
                   Text(
                     '৳${widget.originalPrice.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white.withOpacity(0.8),
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: Colors.white.withOpacity(0.8)).copyWith(
                       decoration: TextDecoration.lineThrough,
                     ),
                   ),
