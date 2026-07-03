@@ -139,11 +139,23 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     final cart = Provider.of<GlobalCartProvider>(context, listen: false);
     final count = _getTotalItems();
     if (count > 0) {
+      final cartItems = <CartItem>[];
+      for (final cat in _getCategories()) {
+        for (final task in (cat.tasks ?? [])) {
+          final qty = _serviceQuantities[task.id ?? ''] ?? 0;
+          if (qty > 0) {
+            final price = task.price?.salePrice?.toDouble() ?? task.price?.basePrice?.toDouble() ?? 0;
+            final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
+            cartItems.add(CartItem(id: task.id ?? '', name: task.name ?? '', quantity: qty, unitPrice: price, imageUrl: imageUrl));
+          }
+        }
+      }
       cart.update(
         itemCount: count,
         totalPrice: _calculateTotal(),
         serviceName: widget.serviceName,
         onViewCart: _showCartDialog,
+        items: cartItems,
       );
     } else {
       cart.clear();
@@ -561,6 +573,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
       }
       if (result['cleared'] == true) {
         setState(() => _serviceQuantities.clear());
+        _syncGlobalCart();
       }
     }
   }
