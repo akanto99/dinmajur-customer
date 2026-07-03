@@ -104,7 +104,16 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                     final stores = viewModel.getAllNearbyServiceStoresData.data?.data ?? [];
                     if (stores.isEmpty) {
                       return Center(
-                        child: Text('No stores available in your area', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.store_mall_directory_outlined, size: 64, color: AppColors.subtitle(context).withOpacity(0.4)),
+                            const SizedBox(height: 16),
+                            Text('No stores available', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context))),
+                            const SizedBox(height: 6),
+                            Text('There are no stores for this service\nin your area yet.', textAlign: TextAlign.center, style: AppTextStyles.textSize13(context, color: AppColors.subtitle(context))),
+                          ],
+                        ),
                       );
                     }
                     return ListView.builder(

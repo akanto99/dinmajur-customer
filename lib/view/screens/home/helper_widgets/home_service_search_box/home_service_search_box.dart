@@ -154,10 +154,15 @@ class _HomeServiceSearchBoxState extends State<HomeServiceSearchBox> {
                     border: Border.all(width: 1.5, color: AppColors.border(context)),
                   ),
                   child: results.isEmpty
-                      ? Container(
-                          width: screenWidth * 0.9,
-                          padding: const EdgeInsets.all(10.0),
-                          child: Text("No services found", style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.search_off_rounded, size: 18, color: AppColors.subtitle(context)),
+                              const SizedBox(width: 8),
+                              Text("No services found", style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+                            ],
+                          ),
                         )
                       : ListView.separated(
                           shrinkWrap: true,

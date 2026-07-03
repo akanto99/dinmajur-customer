@@ -126,8 +126,8 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "All Home Services~",
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                    "All Home Services",
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
                   ),
                   SizedboxSpaccing.height025(context),
                   Row(
@@ -156,8 +156,8 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "All Home Services~",
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                    "All Home Services",
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
                   ),
                   SizedboxSpaccing.height025(context),
                   _buildServicesGrid(context, services),
@@ -267,6 +267,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
               service.name ?? '',
               textAlign: TextAlign.center,
               maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.textSize12(context, weight: isLoading ? FontWeight.w600 : FontWeight.w500, color: AppColors.textPrimary(context)),
             ),
           ),
