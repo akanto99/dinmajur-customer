@@ -91,7 +91,6 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
   @override
   void dispose() {
-    Provider.of<GlobalCartProvider>(context, listen: false).clear();
     _mainScrollController.dispose();
     super.dispose();
   }
@@ -140,7 +139,8 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     final count = _getTotalItems();
     if (count > 0) {
       final cartItems = <CartItem>[];
-      for (final cat in _getCategories()) {
+      final categories = _getCategories();
+      for (final cat in categories) {
         for (final task in (cat.tasks ?? [])) {
           final qty = _serviceQuantities[task.id ?? ''] ?? 0;
           if (qty > 0) {
@@ -150,12 +150,28 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
           }
         }
       }
+      final transportFee = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false)
+          .servicesViewGetAllCategoryData.data?.data?.transportFee?.toDouble() ?? 0.0;
+      final checkoutVM = Provider.of<CheckoutAllServicesViewModel>(context, listen: false);
       cart.update(
         itemCount: count,
         totalPrice: _calculateTotal(),
         serviceName: widget.serviceName,
-        onViewCart: _showCartDialog,
         items: cartItems,
+        checkoutArgs: {
+          'customerName': widget.customerName,
+          'customerPhone': widget.customerPhone,
+          'customerAddress': _currentCustomerAddress,
+          'customerLocation': _customerLocation,
+          'serviceId': widget.serviceId,
+          'categories': categories,
+          'serviceQuantities': Map.of(_serviceQuantities),
+          'totalPrice': _calculateTotal(),
+          'transportFee': transportFee,
+          'selectedDate': checkoutVM.selectedDate,
+          'selectedServiceTime': checkoutVM.selectedServiceTime,
+          'retailerId': widget.retailerId ?? '',
+        },
       );
     } else {
       cart.clear();

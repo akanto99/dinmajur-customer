@@ -22,28 +22,28 @@ class GlobalCartProvider extends ChangeNotifier {
   int _itemCount = 0;
   double _totalPrice = 0.0;
   String _serviceName = '';
-  VoidCallback? _onViewCart;
   List<CartItem> _items = [];
+  Map<String, dynamic>? _checkoutArgs;
 
   int get itemCount => _itemCount;
   double get totalPrice => _totalPrice;
   String get serviceName => _serviceName;
-  VoidCallback? get onViewCart => _onViewCart;
   bool get hasItems => _itemCount > 0;
   List<CartItem> get items => List.unmodifiable(_items);
+  Map<String, dynamic>? get checkoutArgs => _checkoutArgs;
 
   void update({
     required int itemCount,
     required double totalPrice,
     required String serviceName,
-    required VoidCallback onViewCart,
     List<CartItem> items = const [],
+    Map<String, dynamic>? checkoutArgs,
   }) {
     _itemCount = itemCount;
     _totalPrice = totalPrice;
     _serviceName = serviceName;
-    _onViewCart = onViewCart;
     _items = List.of(items);
+    _checkoutArgs = checkoutArgs;
     notifyListeners();
   }
 
@@ -51,8 +51,8 @@ class GlobalCartProvider extends ChangeNotifier {
     _itemCount = 0;
     _totalPrice = 0.0;
     _serviceName = '';
-    _onViewCart = null;
     _items = [];
+    _checkoutArgs = null;
     notifyListeners();
   }
 }

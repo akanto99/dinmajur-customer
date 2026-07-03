@@ -1,12 +1,41 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({Key? key}) : super(key: key);
+
+  Future<void> _goToCheckout(BuildContext context, GlobalCartProvider cart) async {
+    final args = cart.checkoutArgs;
+    if (args == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId') ?? '';
+    if (userId.isEmpty) return;
+
+    if (!context.mounted) return;
+
+    final result = await Navigator.pushNamed(
+      context,
+      RoutesName.serviceCheckoutScreen,
+      arguments: {
+        ...args,
+        'userId': userId,
+        'onAddressUpdate': (String _) {},
+      },
+    );
+
+    if (result is Map<String, dynamic> && result['cleared'] == true) {
+      if (context.mounted) {
+        context.read<GlobalCartProvider>().clear();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +131,7 @@ class CartScreen extends StatelessWidget {
                                 : _iconBox(context),
                           ),
                           const SizedBox(width: 12),
-                          // Name + unit price
+                          // Name + price breakdown
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +169,9 @@ class CartScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.containerBackground(context),
                   border: Border(top: BorderSide(color: AppColors.border(context))),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -3))],
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -3)),
+                  ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -157,7 +188,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     GestureDetector(
-                      onTap: cart.onViewCart,
+                      onTap: () => _goToCheckout(context, cart),
                       child: Container(
                         width: double.infinity,
                         height: 52,
