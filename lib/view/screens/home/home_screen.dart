@@ -434,8 +434,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
 
-                  // ── Featured Services ──
-                  FeaturedServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
+                  // ── Featured Services (Position 1 — after banner) ──
+                  FeaturedServicesWidget(
+                    homePosition: 'home_top',
+                    hasValidLocation: _hasValidLocation(),
+                    onLocationRequired: _showLocationRequiredDialog,
+                  ),
 
                   // ── All Services Grid ──
                   Consumer<ProfileViewViewModel>(
@@ -481,6 +485,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
+                  // ── Featured Services (Position 2 — after all home services) ──
+                  FeaturedServicesWidget(
+                    homePosition: 'home_bottom',
+                    hasValidLocation: _hasValidLocation(),
+                    onLocationRequired: _showLocationRequiredDialog,
+                  ),
+
                   TrendingServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
                   SizedboxSpaccing.height02(context),
                 ],

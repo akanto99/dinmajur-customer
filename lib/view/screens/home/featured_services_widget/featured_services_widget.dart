@@ -15,11 +15,15 @@ import 'package:provider/provider.dart';
 class FeaturedServicesWidget extends StatefulWidget {
   final bool hasValidLocation;
   final VoidCallback onLocationRequired;
+  /// Filter sections by homePosition ('home_top' or 'home_bottom').
+  /// If null, shows all sections.
+  final String? homePosition;
 
   const FeaturedServicesWidget({
     Key? key,
     required this.hasValidLocation,
     required this.onLocationRequired,
+    this.homePosition,
   }) : super(key: key);
 
   @override
@@ -159,7 +163,13 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
 
         final sections = vm.featuredServicesData.data?.data?.data ?? [];
         final active = sections
-            .where((s) => (s.isActive ?? false) && (s.items?.isNotEmpty ?? false))
+            .where((s) =>
+                (s.isActive ?? false) &&
+                (s.items?.isNotEmpty ?? false) &&
+                (widget.homePosition == null ||
+                 s.homePosition == widget.homePosition ||
+                 // sections without homePosition set default to home_top
+                 (widget.homePosition == 'home_top' && (s.homePosition == null || s.homePosition!.isEmpty))))
             .toList();
         if (active.isEmpty) return const SizedBox.shrink();
 
@@ -178,14 +188,46 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
 
     if (items.isEmpty) return const SizedBox.shrink();
 
+    final hasSubtitle = section.subtitle != null && section.subtitle!.isNotEmpty;
+
     return Container(
       width: screenWidth * 0.9,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            section.title ?? 'Featured Services',
-            style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+          // Header: title + subtitle + "See all"
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      section.title ?? 'Featured Services',
+                      style: AppTextStyles.textSize16(context, weight: FontWeight.w700),
+                    ),
+                    if (hasSubtitle) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        section.subtitle!,
+                        style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () {},
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    'See all',
+                    style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
+                  ),
+                ),
+              ),
+            ],
           ),
           SizedboxSpaccing.height025(context),
           SizedBox(

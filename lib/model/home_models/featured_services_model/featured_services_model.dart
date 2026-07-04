@@ -51,18 +51,22 @@ class FeaturedServicesMeta {
 class FeaturedSection {
   String? id;
   String? title;
+  String? subtitle;
   String? type;
   String? placement;
+  String? homePosition;
   bool? isActive;
   List<FeaturedItem>? items;
 
-  FeaturedSection({this.id, this.title, this.type, this.placement, this.isActive, this.items});
+  FeaturedSection({this.id, this.title, this.subtitle, this.type, this.placement, this.homePosition, this.isActive, this.items});
 
   factory FeaturedSection.fromJson(Map<String, dynamic> json) => FeaturedSection(
         id: json["_id"],
         title: json["title"],
+        subtitle: json["subtitle"],
         type: json["type"],
         placement: json["placement"],
+        homePosition: json["homePosition"],
         isActive: json["isActive"],
         items: json["items"] == null
             ? []
