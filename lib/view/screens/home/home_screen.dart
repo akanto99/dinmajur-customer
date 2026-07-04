@@ -17,8 +17,10 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_neare
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/home_service_search_box/home_service_search_box.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/featured_services_widget/featured_services_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/trending_service_widget/trending_service_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/featured_services_view_model/featured_services_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/banner_view_model/banner_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
@@ -90,6 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
       trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
+
+      final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
+      featuredServicesViewModel.fetchFeaturedServices();
     });
     ConnectivityMonitorService().addReconnectListener(_onInternetReconnected);
   }
@@ -109,6 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
       trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
+
+      final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
+      featuredServicesViewModel.fetchFeaturedServices();
 
       if (_showRetailNearest) {
         await _fetchNearbyRetailers('Retail');
@@ -425,6 +433,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
+
+                  // ── Featured Services ──
+                  FeaturedServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
 
                   // ── All Services Grid ──
                   Consumer<ProfileViewViewModel>(

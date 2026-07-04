@@ -83,8 +83,12 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     _customerLocation = widget.customerLocation;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false).fetchServicesViewGetAllCategoriesGetApi(widget.serviceId, widget.retailerId?? "");
+      // Restore quantities saved in global cart for this service
+      final cart = Provider.of<GlobalCartProvider>(context, listen: false);
+      final saved = cart.getQuantitiesForService(widget.serviceId);
+      if (saved.isNotEmpty) setState(() => _serviceQuantities = Map.of(saved));
 
+      Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false).fetchServicesViewGetAllCategoriesGetApi(widget.serviceId, widget.retailerId?? "");
       Provider.of<GetSlotViewModel>(context, listen: false).fetchGetSlotDataApi(DateTime.now(), widget.serviceId);
     });
   }
@@ -153,9 +157,8 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
       final transportFee = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false)
           .servicesViewGetAllCategoryData.data?.data?.transportFee?.toDouble() ?? 0.0;
       final checkoutVM = Provider.of<CheckoutAllServicesViewModel>(context, listen: false);
-      cart.update(
-        itemCount: count,
-        totalPrice: _calculateTotal(),
+      cart.updateService(
+        widget.serviceId,
         serviceName: widget.serviceName,
         items: cartItems,
         checkoutArgs: {
@@ -174,7 +177,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         },
       );
     } else {
-      cart.clear();
+      cart.clearService(widget.serviceId);
     }
   }
 
@@ -462,7 +465,14 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
             categories: categories,
             serviceQuantities: _serviceQuantities,
             onQuantityUpdate: (taskId, newQuantity) {
-              setState(() => _serviceQuantities[taskId] = newQuantity);
+              setState(() {
+                if (newQuantity <= 0) {
+                  _serviceQuantities.remove(taskId);
+                } else {
+                  _serviceQuantities[taskId] = newQuantity;
+                }
+              });
+              WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
               setDialogState(() {});
               if (_getTotalItems() == 0) Navigator.pop(context);
             },

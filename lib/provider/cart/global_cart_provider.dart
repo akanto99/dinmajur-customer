@@ -18,41 +18,142 @@ class CartItem {
   double get subtotal => unitPrice * quantity;
 }
 
+class ServiceCartEntry {
+  final String serviceName;
+  final List<CartItem> items;
+  final Map<String, dynamic>? checkoutArgs;
+
+  const ServiceCartEntry({
+    required this.serviceName,
+    required this.items,
+    this.checkoutArgs,
+  });
+
+  double get subtotal => items.fold(0.0, (sum, item) => sum + item.subtotal);
+  int get itemCount => items.fold(0, (sum, item) => sum + item.quantity);
+}
+
 class GlobalCartProvider extends ChangeNotifier {
-  int _itemCount = 0;
-  double _totalPrice = 0.0;
-  String _serviceName = '';
-  List<CartItem> _items = [];
-  Map<String, dynamic>? _checkoutArgs;
+  final Map<String, ServiceCartEntry> _serviceCarts = {};
 
-  int get itemCount => _itemCount;
-  double get totalPrice => _totalPrice;
-  String get serviceName => _serviceName;
-  bool get hasItems => _itemCount > 0;
-  List<CartItem> get items => List.unmodifiable(_items);
-  Map<String, dynamic>? get checkoutArgs => _checkoutArgs;
+  Map<String, ServiceCartEntry> get serviceCarts => Map.unmodifiable(_serviceCarts);
 
-  void update({
-    required int itemCount,
-    required double totalPrice,
+  bool get hasItems => _serviceCarts.values.any((s) => s.items.isNotEmpty);
+
+  int get itemCount => _serviceCarts.values.fold(0, (sum, s) => sum + s.itemCount);
+
+  double get totalPrice => _serviceCarts.values.fold(0.0, (sum, s) => sum + s.subtotal);
+
+  List<CartItem> get items => _serviceCarts.values.expand((s) => s.items).toList();
+
+  // Legacy single-service compat
+  String get serviceName =>
+      _serviceCarts.values.isNotEmpty ? _serviceCarts.values.first.serviceName : '';
+
+  Map<String, dynamic>? get checkoutArgs =>
+      _serviceCarts.values.isNotEmpty ? _serviceCarts.values.first.checkoutArgs : null;
+
+  Map<String, int> getQuantitiesForService(String serviceId) {
+    final entry = _serviceCarts[serviceId];
+    if (entry == null) return {};
+    return {for (final item in entry.items) item.id: item.quantity};
+  }
+
+  Map<String, dynamic>? getCheckoutArgsForService(String serviceId) {
+    return _serviceCarts[serviceId]?.checkoutArgs;
+  }
+
+  void updateService(
+    String serviceId, {
     required String serviceName,
-    List<CartItem> items = const [],
+    required List<CartItem> items,
     Map<String, dynamic>? checkoutArgs,
   }) {
-    _itemCount = itemCount;
-    _totalPrice = totalPrice;
-    _serviceName = serviceName;
-    _items = List.of(items);
-    _checkoutArgs = checkoutArgs;
+    if (items.isEmpty) {
+      _serviceCarts.remove(serviceId);
+    } else {
+      _serviceCarts[serviceId] = ServiceCartEntry(
+        serviceName: serviceName,
+        items: List.of(items),
+        checkoutArgs: checkoutArgs,
+      );
+    }
+    notifyListeners();
+  }
+
+  void updateItemQuantity(String serviceId, String itemId, int delta) {
+    final entry = _serviceCarts[serviceId];
+    if (entry == null) return;
+
+    final items = List.of(entry.items);
+    final idx = items.indexWhere((item) => item.id == itemId);
+    if (idx == -1) return;
+
+    final current = items[idx];
+    final newQty = current.quantity + delta;
+
+    if (newQty <= 0) {
+      items.removeAt(idx);
+    } else {
+      items[idx] = CartItem(
+        id: current.id,
+        name: current.name,
+        quantity: newQty,
+        unitPrice: current.unitPrice,
+        imageUrl: current.imageUrl,
+      );
+    }
+
+    _replaceServiceItems(serviceId, entry, items, itemId, newQty <= 0 ? 0 : newQty);
+  }
+
+  void removeItem(String serviceId, String itemId) {
+    final entry = _serviceCarts[serviceId];
+    if (entry == null) return;
+    final items = entry.items.where((item) => item.id != itemId).toList();
+    _replaceServiceItems(serviceId, entry, items, itemId, 0);
+  }
+
+  void _replaceServiceItems(
+      String serviceId, ServiceCartEntry entry, List<CartItem> items, String changedItemId, int newQty) {
+    Map<String, dynamic>? updatedArgs;
+    if (entry.checkoutArgs != null) {
+      final raw = entry.checkoutArgs!['serviceQuantities'];
+      final serviceQtys = <String, int>{};
+      if (raw is Map) {
+        raw.forEach((k, v) => serviceQtys[k.toString()] = (v as num).toInt());
+      }
+      if (newQty <= 0) {
+        serviceQtys.remove(changedItemId);
+      } else {
+        serviceQtys[changedItemId] = newQty;
+      }
+      updatedArgs = {
+        ...entry.checkoutArgs!,
+        'serviceQuantities': serviceQtys,
+        'totalPrice': items.fold(0.0, (s, i) => s + i.subtotal),
+      };
+    }
+
+    if (items.isEmpty) {
+      _serviceCarts.remove(serviceId);
+    } else {
+      _serviceCarts[serviceId] = ServiceCartEntry(
+        serviceName: entry.serviceName,
+        items: items,
+        checkoutArgs: updatedArgs,
+      );
+    }
+    notifyListeners();
+  }
+
+  void clearService(String serviceId) {
+    _serviceCarts.remove(serviceId);
     notifyListeners();
   }
 
   void clear() {
-    _itemCount = 0;
-    _totalPrice = 0.0;
-    _serviceName = '';
-    _items = [];
-    _checkoutArgs = null;
+    _serviceCarts.clear();
     notifyListeners();
   }
 }

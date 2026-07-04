@@ -64,6 +64,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   /// online payment lock
   final ValueNotifier<bool> _paymentLock = ValueNotifier(false);
 
+  // Red border validation
+  bool _customerError = false;
+  bool _paymentError = false;
+  bool _termsError = false;
+  final GlobalKey _customerKey = GlobalKey();
+  final GlobalKey _paymentKey = GlobalKey();
+  final GlobalKey _termsKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
+
+  void _scrollToKey(GlobalKey key) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = key.currentContext;
+      if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -99,8 +115,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.dispose();
     _specialRequestController.dispose();
     _dateController.dispose();
-
     _paymentLock.dispose();
+    _scrollController.dispose();
 
     super.dispose();
   }
@@ -181,19 +197,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     double totalAmount = subtotal + widget.transportFee;
 
     // Validate form
-    String? validationError = checkoutVM.validateCheckoutDetails(
-      fullName: _fullNameController.text,
-      phone: _phoneController.text,
-      address: _addressController.text,
-      paymentMethod: checkoutVM.selectedPaymentMethod,
-    );
+    final String currentAddress = _addressController.text.isEmpty ? widget.customerAddress : _addressController.text;
+    final bool newCustomerError = widget.customerName.isEmpty || widget.customerPhone.isEmpty || currentAddress.isEmpty;
+    final bool newPaymentError = (checkoutVM.selectedPaymentMethod ?? '').isEmpty;
+    final bool newTermsError = !_isTermsAccepted;
 
-    if (validationError != null) {
-      Utils.flushBarErrorMessage(validationError, context);
-      return;
-    }
-    if (!_isTermsAccepted) {
-      Utils.flushBarErrorMessage("Please accept the Terms & Conditions to proceed", context);
+    if (newCustomerError || newPaymentError || newTermsError) {
+      setState(() {
+        _customerError = newCustomerError;
+        _paymentError = newPaymentError;
+        _termsError = newTermsError;
+      });
+      if (newCustomerError) _scrollToKey(_customerKey);
+      else if (newPaymentError) _scrollToKey(_paymentKey);
+      else _scrollToKey(_termsKey);
       return;
     }
     // Prepare tasks data
@@ -296,6 +313,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   Expanded(
                     child: SingleChildScrollView(
+                      controller: _scrollController,
                       padding: EdgeInsets.all(15),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,22 +324,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           SizedboxSpaccing.height02(context),
                           _buildPaymentMethodSection(checkoutVM),
                           SizedboxSpaccing.height01(context),
-                          DynamicTermsCheckbox(
-                            isAccepted: _isTermsAccepted,
-                            onChanged: (value) {
-                              setState(() {
-                                _isTermsAccepted = value;
-                              });
-                            },
-                            context: context,
-                            onTermsTap: () => Navigator.pushNamed(context, RoutesName.termsAndCondition),
-                            onPrivacyTap: () => Navigator.pushNamed(context, RoutesName.privacyPolicy),
-                            onRefundTap: () => Navigator.pushNamed(context, RoutesName.refundPolicyScreen),
-                            getButtonColor: (context) => AppColors.button(context),
-                            getBorderColor: (context) => AppColors.border(context),
-                            getWhiteColor: (context) => AppColors.whiteColor,
-                            getTextStyle: (context, {weight}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.w400),
+                          AnimatedContainer(
+                            key: _termsKey,
+                            duration: const Duration(milliseconds: 300),
+                            decoration: _termsError
+                                ? BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.red, width: 1.5),
+                                  )
+                                : const BoxDecoration(),
+                            child: DynamicTermsCheckbox(
+                              isAccepted: _isTermsAccepted,
+                              onChanged: (value) {
+                                setState(() {
+                                  _isTermsAccepted = value;
+                                  if (value) _termsError = false;
+                                });
+                              },
+                              context: context,
+                              onTermsTap: () => Navigator.pushNamed(context, RoutesName.termsAndCondition),
+                              onPrivacyTap: () => Navigator.pushNamed(context, RoutesName.privacyPolicy),
+                              onRefundTap: () => Navigator.pushNamed(context, RoutesName.refundPolicyScreen),
+                              getButtonColor: (context) => AppColors.button(context),
+                              getBorderColor: (context) => _termsError ? Colors.red : AppColors.border(context),
+                              getWhiteColor: (context) => AppColors.whiteColor,
+                              getTextStyle: (context, {weight}) => AppTextStyles.textSize16(context, weight: weight ?? FontWeight.w400),
+                            ),
                           ),
+                          if (_termsError)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4, left: 4),
+                              child: Text('Please accept the Terms & Conditions to proceed', style: AppTextStyles.textSize12(context, color: Colors.red)),
+                            ),
                           SizedboxSpaccing.height03(context),
                         ],
                       ),
@@ -362,38 +396,50 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildCustomerDetailsCard() {
     final screenHeight = MediaQuery.of(context).size.height;
-    return Container(
-      padding: EdgeInsets.all(screenHeight * 0.015),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnimatedContainer(
+          key: _customerKey,
+          duration: const Duration(milliseconds: 300),
+          padding: EdgeInsets.all(screenHeight * 0.015),
+          decoration: BoxDecoration(
+            color: AppColors.containerBackground(context),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _customerError ? Colors.red : AppColors.border(context), width: _customerError ? 1.5 : 1.0),
+          ),
+          child: Column(
             children: [
-              Text('Customer Details', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-              GestureDetector(
-                onTap: _handleEditAddress,
-                child: Container(
-                  width: 80,
-                  color: Colors.transparent,
-                  alignment: Alignment.centerRight,
-                  child: Text('Edit', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Customer Details', style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: _customerError ? Colors.red : null)),
+                  GestureDetector(
+                    onTap: _handleEditAddress,
+                    child: Container(
+                      width: 80,
+                      color: Colors.transparent,
+                      alignment: Alignment.centerRight,
+                      child: Text('Edit', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                    ),
+                  ),
+                ],
               ),
+              SizedboxSpaccing.height01(context),
+              _buildDetailRow('Name', widget.customerName),
+              SizedboxSpaccing.height01(context),
+              _buildDetailRow('Phone', widget.customerPhone),
+              SizedboxSpaccing.height01(context),
+              _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true),
             ],
           ),
-          SizedboxSpaccing.height01(context),
-          _buildDetailRow('Name', widget.customerName),
-          SizedboxSpaccing.height01(context),
-          _buildDetailRow('Phone', widget.customerPhone),
-          SizedboxSpaccing.height01(context),
-          _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true),
-        ],
-      ),
+        ),
+        if (_customerError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text('Please fill in all customer details', style: AppTextStyles.textSize12(context, color: Colors.red)),
+          ),
+      ],
     );
   }
 
@@ -448,10 +494,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Column(
+      key: _paymentKey,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false),
+        SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false, titleStyle: _paymentError ? AppTextStyles.textSize18(context, weight: FontWeight.w500, color: Colors.red) : null),
         SizedboxSpaccing.height02(context),
-        PaymentMethodWidget(selectedPaymentMethod: viewModel.selectedPaymentMethod, paymentMethods: viewModel.paymentMethods, onPaymentMethodChanged: (method) => viewModel.setPaymentMethod(method)),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          decoration: _paymentError
+              ? BoxDecoration(borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.red, width: 1.5))
+              : const BoxDecoration(),
+          child: PaymentMethodWidget(
+            selectedPaymentMethod: viewModel.selectedPaymentMethod,
+            paymentMethods: viewModel.paymentMethods,
+            onPaymentMethodChanged: (method) {
+              viewModel.setPaymentMethod(method);
+              if (method.isNotEmpty) setState(() => _paymentError = false);
+            },
+          ),
+        ),
+        if (_paymentError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text('Please select a payment method', style: AppTextStyles.textSize12(context, color: Colors.red)),
+          ),
       ],
     );
   }
@@ -541,28 +607,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 );
               }).toList(),
-              _buildDetailRow1('Date', DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate ?? DateTime.now())),
-              SizedboxSpaccing.height02(context),
-              _buildDetailRow1('Slot', _formatTo12Hour(checkoutVM.selectedServiceTime ?? '')),
+              _buildPriceRow('Subtotal', subtotal),
               SizedboxSpaccing.height02(context),
               _buildPriceRow('Transport', widget.transportFee),
               SizedboxSpaccing.height02(context),
-              _buildPriceRow('Subtotal', subtotal),
-              // if (saved > 0) ...[
-              //   SizedboxSpaccing.height02(context),
-              //   _buildPriceRow('Saved', saved, isGreen: true),
-              // ],
-              // Divider(height: 20, color: AppColors.border(context)),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //   children: [
-              //     Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              //     Text(
-              //       '৳${total.toStringAsFixed(2)}',
-              //       style: AppTextStyles.textSize18(context, weight: FontWeight.w700, color: AppColors.button(context)),
-              //     ),
-              //   ],
-              // ),
+              Divider(height: 1, color: AppColors.border(context)),
+              SizedboxSpaccing.height02(context),
+              _buildPriceRow('Total', total, isBold: true),
+              SizedboxSpaccing.height02(context),
+              Divider(height: 1, color: AppColors.border(context)),
+              SizedboxSpaccing.height02(context),
+              _buildDetailRow1('Date', DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate ?? DateTime.now())),
+              SizedboxSpaccing.height02(context),
+              _buildDetailRow1('Slot', _formatTo12Hour(checkoutVM.selectedServiceTime ?? '')),
             ],
           ),
         ),
@@ -570,14 +627,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, {bool isGreen = false}) {
+  Widget _buildPriceRow(String label, double amount, {bool isGreen = false, bool isBold = false}) {
+    final weight = isBold ? FontWeight.w700 : FontWeight.w400;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+        Text(label, style: AppTextStyles.textSize14(context, weight: weight)),
         Text(
           '৳${AmountFormatter.format(amount)}',
-          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
+          style: AppTextStyles.textSize14(context, weight: weight, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
     );

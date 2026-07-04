@@ -181,13 +181,13 @@ class Task {
         : List<ImageModel>.from(
         json["images"].map((x) => ImageModel.fromJson(x))),
     durationInMin: json["durationInMin"],
-    description: json["description"],
-    overview: json["overview"],
-    steps: json["steps"],
-    products: json["products"],
-    benefits: json["benefits"],
-    instructions: json["instructions"],
-    details: json["details"],
+    description: json["description"] is String ? json["description"] : null,
+    overview: json["overview"] is String ? json["overview"] : null,
+    steps: json["steps"] is String ? json["steps"] : null,
+    products: json["products"] is String ? json["products"] : null,
+    benefits: json["benefits"] is String ? json["benefits"] : null,
+    instructions: json["instructions"] is String ? json["instructions"] : null,
+    details: json["details"] is String ? json["details"] : null,
     createdAt: json["createdAt"] == null
         ? null
         : DateTime.tryParse(json["createdAt"]),

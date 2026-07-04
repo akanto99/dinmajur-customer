@@ -32,6 +32,7 @@ class _WriteReviewSheet extends StatefulWidget {
 
 class _WriteReviewSheetState extends State<_WriteReviewSheet> {
   int _selectedRating = 0;
+  bool _ratingError = false;
   final TextEditingController _feedbackController = TextEditingController();
   int _charCount = 0;
 
@@ -52,9 +53,10 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
   }
   Future<void> _onSubmit() async {
     if (_selectedRating == 0) {
-      Utils.flushBarErrorMessage("Please select a rating", context);
+      setState(() => _ratingError = true);
       return;
     }
+    setState(() => _ratingError = false);
 
     final String freelancerId = widget.datum.type == 'ORDER'
         ? widget.datum.freelancerId ?? ''
@@ -131,21 +133,39 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                 const SizedBox(height: 16),
           
                 // ── Star rating ───────────────────────────────────────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    return GestureDetector(
-                      onTap: isLoading ? null : () => setState(() => _selectedRating = index + 1),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        child: Icon(
-                          _selectedRating > index ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
-                          color: _selectedRating > index ? const Color(0xFFFACC15) : AppColors.border(context),
-                          size: 28,
-                        ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  decoration: _ratingError
+                      ? BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.red, width: 1.5))
+                      : const BoxDecoration(),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          return GestureDetector(
+                            onTap: isLoading ? null : () => setState(() {
+                              _selectedRating = index + 1;
+                              _ratingError = false;
+                            }),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: Icon(
+                                _selectedRating > index ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
+                                color: _selectedRating > index ? const Color(0xFFFACC15) : (_ratingError ? Colors.red.shade300 : AppColors.border(context)),
+                                size: 28,
+                              ),
+                            ),
+                          );
+                        }),
                       ),
-                    );
-                  }),
+                      if (_ratingError) ...[
+                        const SizedBox(height: 6),
+                        Text('Please select a rating', style: AppTextStyles.textSize12(context, color: Colors.red)),
+                      ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
           

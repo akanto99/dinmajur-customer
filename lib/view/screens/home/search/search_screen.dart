@@ -51,8 +51,17 @@ class _SearchScreenState extends State<SearchScreen> {
     return all.where((s) {
       final name = (s.name ?? '').toLowerCase();
       final desc = (s.description ?? '').toLowerCase();
-      return name.contains(_query) || desc.contains(_query);
+      final categoryMatch = (s.categories ?? []).any((c) => (c.name ?? '').toLowerCase().contains(_query));
+      return name.contains(_query) || desc.contains(_query) || categoryMatch;
     }).toList();
+  }
+
+  String _matchingCategories(Datum service) {
+    if (_query.isEmpty) return '';
+    return (service.categories ?? [])
+        .where((c) => (c.name ?? '').toLowerCase().contains(_query))
+        .map((c) => c.name ?? '')
+        .join(', ');
   }
 
   Future<void> _handleServiceTap(BuildContext context, Datum service) async {
@@ -382,6 +391,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildServiceTile(BuildContext context, Datum service) {
     final isLoading = _loadingServiceId == service.id;
     final imageUrl = service.image?.url;
+    final matchedCats = _matchingCategories(service);
 
     return GestureDetector(
       onTap: () => _handleServiceTap(context, service),
@@ -414,7 +424,14 @@ class _SearchScreenState extends State<SearchScreen> {
                 children: [
                   Text(service.name ?? '',
                       style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
-                  if ((service.description ?? '').isNotEmpty)
+                  if (matchedCats.isNotEmpty)
+                    Text(
+                      matchedCats,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.textSize12(context, color: AppColors.button(context)),
+                    )
+                  else if ((service.description ?? '').isNotEmpty)
                     Text(
                       service.description!,
                       maxLines: 1,
