@@ -23,10 +23,37 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({Key? key}) : super(key: key);
+  /// Called when the user taps the back arrow. CartScreen is presented as a
+  /// permanent bottom-nav tab (not pushed via Navigator), so there is no
+  /// route to pop back to — the parent must switch tabs instead.
+  final VoidCallback? onBack;
+
+  const CartScreen({Key? key, this.onBack}) : super(key: key);
 
   @override
   State<CartScreen> createState() => _CartScreenState();
+}
+
+/// Reconstructs a typed model list from checkout args that may either hold
+/// the original in-memory objects (fresh session) or plain JSON maps
+/// (restored from the persisted cart after an app restart).
+List<T> _asTypedList<T>(dynamic raw, T Function(Map<String, dynamic>) fromJson) {
+  return (raw as List? ?? [])
+      .map((e) => e is T ? e : fromJson(Map<String, dynamic>.from(e as Map)))
+      .toList();
+}
+
+/// Reconstructs a `Map<String, Set<String>>` from checkout args, tolerating
+/// values stored as `Set` (fresh session) or `List` (restored from disk,
+/// since JSON has no Set type).
+Map<String, Set<String>> _asStringSetMap(dynamic raw) {
+  final result = <String, Set<String>>{};
+  if (raw is Map) {
+    raw.forEach((k, v) {
+      if (v is Iterable) result[k.toString()] = Set<String>.from(v.map((e) => e.toString()));
+    });
+  }
+  return result;
 }
 
 class _CartScreenState extends State<CartScreen> {
@@ -55,7 +82,7 @@ class _CartScreenState extends State<CartScreen> {
     final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
     final bookedSlotVM = Provider.of<GetBookedSlotViewModel>(context, listen: false);
 
-    final categories = (args['categories'] as List? ?? []).cast<beauty_model.Datum>();
+    final categories = _asTypedList<beauty_model.Datum>(args['categories'], beauty_model.Datum.fromJson);
     var serviceQuantities = Map<String, int>.from(args['serviceQuantities'] as Map? ?? {});
     final transportFee = (args['transportFee'] as num?)?.toDouble() ?? 0.0;
     final svcName = cart.serviceCarts[serviceId]?.serviceName ?? '';
@@ -129,16 +156,10 @@ class _CartScreenState extends State<CartScreen> {
   void _showHousekeeperCartDialog(String serviceId, Map<String, dynamic> args) {
     final cart = context.read<GlobalCartProvider>();
 
-    final allServices = (args['allServices'] as List? ?? []).cast<hk_model.Datum>();
+    final allServices = _asTypedList<hk_model.Datum>(args['allServices'], hk_model.Datum.fromJson);
     var serviceQuantities = Map<String, int>.from(args['serviceQuantities'] as Map? ?? {});
 
-    final rawTaskItems = args['selectedTaskItems'];
-    final selectedTaskItems = <String, Set<String>>{};
-    if (rawTaskItems is Map) {
-      rawTaskItems.forEach((k, v) {
-        if (v is Set) selectedTaskItems[k.toString()] = Set<String>.from(v);
-      });
-    }
+    final selectedTaskItems = _asStringSetMap(args['selectedTaskItems']);
 
     final selectedFrequency = (args['selectedFrequency'] as String?) ?? 'Daily';
     final selectedDate = (args['selectedDate'] as String?) ?? '';
@@ -211,16 +232,10 @@ class _CartScreenState extends State<CartScreen> {
   void _showCookingCartDialog(String serviceId, Map<String, dynamic> args) {
     final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
 
-    final categories = (args['categories'] as List? ?? []).cast<cooking_model.Datum>();
+    final categories = _asTypedList<cooking_model.Datum>(args['categories'], cooking_model.Datum.fromJson);
     final selectedPackages = Map<String, String?>.from(args['selectedPackages'] as Map? ?? {});
 
-    final rawManualItems = args['selectedManualItems'];
-    final selectedManualItems = <String, Set<String>>{};
-    if (rawManualItems is Map) {
-      rawManualItems.forEach((k, v) {
-        if (v is Set) selectedManualItems[k.toString()] = Set<String>.from(v);
-      });
-    }
+    final selectedManualItems = _asStringSetMap(args['selectedManualItems']);
 
     final activeCategoryId = args['activeCategoryId'] as String?;
     final selectedGuestRangeIndex = (args['selectedGuestRangeIndex'] as int?) ?? 0;
@@ -283,7 +298,7 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    final categories = (args['categories'] as List?)?.cast<Category>() ?? <Category>[];
+    final categories = _asTypedList<Category>(args['categories'], Category.fromJson);
     final serviceQuantities = Map<String, int>.from(args['serviceQuantities'] as Map? ?? {});
     final transportFee = (args['transportFee'] as num?)?.toDouble() ?? 0.0;
     final String svcId = (args['serviceId'] as String?) ?? serviceId;
@@ -394,7 +409,7 @@ class _CartScreenState extends State<CartScreen> {
         child: Column(
           children: [
             GestureDetector(
-              onTap: () => Navigator.pop(context),
+              onTap: () => widget.onBack != null ? widget.onBack!() : Navigator.maybePop(context),
               child: AppBarHeader('My Cart'),
             ),
 

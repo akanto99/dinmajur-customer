@@ -60,7 +60,12 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    _pages = [HomeScreen(scaffoldKey: _scaffoldKey), const CartScreen(), OrderScreen(initialTabIndex: widget.orderTabIndex), DraftScreen()];
+    _pages = [
+      HomeScreen(scaffoldKey: _scaffoldKey),
+      CartScreen(onBack: () => setState(() => _currentIndex = 0)),
+      OrderScreen(initialTabIndex: widget.orderTabIndex),
+      DraftScreen(),
+    ];
     _currentIndex = widget.initialIndex;
 
     WakelockPlus.enable();

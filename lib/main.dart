@@ -118,7 +118,7 @@ void main() async {
         ChangeNotifierProvider<LanguageChangeProvider>.value(value: languageProvider),
         ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => CountdownTimerProvider()),
-        ChangeNotifierProvider(create: (_) => GlobalCartProvider()),
+        ChangeNotifierProvider(create: (_) => GlobalCartProvider()..hydrate()),
 
         // ── SocketManager replaces SocketProvider + SocketService ──────────
         ChangeNotifierProvider<SocketManager>.value(value: socketManager),

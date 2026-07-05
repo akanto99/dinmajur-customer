@@ -177,10 +177,6 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       return;
     }
 
-    final allServicesWithQuantity = _allServicesMap.values.where((service) {
-      return (_serviceQuantities[service.id ?? ''] ?? 0) > 0;
-    }).toList();
-
     cart.updateService(
       widget.serviceName,
       serviceName: widget.serviceName,
@@ -197,7 +193,9 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         'customerAddress': _currentCustomerAddress,
         'customerLocation': _customerLocation,
         'transportFee': transportFee,
-        'allServices': allServicesWithQuantity,
+        // Full catalog (not filtered by quantity) so the cart popup can
+        // still offer add-ons for services not yet in the cart.
+        'allServices': _allServicesMap.values.toList(),
         'onAddressUpdate': (String _) {},
       },
     );

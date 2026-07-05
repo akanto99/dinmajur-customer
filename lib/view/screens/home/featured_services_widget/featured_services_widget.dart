@@ -231,7 +231,7 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
           ),
           SizedboxSpaccing.height025(context),
           SizedBox(
-            height: 215,
+            height: 178,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -273,30 +273,64 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
               ],
             ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: isLoading ? 0.3 : 1.0,
-                    child: SizedBox(
-                      width: 155,
-                      height: 95,
-                      child: item.displayImageUrl != null && item.displayImageUrl!.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: item.displayImageUrl!,
-                              fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => _placeholder(context),
-                            )
-                          : _placeholder(context),
+                // Image with ADD button floating over its bottom edge
+                Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: isLoading ? 0.3 : 1.0,
+                        child: SizedBox(
+                          width: 155,
+                          height: 88,
+                          child: item.displayImageUrl != null && item.displayImageUrl!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: item.displayImageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, __, ___) => _placeholder(context),
+                                )
+                              : _placeholder(context),
+                        ),
+                      ),
                     ),
-                  ),
+                    Positioned(
+                      bottom: -15,
+                      child: GestureDetector(
+                        onTap: isLoading ? null : () => _handleItemTap(context, item),
+                        child: Container(
+                          width: 73,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: AppColors.button(context),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(width: 1, color: AppColors.border(context)),
+                          ),
+                          child: Center(
+                            child: isLoading
+                                ? SizedBox(
+                                    height: 14,
+                                    width: 14,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.whiteColor),
+                                  )
+                                : Text(
+                                    'ADD',
+                                    style: AppTextStyles.textSize14(context, weight: FontWeight.w700, color: AppColors.whiteColor),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                // Info + ADD button
+                // Info
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+                  padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -327,31 +361,6 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
                           ],
                         ),
                       ],
-                      const SizedBox(height: 6),
-                      // ADD button
-                      GestureDetector(
-                        onTap: isLoading ? null : () => _handleItemTap(context, item),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 5),
-                          decoration: BoxDecoration(
-                            color: AppColors.button(context),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: isLoading
-                                ? SizedBox(
-                                    height: 14,
-                                    width: 14,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.whiteColor),
-                                  )
-                                : Text(
-                                    'ADD',
-                                    style: AppTextStyles.textSize12(context, weight: FontWeight.w700, color: AppColors.whiteColor),
-                                  ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

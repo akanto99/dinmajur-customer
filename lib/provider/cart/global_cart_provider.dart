@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CartItem {
   final String id;
@@ -33,8 +36,101 @@ class ServiceCartEntry {
   int get itemCount => items.fold(0, (sum, item) => sum + item.quantity);
 }
 
+/// Recursively converts arbitrary cart data (model objects, Sets, DateTimes,
+/// callbacks) into JSON-safe primitives so the cart can survive an app
+/// restart. Objects exposing `toJson()` (all API model classes in this app)
+/// are unwrapped via dynamic dispatch so this provider doesn't need to
+/// depend on every service's model types.
+dynamic _sanitizeForStorage(dynamic value) {
+  if (value == null || value is String || value is num || value is bool) return value;
+  if (value is Function) return null;
+  if (value is DateTime) return value.toIso8601String();
+  if (value is Set) return value.map(_sanitizeForStorage).toList();
+  if (value is Map) return value.map((k, v) => MapEntry(k.toString(), _sanitizeForStorage(v)));
+  if (value is List) return value.map(_sanitizeForStorage).toList();
+  try {
+    return _sanitizeForStorage((value as dynamic).toJson());
+  } catch (_) {
+    return null;
+  }
+}
+
+Map<String, dynamic>? _sanitizeCheckoutArgs(Map<String, dynamic>? args) {
+  if (args == null) return null;
+  final result = <String, dynamic>{};
+  args.forEach((key, value) {
+    if (value is Function) return;
+    result[key] = _sanitizeForStorage(value);
+  });
+  return result;
+}
+
 class GlobalCartProvider extends ChangeNotifier {
+  static const _prefsKey = 'global_cart_v1';
+
   final Map<String, ServiceCartEntry> _serviceCarts = {};
+  bool _hydrated = false;
+
+  /// Restores previously saved cart contents from disk. Call once at app
+  /// startup; safe to call multiple times.
+  Future<void> hydrate() async {
+    if (_hydrated) return;
+    _hydrated = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_prefsKey);
+      if (raw == null || raw.isEmpty) return;
+
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      decoded.forEach((serviceId, value) {
+        final entryMap = value as Map<String, dynamic>;
+        final items = (entryMap['items'] as List? ?? [])
+            .map((i) => CartItem(
+                  id: i['id'] as String? ?? '',
+                  name: i['name'] as String? ?? '',
+                  quantity: (i['quantity'] as num?)?.toInt() ?? 0,
+                  unitPrice: (i['unitPrice'] as num?)?.toDouble() ?? 0,
+                  imageUrl: i['imageUrl'] as String?,
+                ))
+            .toList();
+        if (items.isEmpty) return;
+
+        _serviceCarts[serviceId] = ServiceCartEntry(
+          serviceName: entryMap['serviceName'] as String? ?? '',
+          items: items,
+          checkoutArgs: (entryMap['checkoutArgs'] as Map?)?.cast<String, dynamic>(),
+        );
+      });
+      notifyListeners();
+    } catch (_) {
+      // Corrupt or incompatible cache — start with an empty cart rather than crash.
+    }
+  }
+
+  Future<void> _persist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final payload = <String, dynamic>{};
+      _serviceCarts.forEach((serviceId, entry) {
+        payload[serviceId] = {
+          'serviceName': entry.serviceName,
+          'items': entry.items
+              .map((i) => {
+                    'id': i.id,
+                    'name': i.name,
+                    'quantity': i.quantity,
+                    'unitPrice': i.unitPrice,
+                    'imageUrl': i.imageUrl,
+                  })
+              .toList(),
+          'checkoutArgs': _sanitizeCheckoutArgs(entry.checkoutArgs),
+        };
+      });
+      await prefs.setString(_prefsKey, jsonEncode(payload));
+    } catch (_) {
+      // Best-effort persistence; losing a write shouldn't crash the app.
+    }
+  }
 
   Map<String, ServiceCartEntry> get serviceCarts => Map.unmodifiable(_serviceCarts);
 
@@ -79,6 +175,7 @@ class GlobalCartProvider extends ChangeNotifier {
       );
     }
     notifyListeners();
+    _persist();
   }
 
   void updateItemQuantity(String serviceId, String itemId, int delta) {
@@ -145,15 +242,18 @@ class GlobalCartProvider extends ChangeNotifier {
       );
     }
     notifyListeners();
+    _persist();
   }
 
   void clearService(String serviceId) {
     _serviceCarts.remove(serviceId);
     notifyListeners();
+    _persist();
   }
 
   void clear() {
     _serviceCarts.clear();
     notifyListeners();
+    _persist();
   }
 }
