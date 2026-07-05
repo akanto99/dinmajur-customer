@@ -92,6 +92,7 @@ class Category {
   int? position;
   List<Task>? tasks;
   int? totalTasks;
+  bool? viewInPopup;
 
   Category({
     this.id,
@@ -101,6 +102,7 @@ class Category {
     this.position,
     this.tasks,
     this.totalTasks,
+    this.viewInPopup,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
@@ -117,6 +119,7 @@ class Category {
         ? []
         : List<Task>.from(json["tasks"].map((x) => Task.fromJson(x))),
     totalTasks: json["totalTasks"],
+    viewInPopup: json["viewInPopup"] ?? true,
   );
 
   Map<String, dynamic> toJson() => {
@@ -129,6 +132,7 @@ class Category {
         ? []
         : List<dynamic>.from(tasks!.map((x) => x.toJson())),
     "totalTasks": totalTasks,
+    "viewInPopup": viewInPopup,
   };
 }
 
@@ -151,6 +155,7 @@ class Task {
   DateTime? createdAt;
   DateTime? updatedAt;
   List<Faq>? faqs;
+  bool? viewInPopup;
 
   Task({
     this.id,
@@ -169,6 +174,7 @@ class Task {
     this.createdAt,
     this.updatedAt,
     this.faqs,
+    this.viewInPopup,
   });
 
   factory Task.fromJson(Map<String, dynamic> json) => Task(
@@ -197,6 +203,7 @@ class Task {
     faqs: json["faqs"] == null
         ? []
         : List<Faq>.from(json["faqs"].map((x) => Faq.fromJson(x))),
+    viewInPopup: json["viewInPopup"] ?? true,
   );
 
   Map<String, dynamic> toJson() => {
@@ -220,6 +227,7 @@ class Task {
     "faqs": faqs == null
         ? []
         : List<dynamic>.from(faqs!.map((x) => x.toJson())),
+    "viewInPopup": viewInPopup,
   };
 }
 

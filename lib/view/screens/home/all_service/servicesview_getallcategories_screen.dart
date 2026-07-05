@@ -1,3 +1,5 @@
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
@@ -66,6 +68,8 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
   int _selectedTabIndex = 0;
   final Map<int, GlobalKey> _categoryKeys = {};
   bool _isScrollingFlag = false;
+  final Map<String, CarouselSliderController> _carouselControllers = {};
+  final Map<String, int> _carouselCurrentPage = {};
 
   Map<String, int> _serviceQuantities = {};
   late String _currentCustomerAddress;
@@ -103,6 +107,11 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     if (_categoryKeys.isEmpty && categories.isNotEmpty) {
       for (int i = 0; i < categories.length; i++) {
         _categoryKeys[i] = GlobalKey();
+        // Initialize carousel controllers for carousel-mode categories
+        if (categories[i].viewInPopup == false) {
+          _carouselControllers[categories[i].id ?? i.toString()] = CarouselSliderController();
+          _carouselCurrentPage[categories[i].id ?? i.toString()] = 0;
+        }
       }
     }
   }
@@ -344,7 +353,12 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
                   // ── Category sections ──
                   ...categories.asMap().entries.map((entry) {
-                    return _buildCategorySection(index: entry.key, category: entry.value, tasks: entry.value.tasks ?? [], screenWidth: screenWidth, screenHeight: screenHeight);
+                    final category = entry.value;
+                    final tasks = category.tasks ?? [];
+                    final isRegular = category.viewInPopup ?? true;
+                    return isRegular
+                        ? _buildCategorySection(index: entry.key, category: category, tasks: tasks, screenWidth: screenWidth, screenHeight: screenHeight)
+                        : _buildCarouselCategorySection(index: entry.key, category: category, tasks: tasks, screenWidth: screenWidth, screenHeight: screenHeight);
                   }),
 
                   // SliverToBoxAdapter(child: SizedBox(height: screenHeight / 1.5)),
@@ -443,6 +457,223 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
           );
         }, childCount: tasks.length),
       ),
+    );
+  }
+
+  // ── Carousel category section (viewInPopup: false) ──
+  Widget _buildCarouselCategorySection({required int index, required Category category, required List<Task> tasks, required double screenWidth, required double screenHeight}) {
+    final categoryId = category.id ?? index.toString();
+
+    return SliverStickyHeader(
+      header: Container(
+        key: _categoryKeys[index],
+        width: screenWidth,
+        color: AppColors.containerBackground(context),
+        child: Center(
+          child: Container(
+            width: screenWidth * 0.9,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
+            ),
+            child: Text(
+              category.name ?? '',
+              style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            if (tasks.isNotEmpty)
+              CarouselSlider.builder(
+                carouselController: _carouselControllers[categoryId],
+                itemCount: tasks.length,
+                itemBuilder: (context, taskIndex, realIndex) {
+                  final task = tasks[taskIndex];
+                  final quantity = _serviceQuantities[task.id ?? ''] ?? 0;
+                  final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
+                  final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
+                  return _buildCarouselCard(task: task, quantity: quantity, originalPrice: originalPrice, discountedPrice: salePrice, screenWidth: screenWidth);
+                },
+                options: CarouselOptions(
+                  height: 420,
+                  viewportFraction: 0.85,
+                  enableInfiniteScroll: tasks.length > 1,
+                  enlargeCenterPage: true,
+                  enlargeFactor: 0.2,
+                  onPageChanged: (pageIndex, reason) {
+                    setState(() {
+                      _carouselCurrentPage[categoryId] = pageIndex;
+                    });
+                  },
+                ),
+              ),
+            if (tasks.length > 1) ...[const SizedBox(height: 16), _buildDotIndicators(tasks.length, categoryId)],
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCarouselCard({required Task task, required int quantity, required double originalPrice, required double discountedPrice, required double screenWidth}) {
+    String? discountBadge;
+    final discountType = task.price?.discountType;
+    final discountValue = task.price?.discountValue;
+
+    if (discountType != null && discountType != DiscountType.NONE && discountValue != null && discountValue > 0) {
+      if (discountType == DiscountType.PERCENTAGE) {
+        discountBadge = '${discountValue.toInt()}% OFF';
+      } else if (discountType == DiscountType.FLAT) {
+        discountBadge = 'Flat ${discountValue.toInt()} Taka OFF';
+      }
+    }
+
+    final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
+
+    return Container(
+      width: screenWidth * 0.9,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border(context), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image Section
+          Container(
+            height: 195,
+            width: double.infinity,
+            decoration: BoxDecoration(color: AppColors.border(context).withOpacity(0.3), borderRadius: BorderRadius.circular(8)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.home_repair_service_outlined, size: 60, color: AppColors.border(context))),
+                    )
+                  : Center(child: Icon(Icons.home_repair_service_outlined, size: 60, color: AppColors.border(context))),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Content Section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.name ?? '',
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedboxSpaccing.width02(context),
+                    Row(
+                      children: [
+                        Text('৳${discountedPrice.toStringAsFixed(2)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                        if (originalPrice > discountedPrice) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            '৳${originalPrice.toStringAsFixed(2)}',
+                            style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () => _showTaskDetailsDialog(task),
+                  child: Row(
+                    children: [
+                      Text(
+                        'View Task Details',
+                        style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
+                      ),
+                      Icon(Icons.chevron_right, size: 16, color: AppColors.button(context)),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                if (discountBadge != null) ...[
+                  Center(
+                    child: Text(
+                      discountBadge,
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                // Add to Cart Button
+                if (quantity == 0)
+                  RoundButtonFlexible(
+                    height: 42,
+                    showRightIcon: false,
+                    backgroundColor: AppColors.textPrimary(context),
+                    title: 'Add to Cart',
+                    textColor: AppColors.textSecondary(context),
+                    onPress: () => _updateQuantity(task.id ?? '', 1),
+                  )
+                else
+                  Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.textPrimary(context), width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed: () => _updateQuantity(task.id ?? '', -1),
+                          icon: Icon(Icons.remove, color: AppColors.textPrimary(context)),
+                        ),
+                        Text(
+                          '$quantity',
+                          style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.buttonTextColor(context)),
+                        ),
+                        IconButton(
+                          onPressed: () => _updateQuantity(task.id ?? '', 1),
+                          icon: Icon(Icons.add, color: AppColors.textPrimary(context)),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDotIndicators(int count, String categoryId) {
+    final currentPage = _carouselCurrentPage[categoryId] ?? 0;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        return Container(
+          width: currentPage == index ? 24 : 8,
+          height: 8,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(color: currentPage == index ? AppColors.button(context) : AppColors.border(context), borderRadius: BorderRadius.circular(4)),
+        );
+      }),
     );
   }
 
