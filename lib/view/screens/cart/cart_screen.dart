@@ -85,6 +85,9 @@ class _CartScreenState extends State<CartScreen> {
     final categories = _asTypedList<beauty_model.Datum>(args['categories'], beauty_model.Datum.fromJson);
     var serviceQuantities = Map<String, int>.from(args['serviceQuantities'] as Map? ?? {});
     final transportFee = (args['transportFee'] as num?)?.toDouble() ?? 0.0;
+    // Re-typed values must replace the raw (possibly JSON-shaped, if restored
+    // from disk) ones so every downstream `...args` spread below stays typed.
+    args = {...args, 'categories': categories};
     final svcName = cart.serviceCarts[serviceId]?.serviceName ?? '';
 
     showDialog(
@@ -160,6 +163,9 @@ class _CartScreenState extends State<CartScreen> {
     var serviceQuantities = Map<String, int>.from(args['serviceQuantities'] as Map? ?? {});
 
     final selectedTaskItems = _asStringSetMap(args['selectedTaskItems']);
+    // Re-typed values must replace the raw (possibly JSON-shaped, if restored
+    // from disk) ones so every downstream `...args` spread below stays typed.
+    args = {...args, 'allServices': allServices, 'selectedTaskItems': selectedTaskItems};
 
     final selectedFrequency = (args['selectedFrequency'] as String?) ?? 'Daily';
     final selectedDate = (args['selectedDate'] as String?) ?? '';
@@ -236,6 +242,9 @@ class _CartScreenState extends State<CartScreen> {
     final selectedPackages = Map<String, String?>.from(args['selectedPackages'] as Map? ?? {});
 
     final selectedManualItems = _asStringSetMap(args['selectedManualItems']);
+    // Re-typed values must replace the raw (possibly JSON-shaped, if restored
+    // from disk) ones so every downstream `...args` spread below stays typed.
+    args = {...args, 'categories': categories, 'selectedManualItems': selectedManualItems};
 
     final activeCategoryId = args['activeCategoryId'] as String?;
     final selectedGuestRangeIndex = (args['selectedGuestRangeIndex'] as int?) ?? 0;
@@ -281,8 +290,9 @@ class _CartScreenState extends State<CartScreen> {
 
   void _showCheckoutDialog(String serviceId) {
     final cart = context.read<GlobalCartProvider>();
-    final args = cart.getCheckoutArgsForService(serviceId);
-    if (args == null) return;
+    final rawArgs = cart.getCheckoutArgsForService(serviceId);
+    if (rawArgs == null) return;
+    var args = rawArgs;
 
     if (args.containsKey('checkoutRoute')) {
       final route = args['checkoutRoute'] as String?;
@@ -299,6 +309,9 @@ class _CartScreenState extends State<CartScreen> {
     }
 
     final categories = _asTypedList<Category>(args['categories'], Category.fromJson);
+    // Re-typed value must replace the raw (possibly JSON-shaped, if restored
+    // from disk) one so every downstream `...args` spread below stays typed.
+    args = {...args, 'categories': categories};
     final serviceQuantities = Map<String, int>.from(args['serviceQuantities'] as Map? ?? {});
     final transportFee = (args['transportFee'] as num?)?.toDouble() ?? 0.0;
     final String svcId = (args['serviceId'] as String?) ?? serviceId;
