@@ -58,14 +58,6 @@ class SSLCommerzPaymentService {
       final email = customerEmail?.isNotEmpty == true ? customerEmail! : "";
       final address = customerAddress?.isNotEmpty == true ? customerAddress! : "";
 
-      // print("Store ID: $storeId");
-      // print("Tracking ID: $trackingId");
-      // print("Amount: $totalAmount BDT");
-      // print("Customer: $name");
-      // print("Phone: $phone");
-      // print("Mode: ${useTestMode ? 'TESTBOX' : 'LIVE'}");
-
-      // Initialize SSL Commerz with ALL required fields
       Sslcommerz sslcommerz =
           Sslcommerz(
                 initializer: SSLCommerzInitialization(
@@ -76,29 +68,29 @@ class SSLCommerzPaymentService {
                   tran_id: trackingId,
                   currency: SSLCurrencyType.BDT,
                   product_category: productCategory ?? "",
-                  // sdkType: SSLCSdkType.LIVE,
-                  sdkType:SSLCSdkType.TESTBOX,
+                  sdkType: SSLCSdkType.LIVE,
+                  // sdkType:SSLCSdkType.TESTBOX,
+                ),
+              )
+              .addCustomerInfoInitializer(
+                customerInfoInitializer: SSLCCustomerInfoInitializer(
+                  customerName: name,
+                  customerEmail: email,
+                  customerAddress1: address,
+                  customerCountry: "Bangladesh",
+                  customerPhone: phone,
+                  customerState: 'BD',
+                  customerCity: '',
+                  customerPostCode: '',
+                ),
+              )
+              .addProductInitializer(
+                sslcProductInitializer: SSLCProductInitializer(
+                  productName: productCategory ?? "",
+                  productCategory: productCategory ?? "",
+                  general: General(general: productCategory ?? "", productProfile: "general"),
                 ),
               );
-              // .addCustomerInfoInitializer(
-              //   customerInfoInitializer: SSLCCustomerInfoInitializer(
-              //     customerName: name,
-              //     customerEmail: email,
-              //     customerAddress1: address,
-              //     customerCountry: "Bangladesh",
-              //     customerPhone: phone,
-              //     customerState: 'BD',
-              //     customerCity: '',
-              //     customerPostCode: '',
-              //   ),
-              // )
-              // .addProductInitializer(
-              //   sslcProductInitializer: SSLCProductInitializer(
-              //     productName: productCategory ?? "",
-              //     productCategory: productCategory ?? "",
-              //     general: General(general: productCategory ?? "", productProfile: "general"),
-              //   ),
-              // );
 
 
       var result = await sslcommerz.payNow();

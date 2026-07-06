@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/view/auth_login/customer_otplogin_screen.dart'
 import 'package:dinmajur_customer/view/navigation_bar.dart';
 import 'package:dinmajur_customer/view/onboarding/onboarding_update.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/nearby_service_store/nearby_service_stores_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/search/search_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/service_checkout_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/service_confirmed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/all_service/service_failed_screen.dart';
@@ -56,6 +57,8 @@ import 'package:provider/provider.dart';
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case RoutesName.searchScreen:
+        return MaterialPageRoute(builder: (BuildContext context) => const SearchScreen());
       case RoutesName.splash:
         return MaterialPageRoute(builder: (BuildContext context) => const SplashScreen());
       case RoutesName.onBoardUpdated:
@@ -277,6 +280,7 @@ class Routes {
               onAddressUpdate: args['onAddressUpdate'],
               transportFee: args['transportFee'],
               allServices: args['allServices'],
+              serviceName: args['serviceName'] as String? ?? '',
               onSuccess: () {
                 // This callback will be called from checkout screen
               },
@@ -329,6 +333,7 @@ class Routes {
               totalPrice: args['totalPrice'],
               transportFee: args['transportFee'],
               onAddressUpdate: args['onAddressUpdate'],
+              serviceName: args['serviceName'] as String? ?? '',
             ),
             settings: settings,
           );
@@ -374,6 +379,7 @@ class Routes {
               selectedDate: args['selectedDate'],
               selectedServiceTime: args['selectedServiceTime'],
               onAddressUpdate: args['onAddressUpdate'],
+              serviceName: args['serviceName'] as String? ?? '',
             ),
             settings: settings,
           );
@@ -415,6 +421,7 @@ class Routes {
                 customerLocation: args['customerLocation'] as Map<String, dynamic>?,
                 //For dynamic stores
                 retailerId: args['retailerId'] as String? ?? '',
+                preselectTaskId: args['preselectTaskId'] as String?,
               ),
             ),
             settings: settings,

@@ -16,8 +16,10 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/banner_widegt
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/home_service_search_box/home_service_search_box.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/featured_services_widget/featured_services_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/trending_service_widget/trending_service_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/featured_services_view_model/featured_services_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/banner_view_model/banner_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
@@ -88,6 +90,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
       trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
+
+      final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
+      featuredServicesViewModel.fetchFeaturedServices();
     });
     ConnectivityMonitorService().addReconnectListener(_onInternetReconnected);
   }
@@ -107,6 +112,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
       trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
+
+      final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
+      featuredServicesViewModel.fetchFeaturedServices();
 
       if (_showRetailNearest) {
         await _fetchNearbyRetailers('Retail');
@@ -424,6 +432,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
 
+                  // ── Featured Services (Position 1 — after banner) ──
+                  FeaturedServicesWidget(
+                    homePosition: 'home_top',
+                    hasValidLocation: _hasValidLocation(),
+                    onLocationRequired: _showLocationRequiredDialog,
+                  ),
+
                   // ── All Services Grid ──
                   Consumer<ProfileViewViewModel>(
                     builder: (context, profileViewModel, _) {
@@ -468,6 +483,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
+                  // ── Featured Services (Position 2 — after all home services) ──
+                  FeaturedServicesWidget(
+                    homePosition: 'home_bottom',
+                    hasValidLocation: _hasValidLocation(),
+                    onLocationRequired: _showLocationRequiredDialog,
+                  ),
+
                   TrendingServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
                   SizedboxSpaccing.height02(context),
                 ],
@@ -632,7 +654,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
-                            Container(width: 22, height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
+                            Icon(Icons.arrow_drop_down_sharp, size: 22, color: AppColors.textPrimary(context)),
                           ],
                         ),
                       ),
@@ -670,19 +692,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.pushNamed(context, RoutesName.notificationsListScreen);
                         },
                         child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
                             _buildIconButton(svgAsset: 'assets/images/home/notification.svg', context: context),
                             if (countViewModel.hasNotifications)
                               Positioned(
-                                right: 0,
-                                top: 2,
+                                right: 4,
+                                top: 4,
                                 child: Container(
+                                  padding: const EdgeInsets.all(2),
                                   decoration: BoxDecoration(
                                     color: Colors.red,
                                     shape: BoxShape.circle,
                                     border: Border.all(color: AppColors.containerBackground(context), width: 1),
                                   ),
-                                  constraints: BoxConstraints(minWidth: 14, minHeight: 14),
+                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                                   child: Text(
                                     '${countViewModel.notificationCount > 9 ? '9+' : countViewModel.notificationCount}',
                                     style: AppTextStyles.textSize10(context, weight: FontWeight.bold, color: Colors.white),
@@ -716,9 +740,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 30,
-        width: 30,
-        padding: const EdgeInsets.all(2),
+        height: 44,
+        width: 44,
+        padding: const EdgeInsets.all(10),
         color: Colors.transparent,
         child: RepaintBoundary(
           child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),

@@ -24,6 +24,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_housekeeper_category_view_model.dart';
 
 
@@ -142,6 +143,64 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
     super.dispose();
   }
 
+  void _syncGlobalCart() {
+    if (!mounted) return;
+    final cart = Provider.of<GlobalCartProvider>(context, listen: false);
+    final viewModel = Provider.of<GetallPremiumHouseKeeperTaskViewModel>(context, listen: false);
+    final transportFee = viewModel.getAllPremiumHouseKeeperTaskData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
+
+    final cartItems = <CartItem>[];
+    _serviceQuantities.forEach((serviceId, qty) {
+      if (qty > 0 && _allServicesMap.containsKey(serviceId)) {
+        final service = _allServicesMap[serviceId]!;
+        final selectedItems = _selectedTaskItems[serviceId] ??
+            service.houseKeeperTaskItems?.map((i) => i.id ?? '').toSet() ?? {};
+        double unitPrice = 0;
+        for (var taskItem in service.houseKeeperTaskItems ?? []) {
+          if (selectedItems.contains(taskItem.id ?? '')) {
+            unitPrice += taskItem.price?.toDouble() ?? 0;
+          }
+        }
+        if (service.discountType != null && service.discountValue != null && unitPrice > 0) {
+          if (service.discountType == 'PERCENTAGE') {
+            unitPrice = unitPrice - (unitPrice * service.discountValue! / 100);
+          } else if (service.discountType == 'FLAT') {
+            unitPrice = unitPrice - service.discountValue!.toDouble();
+          }
+        }
+        cartItems.add(CartItem(id: serviceId, name: service.name ?? '', quantity: qty, unitPrice: unitPrice, imageUrl: service.image?.url));
+      }
+    });
+
+    if (cartItems.isEmpty) {
+      cart.clearService(widget.serviceName);
+      return;
+    }
+
+    cart.updateService(
+      widget.serviceName,
+      serviceName: widget.serviceName,
+      items: cartItems,
+      checkoutArgs: {
+        'checkoutRoute': RoutesName.checkoutHouseKeeperScreen,
+        'serviceQuantities': Map.of(_serviceQuantities),
+        'selectedTaskItems': Map.of(_selectedTaskItems),
+        'selectedFrequency': _selectedFrequency,
+        'selectedDate': _dateController.text,
+        'selectedTime': _selectedTime ?? '',
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': _currentCustomerAddress,
+        'customerLocation': _customerLocation,
+        'transportFee': transportFee,
+        // Full catalog (not filtered by quantity) so the cart popup can
+        // still offer add-ons for services not yet in the cart.
+        'allServices': _allServicesMap.values.toList(),
+        'onAddressUpdate': (String _) {},
+      },
+    );
+  }
+
   void _updateQuantity(String serviceId, int change) {
     setState(() {
       int currentQty = _serviceQuantities[serviceId] ?? 0;
@@ -150,6 +209,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         _serviceQuantities[serviceId] = newQty;
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
   }
 
   double _calculateTotal() {
@@ -350,6 +410,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
                                     _serviceQuantities.clear();
                                     _selectedTaskItems.clear();
                                   });
+                                  WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
                                 },
                                 child: Container(
                                     width: screenWidth*0.2,
@@ -754,6 +815,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
               _selectedTaskItems[serviceId] = selectedItems;
             }
           });
+          WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
         },
       ),
     );
@@ -789,6 +851,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
       barrierColor: AppColors.showDialougeBackground(context),
       builder: (context) => CartDialog(
         services: servicesWithQuantity,
+        allServices: _allServicesMap.values.toList(),
         serviceQuantities: _serviceQuantities,
         selectedTaskItems: _selectedTaskItems,
         selectedFrequency: _selectedFrequency,
@@ -805,6 +868,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
               _serviceQuantities[serviceId] = newQuantity;
             }
           });
+          WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
         },
         onProceedToCheckout: () {
           _showCheckoutScreen();
@@ -848,6 +912,7 @@ class _BookNowHousekeeperScreenState extends State<BookNowHousekeeperScreen> {
         'transportFee': transportFeeValue,
         // ✅ NEW: Pass the complete services list from all categories
         'allServices': allServicesWithQuantity,
+        'serviceName': widget.serviceName,
         'onAddressUpdate': (String newAddress) {
           setState(() {
             _currentCustomerAddress = newAddress;

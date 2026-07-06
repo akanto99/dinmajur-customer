@@ -11,6 +11,7 @@ import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatte
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/getall_premium_house_keeper_task_model.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
@@ -34,6 +35,9 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
   final double transportFee;
   final List<Datum> allServices;
     final Map<String, dynamic>? customerLocation;
+  /// Global-cart key for this service — used to remove the cart entry once
+  /// the booking is confirmed.
+  final String serviceName;
 
 
   const CheckoutHouseKeeperScreen({
@@ -51,6 +55,7 @@ class CheckoutHouseKeeperScreen extends StatefulWidget {
     required this.transportFee,
     required this.allServices,
         this.customerLocation,
+    required this.serviceName,
 
   }) : super(key: key);
 
@@ -65,6 +70,22 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   final TextEditingController _specialRequestController = TextEditingController();
   bool _isTermsAccepted = false;
   Map<String, dynamic>? _updatedLocation;
+
+  // Red border validation
+  bool _customerError = false;
+  bool _paymentError = false;
+  bool _termsError = false;
+  final GlobalKey _customerKey = GlobalKey();
+  final GlobalKey _paymentKey = GlobalKey();
+  final GlobalKey _termsKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
+
+  void _scrollToKey(GlobalKey key) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = key.currentContext;
+      if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+    });
+  }
 
 
   @override
@@ -93,6 +114,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     _specialRequestController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -105,6 +127,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
     if (paymentResult.success) {
       _clearAllData();
+      _clearGlobalCart();
       Navigator.pushReplacementNamed(
         context,
         RoutesName.confirmedScreen,
@@ -168,18 +191,20 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     }
 
     // Validate form
-    String? validationError = checkoutViewModel.validateCheckoutForm(
-      phone: _phoneController.text,
-      address: _addressController.text,
-      paymentMethod: checkoutViewModel.selectedPaymentMethod,
-    );
+    final String currentAddress = _addressController.text.isEmpty ? widget.customerAddress : _addressController.text;
+    final bool newCustomerError = widget.customerName.isEmpty || widget.customerPhone.isEmpty || currentAddress.isEmpty;
+    final bool newPaymentError = (checkoutViewModel.selectedPaymentMethod ?? '').isEmpty;
+    final bool newTermsError = !_isTermsAccepted;
 
-    if (validationError != null) {
-      Utils.flushBarErrorMessage(validationError, context);
-      return;
-    }
-    if (!_isTermsAccepted) {
-      Utils.flushBarErrorMessage("Please accept the Terms & Conditions to proceed", context);
+    if (newCustomerError || newPaymentError || newTermsError) {
+      setState(() {
+        _customerError = newCustomerError;
+        _paymentError = newPaymentError;
+        _termsError = newTermsError;
+      });
+      if (newCustomerError) _scrollToKey(_customerKey);
+      else if (newPaymentError) _scrollToKey(_paymentKey);
+      else _scrollToKey(_termsKey);
       return;
     }
 
@@ -267,7 +292,8 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
           }
           else if (checkoutViewModel.selectedPaymentMethod == 'cash') {
             _clearAllData();
-            Navigator.pop(context);
+            _clearGlobalCart();
+            Navigator.pop(context, true);
             widget.onSuccess();
 
             Navigator.pushNamed(
@@ -323,6 +349,14 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     });
   }
 
+  // Cleared directly here (rather than relying on the landing screen's
+  // pop-result handling) because a successful online payment replaces this
+  // route with the confirmation screen instead of popping back, so the
+  // landing screen never gets a chance to clear its cart entry.
+  void _clearGlobalCart() {
+    Provider.of<GlobalCartProvider>(context, listen: false).clearService(widget.serviceName);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer2<CheckoutViewModel, PostBookPremiumHouseKeeperViewModel>(
@@ -369,6 +403,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
         Expanded(
           child: SingleChildScrollView(
+            controller: _scrollController,
             padding: EdgeInsets.all(screenHeight * 0.02),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,22 +416,35 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
                 _buildPaymentMethodSection(viewModel),
 
-                DynamicTermsCheckbox(
-                  isAccepted: _isTermsAccepted,
-                  onChanged: (value) {
-                    setState(() {
-                      _isTermsAccepted = value;
-                    });
-                  },
-                  context: context,
-                  onTermsTap: () => Navigator.pushNamed(context, RoutesName.termsAndCondition),
-                  onPrivacyTap: () => Navigator.pushNamed(context, RoutesName.privacyPolicy),
-                  onRefundTap: () => Navigator.pushNamed(context, RoutesName.refundPolicyScreen),
-                  getButtonColor: (context) => AppColors.button(context),
-                  getBorderColor: (context) => AppColors.border(context),
-                  getWhiteColor: (context) => AppColors.whiteColor,
-                  getTextStyle: (context, {weight}) => AppTextStyles.textSize14(context, weight: weight ?? FontWeight.w400),
+                AnimatedContainer(
+                  key: _termsKey,
+                  duration: const Duration(milliseconds: 300),
+                  decoration: _termsError
+                      ? BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.red, width: 1.5))
+                      : const BoxDecoration(),
+                  child: DynamicTermsCheckbox(
+                    isAccepted: _isTermsAccepted,
+                    onChanged: (value) {
+                      setState(() {
+                        _isTermsAccepted = value;
+                        if (value) _termsError = false;
+                      });
+                    },
+                    context: context,
+                    onTermsTap: () => Navigator.pushNamed(context, RoutesName.termsAndCondition),
+                    onPrivacyTap: () => Navigator.pushNamed(context, RoutesName.privacyPolicy),
+                    onRefundTap: () => Navigator.pushNamed(context, RoutesName.refundPolicyScreen),
+                    getButtonColor: (context) => AppColors.button(context),
+                    getBorderColor: (context) => _termsError ? Colors.red : AppColors.border(context),
+                    getWhiteColor: (context) => AppColors.whiteColor,
+                    getTextStyle: (context, {weight}) => AppTextStyles.textSize14(context, weight: weight ?? FontWeight.w400),
+                  ),
                 ),
+                if (_termsError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4, left: 4),
+                    child: Text('Please accept the Terms & Conditions to proceed', style: AppTextStyles.textSize12(context, color: Colors.red)),
+                  ),
                 SizedboxSpaccing.height03(context)
               ],
             ),
@@ -432,38 +480,50 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   }
   Widget _buildCustomerDetailsCard() {
     final screenHeight = MediaQuery.of(context).size.height * 1;
-    return Container(
-      padding: EdgeInsets.all(screenHeight * 0.015),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnimatedContainer(
+          key: _customerKey,
+          duration: const Duration(milliseconds: 300),
+          padding: EdgeInsets.all(screenHeight * 0.015),
+          decoration: BoxDecoration(
+            color: AppColors.containerBackground(context),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _customerError ? Colors.red : AppColors.border(context), width: _customerError ? 1.5 : 1.0),
+          ),
+          child: Column(
             children: [
-              Text('Customer Details', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              GestureDetector(
-                onTap: _handleEditAddress,
-                child: Container(
-                  width: 80,
-                  color: Colors.transparent,
-                  alignment: Alignment.centerRight,
-                  child: Text('Edit', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Customer Details', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: _customerError ? Colors.red : null)),
+                  GestureDetector(
+                    onTap: _handleEditAddress,
+                    child: Container(
+                      width: 80,
+                      color: Colors.transparent,
+                      alignment: Alignment.centerRight,
+                      child: Text('Edit', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                    ),
+                  ),
+                ],
               ),
+              SizedboxSpaccing.height02(context),
+              _buildDetailRow('Name', widget.customerName),
+              SizedboxSpaccing.height02(context),
+              _buildDetailRow('Phone', widget.customerPhone),
+              SizedboxSpaccing.height02(context),
+              _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true),
             ],
           ),
-          SizedboxSpaccing.height02(context),
-          _buildDetailRow('Name', widget.customerName),
-          SizedboxSpaccing.height02(context),
-          _buildDetailRow('Phone', widget.customerPhone),
-          SizedboxSpaccing.height02(context),
-          _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true),
-        ],
-      ),
+        ),
+        if (_customerError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text('Please fill in all customer details', style: AppTextStyles.textSize12(context, color: Colors.red)),
+          ),
+      ],
     );
   }
 
@@ -510,14 +570,30 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Column(
+      key: _paymentKey,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false),
+        SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false, titleStyle: _paymentError ? AppTextStyles.textSize18(context, weight: FontWeight.w500, color: Colors.red) : null),
         SizedboxSpaccing.height02(context),
-        PaymentMethodWidget(
-          selectedPaymentMethod: viewModel.selectedPaymentMethod,
-          paymentMethods: viewModel.paymentMethods,
-          onPaymentMethodChanged: (method) => viewModel.setPaymentMethod(method),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          decoration: _paymentError
+              ? BoxDecoration(borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.red, width: 1.5))
+              : const BoxDecoration(),
+          child: PaymentMethodWidget(
+            selectedPaymentMethod: viewModel.selectedPaymentMethod,
+            paymentMethods: viewModel.paymentMethods,
+            onPaymentMethodChanged: (method) {
+              viewModel.setPaymentMethod(method);
+              if (method.isNotEmpty) setState(() => _paymentError = false);
+            },
+          ),
         ),
+        if (_paymentError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text('Please select a payment method', style: AppTextStyles.textSize12(context, color: Colors.red)),
+          ),
       ],
     );
   }
@@ -618,13 +694,19 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                 );
               }).toList(),
 
-              _buildDetailRow1('Date', widget.selectedDate),
-              SizedboxSpaccing.height02(context),
-              _buildDetailRow1('Slot', widget.selectedTime),
+              _buildPriceRow('Subtotal', subtotal),
               SizedboxSpaccing.height02(context),
               _buildPriceRow('Transport', transport),
               SizedboxSpaccing.height02(context),
-              _buildPriceRow('Subtotal', subtotal),
+              Divider(height: 1, color: AppColors.border(context)),
+              SizedboxSpaccing.height02(context),
+              _buildPriceRow('Total', total, isBold: true),
+              SizedboxSpaccing.height02(context),
+              Divider(height: 1, color: AppColors.border(context)),
+              SizedboxSpaccing.height02(context),
+              _buildDetailRow1('Date', widget.selectedDate),
+              SizedboxSpaccing.height02(context),
+              _buildDetailRow1('Slot', widget.selectedTime),
             ],
           ),
         ),
@@ -632,14 +714,15 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, {bool isGreen = false}) {
+  Widget _buildPriceRow(String label, double amount, {bool isGreen = false, bool isBold = false}) {
+    final weight = isBold ? FontWeight.w700 : FontWeight.w400;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+        Text(label, style: AppTextStyles.textSize14(context, weight: weight)),
         Text(
           '৳${AmountFormatter.format(amount)}',
-          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
+          style: AppTextStyles.textSize14(context, weight: weight, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
     );

@@ -442,7 +442,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
                         children: [
                           Expanded(
                             child: Text(
-                              locationType.replaceAll('_', ' '),
+                              locationType.replaceAll('_', ' ').toLowerCase().split(' ').map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}').join(' '),
                               style: AppTextStyles.textSize14(
                                 context,
                                 weight: FontWeight.w600,

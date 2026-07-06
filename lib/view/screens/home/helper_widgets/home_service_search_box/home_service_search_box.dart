@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -42,8 +44,52 @@ class _HomeServiceSearchBoxState extends State<HomeServiceSearchBox> {
   String _query = '';
   String? _loadingServiceId;
 
+  // Typewriter animation
+  static const List<String> _hintExamples = ['Facial', 'Kitchen Cleaning', 'AC Service'];
+  int _hintIndex = 0;
+  String _animatedHint = '';
+  bool _showCursor = true;
+  Timer? _cursorTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _cursorTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (mounted) setState(() => _showCursor = !_showCursor);
+    });
+    _runTypewriter();
+  }
+
+  void _runTypewriter() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    while (mounted) {
+      final word = _hintExamples[_hintIndex];
+
+      // Type out
+      for (int i = 0; i <= word.length; i++) {
+        if (!mounted) return;
+        setState(() => _animatedHint = word.substring(0, i));
+        await Future.delayed(const Duration(milliseconds: 85));
+      }
+
+      // Pause at full word
+      await Future.delayed(const Duration(milliseconds: 1400));
+
+      // Erase
+      for (int i = word.length; i >= 0; i--) {
+        if (!mounted) return;
+        setState(() => _animatedHint = word.substring(0, i));
+        await Future.delayed(const Duration(milliseconds: 45));
+      }
+
+      await Future.delayed(const Duration(milliseconds: 350));
+      _hintIndex = (_hintIndex + 1) % _hintExamples.length;
+    }
+  }
+
   @override
   void dispose() {
+    _cursorTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -56,8 +102,18 @@ class _HomeServiceSearchBoxState extends State<HomeServiceSearchBox> {
       if (s.id == '69eca7bdbe6d8b46e00655ed') return false;
       final name = (s.name ?? '').toLowerCase();
       final desc = (s.description ?? '').toLowerCase();
-      return name.contains(q) || desc.contains(q);
+      final categoryMatch = (s.categories ?? []).any((c) => (c.name ?? '').toLowerCase().contains(q));
+      return name.contains(q) || desc.contains(q) || categoryMatch;
     }).toList();
+  }
+
+  String _matchingCategories(Datum service) {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return '';
+    return (service.categories ?? [])
+        .where((c) => (c.name ?? '').toLowerCase().contains(q))
+        .map((c) => c.name ?? '')
+        .join(', ');
   }
 
   void _clearSearch() {
@@ -124,7 +180,9 @@ class _HomeServiceSearchBoxState extends State<HomeServiceSearchBox> {
                   focusNode: _focusNode,
                   style: AppTextStyles.textSize14(context, weight: FontWeight.w400),
                   decoration: InputDecoration(
-                    hintText: "Search home services...",
+                    hintText: _query.isEmpty
+                        ? (_animatedHint.isEmpty ? "Search For '" : "Search For '$_animatedHint${_showCursor ? '|' : ''}'")
+                        : '',
                     hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context), weight: FontWeight.w400),
                     prefixIcon: Padding(
                       padding: const EdgeInsets.only(left: 12, right: 6),
@@ -154,10 +212,15 @@ class _HomeServiceSearchBoxState extends State<HomeServiceSearchBox> {
                     border: Border.all(width: 1.5, color: AppColors.border(context)),
                   ),
                   child: results.isEmpty
-                      ? Container(
-                          width: screenWidth * 0.9,
-                          padding: const EdgeInsets.all(10.0),
-                          child: Text("No services found", style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.search_off_rounded, size: 18, color: AppColors.subtitle(context)),
+                              const SizedBox(width: 8),
+                              Text("No services found", style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+                            ],
+                          ),
                         )
                       : ListView.separated(
                           shrinkWrap: true,
@@ -168,6 +231,7 @@ class _HomeServiceSearchBoxState extends State<HomeServiceSearchBox> {
                             final service = results[index];
                             final isLoading = _loadingServiceId == service.id;
 
+                            final cats = _matchingCategories(service);
                             return ListTile(
                               dense: true,
                               onTap: () => _onServiceTap(service),
@@ -183,6 +247,14 @@ class _HomeServiceSearchBoxState extends State<HomeServiceSearchBox> {
                                     : Icon(Icons.design_services_outlined, color: AppColors.subtitle(context)),
                               ),
                               title: Text(service.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                              subtitle: cats.isNotEmpty
+                                  ? Text(
+                                      cats,
+                                      style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                  : null,
                               trailing: isLoading ? SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.buttonTextColor(context))) : null,
                             );
                           },

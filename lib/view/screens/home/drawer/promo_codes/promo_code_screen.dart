@@ -15,6 +15,7 @@ class PromoCodeScreen extends StatefulWidget {
 
 class _PromoCodeScreenState extends State<PromoCodeScreen> {
   final TextEditingController _promoController = TextEditingController();
+  bool _promoError = false;
 
   // Sample promo codes data - Replace with your actual data source
   final List<PromoCode> _availablePromos = [
@@ -50,9 +51,10 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
     String enteredCode = _promoController.text.trim().toUpperCase();
 
     if (enteredCode.isEmpty) {
-      _showMessage('Please enter a promo code', isError: true);
+      setState(() => _promoError = true);
       return;
     }
+    setState(() => _promoError = false);
 
     // Check if promo code exists and is valid
     PromoCode? foundPromo = _availablePromos.firstWhere(
@@ -149,24 +151,36 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
           Row(
             children: [
               Expanded(
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: AppColors.textFieldFill(context),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border(context)),
-                  ),
-                  child: TextFormField(
-                    controller: _promoController,
-                    textCapitalization: TextCapitalization.characters,
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
-                    decoration: InputDecoration(
-                      hintText: 'e.g. SUMMER25',
-                      hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context), weight: FontWeight.w400),
-                      border: OutlineInputBorder(borderSide: BorderSide.none),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: AppColors.textFieldFill(context),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _promoError ? Colors.red : AppColors.border(context), width: _promoError ? 1.5 : 1.0),
+                      ),
+                      child: TextFormField(
+                        controller: _promoController,
+                        textCapitalization: TextCapitalization.characters,
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w500),
+                        onChanged: (v) { if (v.isNotEmpty && _promoError) setState(() => _promoError = false); },
+                        decoration: InputDecoration(
+                          hintText: 'e.g. SUMMER25',
+                          hintStyle: AppTextStyles.textSize14(context, color: AppColors.subtitle(context), weight: FontWeight.w400),
+                          border: OutlineInputBorder(borderSide: BorderSide.none),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
                     ),
-                  ),
+                    if (_promoError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, left: 2),
+                        child: Text('Please enter a promo code', style: AppTextStyles.textSize12(context, color: Colors.red)),
+                      ),
+                  ],
                 ),
               ),
               SizedboxSpaccing.width03(context),

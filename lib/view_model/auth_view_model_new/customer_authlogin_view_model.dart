@@ -26,7 +26,7 @@ class CustomerAuthLoginViewModel with ChangeNotifier {
       setAuthApiSendOtpLoading(false);
 
       String? otpToken = value['data']['token'];
-      int cooldownInSeconds = value['data']['cooldownInSeconds'] ?? 30;
+      int cooldownInSeconds = value['data']['cooldownInSeconds'] ?? 60;
       String successMessage = value['message'] ?? 'OTP সফলভাবে পাঠানো হয়েছে';
 
       if (otpToken != null && otpToken.isNotEmpty) {

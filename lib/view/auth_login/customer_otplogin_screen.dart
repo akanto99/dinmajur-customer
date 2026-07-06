@@ -243,7 +243,7 @@ class _CustomerAuthOtpScreenState extends State<CustomerAuthOtpScreen> {
                     Consumer<ResendOtpViewModel>(
                       builder: (context, resendOtpViewModel, child) {
                         final canResend = timerProvider.canResend && !resendOtpViewModel.resendOTPloading;
-                        final textStyle = AppTextStyles.textSize18(context, weight: FontWeight.w500, color: canResend ? AppColors.button(context) : Colors.grey);
+                        final textStyle = AppTextStyles.textSize16(context, weight: FontWeight.w500, color: canResend ? AppColors.button(context) : Colors.grey);
 
                         return GestureDetector(
                           onTap: () async {

@@ -9,7 +9,6 @@ import 'package:dinmajur_customer/model/home_models/dropdown_categories_selectio
 import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/getall_premium_home_beauty_salon_model.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/cart_coponents/cart_header_components.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/cart_coponents/cart_servicelist_component.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_bookedslot_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -50,11 +49,26 @@ class CartDialogWidget extends StatefulWidget {
 class _CartDialogWidgetState extends State<CartDialogWidget> {
   late Map<String, int> _localServiceQuantities;
   List<BookedSlotDatum> _cachedSlots = [];
+  List<Item> _addOnItems = [];
 
   @override
   void initState() {
     super.initState();
     _localServiceQuantities = Map.from(widget.serviceQuantities);
+    _initAddOns();
+  }
+
+  void _initAddOns() {
+    final allAvailable = <Item>[];
+    for (final cat in widget.categories) {
+      for (final item in (cat.items ?? [])) {
+        if ((_localServiceQuantities[item.id ?? ''] ?? 0) == 0) {
+          allAvailable.add(item);
+        }
+      }
+    }
+    allAvailable.shuffle();
+    _addOnItems = allAvailable.take(3).toList();
   }
 
   List<Map<String, dynamic>> _getCartItems() {
@@ -72,13 +86,13 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
 
   double _calculateSubtotal() {
     double subtotal = 0;
-    final cartItems = _getCartItems();
-    for (var item in cartItems) {
-      Item service = item['service'];
-      int qty = _localServiceQuantities[service.id ?? ''] ?? 0;
-      if (qty > 0) {
-        double price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
-        subtotal += price * qty;
+    for (final cat in widget.categories) {
+      for (final item in (cat.items ?? [])) {
+        int qty = _localServiceQuantities[item.id ?? ''] ?? 0;
+        if (qty > 0) {
+          double price = item.salePrice?.toDouble() ?? item.originalPrice?.toDouble() ?? 0;
+          subtotal += price * qty;
+        }
       }
     }
     return subtotal;
@@ -86,12 +100,12 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
 
   double _calculateOriginalTotal() {
     double originalTotal = 0;
-    final cartItems = _getCartItems();
-    for (var item in cartItems) {
-      Item service = item['service'];
-      int qty = _localServiceQuantities[service.id ?? ''] ?? 0;
-      if (qty > 0) {
-        originalTotal += (service.originalPrice?.toDouble() ?? 0) * qty;
+    for (final cat in widget.categories) {
+      for (final item in (cat.items ?? [])) {
+        int qty = _localServiceQuantities[item.id ?? ''] ?? 0;
+        if (qty > 0) {
+          originalTotal += (item.originalPrice?.toDouble() ?? 0) * qty;
+        }
       }
     }
     return originalTotal;
@@ -100,6 +114,9 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
   void _handleQuantityUpdate(String serviceId, int newQuantity) {
     setState(() {
       _localServiceQuantities[serviceId] = newQuantity;
+      if (newQuantity > 0) {
+        _addOnItems.removeWhere((item) => item.id == serviceId);
+      }
     });
     widget.onQuantityUpdate(serviceId, newQuantity);
   }
@@ -127,7 +144,22 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildHeader(context, cartItems, subtotal, originalTotal, saved, screenWidth),
-            _buildCartItemsList(context, cartItems, screenWidth),
+            Flexible(
+              fit: FlexFit.loose,
+              child: SingleChildScrollView(
+                child: Container(
+                  width: screenWidth * 0.87,
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ...cartItems.map((item) => _buildCartItem(context, item)).toList(),
+                      if (_addOnItems.isNotEmpty) _buildAddOns(context, screenWidth),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             _buildPriceSummary(context, subtotal, transport, saved, total, originalTotal, screenWidth),
             _buildDateTimeSelection(context, screenWidth),
             _buildCheckoutButton(context, subtotal, screenWidth),
@@ -143,11 +175,148 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
     return DynamicCartHeader(itemCount: cartItems.length, totalPrice: subtotal, originalPrice: originalTotal, savedAmount: saved, onClose: () => Navigator.pop(context));
   }
 
-  // ─── Cart Items List ────────────────────────────────────────────────────────
+  // ─── Cart Item (inline) ─────────────────────────────────────────────────────
 
-  Widget _buildCartItemsList(BuildContext context, List<Map<String, dynamic>> cartItems, double screenWidth) {
-    return DynamicCartServicesList(cartItems: cartItems, serviceQuantities: _localServiceQuantities, onQuantityChanged: _handleQuantityUpdate);
+  Widget _buildCartItem(BuildContext context, Map<String, dynamic> item) {
+    Item service = item['service'];
+    final serviceId = service.id ?? '';
+    int qty = _localServiceQuantities[serviceId] ?? 0;
+    if (qty == 0) return SizedBox.shrink();
+
+    double salePrice = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
+    double origPrice = service.originalPrice?.toDouble() ?? salePrice;
+    bool hasDiscount = origPrice > salePrice && salePrice > 0;
+
+    return Container(
+      padding: EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(service.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text('৳${AmountFormatter.format(salePrice)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+                    if (hasDiscount) ...[
+                      SizedBox(width: 8),
+                      Text('৳${AmountFormatter.format(origPrice)}',
+                          style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough)),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.border(context)),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _handleQuantityUpdate(serviceId, qty - 1),
+                  child: Container(width: 25, height: 25, color: Colors.transparent, child: Icon(FontAwesomeIcons.minus, size: 14)),
+                ),
+                Container(width: 30, child: Center(child: Text('$qty', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)))),
+                GestureDetector(
+                  onTap: () => _handleQuantityUpdate(serviceId, qty + 1),
+                  child: Container(width: 25, height: 25, color: Colors.transparent, child: Icon(FontAwesomeIcons.plus, size: 14)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
+
+  // ─── Add-ons ───────────────────────────────────────────────────────────────
+
+  Widget _buildAddOns(BuildContext context, double screenWidth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
+        Text('Add-ons', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        ..._addOnItems.map((item) {
+          final itemId = item.id ?? '';
+          final qty = _localServiceQuantities[itemId] ?? 0;
+          final salePrice = item.salePrice?.toDouble() ?? item.originalPrice?.toDouble() ?? 0;
+          final basePrice = item.originalPrice?.toDouble() ?? 0;
+          final hasDiscount = basePrice > salePrice && salePrice > 0;
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Text('৳${salePrice.toStringAsFixed(0)}',
+                              style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context))),
+                          if (hasDiscount) ...[
+                            const SizedBox(width: 6),
+                            Text('৳${basePrice.toStringAsFixed(0)}',
+                                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough)),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (qty == 0)
+                  GestureDetector(
+                    onTap: () => _handleQuantityUpdate(itemId, 1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                      decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+                      child: Text('+ Add', style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.whiteColor)),
+                    ),
+                  )
+                else
+                  Row(
+                    children: [
+                      _addOnQtyBtn(context, Icons.remove, () => _handleQuantityUpdate(itemId, qty - 1)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Text('$qty', style: AppTextStyles.textSize14(context, weight: FontWeight.w700)),
+                      ),
+                      _addOnQtyBtn(context, Icons.add, () => _handleQuantityUpdate(itemId, qty + 1)),
+                    ],
+                  ),
+              ],
+            ),
+          );
+        }).toList(),
+        Divider(height: 1, color: AppColors.border(context)),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _addOnQtyBtn(BuildContext context, IconData icon, VoidCallback onTap) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.border(context))),
+          child: Icon(icon, size: 14),
+        ),
+      );
 
   // ─── Price Summary ──────────────────────────────────────────────────────────
 
@@ -160,28 +329,23 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
       ),
       child: Column(
         children: [
-          // Subtotal row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Subtotal', style: AppTextStyles.textSize14(context)),
               Row(
                 children: [
-                  Text('৳${AmountFormatter.format(subtotal)}',style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                  Text('৳${AmountFormatter.format(subtotal)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
                   if (saved > 0) ...[
                     SizedBox(width: 8),
-                    Text(
-                      '৳${AmountFormatter.format(originalTotal)}',
-                      style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
-                    ),
+                    Text('৳${AmountFormatter.format(originalTotal)}',
+                        style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough)),
                   ],
                 ],
               ),
             ],
           ),
           SizedBox(height: 8),
-
-          // Transport row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -190,8 +354,6 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
             ],
           ),
           SizedBox(height: 8),
-
-          // Total row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -199,8 +361,6 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
               Text('৳${AmountFormatter.format(total)}', style: AppTextStyles.textSize14(context, weight: FontWeight.w700)),
             ],
           ),
-
-          // Savings row
           if (saved > 0) ...[
             SizedBox(height: 8),
             Row(
@@ -210,16 +370,12 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
                   'You Saved BDT ${AmountFormatter.format(saved)} in This Order!',
                   style: AppTextStyles.textSize12(context, color: Colors.red, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline, decorationColor: Colors.red),
                 ),
-                Text(
-                  '৳${AmountFormatter.format(originalTotal)}',
-                  style: AppTextStyles.textSize12(context, color: Colors.red).copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red),
-                ),
+                Text('৳${AmountFormatter.format(originalTotal)}',
+                    style: AppTextStyles.textSize12(context, color: Colors.red).copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red)),
               ],
             ),
           ],
-
           SizedBox(height: 10),
-          // Divider(color: AppColors.border(context)),
         ],
       ),
     );
@@ -256,31 +412,23 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
       builder: (context, _) {
         final List<BookedSlotDatum> slots = widget.bookedSlotViewModel.getBookedSlotData.data?.data ?? [];
 
-        // Update cache only when we have new data
         if (slots.isNotEmpty) {
           _cachedSlots = slots;
         }
 
-        // Use cached slots if current is empty (during loading)
         final displaySlots = slots.isEmpty ? _cachedSlots : slots;
 
-        // Only show "No time slots available" if we have no cached data and API completed with empty
         if (displaySlots.isEmpty && widget.bookedSlotViewModel.getBookedSlotData.status == Status.COMPLETED) {
           return Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              'No time slots available',
-              style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context)),
-            ),
+            child: Text('No time slots available', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
           );
         }
 
-        // If still no slots at all (initial state), show nothing
         if (displaySlots.isEmpty) {
           return SizedBox.shrink();
         }
 
-        // Build rows of 2 buttons
         return Column(
           children: [
             for (int i = 0; i < displaySlots.length; i += 2)
@@ -290,10 +438,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _serviceTimeButton(context, displaySlots[i]),
-                    if (i + 1 < displaySlots.length)
-                      _serviceTimeButton(context, displaySlots[i + 1])
-                    else
-                      Expanded(child: SizedBox()),
+                    if (i + 1 < displaySlots.length) _serviceTimeButton(context, displaySlots[i + 1]) else Expanded(child: SizedBox()),
                   ],
                 ),
               ),
@@ -302,6 +447,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
       },
     );
   }
+
   Widget _serviceTimeButton(BuildContext context, BookedSlotDatum slot) {
     final String time = slot.time ?? '';
     final bool isBooked = slot.isBookedSlot ?? false;
@@ -313,18 +459,10 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
         height: 40,
         width: 150,
         decoration: BoxDecoration(
-          color: isBooked
-              ? AppColors.darkRedColor.withOpacity(0.1)
-              : isSelected
-              ? AppColors.button(context)
-              : AppColors.fieldColor(context),
+          color: isBooked ? AppColors.darkRedColor.withOpacity(0.1) : isSelected ? AppColors.button(context) : AppColors.fieldColor(context),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isBooked
-                ? AppColors.darkRedColor.withOpacity(0.2)
-                : isSelected
-                ? AppColors.button(context)
-                : AppColors.border(context),
+            color: isBooked ? AppColors.darkRedColor.withOpacity(0.2) : isSelected ? AppColors.button(context) : AppColors.border(context),
             width: 1,
           ),
         ),
@@ -338,19 +476,12 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
                 style: AppTextStyles.textSize16(
                   context,
                   weight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isBooked
-                      ? AppColors.subtitle(context)
-                      : isSelected
-                      ? AppColors.whiteColor
-                      : AppColors.subtitle(context),
+                  color: isBooked ? AppColors.subtitle(context) : isSelected ? AppColors.whiteColor : AppColors.subtitle(context),
                 ),
               ),
               if (isBooked) ...[
                 SizedBox(width: 10),
-                Text(
-                  'Booked',
-                  style: AppTextStyles.textSize10(context, weight: FontWeight.w600, color: AppColors.darkRedColor),
-                ),
+                Text('Booked', style: AppTextStyles.textSize10(context, weight: FontWeight.w600, color: AppColors.darkRedColor)),
               ],
             ],
           ),
@@ -358,6 +489,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
       ),
     );
   }
+
   // ─── Checkout Button ────────────────────────────────────────────────────────
 
   Widget _buildCheckoutButton(BuildContext context, double subtotal, double screenWidth) {
@@ -365,7 +497,6 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
       padding: EdgeInsets.all(15),
       child: GestureDetector(
         onTap: () {
-          // Minimum order guard
           if (subtotal < 600) {
             Utils.flushBarExclamatoryMessage(title: "Warning", subtitle: " Minimum order amount is BDT 600 to proceed!", context: context);
             return;
@@ -373,7 +504,6 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
 
           final checkoutVM = Provider.of<CheckoutBeautySalonViewModel>(context, listen: false);
 
-          // Date & time validation
           String? validationError = checkoutVM.validateCartForm(selectedDate: checkoutVM.selectedDate, serviceTime: checkoutVM.selectedServiceTime);
 
           if (validationError != null) {
@@ -391,10 +521,7 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Proceed to Checkout',
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-              ),
+              Text('Proceed to Checkout', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white)),
               SizedboxSpaccing.width02(context),
               Icon(FontAwesomeIcons.arrowRight, color: AppColors.whiteColor, size: 12),
             ],
@@ -414,11 +541,10 @@ String _formatTo12Hour(String time) {
     final String minute = parts.length > 1 ? parts[1] : '00';
     final String period = hour >= 12 ? 'PM' : 'AM';
     if (hour == 0)
-      hour = 12; // midnight → 12 AM
-    else if (hour > 12)
-      hour -= 12; // 13–23  → 1–11 PM
+      hour = 12;
+    else if (hour > 12) hour -= 12;
     return '$hour:$minute $period';
   } catch (_) {
-    return time; // fallback: show original if parsing fails
+    return time;
   }
 }

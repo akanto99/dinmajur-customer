@@ -24,6 +24,7 @@ class FamilyEventCookingCartDialog extends StatefulWidget {
   final Function(String) onTimeSelected;
   final TextEditingController dateController;
   final VoidCallback onProceedToCheckout;
+  final Function(String categoryId, String key)? onManualItemAdded;
 
   const FamilyEventCookingCartDialog({
     Key? key,
@@ -39,6 +40,7 @@ class FamilyEventCookingCartDialog extends StatefulWidget {
     required this.onTimeSelected,
     required this.dateController,
     required this.onProceedToCheckout,
+    this.onManualItemAdded,
   }) : super(key: key);
 
   @override
@@ -46,9 +48,51 @@ class FamilyEventCookingCartDialog extends StatefulWidget {
 }
 
 class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDialog> {
+  List<Map<String, dynamic>> _addOnItems = [];
+  final Set<String> _addedAddOnKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _initAddOns();
+  }
+
+  void _initAddOns() {
+    final List<Map<String, dynamic>> available = [];
+
+    for (var cat in widget.categories) {
+      if (cat.type != 'MANUAL') continue;
+      final catId = cat.id ?? '';
+      for (var package in (cat.packages ?? [])) {
+        for (var item in (package.items ?? [])) {
+          final key = '${package.id}_${item.id}';
+          if (widget.selectedManualItems[catId]?.contains(key) ?? false) continue;
+
+          double salePrice = 0;
+          double origPrice = 0;
+          if (widget.selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
+            salePrice = item.prices![widget.selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
+            origPrice = item.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
+          }
+          if (salePrice == 0 && origPrice == 0) continue;
+
+          available.add({
+            'key': key,
+            'categoryId': catId,
+            'name': item.name ?? '',
+            'salePrice': salePrice,
+            'origPrice': origPrice,
+          });
+        }
+      }
+    }
+
+    available.shuffle();
+    _addOnItems = available.take(3).toList();
+  }
+
   List<Map<String, dynamic>> _getCartItems() {
     List<Map<String, dynamic>> cartItems = [];
-
     if (widget.activeCategoryId == null) return cartItems;
 
     for (var category in widget.categories) {
@@ -58,14 +102,11 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
           if (selectedPackageId != null) {
             for (var package in category.packages ?? []) {
               if (package.id == selectedPackageId) {
-                double salePrice = 0;
-                double originalPrice = 0;
-
+                double salePrice = 0, originalPrice = 0;
                 if (widget.selectedGuestRangeIndex < (package.prices?.length ?? 0)) {
                   salePrice = package.prices![widget.selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
                   originalPrice = package.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
                 }
-
                 cartItems.add({'package': package, 'category': category, 'item': null, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'REGULAR'});
                 break;
               }
@@ -76,27 +117,22 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             for (var item in package.items ?? []) {
               final key = '${package.id}_${item.id}';
               if (widget.selectedManualItems[category.id]?.contains(key) ?? false) {
-                double salePrice = 0;
-                double originalPrice = 0;
-
+                double salePrice = 0, originalPrice = 0;
                 if (widget.selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
                   salePrice = item.prices![widget.selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
                   originalPrice = item.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
                 }
-
                 cartItems.add({'package': package, 'category': category, 'item': item, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'MANUAL'});
               }
             }
           }
         } else if (category.type == 'CUSTOM') {
-          // CUSTOM: same as REGULAR — one selected package, price from customPrice
           final selectedPackageId = widget.selectedPackages[category.id];
           if (selectedPackageId != null) {
             for (var package in category.packages ?? []) {
               if (package.id == selectedPackageId) {
                 final salePrice = package.customPrice?.salePrice?.toDouble() ?? 0;
                 final originalPrice = package.customPrice?.originalPrice?.toDouble() ?? 0;
-
                 cartItems.add({'package': package, 'category': category, 'item': null, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'CUSTOM'});
                 break;
               }
@@ -107,37 +143,36 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       }
     }
 
+    // Also include add-on MANUAL items from other categories that were added via add-ons
+    for (var key in _addedAddOnKeys) {
+      // Find which category & item this key belongs to
+      for (var cat in widget.categories) {
+        if (cat.type != 'MANUAL') continue;
+        if (cat.id == widget.activeCategoryId) continue;
+        for (var package in (cat.packages ?? [])) {
+          for (var item in (package.items ?? [])) {
+            if ('${package.id}_${item.id}' == key) {
+              double salePrice = 0, originalPrice = 0;
+              if (widget.selectedGuestRangeIndex < (item.prices?.length ?? 0)) {
+                salePrice = item.prices![widget.selectedGuestRangeIndex].salePrice?.toDouble() ?? 0;
+                originalPrice = item.prices![widget.selectedGuestRangeIndex].originalPrice?.toDouble() ?? 0;
+              }
+              cartItems.add({'package': package, 'category': cat, 'item': item, 'salePrice': salePrice, 'originalPrice': originalPrice, 'type': 'MANUAL'});
+            }
+          }
+        }
+      }
+    }
+
     return cartItems;
   }
 
   double _calculateSubtotal() {
-    double subtotal = 0;
-    final cartItems = _getCartItems();
-    for (var item in cartItems) {
-      subtotal += item['salePrice'] as double;
-    }
-    return subtotal;
+    return _getCartItems().fold(0, (sum, item) => sum + (item['salePrice'] as double));
   }
 
   double _calculateOriginalTotal() {
-    double total = 0;
-    final cartItems = _getCartItems();
-    for (var item in cartItems) {
-      total += item['originalPrice'] as double;
-    }
-    return total;
-  }
-
-  double _calculateSaved() {
-    return _calculateOriginalTotal() - _calculateSubtotal();
-  }
-
-  String _getGuestRangeText() {
-    final ranges = ['25-30', '30-35', '40-50'];
-    if (widget.selectedGuestRangeIndex < ranges.length) {
-      return ranges[widget.selectedGuestRangeIndex];
-    }
-    return '';
+    return _getCartItems().fold(0, (sum, item) => sum + (item['originalPrice'] as double));
   }
 
   @override
@@ -148,7 +183,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
 
     double subtotal = _calculateSubtotal();
     double originalTotal = _calculateOriginalTotal();
-    double saved = _calculateSaved();
+    double saved = originalTotal - subtotal;
     double transport = widget.transportFee;
     double total = subtotal + transport;
 
@@ -162,8 +197,31 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(context, cartItems, subtotal, originalTotal, saved, screenWidth),
-            _buildCartItemsList(context, cartItems, screenWidth),
+            _buildHeader(context, cartItems, subtotal, originalTotal, saved),
+            Flexible(
+              fit: FlexFit.loose,
+              child: SingleChildScrollView(
+                child: Container(
+                  width: screenWidth * 0.87,
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (cartItems.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Text('No items selected', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+                          ),
+                        )
+                      else
+                        ...cartItems.map((item) => _buildCartItem(context, item, screenWidth)),
+                      if (_addOnItems.isNotEmpty) _buildAddOns(context, screenWidth),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             _buildPriceSummary(context, subtotal, transport, total, screenWidth, saved, originalTotal),
             _buildDateTimeSelection(context, screenWidth),
             _buildCheckoutButton(context, total, screenWidth),
@@ -173,61 +231,20 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
     );
   }
 
-  Widget _buildHeader(BuildContext context, List<Map<String, dynamic>> cartItems, double subtotal, double originalTotal, double saved, double screenWidth) {
+  Widget _buildHeader(BuildContext context, List<Map<String, dynamic>> cartItems, double subtotal, double originalTotal, double saved) {
     return DynamicCartHeader(itemCount: cartItems.length, totalPrice: subtotal, originalPrice: originalTotal, savedAmount: saved, onClose: () => Navigator.pop(context));
   }
 
-  Widget _buildCartItemsList(BuildContext context, List<Map<String, dynamic>> cartItems, double screenWidth) {
-    return Flexible(
-      fit: FlexFit.loose, // This allows it to shrink to content size
-      child: SingleChildScrollView(
-        child: Container(
-          width: screenWidth * 0.87,
-          padding: EdgeInsets.symmetric(vertical: 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Row(
-              //   children: [
-              //     Text('Selected Items', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              //     SizedBox(width: 8),
-              //     Text(
-              //       '${_getGuestRangeText()}',
-              //       style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context)),
-              //     )
-              //   ],
-              // ),
-              // SizedBox(height: 12),
-              if (cartItems.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Text('No items selected', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
-                  ),
-                )
-              else
-                ...cartItems.map((item) => _buildCartItem(context, item, screenWidth)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildCartItem(BuildContext context, Map<String, dynamic> item, double screenWidth) {
-    // FIXED: Cast to Package instead of Datum
     final package = item['package'] as Package;
     final itemData = item['item'] as Item?;
     final salePrice = item['salePrice'] as double;
     final originalPrice = item['originalPrice'] as double;
     final type = item['type'] as String;
     final hasDiscount = originalPrice > salePrice;
-
-    // For MANUAL type, show the individual item; for REGULAR, show the package
     final displayName = type == 'MANUAL' ? (itemData?.name ?? '') : (package.name ?? '');
 
     return Container(
-      // margin: EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.containerBackground(context),
@@ -236,32 +253,22 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Item/Package Details
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    displayName,
-                    style: AppTextStyles.textSize14(context, weight: FontWeight.w600),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(displayName, style: AppTextStyles.textSize14(context, weight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
                 ),
                 SizedBox(width: 8),
                 Row(
                   children: [
-                    Text(
-                      '৳${AmountFormatter.format(salePrice)}',
-                      style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.button(context)),
-                    ),
+                    Text('৳${AmountFormatter.format(salePrice)}',
+                        style: AppTextStyles.textSize14(context, weight: FontWeight.w600, color: AppColors.button(context))),
                     if (hasDiscount) ...[
                       SizedBox(width: 8),
-                      Text(
-                        '৳${AmountFormatter.format(originalPrice)}',
-                        style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
-                      ),
+                      Text('৳${AmountFormatter.format(originalPrice)}',
+                          style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough)),
                     ],
                   ],
                 ),
@@ -273,13 +280,77 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
     );
   }
 
+  // ─── Add-ons ───────────────────────────────────────────────────────────────
+
+  Widget _buildAddOns(BuildContext context, double screenWidth) {
+    final visibleAddOns = _addOnItems.where((a) => !_addedAddOnKeys.contains(a['key'])).toList();
+    if (visibleAddOns.isEmpty) return SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
+        Text('Add-ons', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        ...visibleAddOns.map((addOn) {
+          final key = addOn['key'] as String;
+          final categoryId = addOn['categoryId'] as String;
+          final name = addOn['name'] as String;
+          final salePrice = addOn['salePrice'] as double;
+          final origPrice = addOn['origPrice'] as double;
+          final hasDiscount = origPrice > salePrice && salePrice > 0;
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Text('৳${salePrice.toStringAsFixed(0)}',
+                              style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context))),
+                          if (hasDiscount) ...[
+                            const SizedBox(width: 6),
+                            Text('৳${origPrice.toStringAsFixed(0)}',
+                                style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough)),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _addedAddOnKeys.add(key));
+                    widget.onManualItemAdded?.call(categoryId, key);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                    decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+                    child: Text('+ Add', style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.whiteColor)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+        Divider(height: 1, color: AppColors.border(context)),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  // ─── Price Summary ──────────────────────────────────────────────────────────
+
   Widget _buildPriceSummary(BuildContext context, double subtotal, double transport, double total, double screenWidth, double saved, double originalTotal) {
     return Container(
       width: screenWidth * 0.87,
       padding: EdgeInsets.symmetric(vertical: 15),
-      // decoration: BoxDecoration(
-      //   border: Border(top: BorderSide(color: AppColors.border(context), width: 1)),
-      // ),
       child: Column(
         children: [
           Row(
@@ -302,10 +373,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Total', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              Text(
-                '৳${AmountFormatter.format(total)}',
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.button(context)),
-              ),
+              Text('৳${AmountFormatter.format(total)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w700, color: AppColors.button(context))),
             ],
           ),
           if (saved > 0) ...[
@@ -317,10 +385,8 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
                   'You Saved BDT ${AmountFormatter.format(saved)} in This Order!',
                   style: AppTextStyles.textSize12(context, color: Colors.red, weight: FontWeight.w400).copyWith(decoration: TextDecoration.underline, decorationColor: Colors.red),
                 ),
-                Text(
-                  '৳${AmountFormatter.format(originalTotal)}',
-                  style: AppTextStyles.textSize12(context, color: Colors.red).copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red),
-                ),
+                Text('৳${AmountFormatter.format(originalTotal)}',
+                    style: AppTextStyles.textSize12(context, color: Colors.red).copyWith(decoration: TextDecoration.lineThrough, decorationColor: Colors.red)),
               ],
             ),
           ],
@@ -331,9 +397,10 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
     );
   }
 
+  // ─── Date & Time Selection ──────────────────────────────────────────────────
+
   Widget _buildDateTimeSelection(BuildContext context, double screenWidth) {
     final serviceTimeSlots = ['Day', 'Night'];
-
     return Container(
       width: screenWidth * 0.87,
       child: Column(
@@ -353,14 +420,12 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
           SizedboxSpaccing.height012(context),
           Row(
             children: serviceTimeSlots
-                .map(
-                  (time) => Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(right: time == serviceTimeSlots.first ? 5 : 0, left: time == serviceTimeSlots.last ? 5 : 0),
-                      child: _serviceTimeButton(context, time),
-                    ),
-                  ),
-                )
+                .map((time) => Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(right: time == serviceTimeSlots.first ? 5 : 0, left: time == serviceTimeSlots.last ? 5 : 0),
+                        child: _serviceTimeButton(context, time),
+                      ),
+                    ))
                 .toList(),
           ),
           SizedboxSpaccing.height015(context),
@@ -381,14 +446,14 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
           border: Border.all(color: isSelected ? AppColors.button(context) : AppColors.border(context), width: 1),
         ),
         child: Center(
-          child: Text(
-            time,
-            style: AppTextStyles.textSize16(context, weight: isSelected ? FontWeight.w600 : FontWeight.w500, color: isSelected ? AppColors.whiteColor : AppColors.subtitle(context)),
-          ),
+          child: Text(time,
+              style: AppTextStyles.textSize16(context, weight: isSelected ? FontWeight.w600 : FontWeight.w500, color: isSelected ? AppColors.whiteColor : AppColors.subtitle(context))),
         ),
       ),
     );
   }
+
+  // ─── Checkout Button ────────────────────────────────────────────────────────
 
   Widget _buildCheckoutButton(BuildContext context, double total, double screenWidth) {
     return Padding(
@@ -401,7 +466,6 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
           }
 
           final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
-
           String? validationError = checkoutVM.validateCartForm(selectedDate: widget.selectedDate, serviceTime: widget.selectedServiceTime);
 
           if (validationError != null) {
@@ -419,10 +483,7 @@ class _FamilyEventCookingCartDialogState extends State<FamilyEventCookingCartDia
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Proceed to Checkout',
-                style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-              ),
+              Text('Proceed to Checkout', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white)),
               SizedboxSpaccing.width02(context),
               Icon(FontAwesomeIcons.arrowRight, color: AppColors.whiteColor, size: 12),
             ],
