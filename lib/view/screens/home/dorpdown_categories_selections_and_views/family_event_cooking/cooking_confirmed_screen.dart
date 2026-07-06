@@ -99,7 +99,6 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
   @override
   void initState() {
     super.initState();
-    print("--------------------------------------${widget.valId}");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = Provider.of<GetDetailsEventCookingViewModel>(context, listen: false);
       viewModel.fetchgetDetailsEventCookingDataApi(widget.trackingId!);
@@ -311,7 +310,6 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
             }
           }
         } catch (e) {
-          print('❌ Permission check error: $e');
         }
       }
 
@@ -335,7 +333,6 @@ class _CookingConfirmedScreenState extends State<CookingConfirmedScreen> {
       setState(() {
         _isDownloading = false;
       });
-      print('❌ PDF Generation Error: $e');
       Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
     }
   }

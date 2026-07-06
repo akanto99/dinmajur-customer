@@ -25,15 +25,10 @@ class GetallShifttimeViewModel with ChangeNotifier {
     setgetAllShiftTimeData(ApiResponse.loading());
 
     _myRepo.fetchGetAllShiftTimeGetApi(byDate).then((value){
-      print(value);
       setgetAllShiftTimeData(ApiResponse.completed(value));
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setgetAllShiftTimeData(ApiResponse.error(error.toString()));
     });
   }

@@ -75,7 +75,6 @@ class _TrendingServicesWidgetState extends State<TrendingServicesWidget> {
     super.dispose();
   }
 
-  bool _isTapped = false;
   String? _loadingTaskId;
 
   Future<void> _handleTaskTap(BuildContext context, Task task) async {
@@ -152,7 +151,6 @@ class _TrendingServicesWidgetState extends State<TrendingServicesWidget> {
         },
       );
     } catch (e) {
-      debugPrint('Trending tap failed: $e');
     } finally {
       if (mounted) setState(() => _loadingTaskId = null);
     }
@@ -328,7 +326,6 @@ class _TrendingServicesWidgetState extends State<TrendingServicesWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedboxSpaccing.height04(context),
           Container(
             height: 25,
             width: 180,

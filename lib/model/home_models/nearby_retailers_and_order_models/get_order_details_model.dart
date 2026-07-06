@@ -235,7 +235,6 @@ class Freelancer {
         }
         return null;
       } catch (e) {
-        print('⚠️ Freelancer date parse error: $value - $e');
         return null;
       }
     }

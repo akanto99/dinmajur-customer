@@ -22,10 +22,6 @@ class GetBookedSlotViewModel with ChangeNotifier {
     _myRepo.fetchBookedSlotGetApi(formattedDate).then((value) {
       setBookedSlotData(ApiResponse.completed(value));
     }).onError((error, stackTrace) {
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setBookedSlotData(ApiResponse.error(error.toString()));
     });
   }

@@ -172,14 +172,7 @@ class RunningOrdersViewModel with ChangeNotifier {
 
       setPendingOrdersData(ApiResponse.completed(updatedModel));
 
-      if (kDebugMode) {
-        print('✅ Pending orders loaded - Page: $_pendingCurrentPage, Total: ${_pendingAllOrders.length}, HasMore: $_pendingHasMore');
-      }
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        print('❌ Error loading pending orders: $error');
-        print(stackTrace);
-      }
+    } catch (error) {
       setPendingOrdersData(ApiResponse.error(error.toString()));
     }
   }
@@ -187,15 +180,9 @@ class RunningOrdersViewModel with ChangeNotifier {
   // ✅ FIXED: Load more pending orders with proper loading state
   Future<void> loadMorePendingOrders() async {
     if (_pendingLoadingMore || !_pendingHasMore) {
-      if (kDebugMode) {
-        print('⚠️ Load more blocked - Loading: $_pendingLoadingMore, HasMore: $_pendingHasMore');
-      }
       return;
     }
 
-    if (kDebugMode) {
-      print('🔄 Starting load more - Setting loading to TRUE');
-    }
 
     _pendingLoadingMore = true;
     notifyListeners(); // ✅ This should trigger the loading animation
@@ -205,13 +192,7 @@ class RunningOrdersViewModel with ChangeNotifier {
     try {
       await fetchPendingOrdersGetDataApi(isLoadMore: true);
 
-      if (kDebugMode) {
-        print('✅ Load more completed - Setting loading to FALSE');
-      }
     } catch (error) {
-      if (kDebugMode) {
-        print('❌ Load more failed: $error');
-      }
     } finally {
       _pendingLoadingMore = false;
       notifyListeners(); // ✅ This should hide the loading animation
@@ -248,14 +229,7 @@ class RunningOrdersViewModel with ChangeNotifier {
 
       setRunningOrdersData(ApiResponse.completed(updatedModel));
 
-      if (kDebugMode) {
-        print('✅ Running orders loaded - Page: $_runningCurrentPage, Total: ${_runningAllOrders.length}');
-      }
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        print('❌ Error loading running orders: $error');
-        print(stackTrace);
-      }
+    } catch (error) {
       setRunningOrdersData(ApiResponse.error(error.toString()));
     }
   }
@@ -264,9 +238,6 @@ class RunningOrdersViewModel with ChangeNotifier {
   Future<void> loadMoreRunningOrders() async {
     if (_runningLoadingMore || !_runningHasMore) return;
 
-    if (kDebugMode) {
-      print('🔄 Starting load more running - Setting loading to TRUE');
-    }
 
     _runningLoadingMore = true;
     notifyListeners();
@@ -276,13 +247,7 @@ class RunningOrdersViewModel with ChangeNotifier {
     try {
       await fetchRunningOrdersGetDataApi(isLoadMore: true);
 
-      if (kDebugMode) {
-        print('✅ Load more running completed');
-      }
     } catch (error) {
-      if (kDebugMode) {
-        print('❌ Load more running failed: $error');
-      }
     } finally {
       _runningLoadingMore = false;
       notifyListeners();
@@ -319,14 +284,7 @@ class RunningOrdersViewModel with ChangeNotifier {
 
       setCompleteOrdersData(ApiResponse.completed(updatedModel));
 
-      if (kDebugMode) {
-        print('✅ Complete orders loaded - Page: $_completeCurrentPage, Total: ${_completeAllOrders.length}');
-      }
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        print('❌ Error loading complete orders: $error');
-        print(stackTrace);
-      }
+    } catch (error) {
       setCompleteOrdersData(ApiResponse.error(error.toString()));
     }
   }
@@ -335,9 +293,6 @@ class RunningOrdersViewModel with ChangeNotifier {
   Future<void> loadMoreCompleteOrders() async {
     if (_completeLoadingMore || !_completeHasMore) return;
 
-    if (kDebugMode) {
-      print('🔄 Starting load more complete - Setting loading to TRUE');
-    }
 
     _completeLoadingMore = true;
     notifyListeners();
@@ -347,13 +302,7 @@ class RunningOrdersViewModel with ChangeNotifier {
     try {
       await fetchCompleteOrdersGetDataApi(isLoadMore: true);
 
-      if (kDebugMode) {
-        print('✅ Load more complete completed');
-      }
     } catch (error) {
-      if (kDebugMode) {
-        print('❌ Load more complete failed: $error');
-      }
     } finally {
       _completeLoadingMore = false;
       notifyListeners();
@@ -400,9 +349,6 @@ class RunningOrdersViewModel with ChangeNotifier {
         }
       }
     } catch (error) {
-      if (kDebugMode) {
-        print('❌ refreshSingleCompletedOrder error: $error');
-      }
     }
   }
 

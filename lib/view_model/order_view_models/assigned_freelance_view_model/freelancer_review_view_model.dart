@@ -21,10 +21,6 @@ class FreelancerReviewViewModel with ChangeNotifier {
       setReViewData(ApiResponse.completed(value));
     })
         .onError((error, stackTrace) {
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setReViewData(ApiResponse.error(error.toString()));
     });
   }

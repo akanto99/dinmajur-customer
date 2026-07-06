@@ -20,15 +20,10 @@ class GetDetailsEventCookingViewModel with ChangeNotifier {
     setDetailsEventCookingData(ApiResponse.loading());
 
     _myRepo.fetchFemilyEventCookingGetApi(byTrackId).then((value){
-      print(value);
       setDetailsEventCookingData(ApiResponse.completed(value));
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setDetailsEventCookingData(ApiResponse.error(error.toString()));
     });
   }

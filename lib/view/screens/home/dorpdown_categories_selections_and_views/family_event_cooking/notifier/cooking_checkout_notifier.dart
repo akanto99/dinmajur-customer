@@ -1,111 +1,3 @@
-/// For Web View SSL Implementation using payment url
-// import 'package:flutter/material.dart';
-//
-// class CookingCheckoutViewModel extends ChangeNotifier {
-//   String? _selectedServiceTime;
-//   String? _selectedPaymentMethod;
-//   DateTime? _selectedDate;
-//   bool _isProcessing = false;
-//
-//   String? get selectedServiceTime => _selectedServiceTime;
-//   String? get selectedPaymentMethod => _selectedPaymentMethod;
-//   DateTime? get selectedDate => _selectedDate;
-//   bool get isProcessing => _isProcessing;
-//
-//   // Payment methods data
-//   final List<Map<String, dynamic>> paymentMethods = [
-//     {
-//       'method': 'online',
-//       'title': 'Online Payment',
-//       'icon': 'wallet',
-//       'color': 0xFFEE4237
-//     },
-//     {
-//       'method': 'cash',
-//       'title': 'Hand Cash',
-//       'icon': 'sackDollar',
-//       'color': 0xFF45A986
-//     },
-//   ];
-//
-//   void setServiceTime(String time) {
-//     _selectedServiceTime = time;
-//     notifyListeners();
-//   }
-//
-//   void setPaymentMethod(String method) {
-//     _selectedPaymentMethod = method;
-//     notifyListeners();
-//   }
-//
-//   void setSelectedDate(DateTime date) {
-//     _selectedDate = date;
-//     notifyListeners();
-//   }
-//
-//   void setProcessing(bool value) {
-//     _isProcessing = value;
-//     notifyListeners();
-//   }
-//
-//   // Validation for cart dialog (date & time only)
-//   String? validateCartForm({
-//     required DateTime? selectedDate,
-//     required String? serviceTime,
-//   }) {
-//     if (selectedDate == null) {
-//       return "Please select a date";
-//     }
-//     if (serviceTime == null || serviceTime.isEmpty) {
-//       return "Please select a service time";
-//     }
-//     return null;
-//   }
-//
-//   // Validation for checkout screen (name, phone, address, payment)
-//   String? validateCheckoutDetails({
-//     required String fullName,
-//     required String phone,
-//     required String address,
-//     required String? paymentMethod,
-//   }) {
-//     if (fullName.trim().isEmpty) {
-//       return "Please enter your full name";
-//     }
-//     if (phone.trim().isEmpty) {
-//       return "Please enter your phone number";
-//     }
-//     if (address.trim().isEmpty) {
-//       return "Please enter your address";
-//     }
-//     if (paymentMethod == null || paymentMethod.isEmpty) {
-//       return "Please select a payment method";
-//     }
-//     return null;
-//   }
-//
-//   // Get payment method data for API
-//   String getPaymentMethodData(String? method) {
-//     switch (method) {
-//       case 'online':
-//         return "ONLINE";
-//       case 'cash':
-//         return "CASH_ON_DELIVERY";
-//       default:
-//         return "OTHERS";
-//     }
-//   }
-//
-//   void reset() {
-//     _selectedServiceTime = null;
-//     _selectedPaymentMethod = null;
-//     _selectedDate = null;
-//     _isProcessing = false;
-//     notifyListeners();
-//   }
-// }
-
-///For Ssl Integration using store id and Password
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:flutter/material.dart';
 
@@ -287,16 +179,6 @@ class CookingCheckoutViewModel extends ChangeNotifier {
 
 
   /// Initiate payment using centralized service
-  // Future<SSLPaymentResult> initiatePayment({
-  //   required String trackingId,
-  //   required double totalAmount,
-  // }) async {
-  //   return await _paymentService.initiatePayment(
-  //     trackingId: trackingId,
-  //     totalAmount: totalAmount,
-  //     productCategory: "Family Event Cooking Service",
-  //   );
-  // }
   Future<SSLPaymentResult> initiatePayment({
     required String trackingId,
     required double totalAmount,
@@ -305,13 +187,10 @@ class CookingCheckoutViewModel extends ChangeNotifier {
     String? customerEmail,
     String? customerAddress,
   }) async {
-    print("═══════════════════════════════════════════");
-    print("🚀 CheckoutViewModel: Initiating Payment");
     // print("Tracking ID: $trackingId");
     // print("Total Amount: $totalAmount");
     // print("Customer: $customerName");
     // print("Phone: $customerPhone");
-    print("═══════════════════════════════════════════");
 
     try {
       final result = await _paymentService.initiatePayment(
@@ -324,15 +203,10 @@ class CookingCheckoutViewModel extends ChangeNotifier {
         customerAddress: customerAddress,
       );
 
-      print("═══════════════════════════════════════════");
-      print("📥 Payment Service Result:");
       // print(result.toString());
-      print("═══════════════════════════════════════════");
 
       return result;
     } catch (e, stackTrace) {
-      print("💥 Payment Initiation Error in ViewModel: $e");
-      print("Stack Trace: $stackTrace");
 
       return SSLPaymentResult(
         success: false,

@@ -8,7 +8,6 @@ import 'package:dinmajur_customer/model/order_models/assigned_freelance_model/fr
 import 'package:dinmajur_customer/view_model/order_view_models/assigned_freelance_view_model/freelancer_review_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -308,7 +307,7 @@ class _FreelancerProfileScreenState extends State<FreelancerProfileScreen> {
             children: [
               Text(
                 avgRating.toStringAsFixed(1),
-                style: GoogleFonts.hindSiliguri(fontWeight: FontWeight.bold, fontSize: 36, color: AppColors.textPrimary(context)),
+                style: AppTextStyles.textSize36(context, weight: FontWeight.bold, color: AppColors.textPrimary(context)),
               ),
               Row(children: List.generate(5, (i) => Icon(Icons.star, size: 14, color: i < avgRating ? const Color(0xFFF59E0B) : Colors.grey))),
               const SizedBox(height: 4),

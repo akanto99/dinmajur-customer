@@ -38,7 +38,7 @@ class ImageUpdateViewModel with ChangeNotifier {
       }
 
       // Fixed: Pass all required parameters
-      final value = await _myRepo.imageUpdatePatchApi(
+      await _myRepo.imageUpdatePatchApi(
           imageBytes,
           accessToken,
           fileName
@@ -46,9 +46,6 @@ class ImageUpdateViewModel with ChangeNotifier {
 
       setImageUpdateLoading(false);
 
-      if (kDebugMode) {
-        print('Response from image upload: $value');
-      }
 
       Utils.flushBarSuccessMessage('Image updated successfully', context);
       onComplete?.call();

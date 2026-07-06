@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:flutter/cupertino.dart';
@@ -72,11 +73,7 @@ class _FullScreenImage2State extends State<FullScreenImage2> {
                       child: Center(
                         child: Text(
                           widget.imageName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textPrimary(context),
-                          ),
+                          style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -125,10 +122,7 @@ class _FullScreenImage2State extends State<FullScreenImage2> {
                                 SizedBox(height: 16),
                                 Text(
                                   'Failed to load image',
-                                  style: TextStyle(
-                                    color: AppColors.textPrimary(context),
-                                    fontSize: 16,
-                                  ),
+                                  style: AppTextStyles.textSize16(context, color: AppColors.textPrimary(context)),
                                 ),
                               ],
                             );

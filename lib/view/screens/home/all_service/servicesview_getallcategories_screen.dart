@@ -1,4 +1,7 @@
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -34,6 +37,14 @@ class ServicesViewScreen extends StatefulWidget {
   final String description;
   final bool isFromHome;
   final Map<String, dynamic>? customerLocation;
+  ///for dynamic stores
+  final String? retailerId;
+  /// Set when arriving from a card whose "ADD" button already committed to
+  /// a specific task (e.g. a Most Booked / Featured item) — that task's
+  /// quantity is pre-set to 1 so the bottom cart bar shows it immediately
+  /// instead of the user having to find and tap it again on this page.
+  final String? preselectTaskId;
+
 
   const ServicesViewScreen({
     Key? key,
@@ -45,6 +56,9 @@ class ServicesViewScreen extends StatefulWidget {
     required this.description,
     this.isFromHome = false,
     this.customerLocation,
+    ///for dynamic stores
+    this.retailerId,
+    this.preselectTaskId,
   }) : super(key: key);
 
   @override
@@ -52,10 +66,16 @@ class ServicesViewScreen extends StatefulWidget {
 }
 
 class _ServicesViewScreenState extends State<ServicesViewScreen> {
+  ///for Dynamic Stores
+  String? _retailerId;
+
+
   final ScrollController _mainScrollController = ScrollController();
   int _selectedTabIndex = 0;
   final Map<int, GlobalKey> _categoryKeys = {};
   bool _isScrollingFlag = false;
+  final Map<String, CarouselSliderController> _carouselControllers = {};
+  final Map<String, int> _carouselCurrentPage = {};
 
   Map<String, int> _serviceQuantities = {};
   late String _currentCustomerAddress;
@@ -64,16 +84,39 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
   @override
   void initState() {
     super.initState();
+    ///for Dynamic Stores
+    _retailerId = widget.retailerId;
 
     if (widget.isFromHome) CheckoutSessionLocationService.clear();
 
     _currentCustomerAddress = widget.customerAddress;
     _customerLocation = widget.customerLocation;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false).fetchServicesViewGetAllCategoriesGetApi(widget.serviceId);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Restore quantities saved in global cart for this service
+      final cart = Provider.of<GlobalCartProvider>(context, listen: false);
+      final saved = cart.getQuantitiesForService(widget.serviceId);
+      final preselectId = widget.preselectTaskId;
+      final hasPreselect = preselectId != null && preselectId.isNotEmpty;
 
+      final initialQuantities = saved.isNotEmpty ? Map<String, int>.of(saved) : <String, int>{};
+      if (hasPreselect && (initialQuantities[preselectId] ?? 0) < 1) {
+        initialQuantities[preselectId] = 1;
+      }
+      if (initialQuantities.isNotEmpty) setState(() => _serviceQuantities = initialQuantities);
+
+      await Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false)
+          .fetchServicesViewGetAllCategoriesGetApi(widget.serviceId, widget.retailerId ?? "");
       Provider.of<GetSlotViewModel>(context, listen: false).fetchGetSlotDataApi(DateTime.now(), widget.serviceId);
+
+      // Only the preselected task needs an explicit sync — a plain restore
+      // is already what's persisted, but adding the preselected task is a
+      // new change that must be written back to the global cart. Wait for
+      // categories to load first: _syncGlobalCart rebuilds cart items from
+      // fetched categories, and running it before they arrive would wipe
+      // out a real cart entry (categories == [] means every task looks
+      // like it has quantity 0 there).
+      if (hasPreselect && mounted) _syncGlobalCart();
     });
   }
 
@@ -87,6 +130,11 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     if (_categoryKeys.isEmpty && categories.isNotEmpty) {
       for (int i = 0; i < categories.length; i++) {
         _categoryKeys[i] = GlobalKey();
+        // Initialize carousel controllers for carousel-mode categories
+        if (categories[i].viewInPopup == false) {
+          _carouselControllers[categories[i].id ?? i.toString()] = CarouselSliderController();
+          _carouselCurrentPage[categories[i].id ?? i.toString()] = 0;
+        }
       }
     }
   }
@@ -118,6 +166,51 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
       int next = (_serviceQuantities[taskId] ?? 0) + change;
       if (next >= 0) _serviceQuantities[taskId] = next;
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
+  }
+
+  void _syncGlobalCart() {
+    if (!mounted) return;
+    final cart = Provider.of<GlobalCartProvider>(context, listen: false);
+    final count = _getTotalItems();
+    if (count > 0) {
+      final cartItems = <CartItem>[];
+      final categories = _getCategories();
+      for (final cat in categories) {
+        for (final task in (cat.tasks ?? [])) {
+          final qty = _serviceQuantities[task.id ?? ''] ?? 0;
+          if (qty > 0) {
+            final price = task.price?.salePrice?.toDouble() ?? task.price?.basePrice?.toDouble() ?? 0;
+            final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
+            cartItems.add(CartItem(id: task.id ?? '', name: task.name ?? '', quantity: qty, unitPrice: price, imageUrl: imageUrl));
+          }
+        }
+      }
+      final transportFee = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false)
+          .servicesViewGetAllCategoryData.data?.data?.transportFee?.toDouble() ?? 0.0;
+      final checkoutVM = Provider.of<CheckoutAllServicesViewModel>(context, listen: false);
+      cart.updateService(
+        widget.serviceId,
+        serviceName: widget.serviceName,
+        items: cartItems,
+        checkoutArgs: {
+          'customerName': widget.customerName,
+          'customerPhone': widget.customerPhone,
+          'customerAddress': _currentCustomerAddress,
+          'customerLocation': _customerLocation,
+          'serviceId': widget.serviceId,
+          'categories': categories,
+          'serviceQuantities': Map.of(_serviceQuantities),
+          'totalPrice': _calculateTotal(),
+          'transportFee': transportFee,
+          'selectedDate': checkoutVM.selectedDate,
+          'selectedServiceTime': checkoutVM.selectedServiceTime,
+          'retailerId': widget.retailerId ?? '',
+        },
+      );
+    } else {
+      cart.clearService(widget.serviceId);
+    }
   }
 
   int _getTotalItems() => _serviceQuantities.entries.where((e) => e.value > 0).length;
@@ -200,7 +293,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
                   // errorMessage: viewModel.servicesViewGetAllCategoryData.message.toString(),
                   errorMessage: 'Failed to load services',
                   onRetry: () {
-                    viewModel.fetchServicesViewGetAllCategoriesGetApi(widget.serviceId);
+                    viewModel.fetchServicesViewGetAllCategoriesGetApi(widget.serviceId,widget.retailerId?? "");
                   },
                 );
               }
@@ -283,7 +376,12 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
 
                   // ── Category sections ──
                   ...categories.asMap().entries.map((entry) {
-                    return _buildCategorySection(index: entry.key, category: entry.value, tasks: entry.value.tasks ?? [], screenWidth: screenWidth, screenHeight: screenHeight);
+                    final category = entry.value;
+                    final tasks = category.tasks ?? [];
+                    final isRegular = category.viewInPopup ?? true;
+                    return isRegular
+                        ? _buildCategorySection(index: entry.key, category: category, tasks: tasks, screenWidth: screenWidth, screenHeight: screenHeight)
+                        : _buildCarouselCategorySection(index: entry.key, category: category, tasks: tasks, screenWidth: screenWidth, screenHeight: screenHeight);
                   }),
 
                   // SliverToBoxAdapter(child: SizedBox(height: screenHeight / 1.5)),
@@ -294,24 +392,35 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         ),
 
         // ── Bottom cart bar ──
-        if (_getTotalItems() > 0)
-          DynamicBottomCartBar(
-            totalServices: _getTotalItems(),
-            totalPrice: _calculateTotal(),
-            savedAmount: _calculateSaved(),
-            onCartTap: _showCartDialog,
-            screenWidth: MediaQuery.of(context).size.width,
-            screenHeight: MediaQuery.of(context).size.height,
-            getButtonColor: (ctx) => AppColors.button(ctx),
-            getBlackColor: (ctx) => AppColors.blackColor,
-            getWhiteColor: (ctx) => AppColors.whiteColor,
-            getTextStyle: (ctx, {weight, color}) {
-              if (weight == FontWeight.w700) {
-                return AppTextStyles.textSize20(ctx, weight: weight, color: color ?? Colors.white);
-              }
-              return AppTextStyles.textSize14(ctx, color: color ?? AppColors.whiteColor);
-            },
-          ),
+        // Wrapped in a Consumer so it recomputes once category/price data
+        // finishes loading. Quantities restored from the global cart on
+        // entry (see initState) trigger a rebuild here before that fetch
+        // resolves, and without this listener the bar would keep showing
+        // the stale ৳0 total it saw on that first build forever, since a
+        // Consumer deeper in the tree completing its own fetch doesn't
+        // rebuild this sibling.
+        Consumer<ServicesViewGetAllCategoriesViewModel>(
+          builder: (context, _, __) {
+            if (_getTotalItems() == 0) return const SizedBox.shrink();
+            return DynamicBottomCartBar(
+              totalServices: _getTotalItems(),
+              totalPrice: _calculateTotal(),
+              savedAmount: _calculateSaved(),
+              onCartTap: _showCartDialog,
+              screenWidth: MediaQuery.of(context).size.width,
+              screenHeight: MediaQuery.of(context).size.height,
+              getButtonColor: (ctx) => AppColors.button(ctx),
+              getBlackColor: (ctx) => AppColors.blackColor,
+              getWhiteColor: (ctx) => AppColors.whiteColor,
+              getTextStyle: (ctx, {weight, color}) {
+                if (weight == FontWeight.w700) {
+                  return AppTextStyles.textSize20(ctx, weight: weight, color: color ?? Colors.white);
+                }
+                return AppTextStyles.textSize14(ctx, color: color ?? AppColors.whiteColor);
+              },
+            );
+          },
+        ),
       ],
     );
   }
@@ -385,6 +494,223 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     );
   }
 
+  // ── Carousel category section (viewInPopup: false) ──
+  Widget _buildCarouselCategorySection({required int index, required Category category, required List<Task> tasks, required double screenWidth, required double screenHeight}) {
+    final categoryId = category.id ?? index.toString();
+
+    return SliverStickyHeader(
+      header: Container(
+        key: _categoryKeys[index],
+        width: screenWidth,
+        color: AppColors.containerBackground(context),
+        child: Center(
+          child: Container(
+            width: screenWidth * 0.9,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              border: Border(bottom: BorderSide(width: 1, color: AppColors.border(context))),
+            ),
+            child: Text(
+              category.name ?? '',
+              style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            if (tasks.isNotEmpty)
+              CarouselSlider.builder(
+                carouselController: _carouselControllers[categoryId],
+                itemCount: tasks.length,
+                itemBuilder: (context, taskIndex, realIndex) {
+                  final task = tasks[taskIndex];
+                  final quantity = _serviceQuantities[task.id ?? ''] ?? 0;
+                  final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
+                  final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
+                  return _buildCarouselCard(task: task, quantity: quantity, originalPrice: originalPrice, discountedPrice: salePrice, screenWidth: screenWidth);
+                },
+                options: CarouselOptions(
+                  height: 420,
+                  viewportFraction: 0.85,
+                  enableInfiniteScroll: tasks.length > 1,
+                  enlargeCenterPage: true,
+                  enlargeFactor: 0.2,
+                  onPageChanged: (pageIndex, reason) {
+                    setState(() {
+                      _carouselCurrentPage[categoryId] = pageIndex;
+                    });
+                  },
+                ),
+              ),
+            if (tasks.length > 1) ...[const SizedBox(height: 16), _buildDotIndicators(tasks.length, categoryId)],
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCarouselCard({required Task task, required int quantity, required double originalPrice, required double discountedPrice, required double screenWidth}) {
+    String? discountBadge;
+    final discountType = task.price?.discountType;
+    final discountValue = task.price?.discountValue;
+
+    if (discountType != null && discountType != DiscountType.NONE && discountValue != null && discountValue > 0) {
+      if (discountType == DiscountType.PERCENTAGE) {
+        discountBadge = '${discountValue.toInt()}% OFF';
+      } else if (discountType == DiscountType.FLAT) {
+        discountBadge = 'Flat ${discountValue.toInt()} Taka OFF';
+      }
+    }
+
+    final imageUrl = task.images != null && task.images!.isNotEmpty ? task.images!.first.url : null;
+
+    return Container(
+      width: screenWidth * 0.9,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.containerBackground(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border(context), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image Section
+          Container(
+            height: 195,
+            width: double.infinity,
+            decoration: BoxDecoration(color: AppColors.border(context).withOpacity(0.3), borderRadius: BorderRadius.circular(8)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.home_repair_service_outlined, size: 60, color: AppColors.border(context))),
+                    )
+                  : Center(child: Icon(Icons.home_repair_service_outlined, size: 60, color: AppColors.border(context))),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Content Section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.name ?? '',
+                        style: AppTextStyles.textSize16(context, weight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedboxSpaccing.width02(context),
+                    Row(
+                      children: [
+                        Text('৳${discountedPrice.toStringAsFixed(2)}', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                        if (originalPrice > discountedPrice) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            '৳${originalPrice.toStringAsFixed(2)}',
+                            style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () => _showTaskDetailsDialog(task),
+                  child: Row(
+                    children: [
+                      Text(
+                        'View Task Details',
+                        style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.buttonTextColor(context)),
+                      ),
+                      Icon(Icons.chevron_right, size: 16, color: AppColors.button(context)),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                if (discountBadge != null) ...[
+                  Center(
+                    child: Text(
+                      discountBadge,
+                      style: AppTextStyles.textSize12(context, weight: FontWeight.w400, color: AppColors.buttonTextColor(context)),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                // Add to Cart Button
+                if (quantity == 0)
+                  RoundButtonFlexible(
+                    height: 42,
+                    showRightIcon: false,
+                    backgroundColor: AppColors.textPrimary(context),
+                    title: 'Add to Cart',
+                    textColor: AppColors.textSecondary(context),
+                    onPress: () => _updateQuantity(task.id ?? '', 1),
+                  )
+                else
+                  Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.textPrimary(context), width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed: () => _updateQuantity(task.id ?? '', -1),
+                          icon: Icon(Icons.remove, color: AppColors.textPrimary(context)),
+                        ),
+                        Text(
+                          '$quantity',
+                          style: AppTextStyles.textSize18(context, weight: FontWeight.w600, color: AppColors.buttonTextColor(context)),
+                        ),
+                        IconButton(
+                          onPressed: () => _updateQuantity(task.id ?? '', 1),
+                          icon: Icon(Icons.add, color: AppColors.textPrimary(context)),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDotIndicators(int count, String categoryId) {
+    final currentPage = _carouselCurrentPage[categoryId] ?? 0;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        return Container(
+          width: currentPage == index ? 24 : 8,
+          height: 8,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(color: currentPage == index ? AppColors.button(context) : AppColors.border(context), borderRadius: BorderRadius.circular(4)),
+        );
+      }),
+    );
+  }
+
   // ── Cart dialog ──
   void _showCartDialog() {
     final viewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
@@ -404,7 +730,14 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
             categories: categories,
             serviceQuantities: _serviceQuantities,
             onQuantityUpdate: (taskId, newQuantity) {
-              setState(() => _serviceQuantities[taskId] = newQuantity);
+              setState(() {
+                if (newQuantity <= 0) {
+                  _serviceQuantities.remove(taskId);
+                } else {
+                  _serviceQuantities[taskId] = newQuantity;
+                }
+              });
+              WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
               setDialogState(() {});
               if (_getTotalItems() == 0) Navigator.pop(context);
             },
@@ -515,6 +848,10 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
         'onAddressUpdate': (String newAddress) {
           setState(() => _currentCustomerAddress = newAddress);
         },
+
+
+        ///for dynamic stores
+        'retailerId': _retailerId ?? '',
       },
     );
 
@@ -527,6 +864,7 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
       }
       if (result['cleared'] == true) {
         setState(() => _serviceQuantities.clear());
+        _syncGlobalCart();
       }
     }
   }

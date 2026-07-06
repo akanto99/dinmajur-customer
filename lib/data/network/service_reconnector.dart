@@ -30,12 +30,10 @@ class ServiceReconnector {
     _sseService = sseService;
     _notifVM = notifVM;
     _orderVM = orderVM;
-    print('------------------✅ ServiceReconnector: initialized-------------');
   }
 
   Future<void> reconnectAll(String newAccessToken) async {
     if (!_isInitialized) {
-      print('⚠️ ServiceReconnector: not initialized, skipping reconnect');
       return;
     }
     await Future.wait([
@@ -52,9 +50,7 @@ class ServiceReconnector {
         await Future.delayed(const Duration(milliseconds: 300));
       }
       await socket.connect(newAccessToken);
-      print('✅ ServiceReconnector: socket reconnected');
     } catch (e) {
-      print('❌ ServiceReconnector: socket error — $e');
     }
   }
 
@@ -82,9 +78,7 @@ class ServiceReconnector {
       }
       orderVM.setInitialCount(sseService.currentRunningOrderCount);
 
-      print('✅ ServiceReconnector: SSE reconnected');
     } catch (e) {
-      print('❌ ServiceReconnector: SSE error — $e');
     }
   }
 }

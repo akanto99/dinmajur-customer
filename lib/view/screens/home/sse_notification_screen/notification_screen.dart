@@ -603,7 +603,6 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
   void _initializeSSECountListener() {
     try {
       if (_countViewModel == null) {
-        debugPrint('❌ NotificationScreen: ViewModel not initialized');
         return;
       }
 
@@ -614,26 +613,21 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
 
       _countViewModel!.addListener(_onSSECountChanged);
 
-      debugPrint('✅ NotificationScreen: SSE listener initialized');
     } catch (e) {
-      debugPrint('❌ NotificationScreen: Error initializing count listener: $e');
     }
   }
 
   void _onSSECountChanged() {
     if (!mounted) {
-      debugPrint('⚠️ NotificationScreen: Widget disposed, ignoring count change');
       return;
     }
 
     if (_countViewModel == null) {
-      debugPrint('⚠️ NotificationScreen: ViewModel is null');
       return;
     }
 
     final currentCount = _countViewModel!.notificationCount;
 
-    debugPrint('🔔 SSE Count changed: $_previousSSECount -> $currentCount');
 
     if (currentCount > _previousSSECount && currentCount > 0) {
       if (mounted) {
@@ -682,17 +676,14 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
 
   @override
   void dispose() {
-    debugPrint('🔴 NotificationScreen: Disposing...');
 
     if (_countViewModel != null) {
       _countViewModel!.removeListener(_onSSECountChanged);
-      debugPrint('✅ NotificationScreen: Listener removed');
     }
 
     _countViewModel = null;
 
     super.dispose();
-    debugPrint('✅ NotificationScreen: Disposed successfully');
   }
 
   @override

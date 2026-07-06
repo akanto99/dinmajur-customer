@@ -10,6 +10,7 @@ import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatte
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/book_service_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/checkout_view_model.dart';
@@ -30,6 +31,8 @@ class ServiceCheckoutScreen extends StatefulWidget {
   final double transportFee;
   final Function(String)? onAddressUpdate;
   final Map<String, dynamic>? customerLocation;
+  //for dynamic STores
+  final String? retailerId;
 
   const ServiceCheckoutScreen({
     Key? key,
@@ -44,6 +47,8 @@ class ServiceCheckoutScreen extends StatefulWidget {
     required this.transportFee,
     required this.onAddressUpdate,
     this.customerLocation,
+    //for dynamic Stores
+    this.retailerId,
   }) : super(key: key);
 
   @override
@@ -60,6 +65,22 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
   bool _isTermsAccepted = false;
   Map<String, dynamic>? _updatedLocation;
   late Map<String, int> _serviceQuantities;
+
+  // Red border validation
+  bool _customerError = false;
+  bool _paymentError = false;
+  bool _termsError = false;
+  final GlobalKey _customerKey = GlobalKey();
+  final GlobalKey _paymentKey = GlobalKey();
+  final GlobalKey _termsKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
+
+  void _scrollToKey(GlobalKey key) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = key.currentContext;
+      if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+    });
+  }
 
   @override
   void initState() {
@@ -99,6 +120,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     _addressController.dispose();
     _specialRequestController.dispose();
     _dateController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -109,11 +131,8 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
 
     if (paymentResult.success) {
       _clearAllData();
-      Navigator.pushReplacementNamed(context, RoutesName.serviceConfirmedScreen, arguments: {
-        'trackingId': trackingId,
-        'valId': paymentResult.validationId ?? 'N/A',
-        'fromCheckout': true,
-      });
+      _clearGlobalCart();
+      Navigator.pushReplacementNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': paymentResult.validationId ?? 'N/A', 'fromCheckout': true});
     } else if (paymentResult.status == 'FAILED') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -163,6 +182,14 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     setState(() => _isTermsAccepted = false);
   }
 
+  // Cleared directly here (rather than relying on the landing screen's
+  // pop-result handling) because a successful online payment replaces this
+  // route with the confirmation screen instead of popping back, so the
+  // landing screen never gets a chance to clear its cart entry.
+  void _clearGlobalCart() {
+    Provider.of<GlobalCartProvider>(context, listen: false).clearService(widget.serviceId);
+  }
+
   // ── Main booking handler ────────────────────────────────────────────────
 
   Future<void> _handleConfirmBooking() async {
@@ -170,24 +197,24 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     final bookingViewModel = Provider.of<BookServiceViewModel>(context, listen: false);
 
     if (bookingViewModel.createBookServiceLoading) {
-      debugPrint('⚠️ Already processing, ignoring duplicate tap');
       return;
     }
 
     // ── Validate checkout fields ──
-    final String? validationError = checkoutVM.validateCheckoutDetails(
-      fullName: _fullNameController.text,
-      phone: _phoneController.text,
-      address: _addressController.text,
-      paymentMethod: checkoutVM.selectedPaymentMethod,
-    );
-    if (validationError != null) {
-      Utils.flushBarErrorMessage(validationError, context);
-      return;
-    }
+    final String currentAddress = _addressController.text.isEmpty ? widget.customerAddress : _addressController.text;
+    final bool newCustomerError = widget.customerName.isEmpty || widget.customerPhone.isEmpty || currentAddress.isEmpty;
+    final bool newPaymentError = (checkoutVM.selectedPaymentMethod ?? '').isEmpty;
+    final bool newTermsError = !_isTermsAccepted;
 
-    if (!_isTermsAccepted) {
-      Utils.flushBarErrorMessage("Please accept the Terms & Conditions to proceed", context);
+    if (newCustomerError || newPaymentError || newTermsError) {
+      setState(() {
+        _customerError = newCustomerError;
+        _paymentError = newPaymentError;
+        _termsError = newTermsError;
+      });
+      if (newCustomerError) _scrollToKey(_customerKey);
+      else if (newPaymentError) _scrollToKey(_paymentKey);
+      else _scrollToKey(_termsKey);
       return;
     }
 
@@ -209,6 +236,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     final List<Map<String, dynamic>> tasks = checkoutVM.prepareTasksData(serviceQuantities: _serviceQuantities, categories: widget.categories);
 
     final Map<String, dynamic> bookingData = checkoutVM.prepareBookingData(
+      retailerId: (widget.retailerId?.isNotEmpty == true) ? widget.retailerId : null,
       serviceId: widget.serviceId,
       customerId: widget.userId,
       paymentMethod: checkoutVM.selectedPaymentMethod,
@@ -223,14 +251,11 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
 
       customerLocation: _updatedLocation,
       tasks: tasks,
-
     );
 
-    debugPrint('📦 Booking Data: $bookingData');
 
     try {
       await bookingViewModel.bookServicePostApi(context, bookingData, (String? trackingId) async {
-        debugPrint('✅ Booking Success! TrackingId: $trackingId');
 
         if (trackingId == null || trackingId.isEmpty) {
           bookingViewModel.setBookServiceLoading(false);
@@ -238,12 +263,7 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
           Navigator.pushReplacementNamed(
             context,
             RoutesName.serviceFailedScreen,
-            arguments: {
-              'trackingId': 'N/A',
-              'valId': 'N/A',
-              'reason': 'Booking creation failed',
-              'errorMessage': 'Unable to create booking. Please try again.'
-            },
+            arguments: {'trackingId': 'N/A', 'valId': 'N/A', 'reason': 'Booking creation failed', 'errorMessage': 'Unable to create booking. Please try again.'},
           );
           return;
         }
@@ -259,16 +279,12 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
           );
           await _handlePaymentResult(viewModel: checkoutVM, paymentResult: paymentResult, trackingId: trackingId);
           bookingViewModel.setBookServiceLoading(false);
-        } else if (
-        checkoutVM.selectedPaymentMethod == 'cash') {
+        } else if (checkoutVM.selectedPaymentMethod == 'cash') {
           if (!mounted) return;
           _clearAllData();
+          _clearGlobalCart();
           Navigator.pop(context, {'cleared': true, 'updatedLocation': _updatedLocation});
-          Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {
-            'trackingId': trackingId,
-            'valId': 'COD',
-            'fromCheckout': true,
-          });
+          Navigator.pushNamed(context, RoutesName.serviceConfirmedScreen, arguments: {'trackingId': trackingId, 'valId': 'COD', 'fromCheckout': true});
           bookingViewModel.setBookServiceLoading(false);
         } else {
           bookingViewModel.setBookServiceLoading(false);
@@ -282,7 +298,6 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
       });
     } catch (e) {
       bookingViewModel.setBookServiceLoading(false);
-      debugPrint('❌ Booking error: $e');
     }
   }
 
@@ -324,35 +339,57 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
             body: SafeArea(
               child: Column(
                 children: [
+                  // Text(widget.serviceId),
+                  // Text(widget.retailerId??""),
                   GestureDetector(
                     onTap: () => Navigator.pop(context, false),
                     child: Container(height: 60, child: AppBarHeader("Checkout")),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
+                      controller: _scrollController,
                       padding: const EdgeInsets.all(15),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildCustomerDetailsCard(),
                           SizedboxSpaccing.height02(context),
-                          // ✅ passes checkoutVM so date+slot are read from it
                           _buildSelectedServicesList(checkoutVM, subtotal, saved),
+                          SizedboxSpaccing.height02(context),
+                          _buildAddOnsSection(),
                           SizedboxSpaccing.height02(context),
                           _buildPaymentMethodSection(checkoutVM),
 
-                          DynamicTermsCheckbox(
-                            isAccepted: _isTermsAccepted,
-                            onChanged: (value) => setState(() => _isTermsAccepted = value),
-                            context: context,
-                            onTermsTap: () => Navigator.pushNamed(context, RoutesName.termsAndCondition),
-                            onPrivacyTap: () => Navigator.pushNamed(context, RoutesName.privacyPolicy),
-                            onRefundTap: () => Navigator.pushNamed(context, RoutesName.refundPolicyScreen),
-                            getButtonColor: (ctx) => AppColors.button(ctx),
-                            getBorderColor: (ctx) => AppColors.border(ctx),
-                            getWhiteColor: (ctx) => AppColors.whiteColor,
-                            getTextStyle: (ctx, {weight}) => AppTextStyles.textSize14(ctx, weight: weight ?? FontWeight.w400),
+                          AnimatedContainer(
+                            key: _termsKey,
+                            duration: const Duration(milliseconds: 300),
+                            decoration: _termsError
+                                ? BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.red, width: 1.5),
+                                  )
+                                : const BoxDecoration(),
+                            child: DynamicTermsCheckbox(
+                              isAccepted: _isTermsAccepted,
+                              onChanged: (value) => setState(() {
+                                _isTermsAccepted = value;
+                                if (value) _termsError = false;
+                              }),
+                              context: context,
+                              onTermsTap: () => Navigator.pushNamed(context, RoutesName.termsAndCondition),
+                              onPrivacyTap: () => Navigator.pushNamed(context, RoutesName.privacyPolicy),
+                              onRefundTap: () => Navigator.pushNamed(context, RoutesName.refundPolicyScreen),
+                              getButtonColor: (ctx) => AppColors.button(ctx),
+                              getBorderColor: (ctx) => _termsError ? Colors.red : AppColors.border(ctx),
+                              getWhiteColor: (ctx) => AppColors.whiteColor,
+                              getTextStyle: (ctx, {weight}) => AppTextStyles.textSize14(ctx, weight: weight ?? FontWeight.w400),
+                            ),
                           ),
+                          if (_termsError)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4, left: 4),
+                              child: Text('Please accept the Terms & Conditions to proceed', style: AppTextStyles.textSize12(context, color: Colors.red)),
+                            ),
                           SizedboxSpaccing.height03(context),
                         ],
                       ),
@@ -372,38 +409,50 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
 
   Widget _buildCustomerDetailsCard() {
     final screenHeight = MediaQuery.of(context).size.height;
-    return Container(
-      padding: EdgeInsets.all(screenHeight * 0.015),
-      decoration: BoxDecoration(
-        color: AppColors.containerBackground(context),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border(context)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnimatedContainer(
+          key: _customerKey,
+          duration: const Duration(milliseconds: 300),
+          padding: EdgeInsets.all(screenHeight * 0.015),
+          decoration: BoxDecoration(
+            color: AppColors.containerBackground(context),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _customerError ? Colors.red : AppColors.border(context), width: _customerError ? 1.5 : 1.0),
+          ),
+          child: Column(
             children: [
-              Text('Customer Details', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-              GestureDetector(
-                onTap: _handleEditAddress,
-                child: Container(
-                  width: 80,
-                  color: Colors.transparent,
-                  alignment: Alignment.centerRight,
-                  child: Text('Edit', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Customer Details', style: AppTextStyles.textSize14(context, weight: FontWeight.w500, color: _customerError ? Colors.red : null)),
+                  GestureDetector(
+                    onTap: _handleEditAddress,
+                    child: Container(
+                      width: 80,
+                      color: Colors.transparent,
+                      alignment: Alignment.centerRight,
+                      child: Text('Edit', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                    ),
+                  ),
+                ],
               ),
+              SizedboxSpaccing.height01(context),
+              _buildDetailRow('Name', widget.customerName),
+              SizedboxSpaccing.height01(context),
+              _buildDetailRow('Phone', widget.customerPhone),
+              SizedboxSpaccing.height01(context),
+              _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true),
             ],
           ),
-          SizedboxSpaccing.height01(context),
-          _buildDetailRow('Name', widget.customerName),
-          SizedboxSpaccing.height01(context),
-          _buildDetailRow('Phone', widget.customerPhone),
-          SizedboxSpaccing.height01(context),
-          _buildDetailRow('Address', _addressController.text.isEmpty ? widget.customerAddress : _addressController.text, isMultiline: true),
-        ],
-      ),
+        ),
+        if (_customerError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text('Please fill in all customer details', style: AppTextStyles.textSize12(context, color: Colors.red)),
+          ),
+      ],
     );
   }
 
@@ -522,17 +571,25 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
                 );
               }).toList(),
 
+              _buildPriceRow('Subtotal', subtotal),
+              if (widget.transportFee > 0) ...[
+                SizedboxSpaccing.height02(context),
+                _buildPriceRow('Transport', widget.transportFee),
+              ],
+              SizedboxSpaccing.height02(context),
+              Divider(height: 1, color: AppColors.border(context)),
+              SizedboxSpaccing.height02(context),
+              _buildPriceRow('Total', subtotal + widget.transportFee, isBold: true),
+              SizedboxSpaccing.height02(context),
+              Divider(height: 1, color: AppColors.border(context)),
+              SizedboxSpaccing.height02(context),
+
               // ✅ Date — from checkoutVM.selectedDate (set when user picked in dialog)
               _buildDetailRow1('Date', checkoutVM.selectedDate != null ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!) : '—'),
               SizedboxSpaccing.height02(context),
 
               // ✅ Slot — from checkoutVM.selectedServiceTime (the display "09:00")
               _buildDetailRow1('Slot', checkoutVM.selectedServiceTime != null && checkoutVM.selectedServiceTime!.isNotEmpty ? _formatTo12Hour(checkoutVM.selectedServiceTime!) : '—'),
-              SizedboxSpaccing.height02(context),
-
-              _buildPriceRow('Transport', widget.transportFee),
-              SizedboxSpaccing.height02(context),
-              _buildPriceRow('Subtotal', subtotal),
             ],
           ),
         ),
@@ -540,28 +597,294 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, {bool isGreen = false}) {
+  Widget _buildPriceRow(String label, double amount, {bool isGreen = false, bool isBold = false}) {
+    final weight = isBold ? FontWeight.w700 : FontWeight.w400;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.textSize14(context, weight: FontWeight.w400)),
+        Text(label, style: AppTextStyles.textSize14(context, weight: weight)),
         Text(
           '৳${AmountFormatter.format(amount)}',
-          style: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
+          style: AppTextStyles.textSize14(context, weight: weight, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
     );
   }
+
+  // ── Add-ons ───────────────────────────────────────────────────────────────
+
+  List<Task> _getAddOnTasks() {
+    final addOns = <Task>[];
+    for (final cat in widget.categories) {
+      for (final task in (cat.tasks ?? [])) {
+        if ((_serviceQuantities[task.id ?? ''] ?? 0) == 0) {
+          addOns.add(task);
+        }
+      }
+    }
+    return addOns;
+  }
+
+  Widget _buildAddOnsSection() {
+    final allTasks = <Task>[];
+    for (final cat in widget.categories) {
+      allTasks.addAll(cat.tasks ?? []);
+    }
+    if (allTasks.isEmpty) return const SizedBox.shrink();
+
+    final addedCount = _serviceQuantities.values.where((q) => q > 0).length;
+    final available = _getAddOnTasks().length;
+
+    return GestureDetector(
+      onTap: _showAddOnsSheet,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        decoration: BoxDecoration(
+          color: AppColors.containerBackground(context),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.border(context)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.add_circle_outline, size: 20, color: AppColors.button(context)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Add-ons', style: AppTextStyles.textSize14(context, weight: FontWeight.w600)),
+                  Text(
+                    available > 0
+                        ? '$available task${available > 1 ? 's' : ''} available'
+                        : 'All tasks added',
+                    style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context)),
+                  ),
+                ],
+              ),
+            ),
+            if (addedCount > 0)
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.button(context),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(
+                  '+$addedCount added',
+                  style: AppTextStyles.textSize11(context, color: AppColors.whiteColor, weight: FontWeight.w600),
+                ),
+              ),
+            Icon(Icons.chevron_right, size: 20, color: AppColors.subtitle(context)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddOnsSheet() {
+    final allTasks = <Task>[];
+    for (final cat in widget.categories) {
+      allTasks.addAll(cat.tasks ?? []);
+    }
+    if (allTasks.isEmpty) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          return Container(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.border(context),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text('Add-ons', style: AppTextStyles.textSize18(context, weight: FontWeight.w600))),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Icon(Icons.close, size: 22, color: AppColors.subtitle(context)),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1, color: AppColors.border(context)),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: allTasks.length,
+                    separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.border(context)),
+                    itemBuilder: (_, i) {
+                      final task = allTasks[i];
+                      final taskId = task.id ?? '';
+                      final qty = _serviceQuantities[taskId] ?? 0;
+                      final salePrice = task.price?.salePrice?.toDouble() ?? task.price?.basePrice?.toDouble() ?? 0;
+                      final basePrice = task.price?.basePrice?.toDouble() ?? 0;
+                      final hasDiscount = basePrice > salePrice && salePrice > 0;
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    task.name ?? '',
+                                    style: AppTextStyles.textSize14(context, weight: FontWeight.w500),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '৳${salePrice.toStringAsFixed(0)}',
+                                        style: AppTextStyles.textSize13(context, weight: FontWeight.w600, color: AppColors.button(context)),
+                                      ),
+                                      if (hasDiscount) ...[
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          '৳${basePrice.toStringAsFixed(0)}',
+                                          style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))
+                                              .copyWith(decoration: TextDecoration.lineThrough),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (qty == 0)
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() => _serviceQuantities[taskId] = 1);
+                                  setSheetState(() {});
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.button(context),
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                  child: Text('+ Add', style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.whiteColor)),
+                                ),
+                              )
+                            else
+                              Row(
+                                children: [
+                                  _sheetQtyBtn(ctx, Icons.remove, () {
+                                    setState(() {
+                                      final next = (_serviceQuantities[taskId] ?? 1) - 1;
+                                      if (next <= 0) {
+                                        _serviceQuantities.remove(taskId);
+                                      } else {
+                                        _serviceQuantities[taskId] = next;
+                                      }
+                                    });
+                                    setSheetState(() {});
+                                  }),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text('$qty', style: AppTextStyles.textSize14(context, weight: FontWeight.w700)),
+                                  ),
+                                  _sheetQtyBtn(ctx, Icons.add, () {
+                                    setState(() => _serviceQuantities[taskId] = ((_serviceQuantities[taskId] ?? 0) + 1));
+                                    setSheetState(() {});
+                                  }),
+                                ],
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(ctx),
+                    child: Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(color: AppColors.button(context), borderRadius: BorderRadius.circular(100)),
+                      child: Center(child: Text('Done', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.whiteColor))),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _sheetQtyBtn(BuildContext context, IconData icon, VoidCallback onTap) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.border(context)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: AppColors.textPrimary(context)),
+        ),
+      );
 
   // ── Payment method ────────────────────────────────────────────────────────
 
   Widget _buildPaymentMethodSection(CheckoutAllServicesViewModel viewModel) {
     final screenWidth = MediaQuery.of(context).size.width;
     return Column(
+      key: _paymentKey,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false),
+        SectionHeader(title: 'Payment Method', titleWidth: screenWidth * 0.6, showSeeAll: false, titleStyle: _paymentError ? AppTextStyles.textSize18(context, weight: FontWeight.w500, color: Colors.red) : null),
         SizedboxSpaccing.height02(context),
-        PaymentMethodWidget(selectedPaymentMethod: viewModel.selectedPaymentMethod, paymentMethods: viewModel.paymentMethods, onPaymentMethodChanged: (method) => viewModel.setPaymentMethod(method)),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          decoration: _paymentError
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red, width: 1.5),
+                )
+              : const BoxDecoration(),
+          child: PaymentMethodWidget(
+            selectedPaymentMethod: viewModel.selectedPaymentMethod,
+            paymentMethods: viewModel.paymentMethods,
+            onPaymentMethodChanged: (method) {
+              viewModel.setPaymentMethod(method);
+              if (method.isNotEmpty) setState(() => _paymentError = false);
+            },
+          ),
+        ),
+        if (_paymentError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text('Please select a payment method', style: AppTextStyles.textSize12(context, color: Colors.red)),
+          ),
       ],
     );
   }

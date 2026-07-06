@@ -13,11 +13,13 @@ import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/banner_widegt/home_banner_widget.dart';
-import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_nearestheader_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/home_service_search_box/home_service_search_box.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
+import 'package:dinmajur_customer/view/screens/home/featured_services_widget/featured_services_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/trending_service_widget/trending_service_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/featured_services_view_model/featured_services_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/banner_view_model/banner_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
@@ -27,7 +29,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-import 'dorpdown_categories_selections_and_views/grocery/grocery_sction_widget.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/location_view_model/newlocation_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/nearby_retailers_and_order_view_models/nearby_retailers_view_model.dart';
@@ -88,7 +89,10 @@ class _HomeScreenState extends State<HomeScreen> {
       bannerViewModel.fetchBannerData();
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
-      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed");
+      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
+
+      final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
+      featuredServicesViewModel.fetchFeaturedServices();
     });
     ConnectivityMonitorService().addReconnectListener(_onInternetReconnected);
   }
@@ -99,7 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _handleRefresh() async {
     try {
-      debugPrint('🔄 HomeScreen: Pull to refresh triggered');
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       await profileViewModel.refreshProfileData();
       final allServiceViewModel = Provider.of<GetAllServiceViewModel>(context, listen: false);
@@ -108,7 +111,10 @@ class _HomeScreenState extends State<HomeScreen> {
       bannerViewModel.fetchBannerData();
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
-      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed");
+      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
+
+      final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
+      featuredServicesViewModel.fetchFeaturedServices();
 
       if (_showRetailNearest) {
         await _fetchNearbyRetailers('Retail');
@@ -127,7 +133,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!locationAlreadyPosted) {
       await _getLocationWithAddress();
     } else {
-      debugPrint('Location already posted. Skipping location_screens fetch.');
     }
   }
 
@@ -150,12 +155,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoadingLocation = false;
         });
 
-        debugPrint('========== CURRENT LOCATION WITH ADDRESS ==========');
-        debugPrint('Latitude: ${position.latitude}');
-        debugPrint('Longitude: ${position.longitude}');
-        debugPrint('Full Address: $fullAddress');
-        debugPrint('Short Address: $shortAddr');
-        debugPrint('==================================================');
 
         await _postLocationToApi(position.longitude, position.latitude, fullAddress);
         await _markLocationAsPosted();
@@ -164,12 +163,10 @@ class _HomeScreenState extends State<HomeScreen> {
         await profileViewModel.fetchProfileViewUserDataApi(forceRefresh: true);
       }
     } catch (e) {
-      debugPrint('Error getting location with address: $e');
       if (mounted) {
         setState(() {
           _isLoadingLocation = false;
         });
-        print(e.toString());
         // Utils.flushBarErrorMessage("Location permission is disabled.\nPlease enable it from your device settings.", context);
       }
     }
@@ -178,7 +175,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _markLocationAsPosted() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_locationPostedKey, true);
-    debugPrint('Location marked as posted.');
   }
 
   String _stripSuffix(String raw) => raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
@@ -216,7 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
       await addLocationViewModel.addLocationPostApi(context, locationData, false);
     } catch (e) {
-      debugPrint('Error posting location to API: $e');
     }
   }
 
@@ -353,6 +348,48 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   SizedboxSpaccing.height025(context),
+
+                  // ── Home Service Search ──
+                  Consumer<ProfileViewViewModel>(
+                    builder: (context, profileViewModel, _) {
+                      String customerName = '';
+                      String customerPhone = '';
+                      String customerAddress = '';
+                      Map<String, dynamic>? customerLocation;
+
+                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+                        final userData = profileViewModel.profileviewUserData.data?.data;
+                        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+                        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+                        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+                        final addressData = userData?.addresses;
+                        if (addressData != null) {
+                          customerLocation = {
+                            "fullAddress": addressData.fullAddress ?? '',
+                            "country": addressData.country ?? '',
+                            "city": addressData.city ?? '',
+                            "geoLocation": {
+                              "type": addressData.geoLocation?.type ?? "Point",
+                              "coordinates": addressData.geoLocation?.coordinates ?? [],
+                              "timestamp": DateTime.now().toUtc().toIso8601String(),
+                            },
+                          };
+                        }
+                      }
+
+                      return HomeServiceSearchBox(
+                        customerName: customerName,
+                        customerPhone: customerPhone,
+                        customerAddress: customerAddress,
+                        customerLocation: customerLocation,
+                        hasValidLocation: _hasValidLocation(),
+                        onLocationRequired: _showLocationRequiredDialog,
+                        onInstantBazarTap: handleInstantBazarTap,
+                      );
+                    },
+                  ),
+                  SizedboxSpaccing.height02(context),
+
                   // ── Banner Section ──
                   Consumer<ProfileViewViewModel>(
                     builder: (context, profileViewModel, _) {
@@ -393,6 +430,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         loadingServiceSlug: _loadingServiceSlug,
                       );
                     },
+                  ),
+
+                  // ── Featured Services (Position 1 — after banner) ──
+                  FeaturedServicesWidget(
+                    homePosition: 'home_top',
+                    hasValidLocation: _hasValidLocation(),
+                    onLocationRequired: _showLocationRequiredDialog,
                   ),
 
                   // ── All Services Grid ──
@@ -439,6 +483,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
+                  // ── Featured Services (Position 2 — after all home services) ──
+                  FeaturedServicesWidget(
+                    homePosition: 'home_bottom',
+                    hasValidLocation: _hasValidLocation(),
+                    onLocationRequired: _showLocationRequiredDialog,
+                  ),
+
                   TrendingServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
                   SizedboxSpaccing.height02(context),
                 ],
@@ -603,7 +654,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
-                            Container(width: 22, height: 45, alignment: Alignment.bottomCenter, child: Icon(Icons.arrow_drop_down_sharp, size: 25)),
+                            Icon(Icons.arrow_drop_down_sharp, size: 22, color: AppColors.textPrimary(context)),
                           ],
                         ),
                       ),
@@ -638,27 +689,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder: (context, countViewModel, _) {
                       return GestureDetector(
                         onTap: () {
-                          debugPrint('🔔 Notification tapped');
-                          debugPrint('Count: ${countViewModel.notificationCount}');
                           Navigator.pushNamed(context, RoutesName.notificationsListScreen);
                         },
                         child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
                             _buildIconButton(svgAsset: 'assets/images/home/notification.svg', context: context),
                             if (countViewModel.hasNotifications)
                               Positioned(
-                                right: 0,
-                                top: 2,
+                                right: 4,
+                                top: 4,
                                 child: Container(
+                                  padding: const EdgeInsets.all(2),
                                   decoration: BoxDecoration(
                                     color: Colors.red,
                                     shape: BoxShape.circle,
                                     border: Border.all(color: AppColors.containerBackground(context), width: 1),
                                   ),
-                                  constraints: BoxConstraints(minWidth: 14, minHeight: 14),
+                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                                   child: Text(
                                     '${countViewModel.notificationCount > 9 ? '9+' : countViewModel.notificationCount}',
-                                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                    style: AppTextStyles.textSize10(context, weight: FontWeight.bold, color: Colors.white),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -689,9 +740,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 30,
-        width: 30,
-        padding: const EdgeInsets.all(2),
+        height: 44,
+        width: 44,
+        padding: const EdgeInsets.all(10),
         color: Colors.transparent,
         child: RepaintBoundary(
           child: SvgPicture.asset(svgAsset, color: AppColors.textPrimary(context), fit: BoxFit.contain),

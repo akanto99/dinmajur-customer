@@ -94,7 +94,6 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
         throw 'Could not launch Google Maps';
       }
     } catch (e) {
-      debugPrint('Error opening Google Maps: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -144,15 +143,6 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
       deliveryCharge = (arguments['deliveryCharge'] as num?) ?? 0;
       platformFee = (arguments['platformFee'] as num?) ?? 0;
 
-      debugPrint('========== CHECKOUT SCREEN DATA ==========');
-      debugPrint('Business: $store_businessName');
-      debugPrint('Customer Address: $customerFullAddress');
-      debugPrint('Budget: $budget');
-      debugPrint('Delivery Time: $deliveryTime');
-      debugPrint('Order Items: ${orderItems.length}');
-      debugPrint('Photos: ${uploadedPhotos.length}');
-      debugPrint('Voice: ${voiceRecordingPath != null ? "Yes" : "No"}');
-      debugPrint('========================================');
     }
   }
 
@@ -541,7 +531,6 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
                       "budget": budget,
                     };
 
-                    print("🛒 Final Order Data: ${jsonEncode(orderData)}");
 
                     await checkOutViewModel.checkoutOrderPostApi(context, orderData);
                   },

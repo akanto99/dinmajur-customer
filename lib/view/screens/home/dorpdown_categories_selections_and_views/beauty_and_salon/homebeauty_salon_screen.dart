@@ -20,6 +20,7 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_scrollable_categorytab.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_serviclist_card_widget.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_bookedslot_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
 import 'package:flutter/material.dart';
@@ -102,6 +103,48 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     }
   }
 
+  void _syncGlobalCart() {
+    if (!mounted) return;
+    final cart = Provider.of<GlobalCartProvider>(context, listen: false);
+    final viewModel = Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false);
+    final data = viewModel.getAllPremiumHomeBeautySalonData.data?.data ?? [];
+    final transportFee = viewModel.getAllPremiumHomeBeautySalonData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
+
+    final cartItems = <CartItem>[];
+    for (var category in data) {
+      for (var service in category.items ?? []) {
+        final qty = _serviceQuantities[service.id ?? ''] ?? 0;
+        if (qty > 0) {
+          final price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0;
+          cartItems.add(CartItem(id: service.id ?? '', name: service.name ?? '', quantity: qty, unitPrice: price, imageUrl: service.image?.url));
+        }
+      }
+    }
+
+    if (cartItems.isEmpty) {
+      cart.clearService(widget.serviceName);
+      return;
+    }
+
+    cart.updateService(
+      widget.serviceName,
+      serviceName: widget.serviceName,
+      items: cartItems,
+      checkoutArgs: {
+        'checkoutRoute': RoutesName.beautyCheckoutScreen,
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': _currentCustomerAddress,
+        'customerLocation': _customerLocation,
+        'categories': data,
+        'serviceQuantities': Map.of(_serviceQuantities),
+        'totalPrice': _calculateTotal(),
+        'transportFee': transportFee,
+        'onAddressUpdate': (String _) {},
+      },
+    );
+  }
+
   void _updateQuantity(String serviceId, int change) {
     setState(() {
       int currentQty = _serviceQuantities[serviceId] ?? 0;
@@ -110,6 +153,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
         _serviceQuantities[serviceId] = newQty;
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
   }
 
   double _calculateTotal() {
@@ -493,9 +537,6 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     String? discountBadge;
 
     // Debug print to see what values we're getting
-    print('Service: ${service.name}');
-    print('DiscountType: ${service.discountType}');
-    print('DiscountValue: ${service.discountValue}');
 
     if (service.discountType != null && service.discountValue != null) {
       final discountVal = service.discountValue!;
@@ -510,7 +551,6 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     }
 
     // Debug print to see final badge
-    print('Discount Badge: $discountBadge');
     return Container(
       width: screenWidth * 0.9,
       padding: EdgeInsets.all(12),
@@ -563,7 +603,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
                           SizedBox(width: 8),
                           Text(
                             '৳${originalPrice.toStringAsFixed(2)}',
-                            style: TextStyle(fontSize: 10, color: AppColors.subtitle(context), decoration: TextDecoration.lineThrough),
+                            style: AppTextStyles.textSize10(context, color: AppColors.subtitle(context)).copyWith(decoration: TextDecoration.lineThrough),
                           ),
                         ],
                       ],
@@ -676,6 +716,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
               setState(() {
                 _serviceQuantities[serviceId] = newQuantity;
               });
+              WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
               setDialogState(() {});
 
               if (_getTotalItems() == 0) {
@@ -759,6 +800,7 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
         'serviceQuantities': _serviceQuantities,
         'totalPrice': _calculateTotal(),
         'transportFee': transportFeeValue,
+        'serviceName': widget.serviceName,
         'onAddressUpdate': (String newAddress) {
           setState(() {
             _currentCustomerAddress = newAddress;

@@ -110,7 +110,6 @@ class _ViewProfileState extends State<ViewProfile> {
         Expanded(
           child: Consumer<ProfileViewViewModel>(
             builder: (context, profileViewModel, _) {
-              print("ProfileViewModel Status: ${profileViewModel.profileviewUserData.status}");
 
               switch (profileViewModel.profileviewUserData.status) {
                 case Status.LOADING:
@@ -125,7 +124,6 @@ class _ViewProfileState extends State<ViewProfile> {
                     },
                   );
                 case Status.COMPLETED:
-                  print("Data: ${profileViewModel.profileviewUserData.data}");
 
                   if (profileViewModel.profileviewUserData.data?.data?.user == null) {
                     return Center(

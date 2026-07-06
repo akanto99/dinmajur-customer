@@ -9,6 +9,7 @@ import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart'
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Support extends StatefulWidget {
   const Support({super.key});
@@ -19,6 +20,7 @@ class Support extends StatefulWidget {
 
 class _SupportState extends State<Support> {
   late TextEditingController supportTextController = TextEditingController();
+  bool _messageError = false;
 
   @override
   void dispose() {
@@ -65,16 +67,18 @@ class _SupportState extends State<Support> {
             children: [
               Text('Please leave us a message and we will get back to you shortly', style: AppTextStyles.textSize18(context, weight: FontWeight.w500)),
               SizedboxSpaccing.height02(context),
-              Container(
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(width: 1, color: AppColors.border(context)),
+                  border: Border.all(width: _messageError ? 1.5 : 1, color: _messageError ? Colors.red : AppColors.border(context)),
                 ),
                 child: TextFormField(
                   controller: supportTextController,
                   keyboardType: TextInputType.multiline,
                   maxLines: 3,
                   style: AppTextStyles.textSize16(context, weight: FontWeight.w400),
+                  onChanged: (v) { if (v.isNotEmpty && _messageError) setState(() => _messageError = false); },
                   decoration: InputDecoration(
                     hintText: "Input Text Here",
                     hintStyle: AppTextStyles.textSize16(context, color: AppColors.subtitle(context), weight: FontWeight.w400),
@@ -83,6 +87,11 @@ class _SupportState extends State<Support> {
                   ),
                 ),
               ),
+              if (_messageError)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 2),
+                  child: Text('Please drop your message', style: AppTextStyles.textSize12(context, color: Colors.red)),
+                ),
               SizedboxSpaccing.height02(context),
               Consumer<PostSupportViewModel>(
                 builder: (context, supportModel, child) {
@@ -90,9 +99,10 @@ class _SupportState extends State<Support> {
                     onTap: () async {
                       // Check if message is empty
                       if (supportTextController.text.isEmpty) {
-                        Utils.flushBarErrorMessage("Please drop your message", context);
+                        setState(() => _messageError = true);
                         return;
                       }
+                      setState(() => _messageError = false);
 
                       // Get user data
                       final userViewModel = Provider.of<UserViewModel>(context, listen: false);
@@ -110,11 +120,17 @@ class _SupportState extends State<Support> {
                         // Add other required fields based on your API requirements
                       };
 
-                      print("userId : $userId");
-                      print(supportTextController);
 
                       // Call the API
                       await supportModel.supportPostAPI(context, supportData);
+
+                      // Open email client with the message
+                      final subject = Uri.encodeComponent('Support Request - Dinmajur Customer App');
+                      final body = Uri.encodeComponent(supportTextController.text);
+                      final emailUri = Uri.parse('mailto:dinmajuri@gmail.com?subject=$subject&body=$body');
+                      if (await canLaunchUrl(emailUri)) {
+                        await launchUrl(emailUri);
+                      }
 
                       // Clear the text field after successful submission
                       supportTextController.clear();
@@ -168,7 +184,7 @@ class _SupportState extends State<Support> {
               children: [
                 _buildContactItem(icon: FontAwesomeIcons.phone, value: 'Call Us: +8801929600600'),
                 SizedboxSpaccing.height015(context),
-                _buildContactItem(icon: FontAwesomeIcons.solidEnvelope, value: 'Email: dinmajuri@gmail.com'),
+                _buildContactItem(icon: FontAwesomeIcons.solidEnvelope, value: 'Email: hello@dinmajur.com'),
                 SizedboxSpaccing.height015(context),
                 _buildContactItem(icon:FontAwesomeIcons.solidCommentDots,value: 'Live Chat'),
               ],

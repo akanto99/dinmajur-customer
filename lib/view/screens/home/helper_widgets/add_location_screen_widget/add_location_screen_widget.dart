@@ -68,7 +68,6 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
           },
         },
       };
-      print(selectedAddressData);
     } else {
       // ── Google Place selected (guaranteed by check above) ─────────
       selectedAddressData = {
@@ -443,7 +442,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
                         children: [
                           Expanded(
                             child: Text(
-                              locationType.replaceAll('_', ' '),
+                              locationType.replaceAll('_', ' ').toLowerCase().split(' ').map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}').join(' '),
                               style: AppTextStyles.textSize14(
                                 context,
                                 weight: FontWeight.w600,
@@ -549,9 +548,7 @@ class CheckoutSessionLocationService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_locationKey, jsonEncode(locationData));
       await prefs.setString(_addressKey,  fullAddress);
-      debugPrint('✅ CheckoutSessionLocation saved: $fullAddress');
     } catch (e) {
-      debugPrint('❌ CheckoutSessionLocation save error: $e');
     }
   }
 
@@ -567,7 +564,6 @@ class CheckoutSessionLocationService {
       if (raw == null || raw.isEmpty) return null;
       return jsonDecode(raw) as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ CheckoutSessionLocation getLocation error: $e');
       return null;
     }
   }
@@ -578,7 +574,6 @@ class CheckoutSessionLocationService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_addressKey);
     } catch (e) {
-      debugPrint('❌ CheckoutSessionLocation getAddress error: $e');
       return null;
     }
   }
@@ -617,9 +612,7 @@ class CheckoutSessionLocationService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_locationKey);
       await prefs.remove(_addressKey);
-      debugPrint('🧹 CheckoutSessionLocation cleared');
     } catch (e) {
-      debugPrint('❌ CheckoutSessionLocation clear error: $e');
     }
   }
 }

@@ -251,7 +251,6 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
             }
           }
         } catch (e) {
-          debugPrint('Permission check error: $e');
         }
       }
 
@@ -267,7 +266,6 @@ class _ConfirmedScreenState extends State<ConfirmedScreen> {
       }
     } catch (e) {
       setState(() => _isDownloading = false);
-      debugPrint('PDF Generation Error: $e');
       Utils.flushBarErrorMessage("Error: ${e.toString()}", context);
     }
   }

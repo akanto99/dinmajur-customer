@@ -56,10 +56,36 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
   late Map<String, int> _localServiceQuantities;
   List<TimeSlot> _cachedSlots = [];
 
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _dateKey = GlobalKey();
+  final GlobalKey _timeKey = GlobalKey();
+  bool _dateError = false;
+  bool _timeError = false;
+
   @override
   void initState() {
     super.initState();
     _localServiceQuantities = Map.from(widget.serviceQuantities);
+    // If a date is already selected when the dialog opens, fetch slots immediately
+    if (widget.selectedDate != null && widget.serviceId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.slotViewModel.fetchGetSlotDataApi(widget.selectedDate!, widget.serviceId!);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToKey(GlobalKey key) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = key.currentContext;
+      if (ctx == null) return;
+      Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut, alignment: 0.1);
+    });
   }
 
   // ── Cart helpers ─────────────────────────────────────────────────────────
@@ -127,11 +153,13 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
             _buildHeader(context, cartItems, subtotal, originalTotal, saved),
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildCartItemsList(context, cartItems),
                     _buildPriceSummary(context, subtotal, transport, saved, total, originalTotal),
+                    _buildAddOns(context, screenWidth),
                     _buildDateTimeSelection(context, screenWidth),
                     SizedBox(height: 15),
                   ],
@@ -233,6 +261,110 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
     );
   }
 
+  // ── Add-ons ───────────────────────────────────────────────────────────────
+
+  Widget _buildAddOns(BuildContext context, double screenWidth) {
+    final allAvailable = <Task>[];
+    for (final cat in widget.categories) {
+      for (final task in (cat.tasks ?? [])) {
+        if ((_localServiceQuantities[task.id ?? ''] ?? 0) == 0) {
+          allAvailable.add(task);
+        }
+      }
+    }
+    if (allAvailable.isEmpty) return const SizedBox.shrink();
+
+    allAvailable.shuffle();
+    final addOns = allAvailable.take(3).toList();
+
+    return SizedBox(
+      width: screenWidth * 0.87,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+          Text('Add-ons', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          ...addOns.map((task) {
+            final taskId = task.id ?? '';
+            final qty = _localServiceQuantities[taskId] ?? 0;
+            final salePrice = task.price?.salePrice?.toDouble() ?? task.price?.basePrice?.toDouble() ?? 0;
+            final basePrice = task.price?.basePrice?.toDouble() ?? 0;
+            final hasDiscount = basePrice > salePrice && salePrice > 0;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(task.name ?? '', style: AppTextStyles.textSize14(context, weight: FontWeight.w500)),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text('৳${salePrice.toStringAsFixed(0)}',
+                                style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.button(context))),
+                            if (hasDiscount) ...[
+                              const SizedBox(width: 6),
+                              Text('৳${basePrice.toStringAsFixed(0)}',
+                                  style: AppTextStyles.textSize12(context, color: AppColors.subtitle(context))
+                                      .copyWith(decoration: TextDecoration.lineThrough)),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (qty == 0)
+                    GestureDetector(
+                      onTap: () => _handleQuantityUpdate(taskId, 1),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: AppColors.button(context),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Text('+ Add',
+                            style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.whiteColor)),
+                      ),
+                    )
+                  else
+                    Row(
+                      children: [
+                        _addOnQtyBtn(context, Icons.remove, () => _handleQuantityUpdate(taskId, qty - 1)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text('$qty', style: AppTextStyles.textSize14(context, weight: FontWeight.w700)),
+                        ),
+                        _addOnQtyBtn(context, Icons.add, () => _handleQuantityUpdate(taskId, qty + 1)),
+                      ],
+                    ),
+                ],
+              ),
+            );
+          }).toList(),
+          Divider(height: 1, color: AppColors.border(context)),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _addOnQtyBtn(BuildContext context, IconData icon, VoidCallback onTap) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.border(context)),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(icon, size: 15, color: AppColors.textPrimary(context)),
+        ),
+      );
+
   // ── Date & time selection ─────────────────────────────────────────────────
 
   Widget _buildDateTimeSelection(BuildContext context, double screenWidth) {
@@ -241,18 +373,68 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomDatePickerFormField(
-            title: 'Booking Date',
-            controller: widget.dateController,
-            onDateSelected: widget.onDateSelected,
-            titleTextStyle: AppTextStyles.textSize16(context, weight: FontWeight.w600),
-            inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
-            hintTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400, color: AppColors.subtitle(context)),
+          // ── Date picker with red border on error ──
+          AnimatedContainer(
+            key: _dateKey,
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: _dateError ? Border.all(color: Colors.red, width: 1.5) : null,
+            ),
+            padding: _dateError ? const EdgeInsets.all(8) : EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomDatePickerFormField(
+                  title: 'Booking Date',
+                  controller: widget.dateController,
+                  onDateSelected: (date) {
+                    setState(() => _dateError = false);
+                    widget.onDateSelected(date);
+                  },
+                  titleTextStyle: AppTextStyles.textSize16(context,
+                      weight: FontWeight.w600, color: _dateError ? Colors.red : AppColors.textPrimary(context)),
+                  inputTextStyle: AppTextStyles.textSize14(context, weight: FontWeight.w400),
+                  hintTextStyle: AppTextStyles.textSize14(context,
+                      weight: FontWeight.w400, color: _dateError ? Colors.red.shade300 : AppColors.subtitle(context)),
+                ),
+                if (_dateError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('Please select a booking date',
+                        style: AppTextStyles.textSize12(context, color: Colors.red)),
+                  ),
+              ],
+            ),
           ),
           SizedboxSpaccing.height015(context),
-          Text('Select Time Slot', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-          SizedboxSpaccing.height012(context),
-          _buildTimeSlots(context),
+          // ── Time slot with red border on error ──
+          AnimatedContainer(
+            key: _timeKey,
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: _timeError ? Border.all(color: Colors.red, width: 1.5) : null,
+            ),
+            padding: _timeError ? const EdgeInsets.all(8) : EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Select Time Slot',
+                    style: AppTextStyles.textSize16(context,
+                        weight: FontWeight.w600,
+                        color: _timeError ? Colors.red : AppColors.textPrimary(context))),
+                SizedboxSpaccing.height012(context),
+                _buildTimeSlots(context),
+                if (_timeError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text('Please select a time slot',
+                        style: AppTextStyles.textSize12(context, color: Colors.red)),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -264,16 +446,44 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
     return AnimatedBuilder(
       animation: widget.slotViewModel,
       builder: (context, _) {
-        // ✅ Correct: read from GetTimeSlotModel -> timeSlots (List<TimeSlot>)
+        final status = widget.slotViewModel.getSlotData.status;
         final List<TimeSlot> slots = widget.slotViewModel.getSlotData.data?.timeSlots ?? [];
 
         if (slots.isNotEmpty) _cachedSlots = slots;
         final displaySlots = slots.isEmpty ? _cachedSlots : slots;
 
-        if (displaySlots.isEmpty && widget.slotViewModel.getSlotData.status == Status.COMPLETED) {
+        // No date selected yet
+        if (widget.selectedDate == null) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text('No time slots available', style: AppTextStyles.textSize14(context, color: AppColors.subtitle(context))),
+            child: Text('Select a booking date to see available slots',
+                style: AppTextStyles.textSize13(context, color: AppColors.subtitle(context))),
+          );
+        }
+
+        // Loading
+        if (status == Status.LOADING) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          );
+        }
+
+        // API error
+        if (status == Status.ERROR) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text('Could not load time slots. Please try again.',
+                style: AppTextStyles.textSize13(context, color: Colors.red.shade400)),
+          );
+        }
+
+        // Loaded but empty
+        if (displaySlots.isEmpty && status == Status.COMPLETED) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text('No time slots available for this date',
+                style: AppTextStyles.textSize13(context, color: AppColors.subtitle(context))),
           );
         }
 
@@ -306,7 +516,10 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
     final bool isSelected = widget.selectedServiceTime == time;
 
     return GestureDetector(
-      onTap: isBooked ? null : () => widget.onTimeSelected(time, slotId),
+      onTap: isBooked ? null : () {
+        setState(() => _timeError = false);
+        widget.onTimeSelected(time, slotId);
+      },
       child: Container(
         height: 40,
         width: 150,
@@ -369,13 +582,19 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
             return;
           }
 
-          if (widget.selectedDate == null) {
-            Utils.flushBarErrorMessage("Please select a booking date", context);
-            return;
-          }
+          final bool missingDate = widget.selectedDate == null;
+          final bool missingTime = widget.selectedServiceTime == null || widget.selectedServiceTime!.isEmpty;
 
-          if (widget.selectedServiceTime == null || widget.selectedServiceTime!.isEmpty) {
-            Utils.flushBarErrorMessage("Please select a time slot", context);
+          if (missingDate || missingTime) {
+            setState(() {
+              _dateError = missingDate;
+              _timeError = missingTime;
+            });
+            if (missingDate) {
+              _scrollToKey(_dateKey);
+            } else {
+              _scrollToKey(_timeKey);
+            }
             return;
           }
 

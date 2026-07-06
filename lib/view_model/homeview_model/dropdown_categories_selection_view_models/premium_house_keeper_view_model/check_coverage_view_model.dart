@@ -47,14 +47,8 @@ class CheckCoverageViewModel with ChangeNotifier {
 
     try {
       final value = await _myRepo.fetchCheckCoverageData();
-      print('✅ API Response: $value');
-      print('✅ Inside Service Area: ${value.data?.insideServiceArea}');
       setCheckCoverageData(ApiResponse.completed(value));
     } catch (error, stackTrace) {
-      if (kDebugMode) {
-        print('❌ Error: $error');
-        print('❌ StackTrace: $stackTrace');
-      }
 
       // ✅ Set error state immediately - don't retry in ViewModel
       setCheckCoverageData(ApiResponse.error(error.toString()));

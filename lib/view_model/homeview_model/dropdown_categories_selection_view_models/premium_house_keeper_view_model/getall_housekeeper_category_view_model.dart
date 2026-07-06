@@ -20,15 +20,10 @@ class GetallHousekeeperCategoryViewModel with ChangeNotifier {
     setgetAllHouseKeeperCategoryData(ApiResponse.loading());
 
     _myRepo.fetchGetAllHouseKeeperCategoryGetApi().then((value){
-      print(value);
       setgetAllHouseKeeperCategoryData(ApiResponse.completed(value));
 
 
     }).onError((error, stackTrace){
-      if (kDebugMode) {
-        print(error);
-        print(stackTrace);
-      }
       setgetAllHouseKeeperCategoryData(ApiResponse.error(error.toString()));
     });
   }

@@ -1,12 +1,12 @@
 class AppUrl {
-  static var baseUrl = 'https://9cea-103-187-99-178.ngrok-free.app/api/v1' ;
-  static var socketUrl = 'https://9cea-103-187-99-178.ngrok-free.app' ;
+//   static var baseUrl = 'https://9cea-103-187-99-178.ngrok-free.app/api/v1' ;
+//   static var socketUrl = 'https://9cea-103-187-99-178.ngrok-free.app' ;
 
-  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
-  // static var socketUrl = 'https://api-staging.dinmajur.com' ;// Staging
+  // static var baseUrl = 'http://10.0.2.2:5001/api/v1' ;// Local Backend
+  // static var socketUrl = 'http://10.0.2.2:5001' ;// Local
 
-  // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
-  // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
   static var loginEndPint = baseUrl + '/auth/auth_login';
@@ -37,6 +37,8 @@ class AppUrl {
   static var deleteAddressDeleteAPI = baseUrl + '/customers/delete-address';
   //Banner Sliders
   static var bannerSliderGetAPI = baseUrl +'/cms/placement/home_top';
+  //Featured Services
+  static var featuredServicesGetAPI = baseUrl +'/cms?placement=featured_services&page=1&limit=20';
   //Notification
   static var notificationGetAPI = baseUrl +'/notifications/get-all';
 
@@ -82,6 +84,7 @@ class AppUrl {
   static var getFamilyEventCookingGetAPI = baseUrl + '/event-cooking-bookings';
   //Home Screen ALL SERVICE
   static var getAllServiceGetAPI = baseUrl + '/services/get-all?isActive=true';
+  static var getAllNearbyServiceStoresGetAPI = baseUrl + '/stores/nearby';
   static var servicesViewGetAllCategoryGetAPI = baseUrl + '/categories/by-service';
   static var getSlotGetAPI = baseUrl + '/time-slots?date=';
   static var createServiceBookingPostAPI = baseUrl + '/bookings/create';

@@ -33,7 +33,6 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
   @override
   void initState() {
     super.initState();
-    print(widget.orderId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final getOrderDetailsModel = Provider.of<GetOrderDetailsViewModel>(context, listen: false);
       getOrderDetailsModel.fetchOrderDetailsData(widget.orderId);
@@ -418,7 +417,6 @@ class _DeliverdScreenState extends State<DeliverdScreen> {
                   Navigator.pop(context);
                 }
 
-                print('Error: $e');
                 Utils.flushBarErrorMessage(
                   'Error: ${e.toString()}',
                   context,

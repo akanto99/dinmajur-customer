@@ -2,12 +2,10 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
-import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
-import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/data/response/status.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/get_all_service_models.dart';
+import 'package:dinmajur_customer/view/screens/home/all_service/widget/service_tap_handler.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/get_all_service_view_model.dart';
-import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/check_coverage_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -71,22 +69,10 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
       return;
     }
 
-    // ── All other slugs: coverage check first ──
+    // ── All other slugs: coverage check + route by slug ──
     setState(() => _loadingServiceId = service.id);
 
     try {
-      final checkCoverageViewModel = Provider.of<CheckCoverageViewModel>(context, listen: false);
-      await checkCoverageViewModel.fetchCheckCoverageDataApi();
-
-      if (!mounted) return;
-
-      final isInside = checkCoverageViewModel.checkCoverageData.data?.data?.insideServiceArea ?? false;
-
-      if (!isInside) {
-        Utils.flushBarErrorMessage("Service not available in your area", context);
-        return;
-      }
-
       // ── Build customer data from profile ──
       final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
       String customerName = widget.customerName;
@@ -110,59 +96,15 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
         }
       }
 
-      // ── Route by slug ──
-      switch (slug) {
-        case 'house-keeper':
-          Navigator.pushNamed(
-            context,
-            RoutesName.bookNowPremiumHouseKeeper,
-            arguments: {
-              'customerName': customerName,
-              'customerPhone': customerPhone,
-              'customerAddress': customerAddress,
-              'serviceName': service.name,
-              'description': service.description,
-              'customerLocation': customerLocation,
-            },
-          );
-          break;
-
-        case 'beauty-parlour':
-          Navigator.pushNamed(
-            context,
-            RoutesName.bookNowHomeBeautySalonScreen,
-            arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress,'serviceName': service.name, 'description': service.description, 'customerLocation': customerLocation},
-          );
-          break;
-
-        case 'family-event-cooking':
-          Navigator.pushNamed(
-            context,
-            RoutesName.familyEventCookingScreen,
-            arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress,'serviceName': service.name,'description': service.description, 'customerLocation': customerLocation},
-          );
-          break;
-
-        default:
-      print(service.id);
-          Navigator.pushNamed(
-            context,
-            RoutesName.servicesViewScreen,
-            arguments: {
-              'serviceId': service.id,
-              'customerName': customerName,
-              'customerPhone': customerPhone,
-              'customerAddress': customerAddress,
-              'serviceName': service.name,
-              'description': service.description,
-              'isFromHome': true,
-              'customerLocation': customerLocation,
-            },
-          );
-          break;
-      }
+      await navigateToService(
+        context,
+        service,
+        customerName: customerName,
+        customerPhone: customerPhone,
+        customerAddress: customerAddress,
+        customerLocation: customerLocation,
+      );
     } catch (e) {
-      debugPrint('Coverage check / navigation failed: $e');
     } finally {
       if (mounted) {
         setState(() => _loadingServiceId = null);
@@ -184,8 +126,8 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "All Home Services~",
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                    "All Home Services",
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
                   ),
                   SizedboxSpaccing.height025(context),
                   Row(
@@ -214,8 +156,8 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "All Home Services~",
-                    style: AppTextStyles.textSize16(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+                    "All Home Services",
+                    style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
                   ),
                   SizedboxSpaccing.height025(context),
                   _buildServicesGrid(context, services),
@@ -231,32 +173,87 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
     );
   }
 
-  Widget _buildServicesGrid(BuildContext context, List<Datum> services) {
+  static const int _visibleLimit = 8;
 
+  Widget _buildServicesGrid(BuildContext context, List<Datum> services) {
     final filteredServices = services.where((s) => s.id != '69eca7bdbe6d8b46e00655ed').toList();
 
+    final visibleServices = filteredServices.take(_visibleLimit).toList();
+    final hiddenServices = filteredServices.skip(_visibleLimit).toList();
+
+    // Build a flat list of 9 slots: 8 services + optional "More" tile
+    final List<Widget> tiles = visibleServices
+        .map((s) => _buildServiceCard(context, s))
+        .toList();
+
+    if (hiddenServices.isNotEmpty) {
+      tiles.add(_buildMoreCard(context, hiddenServices));
+    }
+
+    // Lay tiles out in rows of 3
     List<Widget> rows = [];
-
-    for (int i = 0; i < filteredServices.length; i += 3) {
-      final rowItems = filteredServices.skip(i).take(3).toList();
-
+    for (int i = 0; i < tiles.length; i += 3) {
+      final rowTiles = tiles.skip(i).take(3).toList();
       rows.add(
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...rowItems.map((service) => _buildServiceCard(context, service)),
-            ...List.generate(3 - rowItems.length, (_) => const SizedBox(width: 100)),
+            ...rowTiles,
+            ...List.generate(3 - rowTiles.length, (_) => const SizedBox(width: 105)),
           ],
         ),
       );
-
-      if (i + 3 < filteredServices.length) {
-        rows.add(const SizedBox(height: 24));
-      }
+      if (i + 3 < tiles.length) rows.add(const SizedBox(height: 24));
     }
 
     return Column(children: rows);
+  }
+
+  Widget _buildMoreCard(BuildContext context, List<Datum> hiddenServices) {
+    return GestureDetector(
+      onTap: () => _showMoreServicesSheet(context, hiddenServices),
+      child: Column(
+        children: [
+          Container(
+            height: 105,
+            width: 105,
+            decoration: BoxDecoration(
+              color: AppColors.containerBackground(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(width: 1, color: AppColors.border(context)),
+            ),
+            child: Center(
+              child: Icon(Icons.apps_rounded, size: 36, color: AppColors.textPrimary(context)),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 105,
+            child: Text(
+              'More',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.textSize12(context, weight: FontWeight.w600, color: AppColors.textPrimary(context)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMoreServicesSheet(BuildContext context, List<Datum> services) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _MoreServicesSheet(
+        services: services,
+        onServiceTap: _handleServiceTap,
+        loadingServiceId: _loadingServiceId,
+        loadingServiceSlug: widget.loadingServiceSlug,
+        selectedServiceId: widget.selectedServiceId,
+      ),
+    );
   }
   Widget _buildServiceCard(BuildContext context, Datum service) {
     final isSelected = widget.selectedServiceId == service.id;
@@ -309,8 +306,8 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
 
               if (isLoading)
                 Container(
-                  height: 100,
-                  width: 100,
+                  height: 105,
+                  width: 105,
                   decoration: BoxDecoration(color: AppColors.containerBackground(context).withOpacity(0.5), borderRadius: BorderRadius.circular(12)),
                   child: Center(
                     child: SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.textPrimary(context))),
@@ -320,11 +317,12 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           ),
           const SizedBox(height: 8),
           SizedBox(
-            width: 100,
+            width: 105,
             child: Text(
               service.name ?? '',
               textAlign: TextAlign.center,
               maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.textSize12(context, weight: isLoading ? FontWeight.w600 : FontWeight.w500, color: AppColors.textPrimary(context)),
             ),
           ),
@@ -348,6 +346,157 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
           decoration: BoxDecoration(color: AppColors.border(context), borderRadius: BorderRadius.circular(4)),
         ),
       ],
+    );
+  }
+}
+
+// ── Bottom sheet shown when "More" is tapped ─────────────────────────────────
+class _MoreServicesSheet extends StatelessWidget {
+  final List<Datum> services;
+  final Future<void> Function(Datum) onServiceTap;
+  final String? loadingServiceId;
+  final String? loadingServiceSlug;
+  final String? selectedServiceId;
+
+  const _MoreServicesSheet({
+    required this.services,
+    required this.onServiceTap,
+    required this.loadingServiceId,
+    required this.loadingServiceSlug,
+    required this.selectedServiceId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.55),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.containerBackground(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.only(top: 12, left: 20, right: 20, bottom: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // drag handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: AppColors.border(context), borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('All Services', style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Icon(Icons.close, size: 22, color: AppColors.textPrimary(context)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Flexible(
+              child: SingleChildScrollView(
+                child: _buildGrid(context, screenWidth),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGrid(BuildContext context, double screenWidth) {
+    List<Widget> rows = [];
+    for (int i = 0; i < services.length; i += 3) {
+      final rowItems = services.skip(i).take(3).toList();
+      rows.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...rowItems.map((s) => _buildCard(context, s)),
+            ...List.generate(3 - rowItems.length, (_) => const SizedBox(width: 95)),
+          ],
+        ),
+      );
+      if (i + 3 < services.length) rows.add(const SizedBox(height: 20));
+    }
+    return Column(children: rows);
+  }
+
+  Widget _buildCard(BuildContext context, Datum service) {
+    final isLoading = loadingServiceId == service.id ||
+        (loadingServiceSlug == 'instant-bazar' && service.slug == 'instant-bazar');
+    final isSelected = selectedServiceId == service.id;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        onServiceTap(service);
+      },
+      child: Column(
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 95,
+                width: 95,
+                decoration: BoxDecoration(
+                  color: AppColors.containerBackground(context),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    width: isLoading || isSelected ? 2 : 1,
+                    color: isLoading || isSelected ? AppColors.textPrimary(context) : AppColors.border(context),
+                  ),
+                ),
+                child: Center(
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: isLoading ? 0.3 : 1.0,
+                    child: SizedBox(
+                      height: 70,
+                      width: 70,
+                      child: service.image?.url != null
+                          ? CachedNetworkImage(
+                              imageUrl: service.image!.url!,
+                              fit: BoxFit.contain,
+                              errorWidget: (_, __, ___) => Icon(Icons.design_services_outlined, color: AppColors.subtitle(context), size: 28),
+                            )
+                          : Icon(Icons.design_services_outlined, color: AppColors.subtitle(context), size: 28),
+                    ),
+                  ),
+                ),
+              ),
+              if (isLoading)
+                Container(
+                  height: 95,
+                  width: 95,
+                  decoration: BoxDecoration(color: AppColors.containerBackground(context).withOpacity(0.5), borderRadius: BorderRadius.circular(12)),
+                  child: Center(child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textPrimary(context)))),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 95,
+            child: Text(
+              service.name ?? '',
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: AppColors.textPrimary(context)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

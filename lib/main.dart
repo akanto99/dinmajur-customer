@@ -4,6 +4,7 @@ import 'package:dinmajur_customer/configs/services/sse_notification_services/sse
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/running_ordercount_view_model.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_service.dart';
 import 'package:dinmajur_customer/provider/DarkAndLightTheme/theme_provider.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/provider/countdown/countdown/countdown.dart';
 import 'package:dinmajur_customer/provider/language_change_provider/language_change_provider.dart';
 import 'package:dinmajur_customer/socket_connection_model/screens_sockets/home_sceens_socket/get_all_orders_socket/socket_order_view_details.dart';
@@ -68,6 +69,7 @@ import 'view_model/homeview_model/dropdown_categories_selection_view_models/prem
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/freelancer_rating_view_model.dart';
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/order_confirmed_getorderdetails_view_model.dart';
 import 'view_model/order_view_models/assigned_freelance_view_model/freelancer_review_view_model.dart';
+import 'view_model/homeview_model/featured_services_view_model/featured_services_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -116,6 +118,7 @@ void main() async {
         ChangeNotifierProvider<LanguageChangeProvider>.value(value: languageProvider),
         ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => CountdownTimerProvider()),
+        ChangeNotifierProvider(create: (_) => GlobalCartProvider()..hydrate()),
 
         // ── SocketManager replaces SocketProvider + SocketService ──────────
         ChangeNotifierProvider<SocketManager>.value(value: socketManager),
@@ -180,6 +183,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GetServiceConfirmationDetailsViewModel()),
         //Banner
         ChangeNotifierProvider(create: (_) => BannerViewModel()),
+        //Featured Services
+        ChangeNotifierProvider(create: (_) => FeaturedServicesViewModel()),
 
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),
         ChangeNotifierProvider(create: (_) => PostSupportViewModel()),

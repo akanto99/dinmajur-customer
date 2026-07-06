@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 
+@Deprecated('Use CustomTextFieldWithFormField (customtext_with_formfield.dart) instead — it covers this widget\'s features plus error text, focus/error border states, prefix boxes, and obscureText.')
 class CustomTextFormField extends StatefulWidget {
   final String ?titleText;
   final String? requiredStar;

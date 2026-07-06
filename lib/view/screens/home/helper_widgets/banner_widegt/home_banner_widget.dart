@@ -147,7 +147,6 @@ class _HomeBannerWidgetState extends State<HomeBannerWidget> {
           break;
       }
     } catch (e) {
-      debugPrint('Banner tap / coverage check failed: $e');
     } finally {
       if (mounted) setState(() => _isBannerLoading = false);
     }

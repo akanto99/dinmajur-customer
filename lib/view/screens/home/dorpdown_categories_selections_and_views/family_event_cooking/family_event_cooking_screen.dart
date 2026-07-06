@@ -17,6 +17,7 @@ import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_bottom_cart_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_categorytab.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/dynamic_scroll_categorytab/dynamic_scrollable_categorytab.dart';
+import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/getall_family_event_cooking_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -53,16 +54,11 @@ class FamilyEventCookingScreen extends StatefulWidget {
 class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
   final ScrollController _mainScrollController = ScrollController();
   int _selectedTabIndex = 0;
-  int _selectedGuestRangeIndex = 0; // Default to 25-30
-  // final Map<int, GlobalKey> _categoryKeys = {};
+  int _selectedGuestRangeIndex = 0;
   Map<String, dynamic>? _customerLocation;
-  // Track selected packages per category for REGULAR type (only one category can have selections)
-  Map<String, String?> _selectedPackages = {}; // categoryId -> packageId
-
-  // Track selected items for MANUAL type (only one category can have selections)
-  Map<String, Set<String>> _selectedManualItems = {}; // categoryId -> Set of itemIds
-
-  String? _activeCategoryId; // Track which category has active selections
+  Map<String, String?> _selectedPackages = {};
+  Map<String, Set<String>> _selectedManualItems = {};
+  String? _activeCategoryId;
 
   late String _currentCustomerAddress;
 
@@ -112,6 +108,58 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     super.dispose();
   }
 
+  void _syncGlobalCart() {
+    if (!mounted) return;
+    final cart = Provider.of<GlobalCartProvider>(context, listen: false);
+    final viewModel = Provider.of<GetAllFamilyEventCookingViewModel>(context, listen: false);
+    final data = viewModel.getAllFamilyEventCookingData.data?.data ?? [];
+    final transportFee = viewModel.getAllFamilyEventCookingData.data?.meta?.transportFee?.value?.toDouble() ?? 0.0;
+    final checkoutVM = Provider.of<CookingCheckoutViewModel>(context, listen: false);
+
+    if (_activeCategoryId == null) {
+      cart.clearService(widget.serviceName);
+      return;
+    }
+
+    final total = _calculateTotal();
+    if (total <= 0) {
+      cart.clearService(widget.serviceName);
+      return;
+    }
+
+    String categoryName = widget.serviceName;
+    for (var category in data) {
+      if (category.id == _activeCategoryId) {
+        categoryName = category.name ?? widget.serviceName;
+        break;
+      }
+    }
+
+    cart.updateService(
+      widget.serviceName,
+      serviceName: widget.serviceName,
+      items: [CartItem(id: _activeCategoryId!, name: categoryName, quantity: 1, unitPrice: total)],
+      checkoutArgs: {
+        'checkoutRoute': RoutesName.cookingCheckoutScreen,
+        'customerName': widget.customerName,
+        'customerPhone': widget.customerPhone,
+        'customerAddress': _currentCustomerAddress,
+        'customerLocation': _customerLocation,
+        'categories': data,
+        'selectedPackages': Map.of(_selectedPackages),
+        'selectedManualItems': Map.of(_selectedManualItems),
+        'activeCategoryId': _activeCategoryId,
+        'selectedGuestRangeIndex': _selectedGuestRangeIndex,
+        'totalPrice': total,
+        'savedAmount': _calculateSaved(),
+        'transportFee': transportFee,
+        'selectedDate': checkoutVM.selectedDate,
+        'selectedServiceTime': checkoutVM.selectedServiceTime,
+        'onAddressUpdate': (String _) {},
+      },
+    );
+  }
+
   // For REGULAR type packages
   void _togglePackageSelection(String categoryId, String packageId) {
     setState(() {
@@ -129,6 +177,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         _selectedPackages[categoryId] = packageId;
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
   }
 
   // For MANUAL type items
@@ -155,6 +204,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         _selectedManualItems[categoryId]!.add(key);
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
   }
 
   bool _isPackageSelected(String categoryId, String packageId) {
@@ -388,15 +438,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           //   );
                           // },
                           onCategoryTap: (index) {
-                            final selectedCategory = data[index];
-                            // print('Category ID: ${selectedCategory.id ?? ''}');
                             setState(() {
                               _selectedTabIndex = index;
-                              // Clear all selections when switching category tab
                               _selectedPackages.clear();
                               _selectedManualItems.clear();
                               _activeCategoryId = null;
                             });
+                            WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
                             _mainScrollController.animateTo(0, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
                           },
                           getName: (category) => category.name ?? '',
@@ -615,7 +663,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
     return GestureDetector(
       onTap: () {
         setState(() => _selectedGuestRangeIndex = index);
-        // Auto-scroll so selected is visible (center it)
+        WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
       },
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 2),
@@ -960,6 +1008,13 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
             },
             dateController: TextEditingController(text: checkoutVM.selectedDate != null ? DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!) : ''),
             onProceedToCheckout: _navigateCheckOutScreen,
+            onManualItemAdded: (String categoryId, String key) {
+              setState(() {
+                _selectedManualItems[categoryId] ??= {};
+                _selectedManualItems[categoryId]!.add(key);
+              });
+              setDialogState(() {});
+            },
           );
         },
       ),
@@ -1012,6 +1067,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         'transportFee': transportFeeValue, // Use value from model
         'selectedDate': checkoutVM.selectedDate,
         'selectedServiceTime': checkoutVM.selectedServiceTime,
+        'serviceName': widget.serviceName,
         'onAddressUpdate': (String newAddress) {
           setState(() {
             _currentCustomerAddress = newAddress;
@@ -1027,6 +1083,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
         _selectedManualItems.clear();
         _activeCategoryId = null;
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _syncGlobalCart());
     }
   }
 

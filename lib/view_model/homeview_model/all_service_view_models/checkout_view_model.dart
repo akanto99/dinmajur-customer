@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart';
 import 'package:flutter/material.dart';
@@ -142,6 +144,7 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
   /// Only [timeSlotId] (the `_id` from the slot response) is sent to the
   /// booking API — no raw date/time strings are needed.
   Map<String, dynamic> prepareBookingData({
+    String? retailerId,
     required String serviceId,
     required String customerId,
     required String? paymentMethod,
@@ -160,6 +163,8 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
 
   }) {
     return {
+      if (retailerId != null && retailerId.isNotEmpty)
+        'retailerId': retailerId,
       'serviceId': serviceId,
       'customerId': customerId,
       'paymentType': getPaymentMethodData(paymentMethod),
@@ -177,6 +182,7 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
 
 
       'tasks': tasks,
+      "source": Platform.isAndroid ? "android" : "ios",
 
     };
   }

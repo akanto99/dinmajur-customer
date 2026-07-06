@@ -74,7 +74,6 @@ class _CategoryTabsState<T> extends State<CategoryTabs<T>> {
 
               return GestureDetector(
                 onTap: () {
-                  print("---------------------$index");
                   widget.onCategoryTap(index);
                 },
                 child: Container(
