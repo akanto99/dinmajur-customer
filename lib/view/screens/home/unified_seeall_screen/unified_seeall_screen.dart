@@ -144,7 +144,7 @@ class _UnifiedSeeAllScreenState extends State<UnifiedSeeAllScreen> {
           // ── Logo + name + availability ──────────────────────
           Row(
             children: [
-              if (logoUrl != null)
+              if (logoUrl != null && logoUrl.isNotEmpty)
                 Container(
                   height: 40,
                   width: 40,

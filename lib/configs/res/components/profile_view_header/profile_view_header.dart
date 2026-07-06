@@ -39,7 +39,9 @@ class DynamicProfileHeader extends StatelessWidget {
                   width: 1,
                   color: AppColors.border(context)
               ),
-              image: DecorationImage(image: NetworkImage(coverImage!),fit: BoxFit.cover)
+              image: coverImage != null && coverImage!.isNotEmpty
+                  ? DecorationImage(image: NetworkImage(coverImage!),fit: BoxFit.cover)
+                  : null,
           ),
           ),
         ),
@@ -75,8 +77,13 @@ class DynamicProfileHeader extends StatelessWidget {
                                   width: 1,
                                   color: AppColors.button(context)
                               ),
-                            image: DecorationImage(image: NetworkImage(profileImage!),fit: BoxFit.cover)
+                            image: profileImage != null && profileImage!.isNotEmpty
+                                ? DecorationImage(image: NetworkImage(profileImage!),fit: BoxFit.cover)
+                                : null,
                           ),
+                          child: profileImage == null || profileImage!.isEmpty
+                              ? Icon(Icons.person, color: AppColors.subtitle(context))
+                              : null,
                         ),
                       ),
                     ),

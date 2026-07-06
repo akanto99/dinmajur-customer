@@ -238,7 +238,7 @@ class _HomeServiceSearchBoxState extends State<HomeServiceSearchBox> {
                               leading: SizedBox(
                                 height: 36,
                                 width: 36,
-                                child: service.image?.url != null
+                                child: service.image?.url != null && service.image!.url!.isNotEmpty
                                     ? CachedNetworkImage(
                                         imageUrl: service.image!.url!,
                                         fit: BoxFit.contain,

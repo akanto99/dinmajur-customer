@@ -292,7 +292,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
                     child: SizedBox(
                       height: 80,
                       width: 80,
-                      child: service.image?.url != null
+                      child: service.image?.url != null && service.image!.url!.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: service.image!.url!,
                               fit: BoxFit.contain,
@@ -464,7 +464,7 @@ class _MoreServicesSheet extends StatelessWidget {
                     child: SizedBox(
                       height: 70,
                       width: 70,
-                      child: service.image?.url != null
+                      child: service.image?.url != null && service.image!.url!.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: service.image!.url!,
                               fit: BoxFit.contain,

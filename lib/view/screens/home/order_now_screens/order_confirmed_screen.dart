@@ -223,11 +223,11 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: retailer?.logo?.url != null ? Colors.transparent : AppColors.appBackground(context),
+                        color: retailer?.logo?.url != null && retailer!.logo!.url!.isNotEmpty ? Colors.transparent : AppColors.appBackground(context),
                         borderRadius: BorderRadius.circular(8),
-                        image: retailer?.logo?.url != null ? DecorationImage(image: NetworkImage(retailer!.logo!.url!), fit: BoxFit.cover) : null,
+                        image: retailer?.logo?.url != null && retailer!.logo!.url!.isNotEmpty ? DecorationImage(image: NetworkImage(retailer!.logo!.url!), fit: BoxFit.cover) : null,
                       ),
-                      child: retailer?.logo?.url == null ? Icon(Icons.storefront_outlined, color: AppColors.textPrimary(context), size: 24) : null,
+                      child: retailer?.logo?.url == null || retailer!.logo!.url!.isEmpty ? Icon(Icons.storefront_outlined, color: AppColors.textPrimary(context), size: 24) : null,
                     ),
                     SizedboxSpaccing.width03(context),
                     Expanded(

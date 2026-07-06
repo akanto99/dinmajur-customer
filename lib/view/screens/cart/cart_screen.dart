@@ -545,7 +545,7 @@ class _ServiceSection extends StatelessWidget {
                               // Thumbnail
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: item.imageUrl != null
+                                child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                                     ? CachedNetworkImage(
                                         imageUrl: item.imageUrl!,
                                         width: 58,
