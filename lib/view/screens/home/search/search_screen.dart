@@ -407,7 +407,7 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: imageUrl != null
+              child: imageUrl != null && imageUrl.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: imageUrl,
                       width: 44,

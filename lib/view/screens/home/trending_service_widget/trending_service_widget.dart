@@ -247,7 +247,7 @@ class _TrendingServicesWidgetState extends State<TrendingServicesWidget> {
                       child: Container(
                         width: _cardWidth,
                         height: 88,
-                        child: imageUrl != null
+                        child: imageUrl != null && imageUrl.isNotEmpty
                             ? CachedNetworkImage(
                                 imageUrl: imageUrl,
                                 fit: BoxFit.cover,

@@ -87,7 +87,7 @@ class GroceryStoresSection extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
-                    if (logoUrl != null)
+                    if (logoUrl != null && logoUrl.isNotEmpty)
                       Container(
                         height: 40,
                         width: 40,

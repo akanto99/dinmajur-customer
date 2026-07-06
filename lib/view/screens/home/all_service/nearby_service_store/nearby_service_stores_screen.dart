@@ -161,9 +161,9 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                   borderRadius: BorderRadius.circular(8),
                   color: AppColors.appBackground(context),
                   border: Border.all(width: 1, color: AppColors.border(context)),
-                  image: logoUrl != null ? DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover) : null,
+                  image: logoUrl != null && logoUrl.isNotEmpty ? DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover) : null,
                 ),
-                child: logoUrl == null ? Icon(Icons.store, color: AppColors.subtitle(context), size: 24) : null,
+                child: logoUrl == null || logoUrl.isEmpty ? Icon(Icons.store, color: AppColors.subtitle(context), size: 24) : null,
               ),
               SizedboxSpaccing.width02(context),
               Expanded(

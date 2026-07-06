@@ -62,8 +62,13 @@ class DrawerProfileHeader extends StatelessWidget {
                             width: 1,
                             color: AppColors.button(context)
                         ),
-                        image: DecorationImage(image: NetworkImage(profileImage!),fit: BoxFit.cover)
+                        image: profileImage != null && profileImage!.isNotEmpty
+                            ? DecorationImage(image: NetworkImage(profileImage!),fit: BoxFit.cover)
+                            : null,
                     ),
+                    child: profileImage == null || profileImage!.isEmpty
+                        ? Icon(Icons.person, size: 40, color: AppColors.form_hover(context))
+                        : null,
                   ),
                 ),
               ),
@@ -185,9 +190,9 @@ class ProfileHeader extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: AppColors.textFieldFill(context),
                         border: Border.all(width: 2, color: AppColors.button(context)),
-                        image: profileImage != null ? DecorationImage(image: NetworkImage(profileImage!), fit: BoxFit.cover) : null,
+                        image: profileImage != null && profileImage!.isNotEmpty ? DecorationImage(image: NetworkImage(profileImage!), fit: BoxFit.cover) : null,
                       ),
-                      child: profileImage == null ? Icon(Icons.person, size: 40, color: AppColors.form_hover(context)) : null,
+                      child: profileImage == null || profileImage!.isEmpty ? Icon(Icons.person, size: 40, color: AppColors.form_hover(context)) : null,
                     ),
                   ),
                   Positioned(
