@@ -33,11 +33,13 @@ class Datum {
   String? slug;
   Image? image;
   List<Category>? categories;
+  bool? isPartner;
+
 
   Datum({this.id,
     this.name,
     this.description,
-    this.slug, this.image,this.categories});
+    this.slug, this.image,this.categories,this.isPartner});
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     id: json["_id"],
@@ -46,6 +48,7 @@ class Datum {
     slug: json["slug"],
     image: json["image"] == null ? null : Image.fromJson(json["image"]),
     categories: json["categories"] == null ? [] : List<Category>.from(json["categories"]!.map((x) => Category.fromJson(x))),
+    isPartner: json["isPartner"],
 
   );
 
@@ -56,6 +59,7 @@ class Datum {
     "slug": slug,
     "image": image?.toJson(),
     "categories": categories == null ? [] : List<dynamic>.from(categories!.map((x) => x.toJson())),
+    "isPartner": isPartner,
   };
 }
 

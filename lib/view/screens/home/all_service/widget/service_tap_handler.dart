@@ -5,9 +5,6 @@ import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-/// Coverage-checks and routes to a home service's booking/details screen by
-/// slug. Shared by [AllServicesGridWidget] and the home search box so both
-/// entry points navigate identically.
 Future<void> navigateToService(
   BuildContext context,
   Datum service, {
@@ -28,8 +25,23 @@ Future<void> navigateToService(
     return;
   }
 
+  if (service.isPartner == true) {
+    Navigator.pushNamed(
+      context,
+      RoutesName.getAllNearbyServiceStoresScreen,
+      arguments: {
+        'serviceId': service.id,
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+        'customerAddress': customerAddress,
+        'serviceName': service.name,
+        'description': service.description,
+        'customerLocation': customerLocation,
+      },
+    );
+    return;
+  }
   final slug = service.slug ?? '';
-
   switch (slug) {
     case 'house-keeper':
       Navigator.pushNamed(
@@ -45,29 +57,25 @@ Future<void> navigateToService(
         },
       );
       break;
-
     case 'beauty-parlour':
       Navigator.pushNamed(
         context,
         RoutesName.bookNowHomeBeautySalonScreen,
-        arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress, 'serviceName': service.name, 'description': service.description, 'customerLocation': customerLocation},
+        arguments: {
+          'customerName': customerName,
+          'customerPhone': customerPhone,
+          'customerAddress': customerAddress,
+          'serviceName': service.name,
+          'description': service.description,
+          'customerLocation': customerLocation,
+        },
       );
       break;
-
     case 'family-event-cooking':
       Navigator.pushNamed(
         context,
         RoutesName.familyEventCookingScreen,
-        arguments: {'customerName': customerName, 'customerPhone': customerPhone, 'customerAddress': customerAddress, 'serviceName': service.name, 'description': service.description, 'customerLocation': customerLocation},
-      );
-      break;
-
-    case "mens-salon":
-      Navigator.pushNamed(
-        context,
-        RoutesName.getAllNearbyServiceStoresScreen,
         arguments: {
-          'serviceId': service.id,
           'customerName': customerName,
           'customerPhone': customerPhone,
           'customerAddress': customerAddress,
