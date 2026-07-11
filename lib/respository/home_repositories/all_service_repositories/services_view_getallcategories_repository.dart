@@ -9,8 +9,8 @@ class ServicesViewGetAllCategoriesRepository{
   Future<ServicesViewGetAllCategoryModel> fetchServicesViewGetAllCategoriesGetApi(String serviceId, String? userId) async {
     try {
       final String url = (userId != null && userId.isNotEmpty)
-          ? "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId?retailerId=$userId"
-          : "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId";
+          ? "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId?retailerId=$userId&isActive=true"
+          : "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId?isActive=true";
 
       dynamic response = await _apiServices.getGetApiResponse(url);
       return ServicesViewGetAllCategoryModel.fromJson(response);
