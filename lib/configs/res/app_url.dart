@@ -1,6 +1,6 @@
 class AppUrl {
-//   static var baseUrl = 'https://9cea-103-187-99-178.ngrok-free.app/api/v1' ;
-//   static var socketUrl = 'https://9cea-103-187-99-178.ngrok-free.app' ;
+  // static var baseUrl = 'https://c3e4-103-187-99-179.ngrok-free.app/api/v1';
+  // static var socketUrl = 'https://c3e4-103-187-99-179.ngrok-free.app';
 
   static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
   static var socketUrl = 'https://staging.dinmajur.com' ;// Staging

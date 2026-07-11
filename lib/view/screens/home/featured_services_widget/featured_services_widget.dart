@@ -236,7 +236,7 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
           ),
           SizedboxSpaccing.height025(context),
           SizedBox(
-            height: 178,
+            height: 195,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
