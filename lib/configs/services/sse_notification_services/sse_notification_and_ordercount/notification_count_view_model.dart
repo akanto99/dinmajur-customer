@@ -25,21 +25,11 @@ class NotificationCountViewModel extends ChangeNotifier {
     _countSubscription?.cancel();
     _incrementSubscription?.cancel();
 
-    // debugPrint('🎯 NotificationCountViewModel: Initializing listeners...');
-
     // Listen to full count updates (from init and notificationCount events)
     _countSubscription = countStream.listen(
           (count) {
-        // debugPrint('═══════════════════════════════════════════');
-        // debugPrint('📊 FULL COUNT RECEIVED: $count');
-        // debugPrint('📊 Previous count: $_notificationCount');
-        // debugPrint('═══════════════════════════════════════════');
-
         _notificationCount = count;
         notifyListeners();
-
-        // debugPrint('✅ Badge count updated to: $count');
-        // debugPrint('✅ Listeners notified');
       },
       onError: (error) {
       },
@@ -70,9 +60,7 @@ class NotificationCountViewModel extends ChangeNotifier {
   void setInitialCount(int count) {
     _notificationCount = count;
     notifyListeners();
-    // debugPrint('🎯 Initial count set to: $count');
   }
-
 
 
   @override

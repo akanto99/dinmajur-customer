@@ -1,6 +1,5 @@
 import 'package:dinmajur_customer/configs/res/components/support_cards/customercare_support_card.dart';
 import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
-// import 'package:dinmajur_customer/model/home_models/dropdown_categories_selection_models/premium_house_keeper_model/get_confirmedbooking_model.dart';
 import 'package:flutter/material.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';

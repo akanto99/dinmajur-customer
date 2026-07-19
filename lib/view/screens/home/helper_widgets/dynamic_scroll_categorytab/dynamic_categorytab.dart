@@ -121,10 +121,6 @@ class DynamicCategoryTabs<T> extends StatelessWidget {
               imageUrl,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Icon(defaultIcon, color: getSelectedImageColor(context)),
-              // loadingBuilder: (context, child, loadingProgress) {
-              //   if (loadingProgress == null) return child;
-              //   return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-              // },
             ),
     );
   }

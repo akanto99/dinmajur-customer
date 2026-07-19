@@ -34,17 +34,6 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
 
     return Column(
       children: [
-        // GestureDetector(
-        //   onTap: () {
-        //     Navigator.push(
-        //       context,
-        //       MaterialPageRoute(
-        //         builder: (context) => NavigationScreen(initialIndex: 0),
-        //       ),
-        //     );
-        //   },
-        //   child: AppBarHeader("Privacy Policy"),
-        // ),
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(screenWidth * 0.02 ),

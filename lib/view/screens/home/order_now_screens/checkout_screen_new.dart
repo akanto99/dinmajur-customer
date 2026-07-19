@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -53,6 +54,8 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
 
   // Payment method
   String? selectedPaymentMethod;
+
+  bool _checkoutEventLogged = false;
 
   Map<String, dynamic> _getPaymentMethodData(String? method) {
     switch (method) {
@@ -143,6 +146,13 @@ class _CheckoutScreenNewState extends State<CheckoutScreenNew> {
       deliveryCharge = (arguments['deliveryCharge'] as num?) ?? 0;
       platformFee = (arguments['platformFee'] as num?) ?? 0;
 
+      if (!_checkoutEventLogged) {
+        _checkoutEventLogged = true;
+        FacebookEventsService().logInitiatedCheckout(
+          contentId: store_userID,
+          contentType: orderType.isNotEmpty ? orderType : 'retailer-order',
+        );
+      }
     }
   }
 

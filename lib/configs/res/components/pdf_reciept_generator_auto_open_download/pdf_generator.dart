@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import '../../../../model/home_models/all_service_models/getservice_confirmationdetails_model.dart' as service_model;
 import '../../../../model/home_models/dropdown_categories_selection_models/beauty_and_salon_model/get_beautysalon_model.dart';
 
-// ==================== GENERIC RECEIPT DATA MODELS ====================
+// GENERIC RECEIPT DATA MODELS
 
 /// Generic receipt data that works for ANY booking type
 class ReceiptData {
@@ -92,7 +92,7 @@ class ReceiptPaymentSummary {
   });
 }
 
-// ==================== DYNAMIC PDF GENERATOR ====================
+// DYNAMIC PDF GENERATOR
 
 class PDFReceiptGenerator {
   /// Generate and download receipt PDF for ANY booking type
@@ -132,7 +132,7 @@ class PDFReceiptGenerator {
     }
   }
 
-  // ==================== PDF Components ====================
+  // PDF Components
 
   static pw.Widget _buildHeader() {
     return pw.Center(
@@ -186,10 +186,6 @@ class PDFReceiptGenerator {
           if (data.address != null)
             _buildDetailRow('Address:', data.address!),
           if (data.address != null) pw.SizedBox(height: 6),
-          // if (data.notes != null && data.notes!.isNotEmpty) ...[
-          //   _buildDetailRow('Notes:', data.notes!),
-          //   pw.SizedBox(height: 6),
-          // ],
           if (data.paymentMethod != null && data.paymentMethod!.isNotEmpty) ...[
             _buildDetailRow('Payment Method:', data.paymentMethod ?? 'N/A',),
             pw.SizedBox(height: 6),
@@ -438,7 +434,6 @@ class PDFReceiptGenerator {
                     _buildPaymentTableRow('Transportation', payment.transportationFee),
                   if (payment.discount > 0)
                     _buildPaymentTableRow('Discount', -payment.discount, isDiscount: true),
-                  // _buildPaymentTableRow('Total', payment.total),
                   _buildPaymentTableRow('Added Extra Items Amount', payment.extraAmount),
                 ],
               ),
@@ -540,47 +535,6 @@ class PDFReceiptGenerator {
     );
   }
 
-  // static Future<File> _savePdf(pw.Document pdf, String trackingId) async {
-  //   try {
-  //     Directory? directory;
-  //
-  //     if (Platform.isAndroid) {
-  //       // Try Downloads folder first
-  //       directory = Directory('/storage/emulated/0/Download');
-  //
-  //       if (!await directory.exists()) {
-  //         try {
-  //           await directory.create(recursive: true);
-  //         } catch (e) {
-  //           print("Could not create Downloads: $e");
-  //           // Fallback to external storage directory
-  //           directory = await getExternalStorageDirectory();
-  //         }
-  //       }
-  //     } else if (Platform.isIOS) {
-  //       directory = await getApplicationDocumentsDirectory();
-  //     }
-  //
-  //     if (directory == null) {
-  //       throw Exception('Could not access storage directory');
-  //     }
-  //
-  //     // Create file name with timestamp
-  //     final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-  //     final String fileName = 'Beauty_Bookings_${trackingId}_$timestamp.pdf';
-  //     final String filePath = '${directory.path}/$fileName';
-  //
-  //     // Save PDF directly to Downloads (no subfolder)
-  //     final File file = File(filePath);
-  //     await file.writeAsBytes(await pdf.save());
-  //
-  //     print('✅ PDF saved to: $filePath');
-  //     return file;
-  //   } catch (e) {
-  //     print('❌ Error saving PDF: $e');
-  //     rethrow;
-  //   }
-  // }
   static Future<File> _savePdf(pw.Document pdf, String trackingId) async {
     try {
       Directory? baseDirectory;
@@ -627,7 +581,7 @@ class PDFReceiptGenerator {
   }
 }
 
-// ==================== ADAPTER FOR YOUR BEAUTY SALON MODEL ====================
+// ADAPTER FOR YOUR BEAUTY SALON MODEL
 
 extension BeautySalonReceiptAdapter on Data {
   ReceiptData toReceiptData() {
@@ -681,7 +635,7 @@ extension BeautySalonReceiptAdapter on Data {
   }
 }
 
-// ==================== ADAPTER FOR SERVICE MODEL ====================
+// ADAPTER FOR SERVICE MODEL
 
 extension ServiceReceiptAdapter on service_model.Data {
   ReceiptData toReceiptData() {

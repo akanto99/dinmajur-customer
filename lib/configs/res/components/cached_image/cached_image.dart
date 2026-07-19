@@ -155,16 +155,6 @@ class DynamicCachedImage extends StatelessWidget {
             ],
           ),
         ),
-        // if (roomNumberLabel != null && quantity > 0)...[
-        //   SizedboxSpaccing.height005(context),
-        //   Text(
-        //     roomNumberLabel!,
-        //     style: TextStyle(
-        //       fontSize: 10,
-        //       color: AppColors.buttonTextColor(context),
-        //     ),
-        //   ),
-        // ]
         if (quantity > 0) ...[
           SizedboxSpaccing.height005(context),
           if (hasHour == true)

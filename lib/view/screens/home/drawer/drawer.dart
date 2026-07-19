@@ -181,13 +181,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
           decoration: BoxDecoration(color: AppColors.containerBackground(context)),
           child: Column(
             children: [
-              // Container(
-              //   height: 30,
-              //   // color: Colors.yellow,
-              //   color: Colors.transparent,
-              //   alignment: Alignment.topLeft,
-              //   child: Text(AppLocalizations.of(context)!.account_settings, style: AppTextStyles.textSize16(context, weight: FontWeight.w600)),
-              // ),
               GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, RoutesName.viewProfile);
@@ -195,30 +188,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 child: _buildDrawerItem(CupertinoIcons.person, AppLocalizations.of(context)!.view_profile),
               ),
 
-              // GestureDetector(
-              //   onTap: () {
-              //     Navigator.pushNamed(context, RoutesName.paymentMethod);
-              //   },
-              //   child: _buildDrawerItem(Icons.payment, AppLocalizations.of(context)!.payment_method),
-              // ),
               GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, RoutesName.addlocation);
                 },
                 child: _buildDrawerItem(Icons.maps_home_work_outlined, AppLocalizations.of(context)!.save_address),
               ),
-              // GestureDetector(
-              //   onTap: () {
-              //     Navigator.pushNamed(context, RoutesName.ordersScreen);
-              //   },
-              //   child: _buildDrawerItem(Icons.shopping_bag_outlined, AppLocalizations.of(context)!.order),
-              // ),
-              // GestureDetector(
-              //   onTap: () {
-              //     Navigator.pushNamed(context, RoutesName.promoCodes);
-              //   },
-              //   child: _buildDrawerItem(Icons.view_sidebar_outlined, AppLocalizations.of(context)!.promo_codes),
-              // ),
               GestureDetector(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NavigationScreen(initialIndex: 2))),
                 child: _buildDrawerItem(Icons.shopping_bag_outlined, AppLocalizations.of(context)!.order),
@@ -230,12 +205,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 child: _buildDrawerItem(Icons.local_offer_outlined, AppLocalizations.of(context)!.offers),
               ),
 
-              // GestureDetector(
-              //   onTap: () {
-              //     Navigator.pushNamed(context, RoutesName.review);
-              //   },
-              //   child: _buildDrawerItem(Icons.star_border, AppLocalizations.of(context)!.reviews),
-              // ),
               GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, RoutesName.support);

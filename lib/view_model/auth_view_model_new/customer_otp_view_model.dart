@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
@@ -40,6 +41,8 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
 
       Utils.flushBarSuccessMessage(
           'OTP has been successfully verified.', context);
+
+      FacebookEventsService().logCompletedRegistration(registrationMethod: 'phone');
 
       // ── Save user model ───────────────────────────────────────────────
       final user = UserModel.fromJson(value);

@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final checkCoverageModel = checkCoverageModelFromJson(jsonString);
-
 import 'dart:convert';
 
 CheckCoverageModel checkCoverageModelFromJson(String str) => CheckCoverageModel.fromJson(json.decode(str));

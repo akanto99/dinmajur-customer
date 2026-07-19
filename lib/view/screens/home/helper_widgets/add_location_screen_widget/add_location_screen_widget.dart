@@ -179,29 +179,6 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
           Divider(height: 1, color: AppColors.border(context)),
           SizedboxSpaccing.height015(context),
 
-          // City Dropdown
-          // DynamicDropdown(
-          //   items: ['Chittagong', 'Dhaka'],
-          //   selectedItem: _selectedCity,
-          //   onChanged: (String? newValue) {
-          //     if (newValue != null) setState(() => _selectedCity = newValue);
-          //   },
-          //   titleStyle: AppTextStyles.textSize14(context,
-          //       weight: FontWeight.w500, color: AppColors.textPrimary(context)),
-          //   hintText: "Choose your city",
-          //   height: 50,
-          //   width: screenWidth * 0.9,
-          //   borderRadius: 8,
-          //   backgroundColor: AppColors.containerBackground(context),
-          //   borderColor: AppColors.border(context),
-          //   dropdownBackgroundColor: AppColors.containerBackground(context),
-          //   selectedTextStyle: AppTextStyles.textSize14(context,
-          //       color: AppColors.textPrimary(context)),
-          //   itemTextStyle: AppTextStyles.textSize14(context,
-          //       color: AppColors.textPrimary(context)),
-          // ),
-          // SizedboxSpaccing.height015(context),
-
           // Google Place Search
           GooglePlaceSearchTextField(
             placeholder: 'Search your address',
@@ -227,9 +204,7 @@ class _AddLocationScreenWidgetState extends State<AddLocationScreenWidget> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
   // Saved Address section
-  // ─────────────────────────────────────────────────────────────
 
   Widget _buildSavedAddressSection(double screenWidth, double screenHeight) {
     return Column(
@@ -534,9 +509,7 @@ class CheckoutSessionLocationService {
   static const String _locationKey = 'checkout_session_location';
   static const String _addressKey  = 'checkout_session_address';
 
-  // ─────────────────────────────────────────────────────────────
   // WRITE
-  // ─────────────────────────────────────────────────────────────
 
   /// Persist location data + address string to prefs.
   /// Called by AddLocationScreenWidget before Navigator.pop().
@@ -552,9 +525,7 @@ class CheckoutSessionLocationService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
   // READ
-  // ─────────────────────────────────────────────────────────────
 
   /// Returns the saved location map, or null if nothing is stored.
   static Future<Map<String, dynamic>?> getLocation() async {
@@ -586,9 +557,7 @@ class CheckoutSessionLocationService {
     return (location: location, address: address);
   }
 
-  // ─────────────────────────────────────────────────────────────
   // CHECK
-  // ─────────────────────────────────────────────────────────────
 
   static Future<bool> hasSession() async {
     try {
@@ -599,9 +568,7 @@ class CheckoutSessionLocationService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
   // CLEAR
-  // ─────────────────────────────────────────────────────────────
 
   /// Clear session data.
   /// Call this:

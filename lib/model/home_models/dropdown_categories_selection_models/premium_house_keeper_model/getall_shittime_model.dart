@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getAllShiftTimeModel = getAllShiftTimeModelFromJson(jsonString);
-
 import 'dart:convert';
 
 GetAllShiftTimeModel getAllShiftTimeModelFromJson(String str) => GetAllShiftTimeModel.fromJson(json.decode(str));

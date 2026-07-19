@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final freelancerReviewModel = freelancerReviewModelFromJson(jsonString);
-
 import 'dart:convert';
 
 FreelancerReviewModel freelancerReviewModelFromJson(String str) => FreelancerReviewModel.fromJson(json.decode(str));

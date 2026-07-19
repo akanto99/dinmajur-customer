@@ -54,7 +54,7 @@ class MapLocationController {
     if (variants.contains(city.toLowerCase().trim())) return 'Chittagong';
     return city;
   }
-  // ============ INITIALIZATION (replaces initState) ============
+  // INITIALIZATION (replaces initState)
 
   Future<void> initialize() async {
     await _loadMapThemes();
@@ -69,7 +69,7 @@ class MapLocationController {
     }
   }
 
-  // ============ MAP THEME HANDLING ============
+  // MAP THEME HANDLING
 
   bool get isDarkMode => Theme.of(context).brightness == Brightness.dark;
 
@@ -90,7 +90,7 @@ class MapLocationController {
     setMapStyle();
   }
 
-  // ============ LOCATION HANDLING ============
+  // LOCATION HANDLING
 
   Future<void> getCurrentLocation() async {
     setState(() {
@@ -182,7 +182,7 @@ class MapLocationController {
     );
   }
 
-  // ============ UPDATE SELECTED LOCATION ============
+  // UPDATE SELECTED LOCATION
 
   Future<void> updateSelectedLocation(LatLng location) async {
     setState(() {
@@ -232,7 +232,7 @@ class MapLocationController {
     }
   }
 
-  // ============ HANDLE MAP TAP ============
+  // HANDLE MAP TAP
 
   void onMapTap(LatLng location) {
     FocusScope.of(context).unfocus();
@@ -240,38 +240,7 @@ class MapLocationController {
     updateSelectedLocation(location);
   }
 
-  // ============ PLACE SELECTION ============
-
-  // Future<void> onPlaceSelected(Prediction prediction) async {
-  //   try {
-  //     List<Location> locations = await locationFromAddress(prediction.description!);
-  //     if (locations.isNotEmpty) {
-  //       LatLng selectedLoc = LatLng(locations.first.latitude, locations.first.longitude);
-  //
-  //       await updateSelectedLocation(selectedLoc);
-  //
-  //       // Move camera to selected location
-  //       final GoogleMapController controller = await mapController.future;
-  //       controller.animateCamera(
-  //         CameraUpdate.newCameraPosition(
-  //           CameraPosition(target: selectedLoc, zoom: 16.0),
-  //         ),
-  //       );
-  //
-  //       // Unfocus the text field
-  //       addressFocusNode.unfocus();
-  //     }
-  //   } catch (e) {
-  //     debugPrint('Error selecting place: $e');
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Error selecting place: ${e.toString()}'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  // }
-// ============ PLACE SELECTION ============
+  // PLACE SELECTION
 
   Future<void> onPlaceSelected(Prediction prediction) async {
     try {
@@ -323,7 +292,7 @@ class MapLocationController {
       );
     }
   }
-  // ============ LOCATION CONFIRMATION ============
+  // LOCATION CONFIRMATION
 
   Future<void> confirmLocation() async {
     FocusScope.of(context).unfocus();
@@ -369,7 +338,7 @@ class MapLocationController {
     }
   }
 
-// ============ CLEAR SELECTION ============
+// CLEAR SELECTION
 
   void clearSelection() {
     addressController.clear();
@@ -382,7 +351,7 @@ class MapLocationController {
       selectedAddress = '';
     });
   }
-  // ============ CLEANUP (replaces dispose) ============
+  // CLEANUP (replaces dispose)
 
   void dispose() {
     addressController.dispose();

@@ -5,6 +5,7 @@ import 'package:dinmajur_customer/configs/res/components/payment_method/payment_
 import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
@@ -91,6 +92,12 @@ class _ServiceCheckoutScreenState extends State<ServiceCheckoutScreen> {
     _addressController.text = widget.customerAddress;
     _addressController.text = widget.customerAddress;
     _updatedLocation = widget.customerLocation;
+    FacebookEventsService().logInitiatedCheckout(
+      contentId: widget.serviceId,
+      contentType: 'service',
+      currency: 'BDT',
+      totalPrice: widget.totalPrice + widget.transportFee,
+    );
 
     _restoreSessionLocation();
 

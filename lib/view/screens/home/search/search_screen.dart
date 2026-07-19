@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
@@ -66,6 +67,14 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> _handleServiceTap(BuildContext context, Datum service) async {
     if (_loadingServiceId != null) return;
+
+    if (_query.isNotEmpty) {
+      FacebookEventsService().logSearched(
+        searchString: _query,
+        contentType: 'service',
+        contentId: service.id,
+      );
+    }
 
     final profileViewModel = Provider.of<ProfileViewViewModel>(context, listen: false);
     bool hasLocation = false;

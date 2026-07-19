@@ -98,34 +98,6 @@ class DrawerProfileHeader extends StatelessWidget {
         Container(
             width: double.infinity,
             child: Center(child: Text(phone, style:AppTextStyles.textSize14(context,weight: FontWeight.w400)))),
-
-
-        // GestureDetector(
-        //   onTap: () {
-        //     Navigator.pushNamed(context, RoutesName.profileView);
-        //   },
-        //   child: Container(
-        //     height: 35,
-        //     width: 185,
-        //     decoration: BoxDecoration(
-        //         color: AppColors.textFieldFill(context),
-        //         borderRadius: BorderRadius.circular(12),
-        //         border: Border.all(
-        //             width: 1,
-        //             color: AppColors.border(context)
-        //         )
-        //     ),
-        //     child: Row(
-        //       mainAxisAlignment: MainAxisAlignment.center,
-        //       children: [
-        //         Icon(Icons.remove_red_eye, size: 20, color: AppColors.subtitle(context)),
-        //
-        //         SizedboxSpaccing.width03(context),
-        //         Text('View Profile', style: AppTextStyles.poppins16(context, weight: FontWeight.w600, color: AppColors.subtitle(context))),
-        //       ],
-        //     ),
-        //   ),
-        // ),
       ],
     );
   }

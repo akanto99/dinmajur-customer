@@ -6,6 +6,7 @@ import 'package:dinmajur_customer/configs/res/components/section_header/section_
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/configs/responsive/responsive_ui.dart';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
@@ -96,6 +97,20 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     _addressController.text = widget.customerAddress;
     _updatedLocation = widget.customerLocation;
     _restoreSessionLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final checkoutViewModel = Provider.of<CheckoutViewModel>(context, listen: false);
+      final subtotal = checkoutViewModel.calculateTotal(
+        serviceQuantities: widget.serviceQuantities,
+        selectedTaskItems: widget.selectedTaskItems,
+        services: widget.allServices,
+      );
+      FacebookEventsService().logInitiatedCheckout(
+        contentId: widget.serviceName,
+        contentType: 'premium-house-keeper',
+        currency: 'BDT',
+        totalPrice: subtotal + widget.transportFee,
+      );
+    });
   }
   Future<void> _restoreSessionLocation() async {
     final sessionData = await CheckoutSessionLocationService.getAll();

@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/configs/res/components/exception_errorstate/exception_errorstate.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
@@ -771,6 +772,8 @@ class _ServicesViewScreenState extends State<ServicesViewScreen> {
     final double originalPrice = task.price?.basePrice?.toDouble() ?? 0;
     final double salePrice = task.price?.salePrice?.toDouble() ?? originalPrice;
     final bool showDiscount = task.price?.discountType != DiscountType.NONE && originalPrice > salePrice;
+
+    FacebookEventsService().logViewContent(id: task.id, type: 'service');
 
     showDialog(
       context: context,

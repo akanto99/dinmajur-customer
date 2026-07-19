@@ -7,9 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// ─────────────────────────────────────────────────────────────
 // Data
-// ─────────────────────────────────────────────────────────────
 class _OnboardingData {
   static const List<String> svgAssets = [
     "assets/images/onboard/house_keeper.svg",
@@ -36,9 +34,7 @@ class _OnboardingData {
   ];
 }
 
-// ─────────────────────────────────────────────────────────────
 // Main StatefulWidget — only holds state + animation controllers
-// ─────────────────────────────────────────────────────────────
 class OnboardingScreenUpdated extends StatefulWidget {
   const OnboardingScreenUpdated({super.key});
 
@@ -140,9 +136,7 @@ class _OnboardingScreenUpdatedState extends State<OnboardingScreenUpdated>
   }
 }
 
-// ─────────────────────────────────────────────────────────────
 // Body — StatelessWidget, rebuilt only when parent setState fires
-// ─────────────────────────────────────────────────────────────
 class _OnboardingBody extends StatelessWidget {
   final PageController pageController;
   final int currentIndex;
@@ -286,9 +280,7 @@ class _OnboardingBody extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
 // Single onboarding page — isolated repaint layer
-// ─────────────────────────────────────────────────────────────
 class _OnboardingPage extends StatelessWidget {
   final String svgAsset;
   final bool isActive;
@@ -319,9 +311,7 @@ class _OnboardingPage extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
 // Arrow button — isolated widget, not recreated in AnimatedBuilder
-// ─────────────────────────────────────────────────────────────
 class _NextArrowButton extends StatelessWidget {
   final String assetImage;
   final VoidCallback onTap;

@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getAllFamilyEventCookingModel = getAllFamilyEventCookingModelFromJson(jsonString);
-
 import 'dart:convert';
 
 GetAllFamilyEventCookingModel getAllFamilyEventCookingModelFromJson(String str) => GetAllFamilyEventCookingModel.fromJson(json.decode(str));

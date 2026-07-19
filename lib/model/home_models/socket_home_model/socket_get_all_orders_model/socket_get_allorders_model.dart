@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getAllOrdersUpdatedModel = getAllOrdersUpdatedModelFromJson(jsonString);
-
 import 'dart:convert';
 
 GetAllOrdersUpdatedModel getAllOrdersUpdatedModelFromJson(String str) => GetAllOrdersUpdatedModel.fromJson(json.decode(str));

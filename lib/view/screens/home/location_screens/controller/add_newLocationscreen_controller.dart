@@ -33,7 +33,7 @@ class AddNewLocationController {
 
   AddNewLocationController(this.context, this.setState);
 
-  // ============ INITIALIZATION ============
+  // INITIALIZATION
 
   Future<void> initialize() async {
     await _fetchLocationList();
@@ -44,7 +44,7 @@ class AddNewLocationController {
     await locationViewModel.fetchLocationListApi();
   }
 
-  // ============ LOCATION SELECTION ============
+  // LOCATION SELECTION
 
   void selectLocation(String locationId, dynamic locationData) {
     setState(() {
@@ -60,7 +60,7 @@ class AddNewLocationController {
     });
   }
 
-  // ============ GET CURRENT LOCATION WITH PERMISSION HANDLING ============
+  // GET CURRENT LOCATION WITH PERMISSION HANDLING
 
   Future<void> getLocationWithAddress() async {
     setState(() {
@@ -169,7 +169,7 @@ class AddNewLocationController {
     );
   }
 
-  // ============ POST LOCATION TO API ============
+  // POST LOCATION TO API
   String _stripSuffix(String raw) =>
       raw.replaceAll(RegExp(r'\s*(District|Division|Zila|Upazila|Sadar|জেলা|বিভাগ|উপজেলা|সদর)\s*$', caseSensitive: false), '').trim();
 
@@ -222,7 +222,7 @@ class AddNewLocationController {
     }
   }
 
-  // ============ UPDATE SELECTED LOCATION ============
+  // UPDATE SELECTED LOCATION
 
   Future<void> updateSelectedLocation() async {
     if (selectedLocationData == null) return;
@@ -277,7 +277,7 @@ class AddNewLocationController {
     }
   }
 
-  // ============ DELETE LOCATION (placeholder) ============
+  // DELETE LOCATION (placeholder)
 
   Future<void> deleteSelectedLocation() async {
     if (selectedLocationData == null) return;
@@ -316,7 +316,7 @@ class AddNewLocationController {
     }
   }
 
-  // ============ NAVIGATION ============
+  // NAVIGATION
 
   void navigateToMapScreen() {
     Navigator.pushNamed(context, RoutesName.mapLocationScreen);
@@ -326,7 +326,7 @@ class AddNewLocationController {
     Navigator.pop(context);
   }
 
-  // ============ UTILITY METHODS ============
+  // UTILITY METHODS
 
   String formatDateTime(DateTime dateTime) {
     final now = DateTime.now();
@@ -345,7 +345,7 @@ class AddNewLocationController {
     }
   }
 
-  // ============ CLEANUP ============
+  // CLEANUP
 
   void dispose() {
     // Clean up any resources if needed
