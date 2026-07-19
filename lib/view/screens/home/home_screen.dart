@@ -728,13 +728,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _handleRetailSeeAll(BuildContext context) {
-    Navigator.pushNamed(
-      context,
-      RoutesName.unifiedSeeAllScreen,
-      arguments: {'storeType': 'Retail', 'stores': nearbyStores, 'storeTypes': storeTypes, 'currentPosition': _currentPosition, 'currentAddress': _currentAddress},
-    );
-  }
 
   Widget _buildIconButton({VoidCallback? onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(

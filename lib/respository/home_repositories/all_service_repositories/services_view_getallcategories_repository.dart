@@ -8,6 +8,7 @@ class ServicesViewGetAllCategoriesRepository{
 
   Future<ServicesViewGetAllCategoryModel> fetchServicesViewGetAllCategoriesGetApi(String serviceId, String? userId) async {
     try {
+      print("----------------------------$userId");
       final String url = (userId != null && userId.isNotEmpty)
           ? "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId?retailerId=$userId&isActive=true"
           : "${AppUrl.servicesViewGetAllCategoryGetAPI}/$serviceId?isActive=true";

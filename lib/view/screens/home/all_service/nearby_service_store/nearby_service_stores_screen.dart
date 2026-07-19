@@ -287,6 +287,7 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
   }
 
   void _navigateToServicesView(Datum store) {
+    print("----------------------------------${store.userId}");
     Navigator.pushNamed(
       context,
       RoutesName.servicesViewScreen,

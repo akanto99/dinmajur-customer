@@ -84,7 +84,7 @@ class AppUrl {
   static var getFamilyEventCookingGetAPI = baseUrl + '/event-cooking-bookings';
   //Home Screen ALL SERVICE
   static var getAllServiceGetAPI = baseUrl + '/services/get-all?isActive=true';
-  static var getAllNearbyServiceStoresGetAPI = baseUrl + '/stores/nearby';
+  static var getAllNearbyServiceStoresGetAPI = baseUrl + '/customers';
   static var servicesViewGetAllCategoryGetAPI = baseUrl + '/categories/by-service';
   static var getSlotGetAPI = baseUrl + '/time-slots?date=';
   static var createServiceBookingPostAPI = baseUrl + '/bookings/create';
