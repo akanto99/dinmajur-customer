@@ -9,7 +9,7 @@ class GetAllNearbyServiceStoresRepository {
   Future<GetAllNearbyServiceStoresModel> fetchGetAllServicesGetApi(String ServiceId) async {
     try {
       dynamic response = await _apiServices.getGetApiWithHeaderResponse(
-          "${AppUrl.getAllNearbyServiceStoresGetAPI}?serviceId=$ServiceId"
+          "${AppUrl.getAllNearbyServiceStoresGetAPI}/nearby-retailer?serviceId=$ServiceId"
       );
       return GetAllNearbyServiceStoresModel.fromJson(response);
     } catch (e) {
