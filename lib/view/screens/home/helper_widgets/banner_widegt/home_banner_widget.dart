@@ -30,7 +30,7 @@ class HomeBannerWidget extends StatefulWidget {
   /// Render exactly this specific banner CMS document by id — used when
   /// the home page's section order comes from the admin-controlled Home
   /// Page Layout, where each banner is its own independently-positioned
-  /// row rather than "whichever doc the home_top placement query
+  /// row rather than "whichever doc the home_page placement query
   /// returns". When null, falls back to the original shared/global
   /// BannerViewModel behavior.
   final String? cmsId;
@@ -354,7 +354,10 @@ class _HomeBannerWidgetState extends State<HomeBannerWidget> {
             );
           }
           return Column(
-            children: [_buildSingleBanner(context, imageUrl, image?.service?.slug, image?.service?.id, image?.service?.name, image?.service?.description), SizedboxSpaccing.height025(context)],
+            children: [
+              _buildSingleBanner(context, imageUrl, image?.service?.slug, image?.service?.id, image?.service?.name, image?.service?.description),
+              SizedboxSpaccing.height025(context),
+            ],
           );
         }
 
@@ -367,7 +370,12 @@ class _HomeBannerWidgetState extends State<HomeBannerWidget> {
               child: Center(child: Icon(Icons.image_not_supported_outlined, color: AppColors.textPrimary(context), size: 32)),
             );
           }
-          return Column(children: [_buildCarouselBanner(context, items), SizedboxSpaccing.height025(context)]);
+          return Column(
+            children: [
+              _buildCarouselBanner(context, items),
+              SizedboxSpaccing.height025(context),
+            ],
+          );
         }
 
         // ── Video banner ──
