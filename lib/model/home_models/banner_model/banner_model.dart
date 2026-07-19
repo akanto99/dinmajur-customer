@@ -24,8 +24,9 @@ class Data {
   BannerImage? image;
   bool? isActive;
   List<BannerItem>? items;
+  BannerVideo? video;
 
-  Data({this.id, this.type, this.placement, this.image, this.isActive, this.items});
+  Data({this.id, this.type, this.placement, this.image, this.isActive, this.items, this.video});
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     id: json["_id"],
@@ -34,6 +35,7 @@ class Data {
     image: json["image"] == null ? null : BannerImage.fromJson(json["image"]),
     isActive: json["isActive"],
     items: json["items"] == null ? [] : List<BannerItem>.from(json["items"].map((x) => BannerItem.fromJson(x))),
+    video: json["video"] == null ? null : BannerVideo.fromJson(json["video"]),
   );
 
   Map<String, dynamic> toJson() => {
@@ -43,7 +45,22 @@ class Data {
     "image": image?.toJson(),
     "isActive": isActive,
     "items": items == null ? [] : List<dynamic>.from(items!.map((x) => x.toJson())),
+    "video": video?.toJson(),
   };
+}
+
+// ── Video banner — no tap-to-navigate target on the backend model
+// (unlike image/items, which carry a linked service/task), just a plain
+// looping video.
+class BannerVideo {
+  String? url;
+  String? altText;
+
+  BannerVideo({this.url, this.altText});
+
+  factory BannerVideo.fromJson(Map<String, dynamic> json) => BannerVideo(url: json["url"], altText: json["altText"]);
+
+  Map<String, dynamic> toJson() => {"url": url, "altText": altText};
 }
 
 class BannerImage {

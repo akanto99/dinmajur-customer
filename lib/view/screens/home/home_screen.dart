@@ -22,6 +22,8 @@ import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_mod
 import 'package:dinmajur_customer/view_model/homeview_model/featured_services_view_model/featured_services_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/all_service_view_models/services_view_getallcategories_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/banner_view_model/banner_view_model.dart';
+import 'package:dinmajur_customer/view_model/homeview_model/home_sections_view_model/home_sections_view_model.dart';
+import 'package:dinmajur_customer/model/home_models/home_sections_model/home_sections_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/profileview_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -93,6 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
       featuredServicesViewModel.fetchFeaturedServices();
+
+      final homeSectionsViewModel = Provider.of<HomeSectionsViewModel>(context, listen: false);
+      homeSectionsViewModel.fetchHomeSections();
     });
     ConnectivityMonitorService().addReconnectListener(_onInternetReconnected);
   }
@@ -115,6 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
       featuredServicesViewModel.fetchFeaturedServices();
+
+      final homeSectionsViewModel = Provider.of<HomeSectionsViewModel>(context, listen: false);
+      homeSectionsViewModel.fetchHomeSections();
 
       if (_showRetailNearest) {
         await _fetchNearbyRetailers('Retail');
@@ -390,105 +398,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   SizedboxSpaccing.height02(context),
 
-                  // ── Banner Section ──
-                  Consumer<ProfileViewViewModel>(
-                    builder: (context, profileViewModel, _) {
-                      String customerName = '';
-                      String customerPhone = '';
-                      String customerAddress = '';
-                      Map<String, dynamic>? customerLocation;
-
-                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                        final userData = profileViewModel.profileviewUserData.data?.data;
-                        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-                        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-                        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-                        final addressData = userData?.addresses;
-                        if (addressData != null) {
-                          customerLocation = {
-                            "fullAddress": addressData.fullAddress ?? '',
-                            "country": addressData.country ?? '',
-                            "city": addressData.city ?? '',
-                            "geoLocation": {
-                              "type": addressData.geoLocation?.type ?? "Point",
-                              "coordinates": addressData.geoLocation?.coordinates ?? [],
-                              "timestamp": DateTime.now().toUtc().toIso8601String(),
-                            },
-                          };
-                        }
-                      }
-
-                      return HomeBannerWidget(
-                        screenWidth: screenWidth,
-                        customerName: customerName,
-                        customerPhone: customerPhone,
-                        customerAddress: customerAddress,
-                        customerLocation: customerLocation,
-                        hasValidLocation: _hasValidLocation(),
-                        onLocationRequired: _showLocationRequiredDialog,
-                        onInstantBazarTap: handleInstantBazarTap,
-                        loadingServiceSlug: _loadingServiceSlug,
-                      );
-                    },
-                  ),
-
-                  // ── Featured Services (Position 1 — after banner) ──
-                  FeaturedServicesWidget(
-                    homePosition: 'home_top',
-                    hasValidLocation: _hasValidLocation(),
-                    onLocationRequired: _showLocationRequiredDialog,
-                  ),
-
-                  // ── All Services Grid ──
-                  Consumer<ProfileViewViewModel>(
-                    builder: (context, profileViewModel, _) {
-                      String customerName = '';
-                      String customerPhone = '';
-                      String customerAddress = '';
-                      Map<String, dynamic>? customerLocation;
-
-                      if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
-                        final userData = profileViewModel.profileviewUserData.data?.data;
-                        if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
-                        if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
-                        if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
-                        final addressData = userData?.addresses;
-                        if (addressData != null) {
-                          customerLocation = {
-                            "fullAddress": addressData.fullAddress ?? '',
-                            "country": addressData.country ?? '',
-                            "city": addressData.city ?? '',
-                            "geoLocation": {
-                              "type": addressData.geoLocation?.type ?? "Point",
-                              "coordinates": addressData.geoLocation?.coordinates ?? [],
-                              "timestamp": DateTime.now().toUtc().toIso8601String(),
-                            },
-                          };
-                        }
-                      }
-
-                      return SizedBox(
-                        width: screenWidth * 0.9,
-                        child: AllServicesGridWidget(
-                          selectedServiceId: null,
-                          customerName: customerName,
-                          customerPhone: customerPhone,
-                          customerAddress: customerAddress,
-                          customerLocation: customerLocation,
-                          hasValidLocation: _hasValidLocation(),
-                          onLocationRequired: _showLocationRequiredDialog,
-                          onInstantBazarTap: handleInstantBazarTap,
-                          loadingServiceSlug: _loadingServiceSlug,
-                        ),
-                      );
-                    },
-                  ),
-                  // ── Featured Services (Position 2 — after all home services) ──
-                  FeaturedServicesWidget(
-                    homePosition: 'home_bottom',
-                    hasValidLocation: _hasValidLocation(),
-                    onLocationRequired: _showLocationRequiredDialog,
-                  ),
+                  // ── Banner / Featured Services / All Home Services —
+                  // rendered in whatever order + visibility is set on the
+                  // admin dashboard's Home Page Layout page. Falls back to
+                  // the previous fixed order (banner, featured "home_top",
+                  // all services, featured "home_bottom") while that data
+                  // is still loading or if the request fails, so the page
+                  // never renders empty.
+                  _buildDynamicHomeSections(context, screenWidth),
 
                   TrendingServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
                   SizedboxSpaccing.height02(context),
@@ -498,6 +415,119 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Renders the banner / featured-services / all-home-services block in
+  /// whatever order + active state the admin's Home Page Layout page has
+  /// set. Falls back to the previous fixed order while that data is still
+  /// loading, errored, or empty (e.g. right after a fresh install before
+  /// the endpoint has ever responded) — so the home page's default
+  /// behavior is unchanged until an admin actually customizes it.
+  Widget _buildDynamicHomeSections(BuildContext context, double screenWidth) {
+    return Consumer2<HomeSectionsViewModel, ProfileViewViewModel>(
+      builder: (context, sectionsViewModel, profileViewModel, _) {
+        String customerName = '';
+        String customerPhone = '';
+        String customerAddress = '';
+        Map<String, dynamic>? customerLocation;
+
+        if (profileViewModel.profileviewUserData.status == Status.COMPLETED) {
+          final userData = profileViewModel.profileviewUserData.data?.data;
+          if (userData?.user?.fullName != null) customerName = userData!.user!.fullName!;
+          if (userData?.user?.phone != null) customerPhone = userData!.user!.phone!;
+          if (userData?.addresses?.fullAddress != null) customerAddress = userData!.addresses!.fullAddress!;
+          final addressData = userData?.addresses;
+          if (addressData != null) {
+            customerLocation = {
+              "fullAddress": addressData.fullAddress ?? '',
+              "country": addressData.country ?? '',
+              "city": addressData.city ?? '',
+              "geoLocation": {
+                "type": addressData.geoLocation?.type ?? "Point",
+                "coordinates": addressData.geoLocation?.coordinates ?? [],
+                "timestamp": DateTime.now().toUtc().toIso8601String(),
+              },
+            };
+          }
+        }
+
+        Widget buildBannerWidget({String? cmsId}) => HomeBannerWidget(
+              screenWidth: screenWidth,
+              customerName: customerName,
+              customerPhone: customerPhone,
+              customerAddress: customerAddress,
+              customerLocation: customerLocation,
+              hasValidLocation: _hasValidLocation(),
+              onLocationRequired: _showLocationRequiredDialog,
+              onInstantBazarTap: handleInstantBazarTap,
+              loadingServiceSlug: _loadingServiceSlug,
+              cmsId: cmsId,
+            );
+
+        final Widget allServicesWidget = SizedBox(
+          width: screenWidth * 0.9,
+          child: AllServicesGridWidget(
+            selectedServiceId: null,
+            customerName: customerName,
+            customerPhone: customerPhone,
+            customerAddress: customerAddress,
+            customerLocation: customerLocation,
+            hasValidLocation: _hasValidLocation(),
+            onLocationRequired: _showLocationRequiredDialog,
+            onInstantBazarTap: handleInstantBazarTap,
+            loadingServiceSlug: _loadingServiceSlug,
+          ),
+        );
+
+        final List<HomeSectionItem>? sections =
+            sectionsViewModel.homeSectionsData.status == Status.COMPLETED
+                ? sectionsViewModel.homeSectionsData.data?.data
+                : null;
+
+        if (sections == null || sections.isEmpty) {
+          return Column(
+            children: [
+              buildBannerWidget(),
+              FeaturedServicesWidget(
+                homePosition: 'home_top',
+                hasValidLocation: _hasValidLocation(),
+                onLocationRequired: _showLocationRequiredDialog,
+              ),
+              allServicesWidget,
+              FeaturedServicesWidget(
+                homePosition: 'home_bottom',
+                hasValidLocation: _hasValidLocation(),
+                onLocationRequired: _showLocationRequiredDialog,
+              ),
+            ],
+          );
+        }
+
+        final active = sections.where((s) => s.isActive ?? false).toList()
+          ..sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
+
+        final widgets = <Widget>[];
+        for (final section in active) {
+          if (section.isFixedServices) {
+            widgets.add(allServicesWidget);
+          } else if (section.isFeaturedServices) {
+            widgets.add(FeaturedServicesWidget(
+              sectionId: section.cmsId,
+              hasValidLocation: _hasValidLocation(),
+              onLocationRequired: _showLocationRequiredDialog,
+            ));
+          } else if (section.isBanner) {
+            // Each banner row is its own document, rendered individually
+            // at its own position — not deduped, so multiple banners at
+            // different points in the admin's order each show their own
+            // content.
+            widgets.add(buildBannerWidget(cmsId: section.cmsId));
+          }
+        }
+
+        return Column(children: widgets);
+      },
     );
   }
 

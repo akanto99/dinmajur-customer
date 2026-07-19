@@ -1,6 +1,19 @@
 class AppUrl {
-  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
-  static var socketUrl = 'https://staging.dinmajur.com' ;// Staging
+  // static var baseUrl = 'https://c3e4-103-187-99-179.ngrok-free.app/api/v1';
+  // static var socketUrl = 'https://c3e4-103-187-99-179.ngrok-free.app';
+
+  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging Server
+  // static var socketUrl = 'https://staging.dinmajur.com' ;// Staging
+
+  // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+
+  // 10.0.2.2 is the Android emulator's alias for the host machine's
+  // localhost — plain "localhost"/127.0.0.1 from inside the emulator
+  // points at the emulator itself, not the Windows host running the
+  // backend on :5001.
+  static var baseUrl = 'http://10.0.2.2:5001/api/v1' ;// Local backend
+  static var socketUrl = 'http://10.0.2.2:5001' ;// Local backend
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
   static var loginEndPint = baseUrl + '/auth/auth_login';
@@ -14,7 +27,11 @@ class AppUrl {
 
 
   ///Multisteps
+
+  // static var imageApi= baseUrl + '/users/upload-profile-picture';
   static var imageApi= baseUrl + '/files/images/upload-image';
+
+
 
   static var logOutEndPoint = baseUrl + '/auth/logout';
 
@@ -29,17 +46,22 @@ class AppUrl {
   static var bannerSliderGetAPI = baseUrl +'/cms/placement/home_top';
   //Featured Services
   static var featuredServicesGetAPI = baseUrl +'/cms?placement=featured_services&page=1&limit=20';
+  //Home Page Layout — admin-controlled section order/visibility
+  static var homeSectionsGetAPI = baseUrl +'/home-sections';
+  //Single banner/featured-service CMS document by id (public)
+  static var cmsByIdGetAPI = baseUrl +'/cms/public/';
   //Notification
   static var notificationGetAPI = baseUrl +'/notifications/get-all';
 
   static var deleteAccount = baseUrl +'/users/delete-me';
 
 
+  ///=========>
   static var profileUpdateFullNamePatchAPI = baseUrl + '/customers';
   static var profileHeaderUpdatePatchAPI = baseUrl + '/users/update-me';
   static var patchImageUpdateApi= baseUrl + '/files/images/update-image';
   static var uploadThumnailPostApi= baseUrl + '/files/images/upload-image';
-  // Payment method
+  //=====>----------------------------Payment method
   static var paymentMethodBkashNagadGetAPI = baseUrl + '/payment-methods?provider=';
   static var bkashNagadGetAPI = baseUrl + '/payment-methods';
   static var accountUpdatePatchAPI = baseUrl + '/payment-methods';
@@ -47,14 +69,14 @@ class AppUrl {
 
   ///Home Screen DropDown
   static var sslPaymentFailed = baseUrl + "/api/v1/payments/ipn";
-  // order Now
+  //========>order Now
   static var nearbyRetailersPostAPI = baseUrl + "/customers/nearby-stores";
   static var CheckoutOrderPostAPI = baseUrl + "/customers/create-order";
   static var orderDetailsGetAPI = baseUrl + '/orders';
   static var groceryPaymnetPatchAPI = baseUrl + '/customers/payments/type';
   //Freelancer Rating
   static var freelancerRatingPatchAPI = baseUrl + '/customers/reviews';
-  // Premium house Keeper
+  //========>Premium house Keeper
   static var checkCoverageGetAPI = baseUrl + '/customers/check-coverage';
   static var getAllPremiumHouseKeeperCategoryGetAPI = baseUrl + '/house-keeper-categories/get-all';
   static var getAllPremiumHouseKeeperGetAPI = baseUrl + '/house-keeper-tasks';
@@ -62,12 +84,12 @@ class AppUrl {
   static var getAllShiftTimeByDateGetAPI = baseUrl + '/shifts';
   static var bookPremiumHouseKeeperPostAPI = baseUrl + '/house-keeper-bookings/create';
   static var getBookingByTrackingIdGetAPI = baseUrl + '/house-keeper-bookings/tracking';
-  // Premium Home Beauty and Salon
+  //========>Premium Home Beauty and Salon
   static var getAllPremiumHomeBeautySalonGetAPI = baseUrl + '/beauty-salon-tasks';
   static var getBookedSlotGetAPI = baseUrl + '/beauty-salon-time-slots/booked';
   static var bookPremiumHomeBeautySalonPostAPI = baseUrl + '/beauty-salon-bookings/create';
   static var getBeautySalonByTrackingIdGetAPI = baseUrl + '/beauty-salon-bookings/tracking';
-  // Family Event Cooking
+  //========>Family Event Cooking
   static var getAllFamilyEventCookingGetAPI = baseUrl + '/event-cooking-categories/get-all';
   static var bookFamilyEventCookingPostAPI = baseUrl + '/event-cooking-bookings';
   static var getFamilyEventCookingGetAPI = baseUrl + '/event-cooking-bookings';
@@ -81,14 +103,23 @@ class AppUrl {
   ///Approve Booking Api
   static var approveBookingPostAPI = baseUrl + '/delivery-requests/extra-item/approve';
 
+
+
+
+
+
   ///Forgot Password
   static var forgotOtpSendPostAPI = baseUrl + '/auth/forgot-password';
   static var forgotOtpVerifyPostAPI = baseUrl + '/auth/verify-otp';
   static var forgotPasswordResetPostAPI = baseUrl + '/auth/reset-password';
 
+
+
+
   static var suppportAPI = baseUrl + '/contact';//support
 
-  ///Order Tab
+
+///Order Tab
  static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';
  static var pendingOrderGetAPI = baseUrl + '/customers/orders?status=PENDING';
  static var completedOrderGetAPI = baseUrl + '/customers/orders?status=COMPLETED';
