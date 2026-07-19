@@ -45,7 +45,7 @@ class ReceiptPdfGenerator {
     }
   }
 
-  // ==================== PDF Components ====================
+  // PDF Components
 
   static pw.Widget _buildHeader() {
     return pw.Container(
@@ -381,7 +381,7 @@ class ReceiptPdfGenerator {
     );
   }
 
-  // ==================== Helper Methods ====================
+  // Helper Methods
 
   static pw.Widget _buildInfoRow(String label, String value) {
     return pw.Row(
@@ -454,47 +454,6 @@ class ReceiptPdfGenerator {
   }
 
 
-  // static Future<File> _savePdf(pw.Document pdf, String orderId) async {
-  //   try {
-  //     Directory? directory;
-  //
-  //     if (Platform.isAndroid) {
-  //       // Try Downloads folder first
-  //       directory = Directory('/storage/emulated/0/Download');
-  //
-  //       if (!await directory.exists()) {
-  //         try {
-  //           await directory.create(recursive: true);
-  //         } catch (e) {
-  //           print("Could not create Downloads: $e");
-  //           // Fallback to external storage directory
-  //           directory = await getExternalStorageDirectory();
-  //         }
-  //       }
-  //     } else if (Platform.isIOS) {
-  //       directory = await getApplicationDocumentsDirectory();
-  //     }
-  //
-  //     if (directory == null) {
-  //       throw Exception('Could not access storage directory');
-  //     }
-  //
-  //     // Create file name with timestamp
-  //     final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-  //     final String fileName = 'Grocery_order_${orderId}_$timestamp.pdf';
-  //     final String filePath = '${directory.path}/$fileName';
-  //
-  //     // Save PDF directly to Downloads (no subfolder)
-  //     final File file = File(filePath);
-  //     await file.writeAsBytes(await pdf.save());
-  //
-  //     print('✅ PDF saved to: $filePath');
-  //     return file;
-  //   } catch (e) {
-  //     print('❌ Error saving PDF: $e');
-  //     rethrow;
-  //   }
-  // }
   static Future<File> _savePdf(pw.Document pdf, String orderId) async {
     try {
       Directory? baseDirectory;

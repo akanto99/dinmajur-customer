@@ -83,20 +83,3 @@ class BookedSlotDatum {
 
   };
 }
-//
-// class Availability {
-//   String? date;
-//   bool? isBooked;
-//
-//   Availability({this.date, this.isBooked});
-//
-//   factory Availability.fromJson(Map<String, dynamic> json) => Availability(
-//     date: json["date"],
-//     isBooked: json["isBooked"],
-//   );
-//
-//   Map<String, dynamic> toJson() => {
-//     "date": date,
-//     "isBooked": isBooked,
-//   };
-// }

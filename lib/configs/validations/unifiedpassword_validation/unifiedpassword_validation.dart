@@ -72,7 +72,7 @@ class UnifiedPasswordValidation {
     return passwordStrength >= 0.5 && hasNoSpaces;
   }
 
-  // ==================== FULL NAME VALIDATION ====================
+  // FULL NAME VALIDATION
 
   static String? validateFullName(String? fullName, BuildContext context) {
     if (fullName == null || fullName.trim().isEmpty) {
@@ -94,7 +94,7 @@ class UnifiedPasswordValidation {
     return null;
   }
 
-  // ==================== PHONE VALIDATION ====================
+  // PHONE VALIDATION
 
   static String? validateBangladeshiPhone(String? phone, BuildContext context) {
     if (phone == null || phone.isEmpty) {
@@ -121,7 +121,7 @@ class UnifiedPasswordValidation {
     return null;
   }
 
-  // ==================== PASSWORD VALIDATION ====================
+  // PASSWORD VALIDATION
 
   static String? validatePassword(String? password, BuildContext context) {
     if (password == null || password.isEmpty) {
@@ -174,7 +174,7 @@ class UnifiedPasswordValidation {
     return null;
   }
 
-  // ==================== COMBINED VALIDATIONS ====================
+  // COMBINED VALIDATIONS
 
   // For Registration (with full name and phone)
   static String? validateRegistration({
@@ -242,7 +242,7 @@ class UnifiedPasswordValidation {
     return null;
   }
 
-  // ==================== UI WIDGETS ====================
+  // UI WIDGETS
 
   Widget buildRequirement(BuildContext context, String text, bool isMet) {
     return Padding(

@@ -8,6 +8,7 @@ import 'package:dinmajur_customer/configs/res/components/payment_method/payment_
 import 'package:dinmajur_customer/configs/res/components/section_header/section_header.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatter.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
@@ -96,6 +97,12 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     _addressController.text = widget.customerAddress;
     _updatedLocation = widget.customerLocation;
     _restoreSessionLocation();
+    FacebookEventsService().logInitiatedCheckout(
+      contentId: widget.activeCategoryId,
+      contentType: 'family-event-cooking',
+      currency: 'BDT',
+      totalPrice: widget.totalPrice + widget.transportFee,
+    );
   }
 
   Future<void> _restoreSessionLocation() async {
@@ -334,12 +341,8 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       // Prepare booking payload
       Map<String, dynamic> bookingPayload = _prepareBookingPayload();
 
-      // print('Booking Payload: $bookingPayload');
-
       // Call booking API
       await bookingViewModel.bookFamilyEventCookingPostApi(context, bookingPayload, (String? trackingId) async {
-        // print('Success! TrackingId: $trackingId');
-
         if (trackingId == null || trackingId.isEmpty) {
           bookingViewModel.setBookFamilyEventCookingLoading(false);
           Navigator.pushReplacementNamed(

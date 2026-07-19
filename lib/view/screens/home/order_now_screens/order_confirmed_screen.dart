@@ -248,17 +248,6 @@ class _OrderConfirmedScreenState extends State<OrderConfirmedScreen> {
                   ],
                 ),
               ),
-              // Container(
-              //   height: 24,
-              //   width: 80,
-              //   decoration: BoxDecoration(color: _getStatusColor(order?.status ?? 'PENDING'), borderRadius: BorderRadius.circular(100)),
-              //   child: Center(
-              //     child: Text(
-              //       _getDisplayStatus(order?.status ?? 'PENDING'),
-              //       style: AppTextStyles.textSize12(context, weight: FontWeight.w500, color: Colors.white),
-              //     ),
-              //   ),
-              // ),
               Container(
                 width: 94,
                 height: 24,

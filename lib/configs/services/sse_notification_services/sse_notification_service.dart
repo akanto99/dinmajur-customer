@@ -109,7 +109,6 @@ class SSENotificationService {
 
     if (line.startsWith('event:')) {
       _currentEventType = line.substring(6).trim();
-      // debugPrint('📨 SSE Event Type: $_currentEventType');
     } else if (line.startsWith('data:')) {
       final dataLine = line.substring(5).trim();
       if (dataLine.isNotEmpty) {
@@ -130,7 +129,6 @@ class SSENotificationService {
 
       // ✅ Handle "init" event
       if (_currentEventType == 'init') {
-        // debugPrint('✅ Handling init event');
         _handleNotificationCount(jsonData);
         return;
       }
@@ -155,7 +153,6 @@ class SSENotificationService {
 
       // Handle "connected" event
       if (_currentEventType == 'connected') {
-        // debugPrint('✅ SSE connected event received');
         return;
       }
 

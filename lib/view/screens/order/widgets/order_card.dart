@@ -162,35 +162,10 @@ class OrderCard extends StatelessWidget {
 
               SizedboxSpaccing.height015(context),
               Divider(height: 1, color: AppColors.border(context)),
-              // Text(
-              //   "$payStatus   ${datum.type}   ${datum.subTotalAmount},",
-              //   style: AppTextStyles.textSize10(context, weight: FontWeight.w600),
-              // ),
-              // Text(
-              //   "isReview: ${datum.isReview} | type: ${datum.isReview.runtimeType}",
-              //   style: AppTextStyles.textSize10(context, weight: FontWeight.w600),
-              // ),
 
               // ── Footer ────────────────────────────────────────────────────
               _buildFooter(context, screenHeight),
 
-              /// ── Completed actions ─────────────────────────────────────────
-              // if (isRunningTab &&
-              //     (datum.paymentStatus == null
-              //         || datum.paymentStatus!.isEmpty|| datum.paymentStatus!="PAID") &&
-              //     (datum.type != 'ORDER' || (datum.subTotalAmount ?? 0) > 0)) ...[
-              //   SizedboxSpaccing.height015(context),
-              //   Divider(height: 1, color: AppColors.border(context)),
-              //   SizedboxSpaccing.height02(context),
-              //   CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: true),
-              // ] else
-              ///Completed action as Play store
-              //   if (isCompletedTab && datum.isReview == false) ...[
-              //   SizedboxSpaccing.height015(context),
-              //   Divider(height: 1, color: AppColors.border(context)),
-              //   SizedboxSpaccing.height02(context),
-              //   CompletedActions(datum: datum, onPayNow: onPayNow, isRunningTab: false),
-              // ],
               // ── Completed actions ─────────────────────────────────────────────
               if (isRunningTab &&
                   datum.isApproved == false &&

@@ -67,7 +67,6 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
     } else {
       _showMessage('Promo code applied successfully!', isError: false);
       // TODO: Apply promo code logic here
-      // Navigator.pop(context, foundPromo);
     }
   }
 
@@ -80,7 +79,6 @@ class _PromoCodeScreenState extends State<PromoCodeScreen> {
     _promoController.text = promo.code;
     _showMessage('Promo code "${promo.code}" applied!', isError: false);
     // TODO: Apply promo code logic here
-    // Navigator.pop(context, promo);
   }
 
   void _showMessage(String message, {required bool isError}) {

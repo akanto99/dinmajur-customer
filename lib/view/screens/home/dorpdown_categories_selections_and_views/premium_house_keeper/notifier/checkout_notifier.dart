@@ -135,7 +135,6 @@ class CheckoutViewModel extends ChangeNotifier {
   String? validateCheckoutForm({
     required String phone,
     required String address,
-    // required String? houseSize,
     required String? paymentMethod,
   }) {
     if (phone.isEmpty) {
@@ -144,26 +143,12 @@ class CheckoutViewModel extends ChangeNotifier {
     if (address.isEmpty) {
       return "Service address is required";
     }
-    // if (houseSize == null) {
-    //   return "Please select house size";
-    // }
     if (paymentMethod == null) {
       return "Please select a payment method";
     }
     return null;
   }
 
-  // Get payment method data for API
-  // Map<String, dynamic> getPaymentMethodData(String? method) {
-  //   switch (method) {
-  //     case 'online':
-  //       return {"type": "WALLET", "provider": "online"};
-  //     case 'cash':
-  //       return {"type": "OTHER", "provider": "cash_on_delivery"};
-  //     default:
-  //       return {"type": "OTHER", "provider": "cash_on_delivery"};
-  //   }
-  // }
   // Get payment method data for API
   String getPaymentMethodData(String? method) {
     switch (method) {
@@ -240,7 +225,6 @@ class CheckoutViewModel extends ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userId = prefs.getString('userId');
 
-    // Map<String, dynamic> paymentData = getPaymentMethodData(paymentMethod);
     String paymentData = getPaymentMethodData(paymentMethod);
 
     return {
@@ -264,73 +248,6 @@ class CheckoutViewModel extends ChangeNotifier {
     };
   }
 
-  // // Initiate SSL Commerz payment
-  // Future<SSLPaymentResult> initiateSSLCommerzPayment({
-  //   required String trackingId,
-  //   required double totalAmount,
-  // }) async {
-  //   try {
-  //     Sslcommerz sslcommerz = Sslcommerz(
-  //       initializer: SSLCommerzInitialization(
-  //         multi_card_name: "visa,master,amex,bkash,nagad,rocket,upay",
-  //         currency: SSLCurrencyType.BDT,
-  //         product_category: "Service",
-  //         sdkType: SSLCSdkType.TESTBOX,
-  //         store_id: dotenv.env['SSL_STORE_ID']!,
-  //         store_passwd: dotenv.env['SSL_STORE_PASSWORD']!,
-  //         total_amount: totalAmount,
-  //         tran_id: trackingId,
-  //       ),
-  //     );
-  //
-  //     var result = await sslcommerz.payNow();
-  //
-  //     if (result is PlatformException) {
-  //       return SSLPaymentResult(
-  //         success: false,
-  //         status: 'FAILED',
-  //         errorMessage: result.toString(),
-  //       );
-  //     } else {
-  //       // Extract payment details
-  //       String? status = result.status;
-  //       String? amount = result.amount;
-  //       String? cardType = result.cardType;
-  //
-  //       print("✅ Payment Response Received!");
-  //       print("Status: $status");
-  //       print("Amount: $amount");
-  //       print("Card Type: $cardType");
-  //
-  //       return SSLPaymentResult(
-  //         success: status == 'VALID' || status == 'VALIDATED',
-  //         status: status ?? 'UNKNOWN',
-  //         amount: amount,
-  //         cardType: cardType,
-  //         transactionId: result.tranId,
-  //         validationId: result.valId,
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print("💥 SSL Commerz Error: $e");
-  //     return SSLPaymentResult(
-  //       success: false,
-  //       status: 'ERROR',
-  //       errorMessage: e.toString(),
-  //     );
-  //   }
-  // }
-  /// Initiate payment using centralized service
-  // Future<SSLPaymentResult> initiatePayment({
-  //   required String trackingId,
-  //   required double totalAmount,
-  // }) async {
-  //   return await _paymentService.initiatePayment(
-  //     trackingId: trackingId,
-  //     totalAmount: totalAmount,
-  //     productCategory: "House Keeping Service",
-  //   );
-  // }
   /// Initiate payment using centralized service
   Future<SSLPaymentResult> initiatePayment({
     required String trackingId,
@@ -340,11 +257,6 @@ class CheckoutViewModel extends ChangeNotifier {
     String? customerEmail,
     String? customerAddress,
   }) async {
-    // print("Tracking ID: $trackingId");
-    // print("Total Amount: $totalAmount");
-    // print("Customer: $customerName");
-    // print("Phone: $customerPhone");
-
     try {
       final result = await _paymentService.initiatePayment(
         trackingId: trackingId,
@@ -355,8 +267,6 @@ class CheckoutViewModel extends ChangeNotifier {
         customerEmail: customerEmail,
         customerAddress: customerAddress,
       );
-
-      // print(result.toString());
 
       return result;
     } catch (e, stackTrace) {

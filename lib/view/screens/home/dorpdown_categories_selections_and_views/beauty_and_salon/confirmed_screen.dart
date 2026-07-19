@@ -91,7 +91,6 @@ class _BeautyConfirmedScreenState extends State<BeautyConfirmedScreen> {
   @override
   void initState() {
     super.initState();
-    // print("--------------------------------------${widget.valId}");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = Provider.of<GetBeautySalonViewModel>(context, listen: false);
       viewModel.fetchGetBeautySalonDataApi(widget.trackingId!);

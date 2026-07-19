@@ -95,10 +95,7 @@ class SSLCommerzPaymentService {
 
       var result = await sslcommerz.payNow();
 
-      // print("Type: ${result.runtimeType}");
-
       if (result is PlatformException) {
-        // print("❌ Platform Exception: ${result}");
         return SSLPaymentResult(success: false, status: 'FAILED', errorMessage: result.toString());
       }
 
@@ -108,13 +105,6 @@ class SSLCommerzPaymentService {
       String? tranId = result.tranId?.toString();
       String? valId = result.valId?.toString();
       String? riskTitle = result.riskTitle?.toString();
-
-      // print("Status: $status");
-      // print("Amount: $amount");
-      // print("Card Type: $cardType");
-      // print("Transaction ID: $tranId");
-      // print("Validation ID: $valId");
-      // print("Risk Title: $riskTitle");
 
       // User cancelled
       if (status == 'CANCELLED' || status == 'CANCELED') {

@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final getHomeBeautySalonModel = getHomeBeautySalonModelFromJson(jsonString);
-
 import 'dart:convert';
 
 GetHomeBeautySalonModel getHomeBeautySalonModelFromJson(String str) => GetHomeBeautySalonModel.fromJson(json.decode(str));

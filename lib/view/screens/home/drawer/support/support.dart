@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/res/color.dart';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:dinmajur_customer/configs/res/components/header_appbar.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
@@ -123,6 +124,8 @@ class _SupportState extends State<Support> {
 
                       // Call the API
                       await supportModel.supportPostAPI(context, supportData);
+
+                      FacebookEventsService().logContact();
 
                       // Open email client with the message
                       final subject = Uri.encodeComponent('Support Request - Dinmajur Customer App');

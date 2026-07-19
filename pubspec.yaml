@@ -73,7 +73,7 @@ dependencies:
 
   carousel_slider: ^5.1.2
   package_info_plus: ^9.0.0
-#  facebook_app_events: ^0.27.2
+  facebook_app_events: ^0.27.2
 
 
 

@@ -4,7 +4,7 @@ import 'package:dinmajur_customer/configs/utils/amount_formatter/amount_formatte
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-// ==================== UNIVERSAL DYNAMIC CART SERVICES LIST ====================
+// UNIVERSAL DYNAMIC CART SERVICES LIST
 
 class DynamicCartServicelistWidget extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
@@ -85,9 +85,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
       return {'name': name, 'price': price, 'originalPrice': originalPrice, 'hasQuantityLimit': hasQuantityLimit, 'hasDiscount': false, 'canHaveMultiple': canHaveMultiple};
     }
 
-    // ──────────────────────────────────────────────
     // Beauty salon / generic Item branch
-    // ──────────────────────────────────────────────
     if (service.runtimeType.toString().contains('Item')) {
       name = service.name ?? 'Unnamed Service';
       price = service.salePrice?.toDouble() ?? service.originalPrice?.toDouble() ?? 0.0;
@@ -95,9 +93,7 @@ class _DynamicCartServicelistWidgetState extends State<DynamicCartServicelistWid
       canHaveMultiple = true; // usually no limit for salon/products
       hasQuantityLimit = false;
     }
-    // ──────────────────────────────────────────────
     // Housekeeper / Datum branch
-    // ──────────────────────────────────────────────
     else {
       name = service.name ?? 'Unnamed Task';
 

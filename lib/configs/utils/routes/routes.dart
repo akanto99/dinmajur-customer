@@ -69,8 +69,6 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const WelcomeLoginScreen());
       case RoutesName.authOtp:
         return MaterialPageRoute(builder: (BuildContext context) => const CustomerAuthOtpScreen(), settings: settings);
-      // case RoutesName.verificationSuccessScreen:
-      //     return MaterialPageRoute(builder: (BuildContext context) => const ());
 
       case RoutesName.navigationBar:
         final args = settings.arguments;
@@ -91,9 +89,7 @@ class Routes {
       case RoutesName.addLocationScreenWidget:
         return MaterialPageRoute(builder: (BuildContext context) => const AddLocationScreenWidget());
       case RoutesName.notificationsListScreen:
-        return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen()); //Notifications ListScreen SSE Just
-      //  case RoutesName.notificationsListScreen:
-      // return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());//Notifications ListScreen SSE Just//
+        return MaterialPageRoute(builder: (BuildContext context) => const NotificationsListScreen());
       case RoutesName.unifiedSeeAllScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null) {
@@ -115,16 +111,7 @@ class Routes {
           );
         }
         return _errorRoute();
-      // case RoutesName.orderDetailsSocketScreen:
-      //   final args = settings.arguments as Map<String, dynamic>?;
-      //   if (args != null) {
-      //     return MaterialPageRoute(
-      //       builder: (BuildContext context) => OrderDetailsSocketScreen(orderId: args['orderId']),
-      //       settings: settings,
-      //     );
-      //   }
-      //   return _errorRoute();
-      //-----------location_screens
+      // location_screens
       case RoutesName.addlocation:
         return MaterialPageRoute(builder: (BuildContext context) => const AddNewlocationScreen());
       case RoutesName.mapLocationScreen:
@@ -203,8 +190,6 @@ class Routes {
         }
         return _errorRoute();
 
-      // case RoutesName.checkoutScreen:
-      //   return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreen(), settings: settings);
       case RoutesName.checkoutScreenNew:
         return MaterialPageRoute(builder: (BuildContext context) => const CheckoutScreenNew(), settings: settings);
       case RoutesName.orderConfirmScreen:
@@ -498,27 +483,6 @@ class Routes {
           builder: (BuildContext context) => const FreelancerProfileScreen(),
           settings: settings, // ← add this
         );
-      //pending Order Details SOCKET.IO Screen
-      // case RoutesName.pendingOrdersViewDetailsSocketscreen:
-      //   final args = settings.arguments as Map<String, dynamic>?;
-      //   if (args != null) {
-      //     return MaterialPageRoute(
-      //       builder: (BuildContext context) => PendingOrdersViewDetailsSocketscreen(orderId: args['orderId']),
-      //       settings: settings,
-      //     );
-      //   }
-      //   return _errorRoute();
-
-      //running Order Details SOCKET.IO Screen
-      // case RoutesName.runningOrdersViewDetailsSocketscreen:
-      //   final args = settings.arguments as Map<String, dynamic>?;
-      //   if (args != null) {
-      //     return MaterialPageRoute(
-      //       builder: (BuildContext context) => RunningOrdersViewDetailsSocketscreen(orderId: args['orderId']),
-      //       settings: settings,
-      //     );
-      //   }
-      //   return _errorRoute();
       //Complete Order Details API Get Data
       case RoutesName.completeOrdersDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>?;
@@ -529,16 +493,6 @@ class Routes {
           );
         }
         return _errorRoute();
-
-      // case RoutesName.orderDetailsScreen:
-      //   final args = settings.arguments as Map<String, dynamic>?;
-      //   if (args == null) {
-      //     return _errorRoute();
-      //   }
-      //   return MaterialPageRoute(
-      //     builder: (BuildContext context) => OrderDetailsScreen(orderData: args),
-      //     settings: settings,
-      //   );
 
       default:
         return _errorRoute();

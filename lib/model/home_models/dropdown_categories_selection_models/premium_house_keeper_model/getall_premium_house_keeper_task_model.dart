@@ -1,7 +1,3 @@
-// To parse this JSON data:
-//
-//     final getAllPermiumHouseKeeperTask = getAllPermiumHouseKeeperTaskFromJson(jsonString);
-
 import 'dart:convert';
 
 GetAllPermiumHouseKeeperTaskModel getAllPermiumHouseKeeperTaskModelFromJson(String str) => GetAllPermiumHouseKeeperTaskModel.fromJson(json.decode(str));

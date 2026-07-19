@@ -187,11 +187,6 @@ class CookingCheckoutViewModel extends ChangeNotifier {
     String? customerEmail,
     String? customerAddress,
   }) async {
-    // print("Tracking ID: $trackingId");
-    // print("Total Amount: $totalAmount");
-    // print("Customer: $customerName");
-    // print("Phone: $customerPhone");
-
     try {
       final result = await _paymentService.initiatePayment(
         trackingId: trackingId,
@@ -202,8 +197,6 @@ class CookingCheckoutViewModel extends ChangeNotifier {
         customerEmail: customerEmail,
         customerAddress: customerAddress,
       );
-
-      // print(result.toString());
 
       return result;
     } catch (e, stackTrace) {

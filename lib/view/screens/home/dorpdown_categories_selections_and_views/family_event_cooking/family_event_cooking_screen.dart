@@ -427,16 +427,6 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                           iconSize: 68,
                           height: 130,
                           selectedIndex: _selectedTabIndex,
-                          // onCategoryTap: (index) {
-                          //   final selectedCategory = data[index];
-                          //   print('Category ID: ${selectedCategory.id ?? ''}');
-                          //   setState(() => _selectedTabIndex = index);
-                          //   _mainScrollController.animateTo(
-                          //     0,
-                          //     duration: Duration(milliseconds: 300),
-                          //     curve: Curves.easeInOut,
-                          //   );
-                          // },
                           onCategoryTap: (index) {
                             setState(() {
                               _selectedTabIndex = index;
@@ -498,64 +488,7 @@ class _FamilyEventCookingScreenState extends State<FamilyEventCookingScreen> {
                     ),
                   ),
 
-                  // Sticky Headers with Package Lists
-                  // ...data.asMap().entries.map((entry) {
-                  //   int index = entry.key;
-                  //   Datum category = entry.value;
-                  //
-                  //   return SliverStickyHeader(
-                  //     header: Container(
-                  //       key: _categoryKeys[index],
-                  //       width: screenWidth,
-                  //       color: AppColors.containerBackground(context),
-                  //       child: Center(
-                  //         child: Container(
-                  //           width: screenWidth * 0.9,
-                  //           padding: EdgeInsets.symmetric(vertical: 12),
-                  //           decoration: BoxDecoration(
-                  //             color: AppColors.containerBackground(context),
-                  //             border: Border(
-                  //               bottom: BorderSide(width: 1, color: AppColors.border(context)),
-                  //             ),
-                  //           ),
-                  //           child: Text(
-                  //             category.name ?? '',
-                  //             style: AppTextStyles.textSize18(context, weight: FontWeight.w600),
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     ),
-                  //     sliver: SliverToBoxAdapter(
-                  //       child: Center(
-                  //         child: Container(
-                  //           width: screenWidth * 0.9,
-                  //           child: Column(
-                  //             children: [
-                  //               // Show packages based on category type
-                  //               if (category.type == 'REGULAR')
-                  //                 ...((category.packages ?? []).asMap().entries.map((pkgEntry) {
-                  //                   final package = pkgEntry.value;
-                  //                   final isLast = pkgEntry.key == (category.packages?.length ?? 0) - 1;
-                  //                   return _buildRegularPackageCard(category, package, screenWidth, isLast);
-                  //                 }))
-                  //               else if (category.type == 'MANUAL')
-                  //                 ...((category.packages ?? []).asMap().entries.map((pkgEntry) {
-                  //                   final package = pkgEntry.value;
-                  //                   final isLast = pkgEntry.key == (category.packages?.length ?? 0) - 1;
-                  //                   return _buildManualPackageSection(category, package, screenWidth, isLast);
-                  //                 })),
-                  //               SizedboxSpaccing.height04(context),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     ),
-                  //   );
-                  // }).toList(),
                   _buildSelectedCategorySliver(data, screenWidth),
-
-                  // Bottom Padding
-                  // SliverToBoxAdapter(child: SizedBox(height: screenHeight * .5)),
                 ],
               );
             },

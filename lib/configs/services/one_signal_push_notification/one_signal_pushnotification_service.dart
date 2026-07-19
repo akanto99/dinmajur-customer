@@ -109,25 +109,6 @@ class OneSignalNotificationService {
           targetArgs = {'orderId': orderId};
         }
         break;
-      // case 'HOUSEKEEPER':
-      //   targetRoute = RoutesName.confirmedScreen;
-      //   targetArgs  = {'trackingId': trackingId};
-      //   break;
-      // case 'BEAUTY_SALON':
-      //   targetRoute = RoutesName.beautyConfirmedScreen;
-      //   targetArgs  = {'trackingId': trackingId};
-      //   break;
-      // case 'EVENT_COOKING':
-      //   targetRoute = RoutesName.cookingConfirmedScreen;
-      //   targetArgs  = {'trackingId': trackingId};
-      //   break;
-      // case 'SERVICES':
-      //   targetRoute = RoutesName.serviceConfirmedScreen;
-      //   targetArgs  = {'trackingId': trackingId};
-      //   break;
-      // default:
-      //   developer.log('Unknown bookingType: $bookingType', name: 'OneSignal');
-      //   return;
       case 'HOUSEKEEPER':
       case 'BEAUTY_SALON':
       case 'EVENT_COOKING':

@@ -14,13 +14,12 @@ class RoutesName {
   static const String notificationsListScreen = 'notificationsListScreen_view'; //Notifications ListScreen SSE Just
   static const String unifiedSeeAllScreen = 'unifiedSeeAllScreen_view';
   static const String orderDetailsSocketScreen = 'orderDetailsSocketScreen_view';
-  //-----------location_screens
+  // location_screens
   static const String addlocation = 'addLocation_view';
   static const String mapLocationScreen = 'mapLocationScreen_view';
 ///order in Home screen
   static const String orderNow = 'orderNow_view';
   static const String instantBazarResultsScreen = 'instantBazarResultsScreen_view';
-  // static const String checkoutScreen = 'checkout_view';
   static const String checkoutScreenNew = 'checkoutNew_view';
   static const String orderConfirmScreen = 'orderConfirmScreen_view';
   static const String trackOrderViewdetailsSocketScreen = 'trackOrderViewdetailsSocketScreen_view';//SOCKET GET VIEW DETAILS

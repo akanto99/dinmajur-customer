@@ -517,26 +517,3 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     );
   }
 }
-
-// Widget _buildConfirmButton(BuildContext context, double screenWidth) {
-  //   return Padding(
-  //     padding: EdgeInsets.all(15),
-  //     child: GestureDetector(
-  //       onTap: widget.isLoading ? null : _handleConfirmBooking,
-  //       child: Container(
-  //         width: screenWidth,
-  //         height: 50,
-  //         decoration: BoxDecoration(color: widget.isLoading ? AppColors.button(context).withOpacity(0.6) : AppColors.button(context), borderRadius: BorderRadius.circular(8)),
-  //         child: Center(
-  //           child: widget.isLoading
-  //               ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white), strokeWidth: 2))
-  //               : Text(
-  //                   'Confirm Booking',
-  //                   style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: Colors.white),
-  //                 ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-// }

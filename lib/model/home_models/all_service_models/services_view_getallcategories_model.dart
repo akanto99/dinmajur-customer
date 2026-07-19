@@ -35,7 +35,6 @@ class ServicesViewGetAllCategoryModel {
   };
 }
 
-// ─────────────────────────────────────────────
 
 class Data {
   String? serviceId;
@@ -82,7 +81,6 @@ class Data {
   };
 }
 
-// ─────────────────────────────────────────────
 
 class Category {
   String? id;
@@ -136,7 +134,6 @@ class Category {
   };
 }
 
-// ─────────────────────────────────────────────
 
 class Task {
   String? id;
@@ -231,7 +228,6 @@ class Task {
   };
 }
 
-// ─────────────────────────────────────────────
 
 class Faq {
   String? id;
@@ -253,7 +249,6 @@ class Faq {
   };
 }
 
-// ─────────────────────────────────────────────
 
 class ImageModel {
   String? id;
@@ -278,7 +273,6 @@ class ImageModel {
   };
 }
 
-// ─────────────────────────────────────────────
 
 class Price {
   double? basePrice;
@@ -310,7 +304,6 @@ class Price {
   };
 }
 
-// ─────────────────────────────────────────────
 
 enum DiscountType { FLAT, NONE, PERCENTAGE }
 

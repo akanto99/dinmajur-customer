@@ -37,7 +37,7 @@ import 'package:dinmajur_customer/view_model/homeview_model/profileview_model/pr
 import 'package:dinmajur_customer/view_model/order_view_models/complete_orders_view_model.dart';
 import 'package:dinmajur_customer/view_model/order_view_models/running_orders_view_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
-// import 'package:facebook_app_events/facebook_app_events.dart';
+import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -91,9 +91,7 @@ void main() async {
   // App upgrade
   await Upgrader.clearSavedSettings();
   ///Facebook meta analytics
-  // final facebookAppEvents = FacebookAppEvents();
-  // await facebookAppEvents.setGraphApiVersion('v24.0');
-  // await facebookAppEvents.activateApp();
+  await FacebookEventsService().init();
 
 
   // ── SocketManager
