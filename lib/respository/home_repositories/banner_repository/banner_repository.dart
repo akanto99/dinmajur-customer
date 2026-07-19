@@ -17,7 +17,7 @@ class BannerRepository {
 
   /// Fetch one specific banner CMS document by id — used to render a
   /// banner in the exact position the admin's Home Page Layout order
-  /// puts it in, rather than whichever doc the home_top placement query
+  /// puts it in, rather than whichever doc the home_page placement query
   /// happens to pick.
   Future<BannerModel> fetchBannerById(String id) async {
     try {

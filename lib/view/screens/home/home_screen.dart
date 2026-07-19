@@ -401,10 +401,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   // ── Banner / Featured Services / All Home Services —
                   // rendered in whatever order + visibility is set on the
                   // admin dashboard's Home Page Layout page. Falls back to
-                  // the previous fixed order (banner, featured "home_top",
-                  // all services, featured "home_bottom") while that data
-                  // is still loading or if the request fails, so the page
-                  // never renders empty.
+                  // a fixed order (banner, featured services, all services)
+                  // while that data is still loading or if the request
+                  // fails, so the page never renders empty.
                   _buildDynamicHomeSections(context, screenWidth),
 
                   TrendingServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
@@ -490,16 +489,10 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               buildBannerWidget(),
               FeaturedServicesWidget(
-                homePosition: 'home_top',
                 hasValidLocation: _hasValidLocation(),
                 onLocationRequired: _showLocationRequiredDialog,
               ),
               allServicesWidget,
-              FeaturedServicesWidget(
-                homePosition: 'home_bottom',
-                hasValidLocation: _hasValidLocation(),
-                onLocationRequired: _showLocationRequiredDialog,
-              ),
             ],
           );
         }

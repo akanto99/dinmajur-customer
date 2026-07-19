@@ -43,7 +43,7 @@ class AppUrl {
   static var locationListGetAPI = baseUrl + '/customers/get-delivery-address';
   static var deleteAddressDeleteAPI = baseUrl + '/customers/delete-address';
   //Banner Sliders
-  static var bannerSliderGetAPI = baseUrl +'/cms/placement/home_top';
+  static var bannerSliderGetAPI = baseUrl +'/cms/placement/home_page';
   //Featured Services
   static var featuredServicesGetAPI = baseUrl +'/cms?placement=featured_services&page=1&limit=20';
   //Home Page Layout — admin-controlled section order/visibility
