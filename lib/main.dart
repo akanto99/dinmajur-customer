@@ -70,6 +70,7 @@ import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_n
 import 'view_model/homeview_model/nearby_retailers_and_order_view_models/order_now_view_models/order_confirmed_getorderdetails_view_model.dart';
 import 'view_model/order_view_models/assigned_freelance_view_model/freelancer_review_view_model.dart';
 import 'view_model/homeview_model/featured_services_view_model/featured_services_view_model.dart';
+import 'view_model/homeview_model/home_sections_view_model/home_sections_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -185,6 +186,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => BannerViewModel()),
         //Featured Services
         ChangeNotifierProvider(create: (_) => FeaturedServicesViewModel()),
+        //Home Page Layout (admin-controlled section order/visibility)
+        ChangeNotifierProvider(create: (_) => HomeSectionsViewModel()),
 
         ChangeNotifierProvider(create: (_) => PatchprofileImageUpdateViewModel()),
         ChangeNotifierProvider(create: (_) => PostSupportViewModel()),

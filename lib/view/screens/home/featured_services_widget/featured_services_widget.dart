@@ -16,14 +16,21 @@ class FeaturedServicesWidget extends StatefulWidget {
   final bool hasValidLocation;
   final VoidCallback onLocationRequired;
   /// Filter sections by homePosition ('home_top' or 'home_bottom').
-  /// If null, shows all sections.
+  /// If null, shows all sections. Ignored when [sectionId] is set.
   final String? homePosition;
+  /// Render exactly one specific section (matched by its CMS _id) —
+  /// used when the home page's section order comes from the admin-
+  /// controlled Home Page Layout, where each featured-services block is
+  /// its own independently-positioned row rather than a home_top/
+  /// home_bottom bucket.
+  final String? sectionId;
 
   const FeaturedServicesWidget({
     Key? key,
     required this.hasValidLocation,
     required this.onLocationRequired,
     this.homePosition,
+    this.sectionId,
   }) : super(key: key);
 
   @override
@@ -171,10 +178,12 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
             .where((s) =>
                 (s.isActive ?? false) &&
                 (s.items?.isNotEmpty ?? false) &&
-                (widget.homePosition == null ||
-                 s.homePosition == widget.homePosition ||
-                 // sections without homePosition set default to home_top
-                 (widget.homePosition == 'home_top' && (s.homePosition == null || s.homePosition!.isEmpty))))
+                (widget.sectionId != null
+                    ? s.id == widget.sectionId
+                    : (widget.homePosition == null ||
+                       s.homePosition == widget.homePosition ||
+                       // sections without homePosition set default to home_top
+                       (widget.homePosition == 'home_top' && (s.homePosition == null || s.homePosition!.isEmpty)))))
             .toList();
         if (active.isEmpty) return const SizedBox.shrink();
 
