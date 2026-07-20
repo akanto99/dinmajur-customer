@@ -19,13 +19,12 @@ class GetallPremiumHomeBeautySalonViewModel with ChangeNotifier {
 
     setgetAllPremiumHomeBeautySalonData(ApiResponse.loading());
 
-    _myRepo.fetchGetallPremiumHomeBeautySalonGetApi().then((value){
+    try {
+      final value = await _myRepo.fetchGetallPremiumHomeBeautySalonGetApi();
       setgetAllPremiumHomeBeautySalonData(ApiResponse.completed(value));
-
-
-    }).onError((error, stackTrace){
+    } catch (error) {
       setgetAllPremiumHomeBeautySalonData(ApiResponse.error(error.toString()));
-    });
+    }
   }
 
 

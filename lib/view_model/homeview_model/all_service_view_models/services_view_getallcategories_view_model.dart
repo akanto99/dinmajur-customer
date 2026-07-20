@@ -17,13 +17,11 @@ class ServicesViewGetAllCategoriesViewModel with ChangeNotifier {
   Future<void> fetchServicesViewGetAllCategoriesGetApi(String serviceId, String ?userId) async {
     setServicesViewGetAllCategoryData(ApiResponse.loading());
 
-    _myRepo
-        .fetchServicesViewGetAllCategoriesGetApi(serviceId, userId)
-        .then((value) {
-          setServicesViewGetAllCategoryData(ApiResponse.completed(value));
-        })
-        .onError((error, stackTrace) {
-          setServicesViewGetAllCategoryData(ApiResponse.error(error.toString()));
-        });
+    try {
+      final value = await _myRepo.fetchServicesViewGetAllCategoriesGetApi(serviceId, userId);
+      setServicesViewGetAllCategoryData(ApiResponse.completed(value));
+    } catch (error) {
+      setServicesViewGetAllCategoryData(ApiResponse.error(error.toString()));
+    }
   }
 }

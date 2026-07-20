@@ -103,15 +103,29 @@ class _GetAllNearbyServiceStoresScreenState extends State<GetAllNearbyServiceSto
                   case Status.COMPLETED:
                     final stores = viewModel.getAllNearbyServiceStoresData.data?.data ?? [];
                     if (stores.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                      // A non-scrollable child (e.g. a bare Center) can't be
+                      // dragged, so RefreshIndicator never sees the pull
+                      // gesture — this needs a scrollable so pull-to-refresh
+                      // still works on the empty state.
+                      return LayoutBuilder(
+                        builder: (context, constraints) => ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           children: [
-                            Icon(Icons.store_mall_directory_outlined, size: 64, color: AppColors.subtitle(context).withOpacity(0.4)),
-                            const SizedBox(height: 16),
-                            Text('No stores available', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context))),
-                            const SizedBox(height: 6),
-                            Text('There are no stores for this service\nin your area yet.', textAlign: TextAlign.center, style: AppTextStyles.textSize13(context, color: AppColors.subtitle(context))),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.store_mall_directory_outlined, size: 64, color: AppColors.subtitle(context).withOpacity(0.4)),
+                                    const SizedBox(height: 16),
+                                    Text('No stores available', style: AppTextStyles.textSize16(context, weight: FontWeight.w600, color: AppColors.textPrimary(context))),
+                                    const SizedBox(height: 6),
+                                    Text('There are no stores for this service\nin your area yet.', textAlign: TextAlign.center, style: AppTextStyles.textSize13(context, color: AppColors.subtitle(context))),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       );
