@@ -39,6 +39,11 @@ class BookNowHomeBeautySalonScreen extends StatefulWidget {
   final String description;
   final bool isFromHome;
   final Map<String, dynamic>? customerLocation;
+  /// Set when arriving from a card whose "ADD" button already committed to
+  /// a specific service (e.g. a Featured item) — that item's quantity is
+  /// pre-set to 1 so it's shown as added, and synced to the cart, without
+  /// the user having to find and tap it again on this page.
+  final String? preselectTaskId;
 
   const BookNowHomeBeautySalonScreen({
     Key? key,
@@ -49,6 +54,7 @@ class BookNowHomeBeautySalonScreen extends StatefulWidget {
     required this.description,
     this.isFromHome = false,
     this.customerLocation,
+    this.preselectTaskId,
   }) : super(key: key);
 
   @override
@@ -77,10 +83,17 @@ class _BookNowHomeBeautySalonScreenState extends State<BookNowHomeBeautySalonScr
     _currentCustomerAddress = widget.customerAddress;
     _customerLocation = widget.customerLocation;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false).fetchGetAllPermiumHomeBeautySalonGetDataApi();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Provider.of<GetallPremiumHomeBeautySalonViewModel>(context, listen: false).fetchGetAllPermiumHomeBeautySalonGetDataApi();
+      if (!mounted) return;
 
       Provider.of<GetBookedSlotViewModel>(context, listen: false).fetchGetBookedSlotDataApi(DateTime.now());
+
+      final preselectId = widget.preselectTaskId;
+      if (preselectId != null && preselectId.isNotEmpty && mounted) {
+        setState(() => _serviceQuantities[preselectId] = (_serviceQuantities[preselectId] ?? 0) + 1);
+        _syncGlobalCart();
+      }
     });
   }
 

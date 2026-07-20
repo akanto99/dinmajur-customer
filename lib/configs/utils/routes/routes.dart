@@ -288,6 +288,7 @@ class Routes {
               description: args['description'],
               customerLocation: args['customerLocation'],
               isFromHome: args['isFromHome'] ?? false,
+              preselectTaskId: args['preselectTaskId'] as String?,
             ),
             settings: settings,
           );

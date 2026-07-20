@@ -103,6 +103,10 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
           });
           break;
         case 'beauty-parlour':
+          // Tapping "ADD" on a specific item means the user wants that
+          // exact item added, not just the browse list — pass its id so
+          // BookNowHomeBeautySalonScreen can pre-add it and show the
+          // bottom cart bar immediately instead of landing on an empty cart.
           Navigator.pushNamed(context, RoutesName.bookNowHomeBeautySalonScreen, arguments: {
             'customerName': customerName,
             'customerPhone': customerPhone,
@@ -110,6 +114,7 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
             'serviceName': serviceName,
             'description': description,
             'customerLocation': customerLocation,
+            'preselectTaskId': item.task?.id,
           });
           break;
         case 'family-event-cooking':
