@@ -15,7 +15,7 @@ import 'package:video_player/video_player.dart';
 
 // Shared by the image/carousel/video banner renderers below so all three
 // banner types stay visually consistent at whatever height is set here.
-const double _kBannerHeight = 160;
+const double _kBannerHeight = 120;
 
 class HomeBannerWidget extends StatefulWidget {
   final double screenWidth;

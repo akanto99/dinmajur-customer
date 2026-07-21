@@ -16,6 +16,12 @@
 -keep class io.socket.** { *; }
 -dontwarn io.socket.**
 
+# Facebook SDK (facebook_app_events) - relies on reflection internally;
+# without these, R8 can strip/rename classes it needs in release builds,
+# causing App Events to silently stop reaching Events Manager.
+-keep class com.facebook.** { *; }
+-dontwarn com.facebook.**
+
 # Gson-based (or similar) model classes some plugins deserialize via reflection
 -keepattributes Signature
 -keepattributes *Annotation*

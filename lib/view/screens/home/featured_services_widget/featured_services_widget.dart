@@ -15,11 +15,6 @@ import 'package:provider/provider.dart';
 class FeaturedServicesWidget extends StatefulWidget {
   final bool hasValidLocation;
   final VoidCallback onLocationRequired;
-  /// Render exactly one specific section (matched by its CMS _id) —
-  /// used when the home page's section order comes from the admin-
-  /// controlled Home Page Layout, where each featured-services block is
-  /// its own independently-positioned row. When null, shows all active
-  /// sections (used only as a fallback if that layout data hasn't loaded).
   final String? sectionId;
 
   const FeaturedServicesWidget({
@@ -103,10 +98,6 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
           });
           break;
         case 'beauty-parlour':
-          // Tapping "ADD" on a specific item means the user wants that
-          // exact item added, not just the browse list — pass its id so
-          // BookNowHomeBeautySalonScreen can pre-add it and show the
-          // bottom cart bar immediately instead of landing on an empty cart.
           Navigator.pushNamed(context, RoutesName.bookNowHomeBeautySalonScreen, arguments: {
             'customerName': customerName,
             'customerPhone': customerPhone,
@@ -139,10 +130,6 @@ class _FeaturedServicesWidgetState extends State<FeaturedServicesWidget> {
           });
           break;
         default:
-          // Tapping "ADD" on a specific task means the user wants that
-          // exact task added, not just the browse list — pass its id so
-          // ServicesViewScreen can pre-add it and show the bottom cart bar
-          // immediately instead of landing on an empty cart.
           Navigator.pushNamed(context, RoutesName.servicesViewScreen, arguments: {
             'serviceId': serviceId,
             'customerName': customerName,

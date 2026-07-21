@@ -51,6 +51,16 @@ android {
             envProperties.getProperty("GOOGLE_MAPS_SDK_KEY")
                 ?: System.getenv("GOOGLE_MAPS_SDK_KEY")
                         ?: ""
+
+        manifestPlaceholders["FACEBOOK_APP_ID"] =
+            envProperties.getProperty("FACEBOOK_APP_ID")
+                ?: System.getenv("FACEBOOK_APP_ID")
+                        ?: ""
+
+        manifestPlaceholders["FACEBOOK_CLIENT_TOKEN"] =
+            envProperties.getProperty("FACEBOOK_CLIENT_TOKEN")
+                ?: System.getenv("FACEBOOK_CLIENT_TOKEN")
+                        ?: ""
     }
     signingConfigs {
         create("release") {

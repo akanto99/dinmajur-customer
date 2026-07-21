@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bannerViewModel.fetchBannerData();
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
-      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
+      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed", '');
 
       final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
       featuredServicesViewModel.fetchFeaturedServices();
@@ -101,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     ConnectivityMonitorService().addReconnectListener(_onInternetReconnected);
   }
+
   void _onInternetReconnected() {
     if (!mounted) return;
     _handleRefresh();
@@ -116,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bannerViewModel.fetchBannerData();
 
       final trendingServiceViewModel = Provider.of<ServicesViewGetAllCategoriesViewModel>(context, listen: false);
-      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed",'');
+      trendingServiceViewModel.fetchServicesViewGetAllCategoriesGetApi("69eca7bdbe6d8b46e00655ed", '');
 
       final featuredServicesViewModel = Provider.of<FeaturedServicesViewModel>(context, listen: false);
       featuredServicesViewModel.fetchFeaturedServices();
@@ -140,8 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!locationAlreadyPosted) {
       await _getLocationWithAddress();
-    } else {
-    }
+    } else {}
   }
 
   Future<void> _getLocationWithAddress() async {
@@ -162,7 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _currentAddress = fullAddress;
           _isLoadingLocation = false;
         });
-
 
         await _postLocationToApi(position.longitude, position.latitude, fullAddress);
         await _markLocationAsPosted();
@@ -219,8 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
       };
       final addLocationViewModel = Provider.of<AddLocationViewModel>(context, listen: false);
       await addLocationViewModel.addLocationPostApi(context, locationData, false);
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   /// Method to fetch nearby retailers
@@ -322,6 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ConnectivityMonitorService().removeReconnectListener(_onInternetReconnected);
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -442,27 +441,23 @@ class _HomeScreenState extends State<HomeScreen> {
               "fullAddress": addressData.fullAddress ?? '',
               "country": addressData.country ?? '',
               "city": addressData.city ?? '',
-              "geoLocation": {
-                "type": addressData.geoLocation?.type ?? "Point",
-                "coordinates": addressData.geoLocation?.coordinates ?? [],
-                "timestamp": DateTime.now().toUtc().toIso8601String(),
-              },
+              "geoLocation": {"type": addressData.geoLocation?.type ?? "Point", "coordinates": addressData.geoLocation?.coordinates ?? [], "timestamp": DateTime.now().toUtc().toIso8601String()},
             };
           }
         }
 
         Widget buildBannerWidget({String? cmsId}) => HomeBannerWidget(
-              screenWidth: screenWidth,
-              customerName: customerName,
-              customerPhone: customerPhone,
-              customerAddress: customerAddress,
-              customerLocation: customerLocation,
-              hasValidLocation: _hasValidLocation(),
-              onLocationRequired: _showLocationRequiredDialog,
-              onInstantBazarTap: handleInstantBazarTap,
-              loadingServiceSlug: _loadingServiceSlug,
-              cmsId: cmsId,
-            );
+          screenWidth: screenWidth,
+          customerName: customerName,
+          customerPhone: customerPhone,
+          customerAddress: customerAddress,
+          customerLocation: customerLocation,
+          hasValidLocation: _hasValidLocation(),
+          onLocationRequired: _showLocationRequiredDialog,
+          onInstantBazarTap: handleInstantBazarTap,
+          loadingServiceSlug: _loadingServiceSlug,
+          cmsId: cmsId,
+        );
 
         final Widget allServicesWidget = SizedBox(
           width: screenWidth * 0.9,
@@ -479,37 +474,26 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
 
-        final List<HomeSectionItem>? sections =
-            sectionsViewModel.homeSectionsData.status == Status.COMPLETED
-                ? sectionsViewModel.homeSectionsData.data?.data
-                : null;
+        final List<HomeSectionItem>? sections = sectionsViewModel.homeSectionsData.status == Status.COMPLETED ? sectionsViewModel.homeSectionsData.data?.data : null;
 
         if (sections == null || sections.isEmpty) {
           return Column(
             children: [
               buildBannerWidget(),
-              FeaturedServicesWidget(
-                hasValidLocation: _hasValidLocation(),
-                onLocationRequired: _showLocationRequiredDialog,
-              ),
+              FeaturedServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
               allServicesWidget,
             ],
           );
         }
 
-        final active = sections.where((s) => s.isActive ?? false).toList()
-          ..sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
+        final active = sections.where((s) => s.isActive ?? false).toList()..sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
 
         final widgets = <Widget>[];
         for (final section in active) {
           if (section.isFixedServices) {
             widgets.add(allServicesWidget);
           } else if (section.isFeaturedServices) {
-            widgets.add(FeaturedServicesWidget(
-              sectionId: section.cmsId,
-              hasValidLocation: _hasValidLocation(),
-              onLocationRequired: _showLocationRequiredDialog,
-            ));
+            widgets.add(FeaturedServicesWidget(sectionId: section.cmsId, hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog));
           } else if (section.isBanner) {
             // Each banner row is its own document, rendered individually
             // at its own position — not deduped, so multiple banners at
@@ -750,7 +734,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
   Widget _buildIconButton({VoidCallback? onTap, required String svgAsset, required BuildContext context}) {
     return GestureDetector(

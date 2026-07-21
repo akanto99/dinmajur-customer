@@ -187,7 +187,7 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
         .toList();
 
     if (hiddenServices.isNotEmpty) {
-      tiles.add(_buildMoreCard(context, hiddenServices));
+      tiles.add(_buildMoreCard(context, filteredServices));
     }
 
     // Lay tiles out in rows of 3
@@ -210,9 +210,9 @@ class _AllServicesGridWidgetState extends State<AllServicesGridWidget> {
     return Column(children: rows);
   }
 
-  Widget _buildMoreCard(BuildContext context, List<Datum> hiddenServices) {
+  Widget _buildMoreCard(BuildContext context, List<Datum> allServices) {
     return GestureDetector(
-      onTap: () => _showMoreServicesSheet(context, hiddenServices),
+      onTap: () => _showMoreServicesSheet(context, allServices),
       child: Column(
         children: [
           Container(
@@ -372,7 +372,7 @@ class _MoreServicesSheet extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: screenHeight * 0.55),
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.75),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.containerBackground(context),
