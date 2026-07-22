@@ -15,6 +15,7 @@ import 'package:dinmajur_customer/model/home_models/dropdown_categories_selectio
 import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/coupon_section/coupon_section_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/book_premium_house_keeper_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/premium_house_keeper_view_model/getall_shifttime_view_model.dart';
 import 'package:flutter/material.dart';
@@ -69,6 +70,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _specialRequestController = TextEditingController();
+  final TextEditingController _couponController = TextEditingController();
   bool _isTermsAccepted = false;
   Map<String, dynamic>? _updatedLocation;
 
@@ -110,6 +112,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         currency: 'BDT',
         totalPrice: subtotal + widget.transportFee,
       );
+      checkoutViewModel.fetchAvailableCoupons(serviceKey: 'HOUSE_KEEPER');
     });
   }
   Future<void> _restoreSessionLocation() async {
@@ -129,6 +132,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     _specialRequestController.dispose();
+    _couponController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -252,7 +256,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
         services: services
     );
     double transport = widget.transportFee;
-    double totalAmount = subtotal + transport;
+    double totalAmount = (subtotal + transport - checkoutViewModel.couponDiscountAmount).clamp(0, double.infinity);
 
     // Prepare booking data
     Map<String, dynamic> bookingData = await checkoutViewModel.prepareBookingData(
@@ -359,6 +363,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     _phoneController.clear();
     _addressController.clear();
     _specialRequestController.clear();
+    _couponController.clear();
     setState(() {
       _isTermsAccepted = false;
     });
@@ -391,14 +396,16 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
             selectedTaskItems: widget.selectedTaskItems,
             services: services
         );
+        double couponDiscount = checkoutVM.couponDiscountAmount;
+        double payableTotal = (total - couponDiscount).clamp(0, double.infinity);
 
         return SafeArea(
           child: Scaffold(
             backgroundColor: AppColors.containerBackground(context),
             body: ResPonsiveUi(
-              mobile: _buildBody(context, checkoutVM, bookingVM, total, subtotal, saved),
-              desktop: _buildBody(context, checkoutVM, bookingVM, total, subtotal, saved),
-              tablet: _buildBody(context, checkoutVM, bookingVM, total, subtotal, saved),
+              mobile: _buildBody(context, checkoutVM, bookingVM, payableTotal, subtotal, saved, couponDiscount),
+              desktop: _buildBody(context, checkoutVM, bookingVM, payableTotal, subtotal, saved, couponDiscount),
+              tablet: _buildBody(context, checkoutVM, bookingVM, payableTotal, subtotal, saved, couponDiscount),
             ),
           ),
         );
@@ -406,7 +413,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     );
   }
 
-  Widget _buildBody(BuildContext context, CheckoutViewModel viewModel, PostBookPremiumHouseKeeperViewModel bookingVM, double total, double subtotal, double saved) {
+  Widget _buildBody(BuildContext context, CheckoutViewModel viewModel, PostBookPremiumHouseKeeperViewModel bookingVM, double total, double subtotal, double saved, double couponDiscount) {
     final screenWidth = MediaQuery.of(context).size.width * 1;
     final screenHeight = MediaQuery.of(context).size.height * 1;
     return Column(
@@ -426,7 +433,10 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
                 _buildCustomerDetailsCard(),
                 SizedboxSpaccing.height02(context),
 
-                _buildSelectedServicesList(subtotal, saved),
+                _buildSelectedServicesList(subtotal, saved, couponDiscount),
+                SizedboxSpaccing.height02(context),
+
+                _buildCouponSection(viewModel, subtotal + widget.transportFee),
                 SizedboxSpaccing.height02(context),
 
                 _buildPaymentMethodSection(viewModel),
@@ -613,7 +623,7 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
     );
   }
 
-  Widget _buildSelectedServicesList(double subtotal, double saved) {
+  Widget _buildSelectedServicesList(double subtotal, double saved, double couponDiscount) {
     // ✅ UPDATED: Use allServices from widget
     final services = widget.allServices;
 
@@ -712,10 +722,14 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
               _buildPriceRow('Subtotal', subtotal),
               SizedboxSpaccing.height02(context),
               _buildPriceRow('Transport', transport),
+              if (couponDiscount > 0) ...[
+                SizedboxSpaccing.height02(context),
+                _buildPriceRow('Coupon Discount', -couponDiscount, isGreen: true),
+              ],
               SizedboxSpaccing.height02(context),
               Divider(height: 1, color: AppColors.border(context)),
               SizedboxSpaccing.height02(context),
-              _buildPriceRow('Total', total, isBold: true),
+              _buildPriceRow('Total', (total - couponDiscount).clamp(0, double.infinity), isBold: true),
               SizedboxSpaccing.height02(context),
               Divider(height: 1, color: AppColors.border(context)),
               SizedboxSpaccing.height02(context),
@@ -731,15 +745,36 @@ class _CheckoutHouseKeeperScreenState extends State<CheckoutHouseKeeperScreen> {
 
   Widget _buildPriceRow(String label, double amount, {bool isGreen = false, bool isBold = false}) {
     final weight = isBold ? FontWeight.w700 : FontWeight.w400;
+    final bool isNegative = amount < 0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: AppTextStyles.textSize14(context, weight: weight)),
         Text(
-          '৳${AmountFormatter.format(amount)}',
+          '${isNegative ? '-' : ''}৳${AmountFormatter.format(amount.abs())}',
           style: AppTextStyles.textSize14(context, weight: weight, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
+    );
+  }
+
+  Widget _buildCouponSection(CheckoutViewModel checkoutVM, double amount) {
+    return CouponSectionWidget(
+      controller: _couponController,
+      appliedCouponCode: checkoutVM.appliedCouponCode,
+      couponError: checkoutVM.couponError,
+      isValidatingCoupon: checkoutVM.isValidatingCoupon,
+      availableCoupons: checkoutVM.availableCoupons,
+      isLoadingAvailableCoupons: checkoutVM.isLoadingAvailableCoupons,
+      onApply: () => checkoutVM.applyCoupon(code: _couponController.text, amount: amount, serviceKey: 'HOUSE_KEEPER'),
+      onRemove: () {
+        checkoutVM.removeCoupon();
+        _couponController.clear();
+      },
+      onSelectCoupon: (code) {
+        _couponController.text = code;
+        checkoutVM.applyCoupon(code: code, amount: amount, serviceKey: 'HOUSE_KEEPER');
+      },
     );
   }
 
