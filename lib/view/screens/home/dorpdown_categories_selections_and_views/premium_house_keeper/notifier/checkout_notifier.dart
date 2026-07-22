@@ -3,10 +3,11 @@
 import 'dart:io';
 
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
+import 'package:dinmajur_customer/view_model/coupon/coupon_state_mixin.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class CheckoutViewModel extends ChangeNotifier {
+class CheckoutViewModel extends ChangeNotifier with CouponStateMixin {
   String? _selectedHouseSize;
   String? _selectedPaymentMethod;
   bool _isProcessing = false;
@@ -240,7 +241,7 @@ class CheckoutViewModel extends ChangeNotifier {
       "houseSize": houseSize,
       "notes": specialRequest?.trim().isEmpty == true ? null : specialRequest?.trim(),
       "tasks": tasks,
-      "couponCode": null,
+      "couponCode": appliedCouponCode,
       "shiftId": shiftId,
 
       "paymentType": paymentData,
@@ -282,6 +283,6 @@ class CheckoutViewModel extends ChangeNotifier {
     _selectedHouseSize = null;
     _selectedPaymentMethod = null;
     _isProcessing = false;
-    notifyListeners();
+    resetCoupon();
   }
 }

@@ -29,7 +29,6 @@ import 'package:dinmajur_customer/view/screens/home/drawer/policies/cooking_poli
 import 'package:dinmajur_customer/view/screens/home/drawer/policies/delivery_policy.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/policies/refund_policy.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/privacy_policy/privacy_policy_screen.dart';
-import 'package:dinmajur_customer/view/screens/home/drawer/promo_codes/promo_code_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/review/review.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/support/support.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/terms_conditions/terms_conditions_screen.dart';
@@ -455,8 +454,6 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const ViewProfile());
       case RoutesName.ordersScreen:
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
-      case RoutesName.promoCodes:
-        return MaterialPageRoute(builder: (BuildContext context) => const PromoCodeScreen());
       case RoutesName.offers:
         return MaterialPageRoute(builder: (BuildContext context) => const OffersScreen());
       case RoutesName.review:

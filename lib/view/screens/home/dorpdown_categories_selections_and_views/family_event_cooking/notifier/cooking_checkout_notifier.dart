@@ -1,7 +1,8 @@
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
+import 'package:dinmajur_customer/view_model/coupon/coupon_state_mixin.dart';
 import 'package:flutter/material.dart';
 
-class CookingCheckoutViewModel extends ChangeNotifier {
+class CookingCheckoutViewModel extends ChangeNotifier with CouponStateMixin {
   String? _selectedServiceTime;
   String? _selectedPaymentMethod;
   DateTime? _selectedDate;
@@ -214,6 +215,6 @@ class CookingCheckoutViewModel extends ChangeNotifier {
     _selectedPaymentMethod = null;
     _selectedDate = null;
     _isProcessing = false;
-    notifyListeners();
+    resetCoupon();
   }
 }

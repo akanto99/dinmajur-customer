@@ -16,6 +16,7 @@ import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/family_event_cooking/notifier/cooking_checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/coupon_section/coupon_section_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/family_event_cooking_view_model/book_family_event_cooking_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -72,6 +73,7 @@ class CookingCheckoutScreen extends StatefulWidget {
 
 class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _couponController = TextEditingController();
   bool _isTermsAccepted = false;
 
   Map<String, dynamic>? _updatedLocation;
@@ -103,6 +105,10 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       currency: 'BDT',
       totalPrice: widget.totalPrice + widget.transportFee,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Provider.of<CookingCheckoutViewModel>(context, listen: false).fetchAvailableCoupons(serviceKey: 'EVENT_COOKING');
+    });
   }
 
   Future<void> _restoreSessionLocation() async {
@@ -120,6 +126,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
   @override
   void dispose() {
     _addressController.dispose();
+    _couponController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -182,6 +189,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     checkoutVM.reset();
 
     _addressController.clear();
+    _couponController.clear();
     setState(() {
       _isTermsAccepted = false;
     });
@@ -225,6 +233,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
         "phone": widget.customerPhone,
         "date": widget.selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
         "slot": widget.selectedServiceTime?.toUpperCase() ?? 'DAY',
+        if (checkoutVM.appliedCouponCode != null) "couponCode": checkoutVM.appliedCouponCode,
       },
       "eventCookingCategoryId": activeCategory.id,
       "source": Platform.isAndroid ? "android" : "ios",
@@ -317,7 +326,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
       return;
     }
     // Calculate total amount
-    double totalAmount = widget.totalPrice + widget.transportFee;
+    double totalAmount = (widget.totalPrice + widget.transportFee - checkoutVM.couponDiscountAmount).clamp(0, double.infinity);
 
     // Validate form
     final String currentAddress = _addressController.text.isEmpty ? widget.customerAddress : _addressController.text;
@@ -436,6 +445,8 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     return Consumer2<CookingCheckoutViewModel, PostBookFamilyEventCookingViewModel>(
       builder: (context, checkoutVM, bookingVM, _) {
         double total = widget.totalPrice + widget.transportFee;
+        double couponDiscount = checkoutVM.couponDiscountAmount;
+        double payableTotal = (total - couponDiscount).clamp(0, double.infinity);
         bool isLoading = bookingVM.createBookFamilyEventCookingLoading;
 
         return WillPopScope(
@@ -461,7 +472,9 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                         children: [
                           _buildCustomerDetailsCard(),
                           SizedboxSpaccing.height02(context),
-                          _buildBookingSummary(),
+                          _buildBookingSummary(couponDiscount),
+                          SizedboxSpaccing.height02(context),
+                          _buildCouponSection(checkoutVM, total),
                           SizedboxSpaccing.height02(context),
                           _buildPaymentMethodSection(checkoutVM),
 
@@ -499,7 +512,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
                       ),
                     ),
                   ),
-                  _buildConfirmButton(context, checkoutVM, bookingVM, total, isLoading),
+                  _buildConfirmButton(context, checkoutVM, bookingVM, payableTotal, isLoading),
                 ],
               ),
             ),
@@ -613,7 +626,7 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
     );
   }
 
-  Widget _buildBookingSummary() {
+  Widget _buildBookingSummary(double couponDiscount) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -651,10 +664,14 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
               _buildPriceRow('Subtotal', widget.totalPrice),
               SizedboxSpaccing.height015(context),
               _buildPriceRow('Transport', widget.transportFee),
+              if (couponDiscount > 0) ...[
+                SizedboxSpaccing.height015(context),
+                _buildPriceRow('Coupon Discount', -couponDiscount, isGreen: true),
+              ],
               SizedboxSpaccing.height015(context),
               Divider(height: 1, color: AppColors.border(context)),
               SizedboxSpaccing.height015(context),
-              _buildPriceRow('Total', widget.totalPrice + widget.transportFee, isBold: true),
+              _buildPriceRow('Total', (widget.totalPrice + widget.transportFee - couponDiscount).clamp(0, double.infinity), isBold: true),
             ],
           ),
         ),
@@ -813,15 +830,36 @@ class _CookingCheckoutScreenState extends State<CookingCheckoutScreen> {
 
   Widget _buildPriceRow(String label, double amount, {bool isGreen = false, bool isBold = false}) {
     final weight = isBold ? FontWeight.w700 : (label == 'Subtotal' || label == 'Transport' ? FontWeight.w400 : FontWeight.w500);
+    final bool isNegative = amount < 0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: AppTextStyles.textSize14(context, weight: weight)),
         Text(
-          '৳${AmountFormatter.format(amount)}',
+          '${isNegative ? '-' : ''}৳${AmountFormatter.format(amount.abs())}',
           style: AppTextStyles.textSize14(context, weight: weight, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
+    );
+  }
+
+  Widget _buildCouponSection(CookingCheckoutViewModel checkoutVM, double amount) {
+    return CouponSectionWidget(
+      controller: _couponController,
+      appliedCouponCode: checkoutVM.appliedCouponCode,
+      couponError: checkoutVM.couponError,
+      isValidatingCoupon: checkoutVM.isValidatingCoupon,
+      availableCoupons: checkoutVM.availableCoupons,
+      isLoadingAvailableCoupons: checkoutVM.isLoadingAvailableCoupons,
+      onApply: () => checkoutVM.applyCoupon(code: _couponController.text, amount: amount, serviceKey: 'EVENT_COOKING'),
+      onRemove: () {
+        checkoutVM.removeCoupon();
+        _couponController.clear();
+      },
+      onSelectCoupon: (code) {
+        _couponController.text = code;
+        checkoutVM.applyCoupon(code: code, amount: amount, serviceKey: 'EVENT_COOKING');
+      },
     );
   }
 
