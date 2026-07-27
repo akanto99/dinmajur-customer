@@ -119,6 +119,13 @@ class AppUrl {
   static var couponValidateAPI = baseUrl + '/coupons/validate';
   static var couponAvailableAPI = baseUrl + '/coupons/available';
 
+  ///Referral (Refer & Earn)
+  static var referralMyCodeGetAPI = baseUrl + '/refers/customer/my-code';
+  static var referralOverviewGetAPI = baseUrl + '/refers/customer/overview';
+  static var referralApplyPostAPI = baseUrl + '/refers/customer/apply';
+  static var referralLinkClickPostAPI = baseUrl + '/referral-link/click';
+  static var referralLinkInstallReferrerPostAPI = baseUrl + '/referral-link/install-referrer';
+
 
 ///Order Tab
  static var runningOrderGetAPI = baseUrl + '/customers/orders?status=RUNNING';

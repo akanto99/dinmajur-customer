@@ -66,18 +66,19 @@ class ProfileViewViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> profileUpdatePatchApi(
+  Future<dynamic> profileUpdatePatchApi(
       BuildContext context,
       dynamic data, {
         bool showSuccessMessage = true,
       }) async {
     _setProfileHeaderUpdateLoading(true);
     try {
-      await _myRepo.profileUpdatePatchAPI(data);
+      final response = await _myRepo.profileUpdatePatchAPI(data);
       _setProfileHeaderUpdateLoading(false);
       if (showSuccessMessage) {
         Utils.flushBarSuccessMessage('Profile Name Updated Successfully', context);
       }
+      return response;
     } catch (error) {
       _setProfileHeaderUpdateLoading(false);
       _handleError(error, context);

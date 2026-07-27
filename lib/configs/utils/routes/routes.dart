@@ -24,6 +24,7 @@ import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selectio
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/premium_house_keeper/houesekeeper_cancelfailed_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/language/language_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/offers/offers_screen.dart';
+import 'package:dinmajur_customer/view/screens/home/drawer/refer_and_earn/refer_and_earn_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/order_screen/order_screen.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/policies/cooking_policy.dart';
 import 'package:dinmajur_customer/view/screens/home/drawer/policies/delivery_policy.dart';
@@ -456,6 +457,8 @@ class Routes {
         return MaterialPageRoute(builder: (BuildContext context) => const OrderScreen());
       case RoutesName.offers:
         return MaterialPageRoute(builder: (BuildContext context) => const OffersScreen());
+      case RoutesName.referAndEarn:
+        return MaterialPageRoute(builder: (BuildContext context) => const ReferAndEarnScreen());
       case RoutesName.review:
         return MaterialPageRoute(builder: (BuildContext context) => const Review());
       case RoutesName.support:

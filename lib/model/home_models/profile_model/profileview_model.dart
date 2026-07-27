@@ -187,6 +187,7 @@ class User {
   ProfilePicture? profilePicture;
   String? role;
   DateTime? createdAt;
+  bool? referralChoiceMade;
 
   User({
     this.id,
@@ -195,6 +196,7 @@ class User {
     this.profilePicture,
     this.role,
     this.createdAt,
+    this.referralChoiceMade,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -204,6 +206,7 @@ class User {
     profilePicture: json["profilePicture"] == null ? null : ProfilePicture.fromJson(json["profilePicture"]),
     role: json["role"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),
+    referralChoiceMade: json["referralChoiceMade"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -213,6 +216,7 @@ class User {
     "profilePicture": profilePicture?.toJson(),
     "role": role,
     "createdAt": createdAt?.toIso8601String(),
+    "referralChoiceMade": referralChoiceMade,
   };
 }
 

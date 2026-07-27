@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
+import 'package:dinmajur_customer/configs/services/referral_deep_link_service.dart';
 import 'package:dinmajur_customer/configs/utils/routes/routes_name.dart';
 import 'package:dinmajur_customer/configs/utils/utils.dart';
 import 'package:dinmajur_customer/model/user/user_model.dart';
@@ -64,6 +65,10 @@ class AuthOtpVerifyViewModel with ChangeNotifier {
         await prefs.setString('userId', userId);
       }
 
+      // Auto-apply a referral code captured before this account existed
+      // (e.g. via a referral link opened pre-registration) — no-op if none
+      // is pending. Fire-and-forget so it never delays navigation.
+      ReferralDeepLinkService.tryApplyPendingCodeAfterLogin(context: context);
 
       // ── Navigate — NavigationScreen._initServices() takes over ────────
       // It reads accessToken + userId from SharedPreferences and boots:

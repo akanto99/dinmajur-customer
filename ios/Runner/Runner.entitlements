@@ -8,5 +8,19 @@
 	<array>
 		<string>group.com.dinmajurplatformservice.dinmajurcustomer.onesignal</string>
 	</array>
+	<!-- Referral link (Refer & Earn) — Universal Links placeholder. Requires
+	     a live apple-app-site-association file hosted at
+	     https://customer.dinmajur.com/.well-known/apple-app-site-association
+	     (with this app's Team ID + bundle ID) before iOS will honor this, and
+	     the "Associated Domains" capability must also be enabled for this
+	     target in Xcode (this entitlement alone isn't sufficient). Left
+	     commented out until the real domain + AASA file exist, so an
+	     unresolvable domain doesn't sit in a shipped build. -->
+	<!--
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:customer.dinmajur.com</string>
+	</array>
+	-->
 </dict>
 </plist>
