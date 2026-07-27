@@ -5,6 +5,11 @@ import 'package:dinmajur_customer/respository/referral_repository/referral_repos
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+
+
+
+
 /// Captures a referral code from an incoming referral link
 /// (https://customer.dinmajur.com/ref/CODE). Referral codes are never
 /// applied at registration time — only once there's a real, logged-in
