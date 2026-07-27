@@ -51,6 +51,23 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- Referral link (Refer & Earn) — Android App Links placeholder.
+                 android:autoVerify requires a live /.well-known/assetlinks.json
+                 hosted at this exact domain, listing this app's package name +
+                 signing SHA-256 fingerprints, before Android will open the app
+                 directly instead of a browser. Update android:host below (and
+                 publish assetlinks.json) once the real domain is available —
+                 see ReferralDeepLinkService for the app-side handling. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="customer.dinmajur.com"
+                    android:pathPrefix="/ref"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

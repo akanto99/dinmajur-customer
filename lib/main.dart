@@ -38,6 +38,8 @@ import 'package:dinmajur_customer/view_model/order_view_models/complete_orders_v
 import 'package:dinmajur_customer/view_model/order_view_models/running_orders_view_model.dart';
 import 'package:dinmajur_customer/view_model/userview_model/userview_model.dart';
 import 'package:dinmajur_customer/configs/services/facebook_events_service/facebook_events_service.dart';
+import 'package:dinmajur_customer/configs/services/referral_deep_link_service.dart';
+import 'package:dinmajur_customer/view_model/referral/referral_view_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -94,6 +96,9 @@ void main() async {
   ///Facebook meta analytics
   await FacebookEventsService().init();
 
+  ///Referral deep link capture (Refer & Earn)
+  await ReferralDeepLinkService.initialize();
+
 
   // ── SocketManager
   final socketManager = SocketManager();
@@ -125,6 +130,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LoginLogoutViewModel()),
         ChangeNotifierProvider(create: (_) => UserViewModel()),
         ChangeNotifierProvider(create: (_) => CustomerAuthLoginViewModel()),
+        ChangeNotifierProvider(create: (_) => ReferralViewModel()),
         ChangeNotifierProvider(create: (_) => AuthOtpVerifyViewModel()),
         ChangeNotifierProvider(create: (_) => ResendOtpViewModel()),
 

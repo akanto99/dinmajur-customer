@@ -15,6 +15,7 @@ import 'package:dinmajur_customer/model/home_models/dropdown_categories_selectio
 import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
 import 'package:dinmajur_customer/view/screens/home/dorpdown_categories_selections_and_views/beauty_and_salon/notifier/checkout_notifier.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/add_location_screen_widget/add_location_screen_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/coupon_section/coupon_section_widget.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/book_premium_home_beauty_salon_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/get_bookedslot_view_model.dart';
 import 'package:dinmajur_customer/view_model/homeview_model/dropdown_categories_selection_view_models/beauty_and_salon_view_model/getall_premium_home_beauty_salon_view_model.dart';
@@ -64,6 +65,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _specialRequestController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _couponController = TextEditingController();
   bool _isTermsAccepted = false;
   Map<String, dynamic>? _updatedLocation;
 
@@ -105,6 +107,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (checkoutVM.selectedDate != null) {
         _dateController.text = DateFormat('MMMM dd, yyyy').format(checkoutVM.selectedDate!);
       }
+      checkoutVM.fetchAvailableCoupons(serviceKey: 'BEAUTY_SALON');
     });
   }
 
@@ -127,6 +130,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.dispose();
     _specialRequestController.dispose();
     _dateController.dispose();
+    _couponController.dispose();
     _paymentLock.dispose();
     _scrollController.dispose();
 
@@ -190,6 +194,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.clear();
     _specialRequestController.clear();
     _dateController.clear();
+    _couponController.clear();
     setState(() {
       _isTermsAccepted = false;
     });
@@ -215,7 +220,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (bookingViewModel.createBookPremiumHomeBeautySalonLoading) return;
 
     double subtotal = checkoutVM.calculateTotal(serviceQuantities: widget.serviceQuantities, categories: widget.categories);
-    double totalAmount = subtotal + widget.transportFee;
+    double totalAmount = (subtotal + widget.transportFee - checkoutVM.couponDiscountAmount).clamp(0, double.infinity);
 
     // Validate form
     final String currentAddress = _addressController.text.isEmpty ? widget.customerAddress : _addressController.text;
@@ -314,6 +319,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         double subtotal = checkoutVM.calculateTotal(serviceQuantities: widget.serviceQuantities, categories: widget.categories);
         double total = subtotal + widget.transportFee;
         double saved = checkoutVM.calculateSaved(serviceQuantities: widget.serviceQuantities, categories: widget.categories);
+        double couponDiscount = checkoutVM.couponDiscountAmount;
+        double payableTotal = (total - couponDiscount).clamp(0, double.infinity);
 
         return WillPopScope(
           onWillPop: () async {
@@ -338,7 +345,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           _buildCustomerDetailsCard(),
                           SizedboxSpaccing.height02(context),
-                          _buildSelectedServicesList(checkoutVM, subtotal, saved),
+                          _buildSelectedServicesList(checkoutVM, subtotal, saved, couponDiscount),
+                          SizedboxSpaccing.height02(context),
+                          _buildCouponSection(checkoutVM, total),
                           SizedboxSpaccing.height02(context),
                           _buildPaymentMethodSection(checkoutVM),
                           SizedboxSpaccing.height01(context),
@@ -379,7 +388,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                   ),
-                  _buildConfirmButton(context, checkoutVM, bookingVM, total, saved),
+                  _buildConfirmButton(context, checkoutVM, bookingVM, payableTotal, saved),
                 ],
               ),
             ),
@@ -540,7 +549,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildSelectedServicesList(CheckoutBeautySalonViewModel checkoutVM, double subtotal, double saved) {
+  Widget _buildSelectedServicesList(CheckoutBeautySalonViewModel checkoutVM, double subtotal, double saved, double couponDiscount) {
     // Get all selected services from all categories
     List<Map<String, dynamic>> selectedServices = [];
 
@@ -628,10 +637,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _buildPriceRow('Subtotal', subtotal),
               SizedboxSpaccing.height02(context),
               _buildPriceRow('Transport', widget.transportFee),
+              if (couponDiscount > 0) ...[
+                SizedboxSpaccing.height02(context),
+                _buildPriceRow('Coupon Discount', -couponDiscount, isGreen: true),
+              ],
               SizedboxSpaccing.height02(context),
               Divider(height: 1, color: AppColors.border(context)),
               SizedboxSpaccing.height02(context),
-              _buildPriceRow('Total', total, isBold: true),
+              _buildPriceRow('Total', (total - couponDiscount).clamp(0, double.infinity), isBold: true),
               SizedboxSpaccing.height02(context),
               Divider(height: 1, color: AppColors.border(context)),
               SizedboxSpaccing.height02(context),
@@ -647,15 +660,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildPriceRow(String label, double amount, {bool isGreen = false, bool isBold = false}) {
     final weight = isBold ? FontWeight.w700 : FontWeight.w400;
+    final bool isNegative = amount < 0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: AppTextStyles.textSize14(context, weight: weight)),
         Text(
-          '৳${AmountFormatter.format(amount)}',
+          '${isNegative ? '-' : ''}৳${AmountFormatter.format(amount.abs())}',
           style: AppTextStyles.textSize14(context, weight: weight, color: isGreen ? Colors.green : AppColors.textPrimary(context)),
         ),
       ],
+    );
+  }
+
+  Widget _buildCouponSection(CheckoutBeautySalonViewModel checkoutVM, double amount) {
+    return CouponSectionWidget(
+      controller: _couponController,
+      appliedCouponCode: checkoutVM.appliedCouponCode,
+      couponError: checkoutVM.couponError,
+      isValidatingCoupon: checkoutVM.isValidatingCoupon,
+      availableCoupons: checkoutVM.availableCoupons,
+      isLoadingAvailableCoupons: checkoutVM.isLoadingAvailableCoupons,
+      onApply: () => checkoutVM.applyCoupon(code: _couponController.text, amount: amount, serviceKey: 'BEAUTY_SALON'),
+      onRemove: () {
+        checkoutVM.removeCoupon();
+        _couponController.clear();
+      },
+      onSelectCoupon: (code) {
+        _couponController.text = code;
+        checkoutVM.applyCoupon(code: code, amount: amount, serviceKey: 'BEAUTY_SALON');
+      },
     );
   }
 

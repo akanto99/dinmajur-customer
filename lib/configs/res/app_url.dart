@@ -5,8 +5,11 @@ class AppUrl {
   // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging
   // static var socketUrl = 'https://staging.dinmajur.com' ;// Staging
 
-  static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
-  static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+  // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
+  // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
+
+  static var baseUrl = 'http://10.0.2.2:5001/api/v1' ;// Local (Android emulator -> host localhost)
+  static var socketUrl = 'http://10.0.2.2:5001' ;// Local
 
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
@@ -111,6 +114,17 @@ class AppUrl {
 
 
   static var suppportAPI = baseUrl + '/contact';//support
+
+  ///Coupon
+  static var couponValidateAPI = baseUrl + '/coupons/validate';
+  static var couponAvailableAPI = baseUrl + '/coupons/available';
+
+  ///Referral (Refer & Earn)
+  static var referralMyCodeGetAPI = baseUrl + '/refers/customer/my-code';
+  static var referralOverviewGetAPI = baseUrl + '/refers/customer/overview';
+  static var referralApplyPostAPI = baseUrl + '/refers/customer/apply';
+  static var referralLinkClickPostAPI = baseUrl + '/referral-link/click';
+  static var referralLinkInstallReferrerPostAPI = baseUrl + '/referral-link/install-referrer';
 
 
 ///Order Tab

@@ -561,10 +561,12 @@ class _HomeScreenState extends State<HomeScreen> {
             final responseData = profileViewModel.profileviewUserData.data;
             String userName = 'Unknown User';
             String? profileImageUrl;
+            bool referralChoiceMade = false;
 
             if (responseData?.data?.user != null) {
               final userData = responseData!.data!.user!;
               profileImageUrl = userData.profilePicture?.url;
+              referralChoiceMade = userData.referralChoiceMade ?? false;
 
               final fullName = userData.fullName?.trim();
 
@@ -573,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             }
 
-            _checkAndShowNameDialog(userName);
+            _checkAndShowNameDialog(userName, referralChoiceMade);
 
             return _buildAppBarContent(screenWidth: screenWidth, screenHeight: screenHeight, userName: userName, displayAddress: displayAddress, profileImageUrl: profileImageUrl);
 
@@ -750,12 +752,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _checkAndShowNameDialog(String userName) {
+  void _checkAndShowNameDialog(String userName, bool referralChoiceMade) {
     if (!_nameDialogShown && (userName.trim().isEmpty || userName == 'Unknown User')) {
       _nameDialogShown = true;
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await showNameEntryDialog(context);
+        await showNameEntryDialog(context, referralChoiceMade: referralChoiceMade);
 
         if (mounted && !_locationFlowStarted) {
           _locationFlowStarted = true;

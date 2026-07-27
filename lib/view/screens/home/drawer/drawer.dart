@@ -200,9 +200,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, RoutesName.offers);
+                  Navigator.pushNamed(context, RoutesName.referAndEarn);
                 },
-                child: _buildDrawerItem(Icons.local_offer_outlined, AppLocalizations.of(context)!.offers),
+                child: _buildDrawerItem(Icons.card_giftcard_outlined, 'Referral'),
               ),
 
               GestureDetector(

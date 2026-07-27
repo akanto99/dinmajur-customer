@@ -11,7 +11,6 @@ class ServicesViewDetailsDialouge extends StatefulWidget {
   final double originalPrice;
   final bool showDiscount;
 
-  // ── HTML content fields ──────────────────────────────────────────────────
   final String? description;
   final String? overview;
   final String? steps;
@@ -19,8 +18,6 @@ class ServicesViewDetailsDialouge extends StatefulWidget {
   final String? benefits;
   final String? instructions;
   final String? details;
-
-  // ── Structured fields ────────────────────────────────────────────────────
   final int? durationInMin;
   final List<Faq>? faqs;
 
@@ -60,9 +57,6 @@ class ServicesViewDetailsDialouge extends StatefulWidget {
 class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialouge> {
   // Tracks which FAQ items are expanded
   final Set<int> _expandedFaqs = {};
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
   String _toHtml(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '';
     final bool looksLikeHtml = RegExp(r'<[a-zA-Z][^>]*>').hasMatch(raw);
@@ -106,7 +100,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
     "h6": Style(color: widget.getTextColor(context)),
   };
 
-  // ── Section configs: label + icon for each HTML field ────────────────────
   static const List<Map<String, dynamic>> _htmlSections = [
     {'key': 'description', 'label': 'Description', 'icon': Icons.description_outlined},
     {'key': 'overview', 'label': 'Overview', 'icon': Icons.info_outline},
@@ -136,8 +129,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
         _hasFaqs;
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -159,7 +150,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
           children: [
             _buildImageHeader(context),
 
-            // ── Scrollable content ──────────────────────────────────────
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -173,13 +163,11 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
                     ),
                     const SizedBox(height: 12),
 
-                    // ── Duration chip ──────────────────────────────────
                     if (_hasDuration) ...[
                       _buildDurationChip(context),
                       const SizedBox(height: 16),
                     ],
 
-                    // ── HTML sections ──────────────────────────────────
                     ..._htmlSections.expand((section) {
                       final value = _fieldValue(section['key'] as String);
                       if (!_hasContent(value)) return <Widget>[];
@@ -198,7 +186,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
                       ];
                     }),
 
-                    // ── FAQs ───────────────────────────────────────────
                     if (_hasFaqs) ...[
                       _buildSectionHeader(
                         context,
@@ -210,7 +197,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
                       const SizedBox(height: 16),
                     ],
 
-                    // ── Empty state ────────────────────────────────────
                     if (!_hasAnyContent)
                       Center(
                         child: Padding(
@@ -233,8 +219,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
       ),
     );
   }
-
-  // ── Duration chip ─────────────────────────────────────────────────────────
 
   Widget _buildDurationChip(BuildContext context) {
     return Container(
@@ -262,8 +246,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
     );
   }
 
-  // ── Section header ────────────────────────────────────────────────────────
-
   Widget _buildSectionHeader(BuildContext context, {required String label, required IconData icon}) {
     return Row(
       children: [
@@ -281,7 +263,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
     );
   }
 
-  // ── FAQ list ──────────────────────────────────────────────────────────────
 
   Widget _buildFaqList(BuildContext context) {
     final faqs = widget.faqs!;
@@ -369,8 +350,6 @@ class _ServicesViewDetailsDialougeState extends State<ServicesViewDetailsDialoug
       }),
     );
   }
-
-  // ── Image header ──────────────────────────────────────────────────────────
 
   Widget _buildImageHeader(BuildContext context) {
     return Stack(

@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:dinmajur_customer/configs/services/ssl_payment_service/ssl_payment.dart';
 import 'package:dinmajur_customer/model/home_models/all_service_models/services_view_getallcategories_model.dart';
+import 'package:dinmajur_customer/view_model/coupon/coupon_state_mixin.dart';
 import 'package:flutter/material.dart';
 
-class CheckoutAllServicesViewModel extends ChangeNotifier {
+class CheckoutAllServicesViewModel extends ChangeNotifier with CouponStateMixin {
   // ── display value shown in UI e.g. "09:00"
   String? _selectedServiceTime;
   // ── the _id from the slot API — this is ALL we send to the booking API
@@ -180,6 +181,7 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
 
       if (customerLocation != null) 'location': customerLocation,
 
+      if (appliedCouponCode != null) 'couponCode': appliedCouponCode,
 
       'tasks': tasks,
       "source": Platform.isAndroid ? "android" : "ios",
@@ -222,6 +224,6 @@ class CheckoutAllServicesViewModel extends ChangeNotifier {
     _selectedPaymentMethod = null;
     _selectedDate = null;
     _isProcessing = false;
-    notifyListeners();
+    resetCoupon();
   }
 }

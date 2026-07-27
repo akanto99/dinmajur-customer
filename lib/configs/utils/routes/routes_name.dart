@@ -30,8 +30,8 @@ class RoutesName {
   static const String support = 'support_view';
   static const String viewProfile = 'viewProfile_view';
   static const String ordersScreen = 'ordersScreen_view';
-  static const String promoCodes = 'promoCodes_view';
   static const String offers = 'offers_view';
+  static const String referAndEarn = 'referAndEarn_view';
   static const String termsAndCondition = 'termsAndCondition_view';
   static const String privacyPolicy = 'privacyPolicy_view';
   static const String cookiesPolicyScreen = 'cookiesPolicy_view';
