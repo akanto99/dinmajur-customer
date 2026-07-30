@@ -33,13 +33,14 @@ class ReferralViewModel with ChangeNotifier {
     }
   }
 
-  /// Every coupon currently usable by this customer — includes coupons
-  /// earned via the referral program (assigned specifically to them) as
-  /// well as any public promo coupons, same set the checkout screens show.
+  /// Publicly announced promo coupons for browsing (Refer & Earn / Offers
+  /// screens). Distinct from the checkout screens, which call
+  /// `getAvailableCouponsApi` to show only what's actually redeemable for
+  /// that order right now.
   Future<void> fetchMyCoupons() async {
     _setCoupons(ApiResponse.loading());
     try {
-      final value = await _couponRepo.getAvailableCouponsApi();
+      final value = await _couponRepo.getPublicCouponsApi();
       final coupons = ((value['data'] as List<dynamic>?) ?? [])
           .map((e) => AvailableCoupon.fromJson(e as Map<String, dynamic>))
           .toList();

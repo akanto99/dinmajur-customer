@@ -16,6 +16,8 @@ mixin CouponStateMixin on ChangeNotifier {
   bool _isValidatingCoupon = false;
   List<AvailableCoupon> _availableCoupons = [];
   bool _isLoadingAvailableCoupons = false;
+  List<AvailableCoupon> _publicCoupons = [];
+  bool _isLoadingPublicCoupons = false;
 
   String? get appliedCouponCode => _appliedCouponCode;
   double get couponDiscountAmount => _couponDiscountAmount;
@@ -23,6 +25,8 @@ mixin CouponStateMixin on ChangeNotifier {
   bool get isValidatingCoupon => _isValidatingCoupon;
   List<AvailableCoupon> get availableCoupons => _availableCoupons;
   bool get isLoadingAvailableCoupons => _isLoadingAvailableCoupons;
+  List<AvailableCoupon> get publicCoupons => _publicCoupons;
+  bool get isLoadingPublicCoupons => _isLoadingPublicCoupons;
 
   Future<void> applyCoupon({
     required String code,
@@ -62,6 +66,21 @@ mixin CouponStateMixin on ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> fetchPublicCoupons({String? serviceId, String? serviceKey}) async {
+    _isLoadingPublicCoupons = true;
+    notifyListeners();
+    try {
+      final response = await _couponRepository.getPublicCouponsApi(serviceId: serviceId, serviceKey: serviceKey);
+      final List<dynamic> data = response['data'] ?? [];
+      _publicCoupons = data.map((e) => AvailableCoupon.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      _publicCoupons = [];
+    } finally {
+      _isLoadingPublicCoupons = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> fetchAvailableCoupons({String? serviceId, String? serviceKey}) async {
     _isLoadingAvailableCoupons = true;
     notifyListeners();
@@ -76,7 +95,6 @@ mixin CouponStateMixin on ChangeNotifier {
       notifyListeners();
     }
   }
-
   void resetCoupon() {
     _appliedCouponCode = null;
     _couponDiscountAmount = 0;

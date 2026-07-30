@@ -1,0 +1,46 @@
+<svg width="360" height="140" viewBox="0 0 360 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="360" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EEECFF"/>
+      <stop offset="1" stop-color="#E3F1FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="360" height="140" fill="url(#bg)"/>
+
+  <!-- confetti dots -->
+  <circle cx="150" cy="24" r="3" fill="#FFC94A"/>
+  <circle cx="330" cy="30" r="3.5" fill="#6C5CE7"/>
+  <circle cx="120" cy="100" r="3" fill="#FF6FA5"/>
+  <circle cx="205" cy="18" r="2.5" fill="#00B8A9"/>
+  <circle cx="345" cy="95" r="3" fill="#FFC94A"/>
+
+  <!-- sparkle stars -->
+  <path d="M262 26 L265 34 L273 37 L265 40 L262 48 L259 40 L251 37 L259 34 Z" fill="#FFC94A"/>
+  <path d="M190 100 L192 105 L197 107 L192 109 L190 114 L188 109 L183 107 L188 105 Z" fill="#6C5CE7"/>
+  <path d="M310 60 L312 65 L317 67 L312 69 L310 74 L308 69 L303 67 L308 65 Z" fill="#FF6FA5"/>
+
+  <!-- back box: teal -->
+  <g>
+    <rect x="215" y="52" width="46" height="40" rx="4" fill="#00B8A9"/>
+    <rect x="234" y="52" width="8" height="40" fill="#EAFBF8"/>
+    <rect x="215" y="66" width="46" height="8" fill="#EAFBF8"/>
+    <path d="M232 52 C226 44 244 44 238 52 Z" fill="#EAFBF8"/>
+  </g>
+
+  <!-- left box: pink -->
+  <g>
+    <rect x="182" y="82" width="50" height="42" rx="4" fill="#FF6FA5"/>
+    <rect x="203" y="82" width="8" height="42" fill="#FFE1EC"/>
+    <rect x="182" y="98" width="50" height="8" fill="#FFE1EC"/>
+    <path d="M201 82 C195 73 215 73 209 82 Z" fill="#FFE1EC"/>
+  </g>
+
+  <!-- front box: purple, largest -->
+  <g>
+    <rect x="248" y="74" width="60" height="50" rx="5" fill="#6C5CE7"/>
+    <rect x="272" y="74" width="10" height="50" fill="#F1EEFF"/>
+    <rect x="248" y="92" width="60" height="10" fill="#F1EEFF"/>
+    <path d="M271 74 C263 62 289 62 281 74 Z" fill="#F1EEFF"/>
+  </g>
+</svg>

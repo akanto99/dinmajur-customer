@@ -2,14 +2,14 @@ class AppUrl {
   // static var baseUrl = 'https://c3e4-103-187-99-179.ngrok-free.app/api/v1';
   // static var socketUrl = 'https://c3e4-103-187-99-179.ngrok-free.app';
 
-  // static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging
-  // static var socketUrl = 'https://staging.dinmajur.com' ;// Staging
+  static var baseUrl = 'https://api-staging.dinmajur.com/api/v1' ;// Staging
+  static var socketUrl = 'https://staging.dinmajur.com' ;// Staging
 
   // static var baseUrl = 'https://api.dinmajur.com/api/v1' ;// Dev
   // static var socketUrl = 'https://api.dinmajur.com' ;// Dev
 
-  static var baseUrl = 'http://10.0.2.2:5001/api/v1' ;// Local (Android emulator -> host localhost)
-  static var socketUrl = 'http://10.0.2.2:5001' ;// Local
+  // static var baseUrl = 'http://10.0.2.2:5001/api/v1' ;// Local (Android emulator -> host localhost)
+  // static var socketUrl = 'http://10.0.2.2:5001' ;// Local
 
 
   static const String refreshTokenEndpoint = '/auth/refresh-token';
@@ -117,6 +117,7 @@ class AppUrl {
 
   ///Coupon
   static var couponValidateAPI = baseUrl + '/coupons/validate';
+  static var couponPublicAPI = baseUrl + '/coupons/public';
   static var couponAvailableAPI = baseUrl + '/coupons/available';
 
   ///Referral (Refer & Earn)

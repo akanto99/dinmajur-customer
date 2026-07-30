@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/text_styles.dart';
 import 'package:dinmajur_customer/provider/cart/global_cart_provider.dart';
+import 'package:dinmajur_customer/configs/services/app_update_service/app_update_service.dart';
 import 'package:dinmajur_customer/configs/services/nointernet_connectivity_service/nointernet_connectivity_service.dart';
 import 'package:dinmajur_customer/configs/services/one_signal_push_notification/one_signal_pushnotification_service.dart';
 import 'package:dinmajur_customer/configs/services/sse_notification_services/sse_notification_and_ordercount/notification_count_view_model.dart';
@@ -224,6 +225,12 @@ class _NavigationScreenState extends State<NavigationScreen> with WidgetsBinding
   Future<void> _checkForUpgrade() async {
     if (_upgradeChecked) return;
     _upgradeChecked = true;
+
+    // Android: handled in-app via Play's In-App Update API (one tap, no
+    // manual trip to the Play Store). Falls back to the dialog below if
+    // that API isn't available (sideloaded build, Play services missing).
+    if (await AppUpdateService.checkAndUpdate()) return;
+    if (!mounted) return;
 
     final upgrader = Upgrader(countryCode: 'BD', languageCode: 'en');
     await upgrader.initialize();

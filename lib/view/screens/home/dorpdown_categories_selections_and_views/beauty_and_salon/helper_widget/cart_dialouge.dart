@@ -435,10 +435,10 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
               Padding(
                 padding: EdgeInsets.only(bottom: 10),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _serviceTimeButton(context, displaySlots[i]),
-                    if (i + 1 < displaySlots.length) _serviceTimeButton(context, displaySlots[i + 1]) else Expanded(child: SizedBox()),
+                    Expanded(child: _serviceTimeButton(context, displaySlots[i])),
+                    SizedBox(width: 10),
+                    Expanded(child: i + 1 < displaySlots.length ? _serviceTimeButton(context, displaySlots[i + 1]) : SizedBox()),
                   ],
                 ),
               ),
@@ -456,8 +456,8 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
     return GestureDetector(
       onTap: isBooked ? null : () => widget.onTimeSelected(time),
       child: Container(
-        height: 40,
-        width: 150,
+        constraints: const BoxConstraints(minHeight: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isBooked ? AppColors.darkRedColor.withOpacity(0.1) : isSelected ? AppColors.button(context) : AppColors.fieldColor(context),
           borderRadius: BorderRadius.circular(8),
@@ -470,17 +470,18 @@ class _CartDialogWidgetState extends State<CartDialogWidget> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 _formatTo12Hour(time),
-                style: AppTextStyles.textSize16(
+                style: AppTextStyles.textSize13(
                   context,
                   weight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   color: isBooked ? AppColors.subtitle(context) : isSelected ? AppColors.whiteColor : AppColors.subtitle(context),
                 ),
               ),
               if (isBooked) ...[
-                SizedBox(width: 10),
+                SizedBox(width: 4),
                 Text('Booked', style: AppTextStyles.textSize10(context, weight: FontWeight.w600, color: AppColors.darkRedColor)),
               ],
             ],

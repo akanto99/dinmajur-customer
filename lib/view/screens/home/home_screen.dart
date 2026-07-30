@@ -15,6 +15,7 @@ import 'package:dinmajur_customer/l10n/app_localizations.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/banner_widegt/home_banner_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/home_service_search_box/home_service_search_box.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/nostore_founddialouge_widget.dart';
+import 'package:dinmajur_customer/view/screens/home/helper_widgets/referral_promo_banner/referral_promo_banner_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/helper_widgets/show_name_dialouge.dart';
 import 'package:dinmajur_customer/view/screens/home/featured_services_widget/featured_services_widget.dart';
 import 'package:dinmajur_customer/view/screens/home/trending_service_widget/trending_service_widget.dart';
@@ -404,6 +405,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // while that data is still loading or if the request
                   // fails, so the page never renders empty.
                   _buildDynamicHomeSections(context, screenWidth),
+                  SizedboxSpaccing.height025(context),
 
                   TrendingServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
                   SizedboxSpaccing.height02(context),
@@ -482,6 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
               buildBannerWidget(),
               FeaturedServicesWidget(hasValidLocation: _hasValidLocation(), onLocationRequired: _showLocationRequiredDialog),
               allServicesWidget,
+              ReferralPromoBannerWidget(screenWidth: screenWidth),
             ],
           );
         }
@@ -502,6 +505,8 @@ class _HomeScreenState extends State<HomeScreen> {
             widgets.add(buildBannerWidget(cmsId: section.cmsId));
           }
         }
+
+        widgets.add(ReferralPromoBannerWidget(screenWidth: screenWidth));
 
         return Column(children: widgets);
       },

@@ -1,4 +1,5 @@
 import 'package:dinmajur_customer/configs/buttons/round_button.dart';
+import 'package:dinmajur_customer/configs/services/app_update_service/app_update_service.dart';
 import 'package:dinmajur_customer/configs/res/color.dart';
 import 'package:dinmajur_customer/configs/res/components/language_changer/language_changer_widgets.dart';
 import 'package:dinmajur_customer/configs/res/sizedbox_spaccing.dart';
@@ -157,6 +158,12 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
   }
 
   void _checkForUpgrade(BuildContext context) async {
+    // Android: handled in-app via Play's In-App Update API (one tap, no
+    // manual trip to the Play Store). Falls back to the dialog below if
+    // that API isn't available (sideloaded build, Play services missing).
+    if (await AppUpdateService.checkAndUpdate()) return;
+    if (!context.mounted) return;
+
     final upgrader = Upgrader(
       countryCode: 'BD',
       languageCode: 'en',
@@ -164,6 +171,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginScreen> {
       // debugLogging: true,
     );
     await upgrader.initialize();
+    if (!context.mounted) return;
     if (upgrader.shouldDisplayUpgrade()) {
       _showFreelancerUpgradeDialog(context, upgrader);
     }

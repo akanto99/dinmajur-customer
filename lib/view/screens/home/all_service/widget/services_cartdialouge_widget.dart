@@ -495,10 +495,10 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _slotButton(context, displaySlots[i]),
-                    if (i + 1 < displaySlots.length) _slotButton(context, displaySlots[i + 1]) else const Expanded(child: SizedBox()),
+                    Expanded(child: _slotButton(context, displaySlots[i])),
+                    const SizedBox(width: 10),
+                    Expanded(child: i + 1 < displaySlots.length ? _slotButton(context, displaySlots[i + 1]) : const SizedBox()),
                   ],
                 ),
               ),
@@ -521,8 +521,8 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
         widget.onTimeSelected(time, slotId);
       },
       child: Container(
-        height: 40,
-        width: 150,
+        constraints: const BoxConstraints(minHeight: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isBooked
               ? AppColors.darkRedColor.withOpacity(0.1)
@@ -542,10 +542,11 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
         child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 _formatTo12Hour(time),
-                style: AppTextStyles.textSize16(
+                style: AppTextStyles.textSize13(
                   context,
                   weight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   color: isBooked
@@ -556,7 +557,7 @@ class _ServicesCartDialogWidgetState extends State<ServicesCartDialogWidget> {
                 ),
               ),
               if (isBooked) ...[
-                const SizedBox(width: 10),
+                const SizedBox(width: 4),
                 Text(
                   'Booked',
                   style: AppTextStyles.textSize10(context, weight: FontWeight.w600, color: AppColors.darkRedColor),

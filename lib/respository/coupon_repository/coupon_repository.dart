@@ -16,7 +16,20 @@ class CouponRepository {
       throw e;
     }
   }
-
+  Future<dynamic> getPublicCouponsApi({String? serviceId, String? serviceKey}) async {
+    try {
+      final query = <String, String>{
+        if (serviceId != null) 'serviceId': serviceId,
+        if (serviceKey != null) 'serviceKey': serviceKey,
+      };
+      final queryString = query.entries.map((e) => '${e.key}=${e.value}').join('&');
+      final url = queryString.isEmpty ? AppUrl.couponPublicAPI: '${AppUrl.couponPublicAPI}?$queryString';
+      dynamic response = await _apiServices.getGetApiWithHeaderResponse(url);
+      return response;
+    } catch (e) {
+      throw e;
+    }
+  }
   Future<dynamic> getAvailableCouponsApi({String? serviceId, String? serviceKey}) async {
     try {
       final query = <String, String>{
